@@ -823,7 +823,7 @@ bool Tilc::Gui::TGuiControl::DoChildEvent(const SDL_Event& event)
         else
         {
             static long long c{};
-            SDL_Log("NOT In RECT %ld: pt=(%5.2f, %5.2f), Rect=(%5.2f, %5.2f, %5.2f, %5.2f)", ++c, pt.x, pt.y, Rect.x, Rect.y, Rect.w, Rect.h);
+            //SDL_Log("NOT In RECT %ld: pt=(%5.2f, %5.2f), Rect=(%5.2f, %5.2f, %5.2f, %5.2f)", ++c, pt.x, pt.y, Rect.x, Rect.y, Rect.w, Rect.h);
         }
     }
 
