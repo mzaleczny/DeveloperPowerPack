@@ -6,7 +6,10 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
+#include <svg_raster.h>
 namespace fs = std::filesystem;
+
+bool UseSDLSvgRasterizer = false;
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -27,6 +30,7 @@ void RenderWindow();
 void RenderFullNonScaledTexture(std::string FileName, float x, float y, int& TexWidth, int& TexHeight);
 void RenderStretchedTexture(std::string FileName, float x, float y, float w, float h, int& TexWidth, int& TexHeight);
 void RenderScrollBars();
+void RenderSvgTile(std::string Name, SDL_Rect StartRect, bool Split, bool OutputTileToDescriptionFile = true);
 void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split = true);
 
 std::ofstream& operator<<(std::ofstream& out, const SDL_Rect& rc);
@@ -64,7 +68,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     SDL_SetTextureBlendMode(OutputTexture, SDL_BLENDMODE_BLEND);
     if (!OutputTexture)
     {
-        SDL_Log("Couldn't create output texture", SDL_GetError());
+        SDL_Log("Couldn't create output texture");
         return SDL_APP_FAILURE;
     }
 
@@ -89,7 +93,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
     RenderWindow();
     RenderScrollBars();
-    RenderButtons("button", { 5, 180, 75, 25 });
+    RenderButtons("button", { 5, 86, 75, 25 });
 
     SDL_SetRenderTarget(renderer, nullptr);
 
@@ -158,6 +162,7 @@ std::string FindThemeDir()
 void RenderWindow()
 {
     SDL_FRect dr;
+    SDL_Rect rc;
     int FrameWidth{}, FrameHeight{};
     int CaptionWidth{}, CaptionHeight{};
     int CloseButtonWidth{}, CloseButtonHeight{};
@@ -167,160 +172,82 @@ void RenderWindow()
     int BgWidth{}, BgHeight{};
     int top, left;
     float TitleButtonSpacing = 8.0f;
-    SDL_Surface* s = IMG_Load((ThemeDir + "\\line-v.png").c_str());
-    SDL_Texture* t{ nullptr };
-    if (s)
-    {
-        t = SDL_CreateTextureFromSurface(renderer, s);
 
-        if (t)
-        {
-            FrameWidth = s->w;
-            dr = { 0, 0, static_cast<float>(FrameWidth), WINDOW_HEIGHT };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            dr = { static_cast<float>(WINDOW_WIDTH - FrameWidth), 0, static_cast<float>(FrameWidth), WINDOW_HEIGHT };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            SDL_DestroyTexture(t);
-            t = nullptr;
-        }
-        SDL_DestroySurface(s);
-        s = nullptr;
-    }
+    rc = { 0, 1, 1, 24 };
+    RenderSvgTile("line-v", rc, false, false);
+    rc.x += 1;
+    rc.w = 20;
+    RenderSvgTile("window_caption_active", rc, false, false);
+    rc.x += 20;
+    rc.w = 1;
+    RenderSvgTile("line-v", rc, false, false);
 
-    s = IMG_Load((ThemeDir + "\\line-h.png").c_str());
-    if (s)
-    {
-        t = SDL_CreateTextureFromSurface(renderer, s);
+    rc.x += 1;
+    RenderSvgTile("line-v-inactive", rc, false, false);
+    rc.x += 1;
+    rc.w = 20;
+    RenderSvgTile("window_caption_inactive", rc, false, false);
+    rc.x += 20;
+    rc.w = 1;
+    RenderSvgTile("line-v-inactive", rc, false, false);
 
-        if (t)
-        {
-            FrameHeight = s->h;
-            dr = { 0, 0, WINDOW_WIDTH, static_cast<float>(FrameHeight) };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            dr = { 0, static_cast<float>(WINDOW_HEIGHT - FrameHeight), WINDOW_WIDTH, static_cast<float>(FrameHeight) };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            SDL_DestroyTexture(t);
-            t = nullptr;
-        }
-        SDL_DestroySurface(s);
-        s = nullptr;
-    }
 
-    s = IMG_Load((ThemeDir + "\\frame_bg.png").c_str());
-    if (s)
-    {
-        t = SDL_CreateTextureFromSurface(renderer, s);
+    rc.y = 0;
+    rc.x = 0;
+    rc.w = 22;
+    rc.h = 1;
+    RenderSvgTile("line-h", rc, false, false);
+    rc.y += 25;
+    RenderSvgTile("line-h", rc, false, false);
 
-        if (t)
-        {
-            BgWidth = s->w;
-            BgHeight = s->h;
-            dr = { static_cast<float>(FrameWidth), static_cast<float>(FrameHeight), static_cast<float>(s->w), static_cast<float>(s->h) };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            SDL_DestroyTexture(t);
-            t = nullptr;
-        }
-        SDL_DestroySurface(s);
-        s = nullptr;
-    }
+    rc.y = 0;
+    rc.x += 22;
+    RenderSvgTile("line-h-inactive", rc, false, false);
+    rc.y += 25;
+    RenderSvgTile("line-h-inactive", rc, false, false);
 
-    RenderStretchedTexture(ThemeDir + "\\window-caption-active.png", FrameWidth, FrameHeight, WINDOW_WIDTH - 2 * FrameWidth, -1.0f, CaptionWidth, CaptionHeight);
-    RenderStretchedTexture(ThemeDir + "\\window-caption-inactive.png", 0, FrameHeight + CaptionHeight, WINDOW_WIDTH, -1.0f, CaptionWidth, CaptionHeight);
+    rc.x = 44;
+    rc.y = 0;
+    rc.w = 1;
+    rc.h = 1;
+    RenderSvgTile("frame_bg", rc, false, false);
 
-    s = IMG_Load((ThemeDir + "\\line-v-inactive.png").c_str());
-    if (s)
-    {
-        t = SDL_CreateTextureFromSurface(renderer, s);
+    FrameWidth = 1;
+    FrameHeight = 1;
+    CaptionWidth = 20;
+    CaptionHeight = 24;
+    of << "wnd_caption_left: 0, 0, 1, " << CaptionHeight + 2*FrameHeight << std::endl;
+    of << "wnd_caption_middle: " << FrameWidth << ", 0, 1, " << CaptionHeight + 2*FrameHeight << std::endl;
+    of << "wnd_caption_right: " << FrameWidth + CaptionWidth << ", 0, 1, " << CaptionHeight + 2*FrameHeight << std::endl;
+    of << "wnd_caption_inactive_left: " << 2*FrameWidth + CaptionWidth << ", 0, " << CaptionWidth << ", " << CaptionHeight + 2*FrameHeight << std::endl;
+    of << "wnd_caption_inactive_middle: " << 2 * FrameWidth + CaptionWidth + 1 << ", 0, 1, " << CaptionHeight + 2*FrameHeight << std::endl;
+    of << "wnd_caption_inactive_right: " << 2*FrameWidth + 2*CaptionWidth + FrameWidth << ", 0, " << CaptionWidth << ", " << CaptionHeight + 2*FrameHeight << std::endl;
 
-        if (t)
-        {
-            float y = FrameHeight + CaptionHeight;
-            dr = { 1, y, static_cast<float>(FrameWidth), WINDOW_HEIGHT - y - FrameHeight};
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            dr = { static_cast<float>(WINDOW_WIDTH - 2*FrameWidth), y, static_cast<float>(FrameWidth), WINDOW_HEIGHT - y - FrameHeight };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            SDL_DestroyTexture(t);
-            t = nullptr;
-        }
-        SDL_DestroySurface(s);
-        s = nullptr;
-    }
+    of << "wnd_frame_left: 0, 1, " << FrameWidth << ", 24" << std::endl;
+    of << "wnd_frame_right: " << FrameWidth + CaptionWidth << ", 1, " << FrameWidth << ", 24" << std::endl;
+    of << "wnd_frame_bottom: " << FrameWidth << ", " << FrameHeight + CaptionHeight<< ", 20, " << FrameHeight << std::endl;
+    of << "wnd_frame_bottom_left: 0, " << FrameHeight + CaptionHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
+    of << "wnd_frame_bottom_right: " << FrameWidth + CaptionWidth << ", " << FrameHeight + CaptionHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
 
-    s = IMG_Load((ThemeDir + "\\line-h-inactive.png").c_str());
-    if (s)
-    {
-        t = SDL_CreateTextureFromSurface(renderer, s);
-
-        if (t)
-        {
-            float x = FrameWidth;
-            float y = FrameHeight + CaptionHeight;
-            dr = { x, y, static_cast<float>(WINDOW_WIDTH - 2 * FrameWidth), static_cast<float>(FrameHeight) };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            dr = { x, static_cast<float>(WINDOW_HEIGHT - 2*FrameHeight), static_cast<float>(WINDOW_WIDTH - 2 * FrameWidth), static_cast<float>(FrameHeight) };
-            SDL_RenderTexture(renderer, t, nullptr, &dr);
-            SDL_DestroyTexture(t);
-            t = nullptr;
-        }
-        SDL_DestroySurface(s);
-        s = nullptr;
-    }
-
-    of << "wnd_caption_left: 0, 0, " << CaptionWidth << ", " << CaptionHeight + FrameHeight << std::endl;
-    of << "wnd_caption_middle: " << FrameWidth << ", 0, 1, " << CaptionHeight + FrameHeight << std::endl;
-    of << "wnd_caption_right: " << WINDOW_WIDTH - CaptionWidth << ", 0, " << CaptionWidth << ", " << CaptionHeight + FrameHeight << std::endl;
-    of << "wnd_caption_inactive_left: 0, " << FrameHeight + CaptionHeight << ", " << CaptionWidth << ", " << CaptionHeight + FrameHeight << std::endl;
-    of << "wnd_caption_inactive_middle: " << CaptionWidth + 1 << ", " << FrameHeight + CaptionHeight << ", 1, " << CaptionHeight + FrameHeight << std::endl;
-    of << "wnd_caption_inactive_right: " << WINDOW_WIDTH - CaptionWidth << ", " << FrameHeight + CaptionHeight << ", " << CaptionWidth << ", " << CaptionHeight + FrameHeight << std::endl;
-
-    of << "wnd_frame_left: 0, " << 2 * CaptionHeight + FrameHeight << ", " << FrameWidth << ", 1" << std::endl;
-    of << "wnd_frame_right: " << WINDOW_WIDTH - FrameWidth << ", " << 2 * CaptionHeight + FrameHeight << ", " << FrameWidth << ", 1" << std::endl;
-    of << "wnd_frame_bottom: " << FrameWidth << ", " << WINDOW_HEIGHT - FrameHeight << ", 1, " << FrameHeight << std::endl;
-    of << "wnd_frame_bottom_left: 0, " << WINDOW_HEIGHT - FrameHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
-    of << "wnd_frame_bottom_right: " << WINDOW_WIDTH - FrameWidth << ", " << WINDOW_HEIGHT - FrameHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
-
-    of << "wnd_frame_inactive_left: 1, " << 2 * CaptionHeight + FrameHeight << ", " << FrameWidth << ", 1" << std::endl;
-    of << "wnd_frame_inactive_right: " << WINDOW_WIDTH - 2 * FrameWidth << ", " << 2 * CaptionHeight + FrameHeight << ", " << FrameWidth << ", 1" << std::endl;
-    of << "wnd_frame_inactive_bottom: " << 2 * FrameWidth << ", " << WINDOW_HEIGHT - 2 * FrameHeight << ", 1, " << FrameHeight << std::endl;
-    of << "wnd_frame_inactive_bottom_left: 0, " << WINDOW_HEIGHT - 2 * FrameHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
-    of << "wnd_frame_inactive_bottom_right: " << WINDOW_WIDTH - 2 * FrameWidth << ", " << WINDOW_HEIGHT - 2 * FrameHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
+    of << "wnd_frame_inactive_left: " << 2*FrameWidth + CaptionWidth << ", 0, " << FrameWidth << ", 1" << std::endl;
+    of << "wnd_frame_inactive_right: " << 2*FrameWidth + CaptionWidth + FrameWidth << ", 0, " << FrameWidth << ", 1" << std::endl;
+    of << "wnd_frame_inactive_bottom: " << 2*FrameWidth + CaptionWidth << ", " << FrameHeight + CaptionHeight << ", 1, " << FrameHeight << std::endl;
+    of << "wnd_frame_inactive_bottom_left: " << 2 * FrameWidth + CaptionWidth << ", " << FrameHeight + CaptionHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
+    of << "wnd_frame_inactive_bottom_right: " << 2*FrameWidth + 2*CaptionWidth + FrameWidth << ", " << FrameHeight + CaptionHeight << ", " << FrameWidth << ", " << FrameHeight << std::endl;
 
     top = FrameHeight + 2 * CaptionHeight + 2;
 
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-close.png", FrameWidth + 1 + BgWidth, top, CloseButtonWidth, CloseButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-close-active.png", FrameWidth + 1 + BgWidth + 4 + CloseButtonWidth, top, CloseButtonWidth, CloseButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-close-hover.png", FrameWidth + 1 + BgWidth + 2 * 4 + 2 * CloseButtonWidth, top, CloseButtonWidth, CloseButtonHeight);
-    of << "wnd_close_button: " << FrameWidth + 1 + BgWidth << ", " << top << ", " << CloseButtonWidth << ", " << CloseButtonHeight << std::endl;
-    of << "wnd_close_button_active: " << FrameWidth + 1 + BgWidth + 4 + CloseButtonWidth << ", " << top << ", " << CloseButtonWidth << ", " << CloseButtonHeight << std::endl;
-    of << "wnd_close_button_hover: " << FrameWidth + 1 + BgWidth + 2 * 4 + 2 * CloseButtonWidth << ", " << top << ", " << CloseButtonWidth << ", " << CloseButtonHeight << std::endl;
-
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-maximize.png", FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth, top, MaximizeButtonWidth, MaximizeButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-maximize-active.png", FrameWidth + 1 + BgWidth + 4 * 4 + 4 * CloseButtonWidth, top, MaximizeButtonWidth, MaximizeButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-maximize-hover.png", FrameWidth + 1 + BgWidth + 5 * 4 + 5 * CloseButtonWidth, top, MaximizeButtonWidth, MaximizeButtonHeight);
-    of << "wnd_maximize_button: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth << ", " << top << ", " << MaximizeButtonWidth << ", " << MaximizeButtonHeight << std::endl;
-    of << "wnd_maximize_button_active: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth + 4 + MinimizeButtonWidth << ", " << top << ", " << MaximizeButtonWidth << ", " << MaximizeButtonHeight << std::endl;
-    of << "wnd_maximize_button_hover: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth
-        + 2 * 4 + 2 * MaximizeButtonWidth << ", " << top << ", " << MaximizeButtonWidth << ", " << MaximizeButtonHeight << std::endl;
-
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-restore.png", FrameWidth + 1 + BgWidth + 6 * 4 + 6 * CloseButtonWidth, top, RestoreButtonWidth, RestoreButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-restore-active.png", FrameWidth + 1 + BgWidth + 7 * 4 + 7 * CloseButtonWidth, top, RestoreButtonWidth, RestoreButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-restore-hover.png", FrameWidth + 1 + BgWidth + 8 * 4 + 8 * CloseButtonWidth, top, RestoreButtonWidth, RestoreButtonHeight);
-    of << "wnd_restore_button: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth
-        + 3 * 4 + 3 * MaximizeButtonWidth << ", " << top << ", " << RestoreButtonWidth << ", " << RestoreButtonHeight << std::endl;
-    of << "wnd_restore_button_active: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth
-        + 3 * 4 + 3 * MaximizeButtonWidth + 4 + RestoreButtonWidth << ", " << top << ", " << RestoreButtonWidth << ", " << RestoreButtonHeight << std::endl;
-    of << "wnd_restore_button_hover: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth
-        + 3 * 4 + 3 * MaximizeButtonWidth + 2 * 4 + 2 * RestoreButtonWidth << ", " << top << ", " << RestoreButtonWidth << ", " << RestoreButtonHeight << std::endl;
-    
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-minimize.png", FrameWidth + 1 + BgWidth + 9 * 4 + 9 * CloseButtonWidth, top, MinimizeButtonWidth, MinimizeButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-minimize-active.png", FrameWidth + 1 + BgWidth + 10 * 4 + 10 * CloseButtonWidth, top, MinimizeButtonWidth, MinimizeButtonHeight);
-    RenderFullNonScaledTexture(ThemeDir + "\\titlebutton-minimize-hover.png", FrameWidth + 1 + BgWidth + 11 * 4 + 11 * CloseButtonWidth, top, MinimizeButtonWidth, MinimizeButtonHeight);
-    of << "wnd_minimize_button: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth
-        + 3 * 4 + 3 * MaximizeButtonWidth + 3 * 4 + 3 * RestoreButtonWidth << ", " << top << ", " << MinimizeButtonWidth << ", " << MinimizeButtonHeight << std::endl;
-    of << "wnd_minimize_button_active: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth
-        + 3 * 4 + 3 * MaximizeButtonWidth + 3 * 4 + 3 * RestoreButtonWidth + 4 + MinimizeButtonWidth << ", " << top << ", " << MinimizeButtonWidth << ", " << MinimizeButtonHeight << std::endl;
-    of << "wnd_minimize_button_hover: " << FrameWidth + 1 + BgWidth + 3 * 4 + 3 * CloseButtonWidth
-        + 3 * 4 + 3 * MaximizeButtonWidth + 3 * 4 + 3 * RestoreButtonWidth + 2 * 4 + 2 * MinimizeButtonWidth << ", " << top << ", " << MinimizeButtonWidth << ", " << MinimizeButtonHeight << std::endl;
+    rc.x = FrameWidth + 1 + BgWidth;
+    rc.y = 26;
+    rc.w = CloseButtonWidth = 20;
+    rc.h = CloseButtonHeight = 20;
+    RenderButtons("wnd_close_button", rc, false);
+    rc.x += 20;
+    RenderButtons("wnd_maximize_button", rc, false);
+    rc.x += 20;
+    RenderButtons("wnd_minimize_button", rc, false);
+    rc.x += 20;
+    RenderButtons("wnd_restore_button", rc, false);
 
     of << "wnd_leftmenu_button: 0, 0, 0, 0" << std::endl;
 }
@@ -371,8 +298,8 @@ void RenderStretchedTexture(std::string FileName, float x, float y, float w, flo
 
 void RenderScrollBars()
 {
-    constexpr const int size = 15;
-    SDL_Rect rc{ 5, 80, size, size }, LeftRC, MiddleRC, RightRC;
+    constexpr const int size = 16;
+    SDL_Rect rc{ 84, 26, size, size }, LeftRC, MiddleRC, RightRC;
     SDL_FRect frc;
     SDL_Texture* Texture;
     int x, y;
@@ -455,12 +382,53 @@ void RenderScrollBars()
     */
 }
 
+void RenderSvgTile(std::string Name, SDL_Rect StartRect, bool Split, bool OutputTileToDescriptionFile)
+{
+    SDL_Rect rc = StartRect, LeftRC, MiddleRC, RightRC;
+    SDL_FRect frc;
+    SDL_Texture* Texture;
+    Texture = LoadSVG((ThemeDir + "/" + Name + ".svg").c_str(), rc.w, rc.h);
+    if (Texture)
+    {
+        SDL_RectToFRect(&rc, &frc);
+        SDL_RenderTexture(renderer, Texture, nullptr, &frc);
+
+        if (OutputTileToDescriptionFile)
+        {
+            if (Split)
+            {
+                LeftRC = rc;
+                LeftRC.w = static_cast<int>(rc.w / 3.0f);
+                of << Name + "_left_rc: ";
+                of << LeftRC << std::endl;
+
+                RightRC = rc;
+                RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
+                RightRC.w = static_cast<int>(rc.w / 3.0f);
+                of << Name + "_right_rc: ";
+                of << RightRC << std::endl;
+
+                MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
+                of << Name + "_middle_rc: ";
+                of << MiddleRC << std::endl;
+            }
+            else
+            {
+                of << Name + "_rc: ";
+                of << rc << std::endl;
+            }
+        }
+        SDL_DestroyTexture(Texture);
+        rc.y += StartRect.h;
+    }
+}
+
 void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
 {
     SDL_Rect rc = StartRect, LeftRC, MiddleRC, RightRC;
     SDL_FRect frc;
     SDL_Texture* ButtonTexture;
-    ButtonTexture = LoadSVG((ThemeDir + "/" + Name + ".svg").c_str(), 75, 25);
+    ButtonTexture = LoadSVG((ThemeDir + "/" + Name + ".svg").c_str(), rc.w, rc.h);
     if (ButtonTexture)
     {
         SDL_RectToFRect(&rc, &frc);
@@ -686,15 +654,44 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
 
 SDL_Texture* LoadSVG(const char* Filename, int Width, int Height)
 {
-    SDL_IOStream* stream = SDL_IOFromFile(Filename, "r");
-    SDL_Surface* Surface = IMG_LoadSizedSVG_IO(stream, Width, Height);
-    SDL_CloseIO(stream);
-
     SDL_Texture* Texture{};
-    if (Surface)
+    if (UseSDLSvgRasterizer)
     {
-        Texture = SDL_CreateTextureFromSurface(renderer, Surface);
-        SDL_DestroySurface(Surface);
+        SDL_IOStream* stream = SDL_IOFromFile(Filename, "r");
+        SDL_Surface* Surface = IMG_LoadSizedSVG_IO(stream, Width, Height);
+        SDL_CloseIO(stream);
+
+        if (Surface)
+        {
+            Texture = SDL_CreateTextureFromSurface(renderer, Surface);
+            SDL_DestroySurface(Surface);
+        }
     }
+    else
+    {
+        SvgBitmap bmp{};
+        if (render_svg_to_rgba_scaled(Filename, Width, Height, &bmp) != 0)
+        {
+            return nullptr;
+        }
+
+        SDL_Surface* surf = SDL_CreateSurfaceFrom(
+            bmp.width,
+            bmp.height,
+            SDL_PIXELFORMAT_RGBA32,
+            bmp.data,
+            bmp.width * 4
+        );
+
+        // używasz surf - tworzysz teksturę:
+        Texture = SDL_CreateTextureFromSurface(renderer, surf);
+
+        // po użyciu:
+        SDL_DestroySurface(surf);
+
+        // UWAGA: SDL nie zwalnia bmp.data — musisz zrobić to sam:
+        free_svg_bitmap(bmp.data, bmp.len);
+    }
+
     return Texture;
 }
