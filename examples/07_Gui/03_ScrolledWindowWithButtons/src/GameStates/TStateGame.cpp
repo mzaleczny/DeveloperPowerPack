@@ -11,7 +11,6 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
 {
 	Tilc::TExtString s("Seeded random number generator with: " + std::to_string(time(NULL)));
     //m_TextBox = new Tilc::Gui::TTextBox(nullptr, "", nullptr, {}, s.c_str(), s.length(), Tilc::GameObject->GetFont("Arial"), 14.0f);
-    Tilc::Gui::TStyledWindow* wnd = 
     Tilc::GameObject->GetContext()->m_Window->m_StyledWindow = new Tilc::Gui::TStyledWindow(
         nullptr,
         "MainWindow",
