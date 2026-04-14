@@ -1,0 +1,2 @@
+cl -MD -EHsc -std:c++latest -I f:/libs/include -I f:/libs/SDL3/include f:/libs/SDL3/SDL3.lib f:/libs/SDL3/SDL3_ttf.lib f:/libs/svg_raster.lib ws2_32.lib userenv.lib advapi32.lib bcrypt.lib ntdll.lib "%1"
+del *.obj
