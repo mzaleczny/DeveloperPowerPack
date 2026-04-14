@@ -376,6 +376,8 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseMove(const SDL_Event& event)
 
     Tilc::Gui::TGuiControl::OnMouseMove(event);
 
+    SDL_FRect RealPosition = GetRealPosition();
+
     // jeśli przeciągamy suwak i jesteśmy poza nim, to i tak obsługujemy to zdarzenie
     if (m_ControlThatCapturedMouse == this)
     {
@@ -384,8 +386,8 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseMove(const SDL_Event& event)
         {
             float localX;
             float localY;
-            localX = event.motion.x - m_Position.x;
-            localY = event.motion.y - m_Position.y;
+            localX = event.motion.x - RealPosition.x;
+            localY = event.motion.y - RealPosition.y;
 
             int position = CalculatePositionForThumbCoords(localX - m_ThumbOffsetX, localY - m_ThumbOffsetY);
             //SDL_Log("%6.2f x %6.2f          %6.2f x %6.2f          %6.2f x %6.2f          %6.2f x %6.2f:         %d", dx, dy, mx, my, m_DragStartX, m_DragStartY, m_ThumbOffsetX, m_ThumbOffsetY, position);
@@ -400,7 +402,7 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseMove(const SDL_Event& event)
     m_DetailedState = 0;
 
     SDL_FPoint p{ event.motion.x, event.motion.y };
-    SDL_FRect TestedRect = m_Position;
+    SDL_FRect TestedRect = RealPosition;
     // sprawdzamy czy jestesmy nad strzałką w lewo, po to by ustawić hovering state dla buttona tej strzalki
     TestedRect.w = t->scrollbar_horizontal_arrow_left_rc.w;
     if (SDL_PointInRectFloat(&p, &TestedRect))
@@ -412,7 +414,7 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseMove(const SDL_Event& event)
     {
         // sprawdzamy czy jestesmy nad strzałką w prawo, po to by ustawić hovering state dla buttona tej strzalki
         TestedRect.w = t->scrollbar_horizontal_arrow_right_rc.w;
-        TestedRect.x = m_Position.x + m_Position.w - TestedRect.w;
+        TestedRect.x = RealPosition.x + RealPosition.w - TestedRect.w;
         if (SDL_PointInRectFloat(&p, &TestedRect))
         {
             //SDL_Log("Call SetDetailedState to: %d - CSCROLLBAR_STATE_HOVER_RIGHT_BUTTON", CSCROLLBAR_STATE_HOVER_RIGHT_BUTTON);
@@ -427,7 +429,7 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseMove(const SDL_Event& event)
     if (PointIn(event.motion.x, event.motion.y))
     {
         // jeśli lewy przycisk myszki został wciśnięty, ale nie zwolniony, to
-        if (m_LeftMouseButtonPressed)
+        if (event.button.button == SDL_BUTTON_LEFT)
         {
             float localX = event.motion.x - m_Position.x;
             float localY = event.motion.y - m_Position.y;
@@ -500,12 +502,12 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseButtonDown(const SDL_Event& event)
 
     Tilc::Gui::TGuiControl::OnMouseButtonDown(event);
 
-    float localX = event.motion.x - m_Position.x;
-    float localY = event.motion.y - m_Position.y;
+    SDL_FRect Position = GetRealPosition();
+    float localX = event.button.x - Position.x;
+    float localY = event.button.y - Position.y;
 
-    if (PointIn(event.motion.x, event.motion.y))
+    if (PointIn(event.button.x, event.button.y))
     {
-        m_LeftMouseButtonPressed = true;
         GetParentWindow()->CaptureMouse(this);
 
         // jeśli kliknięto w strzałkę w lewo, to przechodzimy do odpowiedniego stanu
@@ -563,11 +565,11 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseButtonUp(const SDL_Event& event)
 
     Tilc::Gui::TGuiControl::OnMouseButtonUp(event);
 
-    m_LeftMouseButtonPressed = false;
     //this->getParentWindow()->captureMouse(NULL);
 
-    float localX = event.motion.x - m_Position.x;
-    float localY = event.motion.y - m_Position.y;
+    SDL_FRect Position = GetRealPosition();
+    float localX = event.button.x - Position.x;
+    float localY = event.button.y - Position.y;
     SetDetailedState(CSCROLLBAR_STATE_NORMAL);
 
     // jeśli jesteśmy na strzałce w lewo, to przechodzimy do odpowiedniego stanu
@@ -584,7 +586,7 @@ bool Tilc::Gui::TScrollBarHorizontal::OnMouseButtonUp(const SDL_Event& event)
 
     m_StateInitiatedByMouseDown = CSCROLLBAR_STATE_NORMAL;
     Invalidate();
-    if (PointIn(event.motion.x, event.motion.y))
+    if (PointIn(event.button.x, event.button.y))
     {
         return true;
     }

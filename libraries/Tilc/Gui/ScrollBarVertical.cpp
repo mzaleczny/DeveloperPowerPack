@@ -325,8 +325,7 @@ bool Tilc::Gui::TScrollBarVertical::MouseOnThumb(int localX, int localY)
 
 bool Tilc::Gui::TScrollBarVertical::MouseOnArrowUp(int localX, int localY)
 {
-    localX -= m_OffsetX;
-    localY -= m_OffsetY;
+    //std::cout << "local: (" << localX << ", " << localY << std::endl;
     if (localX >= 0 && localX <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_vertical_arrow_up_rc.w &&
         localY >= 0 && localY <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_vertical_arrow_up_rc.h)
     {
@@ -338,8 +337,6 @@ bool Tilc::Gui::TScrollBarVertical::MouseOnArrowUp(int localX, int localY)
 
 bool Tilc::Gui::TScrollBarVertical::MouseOnArrowDown(int localX, int localY)
 {
-    localX -= m_OffsetX;
-    localY -= m_OffsetY;
     if (localX >= 0  && localX <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_vertical_arrow_down_rc.w &&
         localY >= m_Position.h - Tilc::GameObject->GetContext()->m_Theme->scrollbar_vertical_arrow_down_rc.h && localY <= m_Position.h)
     {
@@ -354,8 +351,6 @@ bool Tilc::Gui::TScrollBarVertical::MouseOnBgUp(int localX, int localY)
     float CurrentThumbX, CurrentThumbY;
     CalculateThumbLeftTopCorner(CurrentThumbX, CurrentThumbY);
 
-    localX -= m_OffsetX;
-    localY -= m_OffsetY;
     if (localX >= 0 &&
         localX <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_vertical_bg_rc.w &&
         localY >= Tilc::GameObject->GetContext()->m_Theme->scrollbar_vertical_arrow_up_rc.h && localY < CurrentThumbY)
@@ -370,8 +365,6 @@ bool Tilc::Gui::TScrollBarVertical::MouseOnBgDown(int localX, int localY)
     float CurrentThumbX, CurrentThumbY;
     CalculateThumbLeftTopCorner(CurrentThumbX, CurrentThumbY);
 
-    localX -= m_OffsetX;
-    localY -= m_OffsetY;
     if (localX >= 0 &&
         localX <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_vertical_bg_rc.w &&
         localY >= CurrentThumbY + m_ThumbSize &&
@@ -393,6 +386,8 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseMove(const SDL_Event& event)
 
     Tilc::Gui::TGuiControl::OnMouseMove(event);
 
+    SDL_FRect RealPosition = GetRealPosition();
+
     // jeśli przeciągamy suwak i jesteśmy poza nim, to i tak obsługujemy to zdarzenie
     if (m_ControlThatCapturedMouse == this)
     {
@@ -401,8 +396,8 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseMove(const SDL_Event& event)
         {
             float localX;
             float localY;
-            localX = event.motion.x - m_Position.x;
-            localY = event.motion.y - m_Position.y;
+            localX = event.motion.x - RealPosition.x;
+            localY = event.motion.y - RealPosition.y;
 
             int position = CalculatePositionForThumbCoords(localX - m_ThumbOffsetX, localY - m_ThumbOffsetY);
             //SDL_Log("%6.2f x %6.2f          %6.2f x %6.2f          %6.2f x %6.2f          %6.2f x %6.2f:         %d", dx, dy, mx, my, m_DragStartX, m_DragStartY, m_ThumbOffsetX, m_ThumbOffsetY, position);
@@ -417,7 +412,7 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseMove(const SDL_Event& event)
     m_DetailedState = 0;
 
     SDL_FPoint p{ event.motion.x, event.motion.y };
-    SDL_FRect TestedRect = m_Position;
+    SDL_FRect TestedRect = RealPosition;
     // sprawdzamy czy jestesmy nad strzałką do góry, po to by ustawić hovering state dla buttona tej strzalki
     TestedRect.h = t->scrollbar_vertical_arrow_up_rc.h;
     if (SDL_PointInRectFloat(&p, &TestedRect))
@@ -428,7 +423,7 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseMove(const SDL_Event& event)
     {
         // sprawdzamy czy jestesmy nad strzałką w dół, po to by ustawić hovering state dla buttona tej strzalki
         TestedRect.h = t->scrollbar_vertical_arrow_down_rc.h;
-        TestedRect.y = m_Position.y + m_Position.h - TestedRect.h;
+        TestedRect.y = RealPosition.y + RealPosition.h - TestedRect.h;
         if (SDL_PointInRectFloat(&p, &TestedRect))
         {
             SetDetailedState(CSCROLLBAR_STATE_HOVER_DOWN_BUTTON);
@@ -442,10 +437,11 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseMove(const SDL_Event& event)
     if (PointIn(event.motion.x, event.motion.y))
     {
         // jeśli lewy przycisk myszki został wciśnięty, ale nie zwolniony, to
-        if (m_LeftMouseButtonPressed)
+        if (event.button.button == SDL_BUTTON_LEFT)
         {
-            float localX = event.motion.x - m_Position.x;
-            float localY = event.motion.y - m_Position.y;
+            SDL_FRect Position = GetRealPosition();
+            float localX = event.motion.x - Position.x;
+            float localY = event.motion.y - Position.y;
 
             // jeśli jesteśmy nad suwakiem, to przechodzimy do odpowiedniego stanu
             if (m_StateInitiatedByMouseDown == CSCROLLBAR_STATE_THUMB_DRAGGING && MouseOnThumb(localX, localY))
@@ -510,12 +506,19 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseButtonDown(const SDL_Event& event)
 
     Tilc::Gui::TGuiControl::OnMouseButtonDown(event);
 
-    float localX = event.motion.x - m_Position.x;
-    float localY = event.motion.y - m_Position.y;
+    SDL_FRect Position = GetRealPosition();
 
-    if (PointIn(event.motion.x, event.motion.y))
+    /*
+    std::cout << "Event: (" << event.motion.x << ", " << event.motion.y << ")  " << std::endl
+        << "    Position: (" << m_Position.x << ", " << m_Position.y << ") " << std::endl
+        << "    RealPosition: (" << Position.x << ", " << Position.y << ") " << std::endl
+        << "    ParentPosition: (" << m_Parent->m_Position.x << ", " << m_Parent->m_Position.y << ") " << std::endl;
+    */
+    float localX = event.button.x - Position.x;
+    float localY = event.button.y - Position.y;
+
+    if (PointIn(event.button.x, event.button.y))
     {
-        m_LeftMouseButtonPressed = true;
         GetParentWindow()->CaptureMouse(this);
 
         // jeśli kliknięto w strzałkę do góry, to przechodzimy do odpowiedniego stanu
@@ -572,10 +575,9 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseButtonUp(const SDL_Event& event)
 
     Tilc::Gui::TGuiControl::OnMouseButtonUp(event);
 
-    m_LeftMouseButtonPressed = false;
-
-    float localX = event.motion.x - m_Position.x;
-    float localY = event.motion.y - m_Position.y;
+    SDL_FRect Position = GetRealPosition();
+    float localX = event.button.x - Position.x;
+    float localY = event.button.y - Position.y;
     SetDetailedState(CSCROLLBAR_STATE_NORMAL);
 
     // jeśli jesteśmy na strzałce do góry, to przechodzimy do odpowiedniego stanu
@@ -591,7 +593,7 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseButtonUp(const SDL_Event& event)
 
     m_StateInitiatedByMouseDown = CSCROLLBAR_STATE_NORMAL;
     Invalidate();
-    if (PointIn(event.motion.x, event.motion.y))
+    if (PointIn(event.button.x, event.button.y))
     {
         return true;
     }

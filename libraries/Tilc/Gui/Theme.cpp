@@ -141,29 +141,29 @@ void Tilc::Gui::TTheme::LoadWindowSkinResources(Tilc::TExtString themeName)
                 wnd_frame_inactive_bottom_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
             else if (Item == "wnd_frame_inactive_bottom_left")
                 wnd_frame_inactive_bottom_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_close_button")
+            else if (Item == "wnd_close_button_rc")
                 wnd_close_button_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_close_button_active")
+            else if (Item == "wnd_close_button_focused_rc")
                 wnd_close_button_active_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_close_button_hover")
+            else if (Item == "wnd_close_button_hover_rc")
                 wnd_close_button_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_minimize_button")
+            else if (Item == "wnd_minimize_button_rc")
                 wnd_minimize_button_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_minimize_button_active")
+            else if (Item == "wnd_minimize_button_active_rc")
                 wnd_minimize_button_active_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_minimize_button_hover")
+            else if (Item == "wnd_minimize_button_hover_rc")
                 wnd_minimize_button_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_maximize_button")
+            else if (Item == "wnd_maximize_button_rc")
                 wnd_maximize_button_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_maximize_button_active")
+            else if (Item == "wnd_maximize_button_focused_rc")
                 wnd_maximize_button_active_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_maximize_button_hover")
+            else if (Item == "wnd_maximize_button_hover_rc")
                 wnd_maximize_button_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_restore_button")
+            else if (Item == "wnd_restore_button_rc")
                 wnd_restore_button_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_restore_button_active")
+            else if (Item == "wnd_restore_button_active_rc")
                 wnd_restore_button_active_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "wnd_restore_button_hover")
+            else if (Item == "wnd_restore_button_hover_rc")
                 wnd_restore_button_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
             else if (Item == "wnd_leftmenu_button")
             {

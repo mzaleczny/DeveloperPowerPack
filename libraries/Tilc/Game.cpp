@@ -11,6 +11,8 @@
 #include <Tilc/Graphics/TextRenderer.h>
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Theme.h"
+#include "Tilc/Gui/GuiCOntrol.h"
+#include "Tilc/Gui/StyledWindow.h"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <sstream>
@@ -238,6 +240,31 @@ inline Tilc::Graphics::TCamera* Tilc::TGame::GetCurrentCamera()
 void Tilc::TGame::LateUpdate()
 {
 	m_Context.m_StateManager.ProcessRequests();
+
+    // we do delete controls destroyed during event processing. We do it here to ensure that they are still not used in code
+    if (m_Context.m_Window && m_Context.m_Window->m_TopmostWindow)
+    {
+        // first delete controls
+        if (!m_Context.m_Window->m_ControlsToDestroy.empty())
+        {
+            for (auto it = m_Context.m_Window->m_ControlsToDestroy.begin(); it != m_Context.m_Window->m_ControlsToDestroy.end(); ++it)
+            {
+                // deleting this object causes remove it from parent child windows and setting proper next active window if any is available
+                delete (*it);
+            }
+            m_Context.m_Window->m_ControlsToDestroy.clear();
+        }
+        // and then windows
+        if (!m_Context.m_Window->m_WindowsToDestroy.empty())
+        {
+            for (auto it = m_Context.m_Window->m_WindowsToDestroy.begin(); it != m_Context.m_Window->m_WindowsToDestroy.end(); ++it)
+            {
+                // deleting this object causes remove it from parent child windows and setting proper next active window if any is available
+                delete (*it);
+            }
+            m_Context.m_Window->m_WindowsToDestroy.clear();
+        }
+    }
 }
 
 Tilc::EStateType Tilc::TGame::GetCurrentState()

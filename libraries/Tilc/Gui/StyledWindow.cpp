@@ -1,3 +1,5 @@
+#include "Tilc/StateManager.h"
+#include "Tilc/Game.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/TextField.h"
 #include "Tilc/Gui/Caret.h"
@@ -37,19 +39,19 @@ void Tilc::Gui::TStyledWindow::CommonInit(Tilc::TExtString layoutFilename)
 }
 
 Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position)
-    : TGuiControl(parent, name, position)
+    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_WindowControl)
 {
     CommonInit();
 }
 
 Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layoutFilename)
-    : TGuiControl(parent, name, position)
+    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_WindowControl)
 {
     CommonInit(layoutFilename);
 }
 
 Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layout, int layoutContentType, bool returnEditedValues)
-    : TGuiControl(parent, name, position)
+    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_WindowControl)
 {
     CommonInit();
     LoadGuiLayout(layout, true);
@@ -60,6 +62,7 @@ Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString na
 
 Tilc::Gui::TStyledWindow::~TStyledWindow()
 {
+    RemoveFromParent();
     if (m_Caret)
     {
         delete m_Caret;
@@ -67,9 +70,35 @@ Tilc::Gui::TStyledWindow::~TStyledWindow()
     }
 }
 
+void Tilc::Gui::TStyledWindow::RemoveFromParent()
+{
+    if (m_Parent)
+    {
+        // usuwamy to okno z listy rodzica
+        m_Parent->AllWindowsList().erase(std::remove(m_Parent->AllWindowsList().begin(), m_Parent->AllWindowsList().end(), this), m_Parent->AllWindowsList().end());
+        // jesli rodzic wskazywal zmienna ActiveWindow na to usuwane okno
+        if (m_Parent->GetActiveWindow() == this)
+        {
+            // to jesli na liscie podokien nie ma już żadnego, to zerujemy tą zmienną
+            if (m_Parent->AllWindowsList().empty())
+            {
+                m_Parent->SetActiveWindow(nullptr, false);
+            }
+            else
+            {
+                // w przeciwnym razie wskazujemy na najwyższe (ostatnie na liście) w kolejności
+                m_Parent->SetActiveWindow(*(--m_Parent->AllWindowsList().end()), true);
+            }
+        }
+    }
+
+    std::list<Tilc::Gui::TStyledWindow*>& AllWindows = Tilc::GameObject->GetContext()->m_Window->m_AllWindows;
+    AllWindows.erase(std::remove(AllWindows.begin(), AllWindows.end(), this), AllWindows.end());
+}
+
 void Tilc::Gui::TStyledWindow::Draw()
 {
-    if (!m_Visible) return;
+    if (!m_Visible || Tilc::GameObject->GetContext()->m_Window->IsMinimized()) return;
 
     bool bConvertToGrayscale = (m_NeedUpdate != ENeedUpdate::ENU_None);
     if (bConvertToGrayscale && Tilc::GameObject->GetContext()->m_Window->IsFocused())
@@ -89,21 +118,17 @@ void Tilc::Gui::TStyledWindow::Draw()
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_Canvas);
 
+        if (!m_Parent)
+        {
+            DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
+        }
+        else
+        {
+            DestRect = { 0, 0, m_Position.w, m_Position.h };
+        }
         // Full Canvas of window is light gray
-        DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
         SDL_SetRenderDrawColor(Renderer, 0xa0, 0xa0, 0xa0, 0xff);
         SDL_RenderFillRect(Renderer, &DestRect);
-
-        // Dzieci rysujemy po wypelnieniu okna tlem po to, żeby po uwzględnienia scrollowania, przesuniete dzieci nie narysowaly się na nagłówku czy obramowaniu okna
-        DrawChildren();
-
-        // ================================================================
-        // Rysujemy belkę tytułową
-        // ================================================================
-        DrawCaption();
-        // ================================================================
-        // Koniec rysowania belki tytułowej
-        // ================================================================
 
         // ================================================================
         // Rysujemy obramowanie okna
@@ -134,6 +159,11 @@ void Tilc::Gui::TStyledWindow::Draw()
         // ================================================================
         // Koniec rysowania obramowania okna
         // ================================================================
+
+        // Dzieci rysujemy po wypelnieniu okna tlem po to, żeby po uwzględnienia scrollowania, przesuniete dzieci nie narysowaly się na nagłówku czy obramowaniu okna
+        DrawChildren();
+        DrawChildWindows();
+        DrawCaption();
 
 
         /*
@@ -180,7 +210,7 @@ void Tilc::Gui::TStyledWindow::Draw()
             m_Canvas = GrayTex;
         }
     }
-    SDL_RenderTexture(Renderer, m_Canvas, nullptr, nullptr);
+    SDL_RenderTexture(Renderer, m_Canvas, nullptr, &m_Position);
 }
 
 void Tilc::Gui::TStyledWindow::DrawCaptionButtons()
@@ -206,6 +236,11 @@ void Tilc::Gui::TStyledWindow::DrawCaptionButtons()
         wnd_close_button_rc = t->wnd_close_button_hover_rc;
     }
     RenderTexture(TextureMap, &wnd_close_button_rc, x, y);
+
+    if (m_Parent)
+    {
+        return;
+    }
 
     if (m_AllowResizing)
     {
@@ -716,20 +751,41 @@ bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
     Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     if (!t) return false;
 
-    // jesli kliknieto na naglowku
-    if (event.motion.y >= 0 && event.motion.y < t->wnd_caption_middle_rc.h)
+    // najpierw sprawdzamy czy kliknęliśmy na ngłówku okna głównego, żeby nie wywoływać obu draggów głównego i podokna równocześnie bo będąsię gryzły
+    Tilc::Gui::TStyledWindow* TopWindow = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
+    if (this != TopWindow && (event.button.y >= TopWindow->m_Position.y && event.button.y < TopWindow->m_Position.y + t->wnd_caption_middle_rc.h))
     {
+        return false;
+    }
+
+    SDL_FRect RealPosition = GetRealPosition();
+    // jesli kliknieto na naglowku
+    if (event.button.y >= RealPosition.y && event.button.y < RealPosition.y + t->wnd_caption_middle_rc.h)
+    {
+        SDL_FRect RealPosition = GetRealPosition();
         Tilc::TWindow* wnd = Tilc::GameObject->GetContext()->m_Window;
-        float ButtonX = m_Position.w - GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME - t->wnd_close_button_rc.w;
-        if (event.motion.x >= ButtonX && event.motion.x < ButtonX + t->wnd_close_button_rc.w)
+        wnd->m_DraggedWindow = this;
+        float ButtonX = RealPosition.x + RealPosition.w - GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME - t->wnd_close_button_rc.w;
+        if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_close_button_rc.w)
         {
-            wnd->Close();
+            // If this is a topmost StyledWindow then we close application window and thus entire application
+            if (!m_Parent)
+            {
+                wnd->Close();
+            }
+            else
+            {
+                m_Parent->Invalidate();
+                // Do late delete of the control, it is done after all events was processed
+                Destroy();
+            }
+            return true;
         }
         else
         {
             ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_maximize_button_rc.w;
             // Maximize/Restore button is handled only if window allows resizing
-            if (m_AllowResizing && event.motion.x >= ButtonX && event.motion.x < ButtonX + t->wnd_maximize_button_rc.w)
+            if (m_AllowResizing && event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_maximize_button_rc.w)
             {
                 if (!wnd->IsMaximized())
                 {
@@ -739,7 +795,8 @@ bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
                 {
                     wnd->Restore();
                 }
-                wnd->m_StyledWindow->Invalidate();
+                wnd->m_TopmostWindow->Invalidate();
+                return true;
             }
             else
             {
@@ -749,13 +806,31 @@ bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
                 {
                     ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_minimize_button_rc.w;
                 }
-                if (event.motion.x >= ButtonX && event.motion.x < ButtonX + t->wnd_minimize_button_rc.w)
+                if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_minimize_button_rc.w)
                 {
-                    SDL_MinimizeWindow(wnd->GetRenderWindow());
+                    wnd->Minimize();
+                    return true;
                 }
             }
         }
+
+        // If none window button was clicked and it is not topmost window then start dragging window
+        if (m_Parent)
+        {
+            TBaseState* CurrentState = Tilc::GameObject->GetContext()->m_StateManager.GetState(Tilc::GameObject->GetCurrentState());
+            CurrentState->DraggingWindow = true;
+            SDL_GetGlobalMouseState(&CurrentState->DragStartMouseX, &CurrentState->DragStartMouseY);
+            CurrentState->DragStartWindowX = m_Position.x;
+            CurrentState->DragStartWindowY = m_Position.y;
+            //std::cout << "Dragging subwindow started" << std::endl;
+        }
     }
+
+    if (m_Parent)
+    {
+        m_Parent->SetActiveWindow(this, true);
+    }
+
     return false;
 }
 
@@ -788,21 +863,12 @@ void Tilc::Gui::TStyledWindow::createGuiLayout() {
 
 void Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
 {
-    if (m_ActiveControl == Control)
-    {
-        return;
-    }
+    TGuiControl::SetActiveControl(Control);
 
     // domyślnie ukrywamy karetkę
     m_Caret->m_Active = false;
-
-    if (m_ActiveControl)
-    {
-        m_ActiveControl->LooseFocus();
-    }
-    
-    m_ActiveControl = Control;
-    if (Control)
+ 
+    if (m_ActiveControl == Control)
     {
         // jeśli mamy pole tekstowe, to pokazujemy karetkę
         Tilc::Gui::TTextField* tf = dynamic_cast<Tilc::Gui::TTextField*>(Control);
@@ -811,8 +877,6 @@ void Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
             m_Caret->m_Active = true;
             m_Caret->Show();
         }
-
-        Control->Focus();
     }
 }
 
@@ -1060,7 +1124,6 @@ void Tilc::Gui::TStyledWindow::OnScrollHorizontal()
     if (m_HScrollBar)
     {
         SetOffsetX(m_HScrollBar->GetThumbPosition());
-        Invalidate();
     }
 }
 
@@ -1069,7 +1132,6 @@ void Tilc::Gui::TStyledWindow::OnScrollVertical()
     if (m_VScrollBar)
     {
         SetOffsetY(m_VScrollBar->GetThumbPosition());
-        Invalidate();
     }
 }
 

@@ -19,17 +19,17 @@ namespace Tilc::Graphics
 
     struct DECLSPEC FTextTextureInfo
     {
-        SDL_FRect m_Rect;
-        SDL_Color m_Color;
-        SDL_Color m_ShadowColor;
-        Tilc::Gui::TFont* m_Font = nullptr;
-        float m_Size;
-        float m_OnScreenX;
-        float m_OnScreenY;
-        bool m_HalfFloat;
-        int m_ShadowOffsetX;
-        int m_ShadowOffsetY;
-        bool m_DrawShadow;
+        SDL_FRect m_Rect{};
+        SDL_Color m_Color{};
+        SDL_Color m_ShadowColor{};
+        Tilc::Gui::TFont* m_Font{};
+        float m_Size{};
+        float m_OnScreenX{};
+        float m_OnScreenY{};
+        bool m_HalfFloat{};
+        int m_ShadowOffsetX{};
+        int m_ShadowOffsetY{};
+        bool m_DrawShadow{};
     };
 
     using TFontNameToFontInfoMap = std::unordered_map<Tilc::TExtString, FTextTextureInfo>;

@@ -11,13 +11,13 @@ namespace Tilc::Resources {
 
 	struct DECLSPEC TResourceInfo
 	{
-		Tilc::TExtString m_SourceType;	// SourceType: [File, Stream]
-        Tilc::TExtString m_Type;			// type: [SDL_Surface, SDL_Texture, GL_Texture]
-        Tilc::TExtString m_Source;		// source: File Path for File resource or Name (File Path for sqlite) of database from which retrieve resource
-        Tilc::TExtString m_SourceName;	// name of resource in database (only for Stream resources, empty for File resources)
-		int m_SlotNumber;			// Slot number for Stream resources read from database
-        int m_Width;                // rasterization Width specified for svg files otherwise taken from size of surface
-        int m_Height;               // rasterization Height specified for svg files otherwise taken from size of surface
+        Tilc::TExtString m_SourceType{};	// SourceType: [File, Stream]
+        Tilc::TExtString m_Type{};			// type: [SDL_Surface, SDL_Texture, GL_Texture]
+        Tilc::TExtString m_Source{};		// source: File Path for File resource or Name (File Path for sqlite) of database from which retrieve resource
+        Tilc::TExtString m_SourceName{};	// name of resource in database (only for Stream resources, empty for File resources)
+		int m_SlotNumber{};			// Slot number for Stream resources read from database
+        int m_Width{};                // rasterization Width specified for svg files otherwise taken from size of surface
+        int m_Height{};               // rasterization Height specified for svg files otherwise taken from size of surface
 	};
 
 	class DECLSPEC TResource
@@ -25,7 +25,7 @@ namespace Tilc::Resources {
 	public:
 		TResource(void* Resource) { m_Resource = Resource; }
 		virtual ~TResource() {}
-		void* m_Resource = nullptr;
+        void* m_Resource{ nullptr };
 		
 	};
 

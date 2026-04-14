@@ -23,6 +23,7 @@ namespace Tilc {
             TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layoutFilename);
             TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layout, int layoutContentType, bool returnEditedValues);
             virtual ~TStyledWindow();
+            void RemoveFromParent();
 
             virtual void Draw();
             void DrawCaptionButtons();
@@ -62,10 +63,6 @@ namespace Tilc {
             virtual bool OnKeyDown(const SDL_Event& event) override;
             virtual bool OnKeyUp(const SDL_Event& event) override;
 
-            void SetActiveControl(TGuiControl* Control);
-            inline TGuiControl* GetActiveControl() { return m_ActiveControl; }
-
-            inline void SetOnlyActiveControlPointer(Tilc::Gui::TGuiControl* Control) { m_ActiveControl = Control; }
 
             virtual void AllowResizing(bool value);
 
@@ -97,10 +94,9 @@ namespace Tilc {
             void SetVerticalScrollRange(int min, int max);
             void SetHorizontalScrollRange(int min, int max);
 
-        protected:
-            // Aktywna kontrolka - ta która aktualnie ma focus
-            TGuiControl* m_ActiveControl;
+            virtual void SetActiveControl(TGuiControl* Control) override;
 
+        protected:
             // karetka - migający wskaźnik w polu tekstowym
             TCaret* m_Caret;
 
@@ -149,7 +145,7 @@ namespace Tilc {
         protected:
             float GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME{ 6.0f };
             float GAP_X_BETWEEN_CAPTION_BUTTONS{ 8.0f };
-            float GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME{ 3.0f } ;
+            float GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME{ 1.0f } ;
             void InternalProcessOnGetEditedValues(Tilc::TStdObject* eventInfo);
         };
 

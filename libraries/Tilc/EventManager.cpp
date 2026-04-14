@@ -109,20 +109,18 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             Camera->Rotate(DeltaPos.x, DeltaPos.y);
         }
         // If Styled window is created and theme is created
-        if (Tilc::GameObject->m_Window->m_StyledWindow)
+        if (Tilc::GameObject->m_Window->m_TopmostWindow && Tilc::GameObject->GetContext()->m_Theme)
         {
+            // if this is topmost StyledWindow then make dragging whole app window
             int wx, wy;
             SDL_GetWindowPosition(Tilc::GameObject->m_Window->GetRenderWindow(), &wx, &wy);
 
-            if (Tilc::GameObject->GetContext()->m_Theme)
+            // then check if mouse is in the area of window buttons
+            bool AllowRedraw = (Pos.y - wy >= 0.0f) && (Pos.y - wy <= 3 * Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h);
+            if (AllowRedraw && (Pos.x - wx > Tilc::GameObject->m_Window->m_TopmostWindow->m_Position.w - 3 * (Tilc::GameObject->GetContext()->m_Theme->wnd_close_button_rc.w + 10)))
             {
-                // then check if mouse is in the area of window buttons
-                bool AllowRedraw = (Pos.y - wy >= 0.0f) && (Pos.y - wy <= 3 * Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h);
-                if (AllowRedraw && (Pos.x - wx > Tilc::GameObject->m_Window->m_StyledWindow->m_Position.w - 3 * (Tilc::GameObject->GetContext()->m_Theme->wnd_close_button_rc.w + 10)))
-                {
-                    // if so, then invalidate window to force redrawing only capytion buttons
-                    Tilc::GameObject->m_Window->m_StyledWindow->Invalidate(Tilc::Gui::ENeedUpdate::ENU_Caption);
-                }
+                // if so, then invalidate window to force redrawing only capytion buttons
+                Tilc::GameObject->m_Window->m_TopmostWindow->Invalidate(Tilc::Gui::ENeedUpdate::ENU_Caption);
             }
         }
     }
@@ -130,24 +128,51 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
     {
         Tilc::GameObject->m_Window->SetIsFocused(true);
     }
-        else if (Event->type == SDL_EVENT_WINDOW_FOCUS_LOST)
+    else if (Event->type == SDL_EVENT_WINDOW_FOCUS_LOST)
     {
         Tilc::GameObject->m_Window->SetIsFocused(false);
     }
-        else if (Event->type == SDL_EVENT_WINDOW_MAXIMIZED)
+    else if (Event->type == SDL_EVENT_WINDOW_MAXIMIZED)
     {
         Tilc::GameObject->m_Window->Maximize();
     }
-        else if (Event->type == SDL_EVENT_WINDOW_RESTORED)
+    else if (Event->type == SDL_EVENT_WINDOW_RESTORED)
     {
         Tilc::GameObject->m_Window->Restore();
     }
 
     // If Styled window is created then pass event to it
-    if (Tilc::GameObject->m_Window->m_StyledWindow)
+    if (Tilc::GameObject->m_Window->m_TopmostWindow && !Tilc::GameObject->m_Window->IsMinimized())
     {
-        // Pass event to the styled window
-        Tilc::GameObject->m_Window->m_StyledWindow->DoChildEvent(*Event);
+        SDL_FPoint pt;
+        SDL_GetMouseState(&pt.x, &pt.y);
+        Tilc::Gui::TStyledWindow* wnd = Tilc::GameObject->m_Window->m_TopmostWindow;
+        // Find which styled window is under the mouse cursor. If more then one, then take the topmost one.
+        for (auto it = Tilc::GameObject->m_Window->m_AllWindows.rbegin(); it != Tilc::GameObject->m_Window->m_AllWindows.rend(); ++it)
+        {
+            SDL_FRect Position{ (*it)->GetRealPosition() };
+            if (SDL_PointInRectFloat(&pt, &Position))
+            {
+                wnd = (*it);
+                break;
+            }
+        }
+
+        // Poniższy if odpowiada za usunięcie stanu hover z kontrolek okna po wyjechaniu z niego do innego okna
+        if (Tilc::GameObject->m_Window->m_LastProcessedWindow != wnd)
+        {
+            if (Tilc::GameObject->m_Window->m_LastProcessedWindow)
+            {
+                if (Tilc::GameObject->m_Window->m_LastProcessedWindow->ResetControlsState(CONTROL_STATE_HOVER | CONTROL_STATE_PUSHED, false))
+                {
+                    Tilc::GameObject->m_Window->m_LastProcessedWindow->Invalidate();
+                }
+            }
+            Tilc::GameObject->m_Window->m_LastProcessedWindow = wnd;
+        }
+        // Pass event to the found styled window
+        //std::cout << "ProcessChildEvents for: " << wnd->GetName() << std::endl;
+        wnd->ProcessChildEvent(*Event);
     }
 
 	return SDL_APP_CONTINUE;

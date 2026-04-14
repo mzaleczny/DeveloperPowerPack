@@ -8,6 +8,7 @@ namespace Tilc
 {
     namespace Gui
     {
+        class TGuiControl;
         class TStyledWindow;
     }
 
@@ -76,6 +77,11 @@ namespace Tilc
 		{
 			return m_IsMaximized;
 		};
+		inline bool IsMinimized() const
+		{
+			return m_IsMinimized;
+		};
+        void Minimize();
         void Maximize();
         void Restore();
 		inline TEventManager* GetEventManager()
@@ -97,7 +103,18 @@ namespace Tilc
         }
 
         // domyślnie nie tworzymy kontrolki okna i interfejsu GUI
-        Tilc::Gui::TStyledWindow* m_StyledWindow{};
+        Tilc::Gui::TStyledWindow* m_TopmostWindow{};
+        // Stores pointer to Styled Window that is being dragged
+        Tilc::Gui::TStyledWindow* m_DraggedWindow{};
+        // stores all styled windows inside this window on all level of nest.
+        std::list<Tilc::Gui::TStyledWindow*> m_AllWindows{};
+        // okno, które ostatnim razem przetwarzało komunikaty, czyli to nad którym jeżdziła myszka lub okno aktywne. Ta zmienna jest potrzebna dla wywoływania zdaarzeń
+        // OnMousOut i czyszczenie stanu HOVER kontrolek w niej leżących. Bez tego można było najechać na kontrolkę i szybko wyjechać z okna co powodowało pozostanie tej kontrolki
+        // w stanie HOVER.
+        Tilc::Gui::TStyledWindow* m_LastProcessedWindow{};
+        // List of child controls to delete after all event handlers hav been processed
+        std::list<Tilc::Gui::TGuiControl*> m_ControlsToDestroy;
+        std::list<Tilc::Gui::TStyledWindow*> m_WindowsToDestroy;
 
 	private:
 		void Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext);
@@ -116,6 +133,7 @@ namespace Tilc
         bool m_IsBorderless;
         bool m_IsFocused;
         bool m_IsMaximized{};
+        bool m_IsMinimized{};
         TEventManager m_EventManager;
 		void Destroy();
 	};

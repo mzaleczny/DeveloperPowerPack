@@ -86,6 +86,17 @@ namespace Tilc::Gui {
         {
             OnPositionChangeCallback = std::bind(Func, Instance, std::placeholders::_1);
         }
+        virtual bool ResetControlState(int StatesToClear = CONTROL_STATE_HOVER) override
+        {
+            bool Result = Tilc::Gui::TGuiControl::ResetControlState(StatesToClear);
+            if (m_DetailedState >= CSCROLLBAR_STATE_HOVER_UP_BUTTON && m_DetailedState <= CSCROLLBAR_STATE_HOVER_THUMB)
+            {
+                m_DetailedState = CSCROLLBAR_STATE_NORMAL;
+                Invalidate();
+                Result = true;
+            }
+            return Result;
+        };
 
     protected:
         int m_ThumbPosition;

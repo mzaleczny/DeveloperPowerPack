@@ -5,7 +5,7 @@
 #include "Tilc/Game.h"
 
 Tilc::Gui::TButton::TButton(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text)
-    : Tilc::Gui::TGuiControl(parent, name, position)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl)
 {
     CommonInit(text);
 }
@@ -41,9 +41,9 @@ void Tilc::Gui::TButton::Draw()
     TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;
     Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
-    float x{-m_OffsetX}, y{-m_OffsetY};
     SDL_FRect rc, DestRect;
     SDL_FRect Position{ GetRealPosition() };
+    float x{}, y{};
     SDL_Texture* OldRenderTarget{ nullptr };
 
     if (m_Canvas)
@@ -69,6 +69,7 @@ void Tilc::Gui::TButton::Draw()
         btn_right = t->button_right_focused_rc;
         if (m_State & CONTROL_STATE_HOVER)
         {
+            //std::cout << "HOVER: " << m_Name << std::endl;
             btn_left = t->button_left_hover_focused_rc;
             btn_middle = t->button_middle_hover_focused_rc;
             btn_right = t->button_right_hover_focused_rc;
@@ -114,9 +115,11 @@ void Tilc::Gui::TButton::Draw()
     // Rysujemy tekst i ewentualną ikonkę
     // ================================================================
     Tilc::TExtString caption = GetText();
-    rc = Position;
+    rc = m_Position;
     if (DefaultFont)
     {
+        //std::string s = caption + ": " + std::to_string(m_State);
+        //DefaultFont->DrawString(GetRenderer(), s.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
         DefaultFont->DrawString(GetRenderer(), caption.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
     }
 

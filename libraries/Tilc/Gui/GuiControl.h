@@ -43,6 +43,12 @@ namespace Tilc {
             ENU_Children
         };
 
+        enum class EControlType
+        {
+            ECT_RegularControl,
+            ECT_ScrollBarControl,
+            ECT_WindowControl
+        };
         class DECLSPEC TGuiControlItem
         {
         public:
@@ -60,16 +66,24 @@ namespace Tilc {
         {
         public:
             // Event Handlers
-            std::function<int(float x, float y, int button)> OnClick;
+            std::function<int(float x, float y, int MouseButton, TGuiControl* Self)> OnClick;
 
+            // Current position of control inside window
             SDL_FRect m_Position;
+            // Original position of control inside window. This variable is used for calculating m_Position for children during scrolling vertical or horizontal scrollbar of parent
+            SDL_FRect m_OriginalPosition;
             // m_PrevPosition is for the sake of handling window maximization and restore
             SDL_FRect m_PrevPosition;
+            // COntrolType
+            EControlType m_ControlType;
 
-            TGuiControl(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, bool editable = false);
+            // Below variable IsWindow tell us if we are adding StyledWindow or regular Control, because dynamic_cast to TStyledWindow class in constructor not works
+            TGuiControl(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, bool editable = false);
             virtual ~TGuiControl();
 
+            virtual void Destroy();
             virtual void DestroyChildren();
+            virtual void DestroyChildWindows();
             virtual void Draw() {};
             virtual void Draw(float x, float y,
                 SDL_FRect* frame_top_left_rc, SDL_FRect* frame_top_rc, SDL_FRect* frame_top_right_rc,
@@ -88,6 +102,12 @@ namespace Tilc {
             inline void RenderTexture(SDL_Texture* Src, float x, float y, bool RoundCoords = true)
             {
                 SDL_FRect r{ m_Position.x + x, m_Position.y + y, static_cast<float>(Src->w), static_cast<float>(Src->h) };
+                // If canvas is specified then we draw within the canvas without offsetting
+                if (m_Canvas)
+                {
+                    r.x -= m_Position.x;
+                    r.y -= m_Position.y;
+                }
                 if (RoundCoords)
                 {
                     SDL_Rect ir = FloorFRect(&r);
@@ -98,6 +118,12 @@ namespace Tilc {
             inline void RenderTexture(SDL_Texture* Src, SDL_FRect* SrcRect, float x, float y, bool RoundCoords = true)
             {
                 SDL_FRect r{ m_Position.x + x, m_Position.y + y, static_cast<float>(SrcRect->w), static_cast<float>(SrcRect->h) };
+                // If canvas is specified then we draw within the canvas without offsetting
+                if (m_Canvas)
+                {
+                    r.x -= m_Position.x;
+                    r.y -= m_Position.y;
+                }
                 if (RoundCoords)
                 {
                     SDL_FRect FloorSrcRect;
@@ -116,6 +142,12 @@ namespace Tilc {
             {
                 SDL_FRect r{ m_Position.x + x, m_Position.y + y, destW, destH };
                 if (RoundCoords)
+                    // If canvas is specified then we draw within the canvas without offsetting
+                    if (m_Canvas)
+                    {
+                        r.x -= m_Position.x;
+                        r.y -= m_Position.y;
+                    }
                 {
                     SDL_Rect ir = FloorFRect(&r);
                     SDL_RectToFRect(&ir, &r);
@@ -125,6 +157,12 @@ namespace Tilc {
             inline void RenderTexture(SDL_Texture* Src, SDL_FRect* SrcRect, float x, float y, float destW, float destH, bool RoundCoords = true)
             {
                 SDL_FRect r{ m_Position.x + x, m_Position.y + y, destW, destH };
+                // If canvas is specified then we draw within the canvas without offsetting
+                if (m_Canvas)
+                {
+                    r.x -= m_Position.x;
+                    r.y -= m_Position.y;
+                }
                 if (RoundCoords)
                 {
                     SDL_FRect FloorSrcRect;
@@ -188,9 +226,21 @@ namespace Tilc {
             virtual void ResetControl()
             {
                 SetState(CONTROL_STATE_NORMAL);
-                m_LeftMouseButtonPressed = false;
                 m_Dragging = false;
+                m_DetailedState = 0;
             };
+            void ResetControls(bool Recursively = true);
+            // Resets states, by default hover
+            virtual bool ResetControlState(int StatesToClear = CONTROL_STATE_HOVER)
+            {
+                if (HasState(StatesToClear))
+                {
+                    RemoveState(StatesToClear);
+                    return true;
+                }
+                return false;
+            };
+            bool ResetControlsState(int StatesToClear = CONTROL_STATE_HOVER, bool Recursively = true);
 
             virtual void SetSizeRelativeToParent(float parentWidth, float parentHeight) {}
             void SetProportionalSizeRelativeToParent();
@@ -233,11 +283,13 @@ namespace Tilc {
             void DoEnterAsTabkey(bool value) { m_DoEnterAsTabkey = value; }
             bool IsEnterAsTabkey() const { return m_DoEnterAsTabkey; }
 
+            inline TGuiControl* GetParent() { return m_Parent; }
             inline void SetParent(TGuiControl* Parent) { m_Parent = Parent; }
             virtual void DrawChildren();
+            virtual void DrawChildWindows();
             virtual void InvalidateAllChildren();
 
-            // zwraca okno wewnątrz którego znajduje się ten sprite.
+            // zwraca okno wewnątrz którego znajduje się ta kontrolka.
             TStyledWindow* GetParentWindow();
 
             // Zwraca sprite'a o podanej nazwie
@@ -261,7 +313,7 @@ namespace Tilc {
             // usuwa z bieżącego stanu podany stan (wartości stanów muszą być potęgami dwójki, gdyż
             // operacja ta jest realizowana jako andowanie zaprzeczenia podanego stanu i aktualnego stanu)
             void RemoveState(int state, bool redraw = true);
-            inline bool HasState(int states) { return (m_State & states) == states; }
+            inline bool HasState(int states) { return (m_State & states) != 0; }
             inline bool HasExactState(int state) { return m_State == state; }
             // Ustawia podaną wartość tekstową w spricie o podanej nazwie znajdującym się w oknie o podanej
             // nazwie. Jeśli jako nazwę okna podano pusty łańcuch, to docelowy sprite jest wyszukiwany
@@ -271,22 +323,9 @@ namespace Tilc {
             // jeśli ta metoda zwróci true, to należy przerysować okienko
             virtual bool Update(float DeltaTime);
 
-            virtual inline void AddChild(TGuiControl* child)
-            {
-                if (child)
-                {
-                    child->m_ParentWindow = m_ParentWindow;
-                    m_Children.push_back(child);
-                }
-            }
-            virtual inline void PrependChild(TGuiControl* child)
-            {
-                if (child)
-                {
-                    child->m_ParentWindow = m_ParentWindow;
-                    m_Children.push_front(child);
-                }
-            }
+            virtual void AddChild(TGuiControl* child);
+            virtual void PrependChild(TGuiControl* child);
+
             virtual size_t RemoveChild(TGuiControl* child);
             virtual inline void RemoveChild(Tilc::TExtString childName)
             {
@@ -344,7 +383,8 @@ namespace Tilc {
             virtual int OnChildNotification(TGuiControl* child, uintptr_t data);
 
             // Functions that delegates mouse events to child controls
-            virtual bool DoChildEvent(const SDL_Event& event);
+            virtual bool ProcessChildEvent(const SDL_Event& event);
+            virtual bool ProcessEvent(const SDL_Event& event);
 
             virtual void Invalidate(ENeedUpdate WhatNeedUpdate = ENeedUpdate::ENU_Everything);
 
@@ -361,7 +401,7 @@ namespace Tilc {
             virtual bool RemoveHorizontalScrollbar();
             virtual void AddEditor();
             virtual bool RemoveEditor();
-            
+
             virtual Tilc::TStdObject GetValue() { return {}; }
             virtual void SetValue(const Tilc::TStdObject& value, bool redraw = true) {}
             virtual void SetValue(const Tilc::TExtString& value, bool redraw = true) {}
@@ -405,7 +445,9 @@ namespace Tilc {
             inline void CaptureMouse(Tilc::Gui::TGuiControl* Control) {
                 if (!Control && m_ControlThatCapturedMouse)
                 {
-                    m_ControlThatCapturedMouse->ResetControl();
+                    //std::cout << "RemoveCapture: " << m_ControlThatCapturedMouse->m_Name << std::endl;
+                    m_ControlThatCapturedMouse->SetState(CONTROL_STATE_NORMAL);
+                    m_ControlThatCapturedMouse->m_DetailedState = 0;
                 }
                 m_ControlThatCapturedMouse = Control;
             }
@@ -415,10 +457,36 @@ namespace Tilc {
             // Reset control and all it's children to default state
             void ResetToDefaultState();
 
+            virtual void SetActiveControl(TGuiControl* Control);
+            inline TGuiControl* GetActiveControl() { return m_ActiveControl; }
+            inline void SetOnlyActiveControlPointer(Tilc::Gui::TGuiControl* Control) { m_ActiveControl = Control; }
+
             // Variable controlling dragging
             float m_DragStartX{};
             float m_DragStartY{};
             bool m_Dragging{};
+
+            // Attribute _vscrollbar is redundant. It is for quicker access to vertical scrollbar which is in in _sprites
+            // list. It is destroyed during destroying the list.
+            TScrollBar* m_VScrollBar{};
+            // Attribute _hscrollbar is redundant. It is for quicker access to horizontal scrollbar which is in _sprites
+            // list. It is destroyed during destroying the list.
+            TScrollBar* m_HScrollBar{};
+            // Attribute _editor is redundant. It is for quicker access to an editor which is in _sprites list.
+            // It is destroyed during destroying the list.
+            TGuiControl* m_Editor{};
+
+            SDL_FRect GetRealPosition();
+            void SetOffsetX(float Offset);
+            void SetOffsetY(float Offset);
+            inline float GetOffsetX() const { return m_OffsetX; }
+            inline float GetOffsetY() const { return m_OffsetY; }
+
+            // ustawia aktywne okno
+            void SetActiveWindow(Tilc::Gui::TStyledWindow* Window, bool Redraw = true);
+
+            std::list<Tilc::Gui::TStyledWindow*>& AllWindowsList() { return m_AllWindows; }
+            Tilc::Gui::TStyledWindow* GetActiveWindow() const { return m_ActiveWindow; }
 
         protected:
             SDL_Texture* m_Canvas{};
@@ -428,6 +496,15 @@ namespace Tilc {
             SDL_FPoint m_ClientPos;
             Tilc::TExtString m_Name;
             Tilc::TExtString m_Text;
+            // Aktywna kontrolka - ta która aktualnie ma focus
+            TGuiControl* m_ActiveControl;
+            // lista wszystkich okien na potrzeby z-orderingu
+            std::list<Tilc::Gui::TStyledWindow*> m_AllWindows{};
+            // Aktywne okno, pozwala ograniczyc wysylke zdarzen do kontrolek tylko tego okna
+            Tilc::Gui::TStyledWindow* m_ActiveWindow{};
+
+            // Liczba okreslajaca z-order kontrolek, czyli ktora ma być wyżej a która ma być pod jeśli zajmują to samo miejsce na ekranie, dotyczy to także okien
+            int ZOrder = 1000;
 
             // stan sprite'a - wykorzystywany tylko przez niektóre klasy dziedziczące
             int m_State;
@@ -459,8 +536,6 @@ namespace Tilc {
             // Czy mamy zwolnić Canvas. Jeśli została wykonana metoda setSize, to tak.
             bool m_DestroyCanvas{ false };
 
-            // czy wciśnięto lewy przycisk myszki
-            bool m_LeftMouseButtonPressed;
             // if control is editable
             bool m_Editable{};
             // if we are editor control
@@ -471,27 +546,18 @@ namespace Tilc {
             // Zmienne poniżej kontrolują przewijanie zawartości okienka w zależności od wartości suwaków pionowego i poziomego
             float m_OffsetX{};
             float m_OffsetY{};
-            void SetOffsetX(float Offset);
-            void SetOffsetY(float Offset);
-            SDL_FRect GetRealPosition();
 
             // List of child controls
             std::list<TGuiControl*> m_Children;
-            // Attribute _vscrollbar is redundant. It is for quicker access to vertical scrollbar which is in in _sprites
-            // list. It is destroyed during destroying the list.
-            TScrollBar* m_VScrollBar{};
-            // Attribute _hscrollbar is redundant. It is for quicker access to horizontal scrollbar which is in _sprites
-            // list. It is destroyed during destroying the list.
-            TScrollBar* m_HScrollBar{};
-            // Attribute _editor is redundant. It is for quicker access to an editor which is in _sprites list.
-            // It is destroyed during destroying the list.
-            TGuiControl* m_Editor{};
+
             // Wskaźnik na sprite'a, na którym zarezerwowano zdarzenia WM_MOUSE (w wyniku kliknięcia na nim).
             // Jeśli jest różny od NULL, to inne Sprite'y powinny ignorować zdarzenia myszki.
             static TGuiControl* m_ControlThatCapturedMouse;
 
             void CommonInit(bool editable);
             void DestroyCanvasIfNeedDestroy();
+
+            void MoveAllSubWindowsToTheEndOfGlobalWindowsOrder();
         };
     }
 }

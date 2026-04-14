@@ -66,13 +66,13 @@ namespace Tilc
 	class DECLSPEC TGame
 	{
 	public:
-		TWindow* m_Window = nullptr;
-        TGameState m_State = {};
-		Uint64 m_LastFrameDuration = 0UL;
-		Uint64 m_TotalElapsed = 0UL;
-		float m_LastFrameMilliseconds; // Time in milliseconds of last frame processing
-		float m_LastFrameDeltaTime; // Time in seconds of last frame processing
-		EGameType m_GameType;
+        TWindow* m_Window{ nullptr };
+        TGameState m_State{};
+        Uint64 m_LastFrameDuration{};
+        Uint64 m_TotalElapsed{};
+        float m_LastFrameMilliseconds{}; // Time in milliseconds of last frame processing
+        float m_LastFrameDeltaTime{}; // Time in seconds of last frame processing
+        EGameType m_GameType{};
 
 		TGame(EGameType GameType = EGameType::Game2D);
 		virtual ~TGame();

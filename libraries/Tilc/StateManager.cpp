@@ -1,6 +1,8 @@
 #include "Tilc/StateManager.h"
 #include "Tilc/EventManager.h"
 #include "Tilc/Game.h"
+#include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/Gui/Theme.h"
 
 Tilc::TBaseState::TBaseState(TStateManager* StateManager, bool DraggingTurnedOn)
     : m_StateManager(StateManager), m_Transparent(false), m_Transcendent(false), m_Elapsed(0.0f), HasDraggingTurnedOn(DraggingTurnedOn)
@@ -182,11 +184,14 @@ Tilc::TBaseState* Tilc::TStateManager::GetState(const EStateType& StateType) con
 
 void Tilc::TBaseState::MouseDownLeft(Tilc::TEventDetails* Details)
 {
-    if (Details && Details->m_Mouse.Coord[1] < 30)
+    // Check if main window is dragged
+    if (!DraggingWindow && Details && Details->m_Mouse.Coord[1] < Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h)
     {
         DraggingWindow = true;
+        Tilc::GameObject->GetContext()->m_Window->m_DraggedWindow = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
         SDL_GetGlobalMouseState(&DragStartMouseX, &DragStartMouseY);
         SDL_GetWindowPosition(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), &DragStartWindowX, &DragStartWindowY);
+        //std::cout << "Dragging topwindow started" << std::endl;
     }
 }
 
@@ -204,7 +209,30 @@ void Tilc::TBaseState::MouseMotion(Tilc::TEventDetails* Details)
         SDL_GetGlobalMouseState(&mx, &my);
         dx = mx - DragStartMouseX;
         dy = my - DragStartMouseY;
-        SDL_SetWindowPosition(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), DragStartWindowX + dx, DragStartWindowY + dy);
+        Tilc::Gui::TStyledWindow* DraggedWindow = Tilc::GameObject->GetContext()->m_Window->m_DraggedWindow;
+        if (DraggedWindow)
+        {
+            if (DraggedWindow == Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow)
+            {
+                SDL_SetWindowPosition(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), DragStartWindowX + dx, DragStartWindowY + dy);
+            }
+            else
+            {
+                DraggedWindow->SetPosition(DragStartWindowX + dx, DragStartWindowY + dy);
+                // We have to update DraggedWindow->m_OriginalPosition also
+                DraggedWindow->m_OriginalPosition = DraggedWindow->m_Position;
+                DraggedWindow->m_OriginalPosition.x += DraggedWindow->GetParent()->GetOffsetX();
+                DraggedWindow->m_OriginalPosition.y += DraggedWindow->GetParent()->GetOffsetY();
+
+                /*
+                std::cout << "mx: " << mx << "  my: " << my << "  DragStartMouseX: " << DragStartMouseX << "  DragStartMouseY: " << DragStartMouseY << "  dx: " << dx << "  dy: " << dy
+                    << "  x: " << DraggedWindow->m_OriginalPosition.x
+                    << "  y: " << DraggedWindow->m_OriginalPosition.y
+                    << std::endl;
+                */
+                DraggedWindow->Invalidate();
+            }
+        }
     }
 }
 

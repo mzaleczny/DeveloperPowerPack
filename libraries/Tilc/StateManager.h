@@ -70,7 +70,7 @@ namespace Tilc
         virtual void MouseDownLeft(TEventDetails* Details);
         virtual void MouseUpLeft(TEventDetails* Details);
         virtual void MouseMotion(TEventDetails* Details);
-    protected:
+
         float DragStartMouseX, DragStartMouseY;
         int DragStartWindowX, DragStartWindowY;
         bool DraggingWindow{ false };

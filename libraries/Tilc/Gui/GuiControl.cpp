@@ -1,4 +1,5 @@
 #include "Tilc/Gui/GuiControl.h"
+#include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/ScrollBarVertical.h"
@@ -10,6 +11,7 @@
 #include "Tilc/Game2D/Sprite/DirectionalAnimation.h"
 #include "Tilc/Utils/StdObject.h"
 #include <algorithm>
+#include <ranges>
 
 SDL_Renderer* Tilc::Gui::TGuiControl::Renderer{};
 Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::m_ControlThatCapturedMouse{};
@@ -20,20 +22,26 @@ Tilc::Gui::TGuiControlItem::TGuiControlItem(const Tilc::TExtString& value, bool 
 }
 
 
-Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, bool editable)
+Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, Tilc::Gui::EControlType ControlType, bool editable)
+    : m_ControlType(ControlType)
 {
     m_Name = name;
     //SDL_Log("Added control: %s", m_Name.c_str());
     m_Position = position;
+    m_OriginalPosition = position;
     m_Parent = parent;
     CommonInit(editable);
     if (m_Parent)
     {
-        // scrollbare dodajemy na poczatku, gdyz muszą miec priorytet podczas przetwarzania zdarzen
-        if (dynamic_cast<TScrollBar*>(this))
+        // Jeśli to okno, to dodajemy do listy okien
+        if (m_ControlType == Tilc::Gui::EControlType::ECT_WindowControl)
         {
-            m_Parent->m_Children.push_front(this);
+            Tilc::Gui::TStyledWindow* wnd = reinterpret_cast<Tilc::Gui::TStyledWindow*>(this);
+            m_Parent->m_AllWindows.push_back(wnd);
+            Tilc::GameObject->GetContext()->m_Window->m_AllWindows.push_back(wnd);
+            m_Parent->SetActiveWindow(wnd, true);
         }
+        // w przeciwnym razie dodajemy do listy kontrolek-dzieci
         else
         {
             m_Parent->m_Children.push_back(this);
@@ -60,7 +68,6 @@ void Tilc::Gui::TGuiControl::CommonInit(bool editable)
     m_VScrollBar = nullptr;
     m_Editor = nullptr;
     
-    m_LeftMouseButtonPressed = false;
     m_Editable = false;
     m_IsEditor = false;
     if (editable)
@@ -85,9 +92,34 @@ void Tilc::Gui::TGuiControl::DestroyCanvasIfNeedDestroy()
 Tilc::Gui::TGuiControl::~TGuiControl()
 {
     DestroyChildren();
+    DestroyChildWindows();
     DestroyCanvasIfNeedDestroy();
 //    CStyledWindow* wnd = this->getParentWindow();
 //    wnd->unregisterSprite(this);
+}
+
+void Tilc::Gui::TGuiControl::Destroy()
+{
+    // Ukrywamy kontrolkę
+    m_Visible = false;
+    // i jeśli miała rodzica, to wymuszamy odrysowanie jego zawartości
+    if (m_Parent)
+    {
+        m_Parent->Invalidate();
+    }
+    if (m_ControlType == Tilc::Gui::EControlType::ECT_WindowControl)
+    {
+        // Jeśli ostatnio przetwarzane było to okno, to czyścimy zmienną wskazującą na nie, żeby nie było próby czyszczenia stanów kontrolek leżących na nim kiedy zostało już usunięte
+        if (Tilc::GameObject->GetContext()->m_Window->m_LastProcessedWindow == this)
+        {
+            Tilc::GameObject->GetContext()->m_Window->m_LastProcessedWindow = nullptr;
+        }
+        Tilc::GameObject->GetContext()->m_Window->m_WindowsToDestroy.push_back(reinterpret_cast<Tilc::Gui::TStyledWindow*>(this));
+    }
+    else
+    {
+        Tilc::GameObject->GetContext()->m_Window->m_ControlsToDestroy.push_back(this);
+    }
 }
 
 void Tilc::Gui::TGuiControl::DestroyChildren()
@@ -97,11 +129,30 @@ void Tilc::Gui::TGuiControl::DestroyChildren()
         return;
     }
 
+    m_ActiveControl = nullptr;
     for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
     {
         delete* it;
     }
     m_Children.clear();
+}
+
+void Tilc::Gui::TGuiControl::DestroyChildWindows()
+{
+    if (m_AllWindows.empty())
+    {
+        return;
+    }
+
+    m_ActiveControl = nullptr;
+    m_ActiveWindow = nullptr;
+    auto it = m_AllWindows.begin();
+    while (it != m_AllWindows.end())
+    {
+        delete* it;
+        it = m_AllWindows.begin();
+    }
+    m_AllWindows.clear();
 }
 
 void Tilc::Gui::TGuiControl::Play(bool forward)
@@ -127,6 +178,44 @@ void Tilc::Gui::TGuiControl::Loop()
 bool Tilc::Gui::TGuiControl::IsLooping() const
 {
     return m_Animation && m_Animation->IsLooping();
+}
+
+void Tilc::Gui::TGuiControl::ResetControls(bool Recursively)
+{
+    for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
+    {
+        (*it)->ResetControl();
+        if (Recursively && (*it)->m_Children.size() > 0)
+        {
+            (*it)->ResetControls(true);
+        }
+    }
+}
+
+bool Tilc::Gui::TGuiControl::ResetControlsState(int StatesToClear, bool Recursively)
+{
+    bool Result = false;
+    bool SubResult = false;
+    for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
+    {
+        if ((*it)->HasState(StatesToClear))
+        {
+            SubResult = (*it)->ResetControlState(StatesToClear);
+            if (SubResult)
+            {
+                Result = true;
+            }
+        }
+        if (Recursively && (*it)->m_Children.size() > 0)
+        {
+            SubResult = (*it)->ResetControlsState(StatesToClear, true);
+            if (SubResult)
+            {
+                Result = true;
+            }
+        }
+    }
+    return Result;
 }
 
 void Tilc::Gui::TGuiControl::SetCanvas(SDL_Texture* canvas)
@@ -162,6 +251,7 @@ void Tilc::Gui::TGuiControl::Hide()
 bool Tilc::Gui::TGuiControl::PointIn(float x, float y)
 {
     SDL_FRect Position{ GetRealPosition() };
+    //std::cout << m_Name << ": " << Position.x << ", " << Position.y << std::endl;
     if (
         x >= Position.x && x < Position.x + Position.w &&
         y >= Position.y && y < Position.y + Position.h
@@ -192,20 +282,44 @@ bool Tilc::Gui::TGuiControl::Update(float DeltaTime)
     return result;
 }
 
+void Tilc::Gui::TGuiControl::AddChild(TGuiControl* child)
+{
+    if (child)
+    {
+        // jesli to okno, to dodajemy do listy okien
+        if (Tilc::Gui::TStyledWindow* wnd = dynamic_cast<Tilc::Gui::TStyledWindow*>(child))
+        {
+            m_AllWindows.push_back(wnd);
+        }
+        else
+        {
+            // w przeciwnym razie dodajemy do listy dzici
+            m_Children.push_back(child);
+        }
+    }
+}
+
+void Tilc::Gui::TGuiControl::PrependChild(TGuiControl* child)
+{
+    if (child)
+    {
+        // jesli to okno, to dodajemy do listy okien
+        if (Tilc::Gui::TStyledWindow* wnd = dynamic_cast<Tilc::Gui::TStyledWindow*>(child))
+        {
+            m_AllWindows.push_back(wnd);
+        }
+        else
+        {
+            // w przeciwnym razie dodajemy do listy dzici
+            m_Children.push_front(child);
+        }
+    }
+}
+
 bool Tilc::Gui::TGuiControl::OnMouseMove(const SDL_Event& event)
 {
     if (!m_Visible) return false;
 
-    /*
-    if (m_ControlThatCapturedMouse)
-    {
-        //SDL_Log("%p: %s, Captive: %p %s", this, m_Name.c_str(), m_ControlThatCapturedMouse, m_ControlThatCapturedMouse->m_Name.c_str());
-    }
-    else
-    {
-        //SDL_Log("%p: %s, Captive: %p", this, m_Name.c_str(), m_ControlThatCapturedMouse);
-    }
-    */
     if (m_ControlThatCapturedMouse && m_ControlThatCapturedMouse != this)
     {
         return m_ControlThatCapturedMouse->OnMouseMove(event);
@@ -214,7 +328,7 @@ bool Tilc::Gui::TGuiControl::OnMouseMove(const SDL_Event& event)
     TStyledWindow* wnd = GetParentWindow();
     if (PointIn(event.motion.x, event.motion.y))
     {
-        if (!m_LeftMouseButtonPressed)
+        if (event.button.button != SDL_BUTTON_LEFT)
         {
             if (wnd && wnd->GetActiveControl() == this)
             {
@@ -260,13 +374,12 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonDown(const SDL_Event& event)
 {
     if (!m_Visible || OtherControlCapturedMouse()) return false;
 
-    if (PointIn(event.motion.x, event.motion.y))
+    if (PointIn(event.button.x, event.button.y))
     {
-        m_LeftMouseButtonPressed = true;
         m_Dragging = true;
         //SDL_Log("m_Dragging set to True");
-        m_DragStartX = event.motion.x;
-        m_DragStartY = event.motion.y;
+        m_DragStartX = event.button.x;
+        m_DragStartY = event.button.y;
 
         Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
         wnd->CaptureMouse(this);
@@ -295,14 +408,13 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonUp(const SDL_Event& event)
         return false;
     }
 
-    bool MouseWasPressed = m_LeftMouseButtonPressed;
-    m_LeftMouseButtonPressed = false;
     m_Dragging = false;
+    Tilc::GameObject->GetContext()->m_Window->m_DraggedWindow = nullptr;
     //SDL_Log("m_Dragging set to False");
     Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
     wnd->CaptureMouse(nullptr);
 
-    if (PointIn(event.motion.x, event.motion.y))
+    if (PointIn(event.button.x, event.button.y))
     {
         if (wnd->GetActiveControl() == this)
         {
@@ -313,9 +425,9 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonUp(const SDL_Event& event)
             SetState(CONTROL_STATE_HOVER | CONTROL_STATE_FOCUSED);
         }
 
-        if (MouseWasPressed && OnClick)
+        if ((event.button.button == SDL_BUTTON_LEFT) && OnClick)
         {
-            OnClick(event.motion.x, event.motion.y, event.button.button);
+            OnClick(event.button.x, event.button.y, event.button.button, this);
         }
         return true;
     }
@@ -428,11 +540,28 @@ void Tilc::Gui::TGuiControl::ResetToDefaultState()
     std::for_each(m_Children.begin(), m_Children.end(), [](Tilc::Gui::TGuiControl* c) { c->ResetControl(); });
 }
 
+void Tilc::Gui::TGuiControl::SetActiveControl(TGuiControl* Control)
+{
+    if (Control && (!Control->CanTabStop() || m_ActiveControl == Control)) return;
+
+    if (m_ActiveControl)
+    {
+        m_ActiveControl->LooseFocus();
+    }
+
+    if (Control)
+    {
+        m_ActiveControl = Control;
+        Control->Focus();
+    }
+}
+
 void Tilc::Gui::TGuiControl::SetState(int state, bool redraw)
 {
     if (m_State != state)
     {
         m_State = state;
+        //std::cout << "SetState Redraw: " << m_Name << "  CurrentState: " << m_State << std::endl;
         if (redraw)
         {
             Invalidate();
@@ -726,6 +855,10 @@ void Tilc::Gui::TGuiControl::EndEdit(bool acceptChanges)
 size_t Tilc::Gui::TGuiControl::RemoveChild(Tilc::Gui::TGuiControl* child)
 {
     size_t OrigSize = m_Children.size();
+    if (m_Parent && m_Parent->m_ActiveControl == child)
+    {
+        m_Parent->SetActiveControl(nullptr);
+    }
     m_Children.erase(std::remove(m_Children.begin(), m_Children.end(), child), m_Children.end());
     if (reinterpret_cast<void*>(m_VScrollBar) == reinterpret_cast<void*>(child))
     {
@@ -756,6 +889,20 @@ void Tilc::Gui::TGuiControl::DrawChildren()
     // ================================================================
 }
 
+void Tilc::Gui::TGuiControl::DrawChildWindows()
+{
+    // ================================================================
+    // Rysowanie okien-dzieci
+    // ================================================================
+    for (auto it = m_AllWindows.begin(); it != m_AllWindows.end(); ++it)
+    {
+        (*it)->Draw();
+    }
+    // ================================================================
+    // Koniec rysowania okien-dzieci
+    // ================================================================
+}
+
 void Tilc::Gui::TGuiControl::InvalidateAllChildren()
 {
     // ================================================================
@@ -777,73 +924,130 @@ void Tilc::Gui::TGuiControl::InvalidateAllChildren()
     // ================================================================
 }
 
-bool Tilc::Gui::TGuiControl::DoChildEvent(const SDL_Event& event)
+bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
 {
     Tilc::Gui::TMenu* Menu{};
     bool result = false;
-    SDL_FPoint pt = SDL_FPoint(event.motion.x, event.motion.y);
-    SDL_FRect Rect;
-    // Resetujemy tą kontrolkę i wszystkie jej dzieci do stanu domyślnego, żeby np. po zjechaniu myszki z nich starciły stan HOVER. Bez tego nie zawsze tak się działo
+    bool InCaption = false;
+    SDL_FPoint pt;
+
+    // Resetujemy tą kontrolkę i wszystkie jej dzieci, żeby po zjechaniu myszki z nich straciły stan HOVER. Bez tego nie zawsze tak się działo
     if (event.type == SDL_EVENT_MOUSE_MOTION)
     {
-        ResetToDefaultState();
+        pt = SDL_FPoint(event.motion.x, event.motion.y);
+    }
+    else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+    {
+        pt = SDL_FPoint(event.button.x, event.button.y);
     }
     // Po puszczeniu przycisku resetujemy stan suwaków, żeby przestały odbierać stan przeciąganie jeśli taki miały ustwiony
     else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
     {
-        if (m_HScrollBar)
+        pt = SDL_FPoint(event.button.x, event.button.y);
+    }
+
+    // Jesli to zdarzenie myszy i jesteśmy nad nagłówkiem okienka, to nie wysyłamy zdarzeń do kontrolekj dzieci
+    if (event.type == SDL_EVENT_MOUSE_MOTION || event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+    {
+        // Jeśli to okno
+        if (m_ControlType == Tilc::Gui::EControlType::ECT_WindowControl)
         {
-            m_HScrollBar->SetDetailedState(0);
-            m_HScrollBar->ResetControl();
+            SDL_FRect Position{ GetRealPosition() };
+            // Jeśli jesteśmy nad jego nagłówkiem
+            if (pt.y >= Position.y && pt.y <= Position.y + Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h)
+            {
+                InCaption = true;
+            }
         }
-        if (m_VScrollBar)
+    }
+    // Jeśli nie kliknięto na nagłóku okna. Jeśli ta kontrolka nie jest oknem to InCaption zawsze będzie dla niej false
+    if (!InCaption)
+    {
+        // First we traverse childs list, to handle ecvent by innermost child first and then pop upwards
+        // For now we traverse it from end to begin becouse now there is no z-order so topmost childs are at the end of children list
+        for (auto it = m_Children.rbegin(); it != m_Children.rend(); ++it)
         {
-            m_VScrollBar->SetDetailedState(0);
-            m_VScrollBar->ResetControl();
+            SDL_FRect Position{ (*it)->GetRealPosition() };
+            if (SDL_PointInRectFloat(&pt, &Position))
+            {
+                result = (*it)->ProcessEvent(event);
+                if (result)
+                {
+                    // make sure to uncapture window on mouse up
+                    if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+                    {
+                        CaptureMouse(nullptr);
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+
+    // make sure to uncapture window on mouse up
+    if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+    {
+        CaptureMouse(nullptr);
+    }
+    if (ResetControlsState(CONTROL_STATE_HOVER | CONTROL_STATE_PUSHED, false))
+    {
+        Invalidate();
+    }
+    return ProcessEvent(event);
+}
+
+bool Tilc::Gui::TGuiControl::ProcessEvent(const SDL_Event& event)
+{
+    // First we handle activating window if we clicked on regular control
+    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+    {
+        if (m_ControlType != Tilc::Gui::EControlType::ECT_WindowControl && m_Parent && m_Parent->m_Parent)
+        {
+            m_Parent->m_Parent->SetActiveWindow(dynamic_cast<Tilc::Gui::TStyledWindow*>(m_Parent));
         }
     }
 
     // Jeśli ta kontrolka ma scrollbary i myszka jest nad którymś z nich, to zdarzenie kierujemy do scrollbarów a nie do kontrolek, które mogą być pod nimi. Po to żeby
-    // scrollbary zawsze dziaały poprawnie
+    // scrollbary zawsze działały poprawnie
     if (m_HScrollBar)
     {
-        Rect = m_HScrollBar->GetRealPosition();
+        SDL_FPoint pt;
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            pt = SDL_FPoint(event.motion.x, event.motion.y);
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+        {
+            pt = SDL_FPoint(event.button.x, event.button.y);
+        }
+        SDL_FRect Rect = m_HScrollBar->GetRealPosition();
         if (SDL_PointInRectFloat(&pt, &Rect))
         {
-            return m_HScrollBar->DoChildEvent(event);
+            return m_HScrollBar->ProcessEvent(event);
         }
     }
     if (m_VScrollBar)
     {
-        Rect = m_VScrollBar->GetRealPosition();
+        SDL_FPoint pt;
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            pt = SDL_FPoint(event.motion.x, event.motion.y);
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+        {
+            pt = SDL_FPoint(event.button.x, event.button.y);
+        }
+        SDL_FRect Rect = m_VScrollBar->GetRealPosition();
         if (SDL_PointInRectFloat(&pt, &Rect))
         {
-            return m_VScrollBar->DoChildEvent(event);
-        }
-        else
-        {
-            static long long c{};
-            //SDL_Log("NOT In RECT %ld: pt=(%5.2f, %5.2f), Rect=(%5.2f, %5.2f, %5.2f, %5.2f)", ++c, pt.x, pt.y, Rect.x, Rect.y, Rect.w, Rect.h);
+            return m_VScrollBar->ProcessEvent(event);
         }
     }
 
-    // First we traverse childs list, to handle ecvent by innermost child first and then pop upwards
-    for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
+    // if there is control that captured mouse then and it is not current one than we do nothing here
+    if (event.type != SDL_EVENT_MOUSE_MOTION && OtherControlCapturedMouse())
     {
-        SDL_FRect Position{ (*it)->GetRealPosition() };
-        if (SDL_PointInRectFloat(&pt, &Position))
-        {
-            result = (*it)->DoChildEvent(event);
-            if (result)
-            {
-                // make sure to uncapture window on mouse up
-                if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-                {
-                    (*it)->CaptureMouse(nullptr);
-                }
-                return true;
-            }
-        }
+        return true;
     }
 
     switch (event.type)
@@ -855,6 +1059,11 @@ bool Tilc::Gui::TGuiControl::DoChildEvent(const SDL_Event& event)
         if (OnKeyUp(event)) return true;
         break;
     case SDL_EVENT_MOUSE_MOTION:
+        // Poniższy if obsluguje wyczyszczenie stanu HOVER po przejechaniu z jednej kontrolki na nastepną w obrębie tego samego okna
+        if (m_Parent && m_Parent->ResetControlsState(CONTROL_STATE_HOVER, false))
+        {
+            Invalidate();
+        }
         if (OnMouseMove(event)) return true;
         break;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -876,8 +1085,21 @@ bool Tilc::Gui::TGuiControl::DoChildEvent(const SDL_Event& event)
 void Tilc::Gui::TGuiControl::Invalidate(ENeedUpdate WhatNeedUpdate)
 {
     m_NeedUpdate = WhatNeedUpdate;
-    // if there is parent window then invalidate it also
-    if (GetParentWindow()) GetParentWindow()->Invalidate();
+    // if there are parent windows then invalidate all of them also
+    if (m_Parent)
+    {
+        Tilc::Gui::TGuiControl* parent = m_Parent;
+        Tilc::Gui::TGuiControl* gc;
+        while (parent)
+        {
+            Tilc::Gui::TStyledWindow* pw = dynamic_cast<Tilc::Gui::TStyledWindow*>(parent);
+            if (pw)
+            {
+                pw->Invalidate();
+            }
+            parent = parent->m_Parent;
+        }
+    }
 }
 
 
@@ -1021,59 +1243,123 @@ void Tilc::Gui::TGuiControl::Draw(float x, float y,
 
 void Tilc::Gui::TGuiControl::SetOffsetX(float Offset)
 {
-    // jesli nie jest to suwak okna głównego (kontrolki, które nie ma rodzica), to aktualizujemy offset tej kontrolki uwzględniając offset rodzica
-    if (dynamic_cast<Tilc::Gui::TScrollBar*>(this) && m_Parent && m_Parent->m_Parent == nullptr)
-    {
-        return;
-    }
+    m_OffsetX = Offset;
 
-    if (m_Parent)
-    {
-        m_OffsetX = m_Parent->m_OffsetX + Offset;
-    }
-    else
-    {
-        m_OffsetX = Offset;
-    }
-    m_NeedUpdate = ENeedUpdate::ENU_Everything;
-
+    // Reposition child controls
     for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
     {
-        // wywolanie ponizej ustawi przesuniecie wszystkich kontrolek dzieci taki sam jak kontrolki rodzica
-        (*it)->SetOffsetX(0);
+        // wywolanie ponizej ustawi przesuniecie wszystkich kontrolek dzieci poza jego głównymi scrollbarami (o ile takie sa)
+        if ((*it) && (*it) != m_HScrollBar && (*it) != m_VScrollBar)
+        {
+            (*it)->m_Position.x = (*it)->m_OriginalPosition.x - Offset;
+        }
     }
+    // As well reposition child windows
+    for (auto it = m_AllWindows.begin(); it != m_AllWindows.end(); ++it)
+    {
+        (*it)->m_Position.x = (*it)->m_OriginalPosition.x - Offset;
+    }
+
+    Invalidate();
 }
 
 void Tilc::Gui::TGuiControl::SetOffsetY(float Offset)
 {
-    // jesli nie jest to suwak okna głównego (kontrolki, które nie ma rodzica), to aktualizujemy offset tej kontrolki uwzględniając offset rodzica
-    if (dynamic_cast<Tilc::Gui::TScrollBar*>(this) && m_Parent && m_Parent->m_Parent == nullptr)
-    {
-        return;
-    }
-
-    if (m_Parent)
-    {
-        m_OffsetY = m_Parent->m_OffsetY + Offset;
-    }
-    // lub tylko przesunięcie
-    else
-    {
-        m_OffsetY = Offset;
-    }
-    m_NeedUpdate = ENeedUpdate::ENU_Everything;
-
+    m_OffsetY = Offset;
+    // Reposition child controls
     for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
     {
-        // wywolanie ponizej ustawi przesuniecie wszystkich kontrolek dzieci taki sam jak kontrolki rodzica
-        (*it)->SetOffsetY(0);
+        // wywolanie ponizej ustawi przesuniecie wszystkich kontrolek dzieci poza jego głównymi scrollbarami (o ile takie sa)
+        if ((*it) && (*it) != m_HScrollBar && (*it) != m_VScrollBar)
+        {
+            (*it)->m_Position.y = (*it)->m_OriginalPosition.y - Offset;
+        }
     }
+    // As well reposition child windows
+    for (auto it = m_AllWindows.begin(); it != m_AllWindows.end(); ++it)
+    {
+        (*it)->m_Position.y = (*it)->m_OriginalPosition.y - Offset;
+    }
+
+    Invalidate();
 }
 
 SDL_FRect Tilc::Gui::TGuiControl::GetRealPosition()
 {
     SDL_FRect Position = m_Position;
-    Position.x -= m_OffsetX;
-    Position.y -= m_OffsetY;
+    if (!m_Parent)
+    {
+        //std::cout << m_Name + ": (" << Position.x << ", " << Position.y << std::endl;
+        return Position;
+    }
+
+    SDL_FRect ParentPosition = m_Parent->GetRealPosition();
+
+    Position.x += ParentPosition.x;
+    Position.y += ParentPosition.y;
+    //std::cout << m_Name + ": (" << Position.x << ", " << Position.y << std::endl;
     return Position;
+}
+
+
+void Tilc::Gui::TGuiControl::SetActiveWindow(Tilc::Gui::TStyledWindow* Window, bool Redraw)
+{
+    static int RecursionLevel = 0;
+    // jesli to okno jest na liście okienek, to przenosimy je na koniec, żeby było wyrysowane na wierzchu
+    auto it = std::find(m_AllWindows.begin(), m_AllWindows.end(), Window);
+    if (it != m_AllWindows.end())
+    {
+        if (m_ActiveWindow)
+        {
+            m_ActiveWindow->ResetControls();
+        }
+        m_ActiveWindow = Window;
+        m_AllWindows.splice(m_AllWindows.end(), m_AllWindows, it);
+        if (Redraw)
+        {
+            Window->Invalidate();
+        }
+        if (m_Parent)
+        {
+            ++RecursionLevel;
+            m_Parent->SetActiveWindow(reinterpret_cast<Tilc::Gui::TStyledWindow*>(this));
+            --RecursionLevel;
+        }
+    }
+
+    // i to samo robimy na globalnej liscie okna renderingu zawierającego TopmostStyledWindow, ale tylko dla najwyższego wywołania tej funkcji, żeby nie robić niepotrzebnie ponownie tego
+    // w wywołaniach rekurencyjnych
+    if (RecursionLevel == 0)
+    {
+        std::list<Tilc::Gui::TStyledWindow*>& AllWindows = Tilc::GameObject->GetContext()->m_Window->m_AllWindows;
+        auto it = std::find(AllWindows.begin(), AllWindows.end(), Window);
+        if (it != AllWindows.end())
+        {
+            AllWindows.splice(AllWindows.end(), AllWindows, it);
+            //std::cout << "Moving: " << (*it)->m_Name << std::endl;
+            // Poniższą metodę musimy wywołać, żeby przeniosła na koniec globalnej listy wszystki podokna tego okna, bo inaczej to okno by je przesłoniło i po jego aktywacji
+            // nie moglibyśmy klikać ani wysyłać zdarzeń do podokien
+            (*it)->MoveAllSubWindowsToTheEndOfGlobalWindowsOrder();
+        }
+    }
+}
+
+void Tilc::Gui::TGuiControl::MoveAllSubWindowsToTheEndOfGlobalWindowsOrder()
+{
+    // Pobieramy referencję na globalną listę
+    std::list<Tilc::Gui::TStyledWindow*>& AllWindows = Tilc::GameObject->GetContext()->m_Window->m_AllWindows;
+    // i iterujemy przez lokalną listę podokienk bieżącego okna
+    for (auto it = m_AllWindows.begin(); it != m_AllWindows.end(); ++it)
+    {
+        auto ItMain = std::find(AllWindows.begin(), AllWindows.end(), *it);
+        if (ItMain != AllWindows.end())
+        {
+            AllWindows.splice(AllWindows.end(), AllWindows, ItMain);
+            //std::cout << "Moving: " << (*it)->m_Name << std::endl;
+            if (!(*it)->m_AllWindows.empty())
+            {
+                (*it)->MoveAllSubWindowsToTheEndOfGlobalWindowsOrder();
+            }
+        }
+    }
 }

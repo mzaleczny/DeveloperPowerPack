@@ -28,9 +28,32 @@ void Tilc::TWindow::Close(TEventDetails* Details)
 void Tilc::TWindow::SetIsFocused(bool IsFocused)
 {
     m_IsFocused = IsFocused;
-    if (m_StyledWindow)
+    if (m_TopmostWindow)
     {
-        m_StyledWindow->Invalidate();
+        // we must invalidate all styled windows to prevent coloured versions for one and grayscaled for others
+        for (auto it = m_AllWindows.begin(); it != m_AllWindows.end(); ++it)
+        {
+            (*it)->Invalidate();
+        }
+    }
+}
+
+void Tilc::TWindow::Minimize()
+{
+    m_IsMinimized = true;
+    if (m_TopmostWindow)
+    {
+        int wx, wy;
+        // Get window position
+        SDL_GetWindowPosition(m_Window, &wx, &wy);
+
+        // if styled window is present then remember previos window size
+        m_TopmostWindow->m_PrevPosition.w = m_TopmostWindow->m_Position.w;
+        m_TopmostWindow->m_PrevPosition.h = m_TopmostWindow->m_Position.h;
+        // and previous position of the window
+        m_TopmostWindow->m_PrevPosition.x = wx;
+        m_TopmostWindow->m_PrevPosition.y = wy;
+        SDL_MinimizeWindow(m_Window);
     }
 }
 
@@ -53,20 +76,20 @@ void Tilc::TWindow::Maximize()
 
     // mark window as maximized
     m_IsMaximized = true;
-    if (m_StyledWindow)
+    if (m_TopmostWindow)
     {
         // if styled window is present then remember previos window size
-        m_StyledWindow->m_PrevPosition.w = m_StyledWindow->m_Position.w;
-        m_StyledWindow->m_PrevPosition.h = m_StyledWindow->m_Position.h;
+        m_TopmostWindow->m_PrevPosition.w = m_TopmostWindow->m_Position.w;
+        m_TopmostWindow->m_PrevPosition.h = m_TopmostWindow->m_Position.h;
         // and previous position of the window
-        m_StyledWindow->m_PrevPosition.x = wx;
-        m_StyledWindow->m_PrevPosition.y = wy;
+        m_TopmostWindow->m_PrevPosition.x = wx;
+        m_TopmostWindow->m_PrevPosition.y = wy;
         // set new position/dimensions of maximized widow
-        SDL_RectToFRect(&Rect, &m_StyledWindow->m_Position);
+        SDL_RectToFRect(&Rect, &m_TopmostWindow->m_Position);
         // recreate Canvas with new size
-        m_StyledWindow->RecreateCanvasForCurrentSize();
+        m_TopmostWindow->RecreateCanvasForCurrentSize();
         // redraw styled window
-        m_StyledWindow->Invalidate();
+        m_TopmostWindow->Invalidate();
     }
 }
 
@@ -74,19 +97,20 @@ void Tilc::TWindow::Restore()
 {
     // mark window as not maximized
     m_IsMaximized = false;
+    m_IsMinimized = false;
     // set previous remembered position
-    SDL_SetWindowPosition(m_Window, m_StyledWindow->m_PrevPosition.x, m_StyledWindow->m_PrevPosition.y);
+    SDL_SetWindowPosition(m_Window, m_TopmostWindow->m_PrevPosition.x, m_TopmostWindow->m_PrevPosition.y);
     // set previos window size
-    SDL_SetWindowSize(m_Window, m_StyledWindow->m_PrevPosition.w, m_StyledWindow->m_PrevPosition.h);
-    if (m_StyledWindow)
+    SDL_SetWindowSize(m_Window, m_TopmostWindow->m_PrevPosition.w, m_TopmostWindow->m_PrevPosition.h);
+    if (m_TopmostWindow)
     {
         // if styled window is present, then restore its previous position and dimensions
-        m_StyledWindow->m_Position.w = m_StyledWindow->m_PrevPosition.w;
-        m_StyledWindow->m_Position.h = m_StyledWindow->m_PrevPosition.h;
+        m_TopmostWindow->m_Position.w = m_TopmostWindow->m_PrevPosition.w;
+        m_TopmostWindow->m_Position.h = m_TopmostWindow->m_PrevPosition.h;
         // recreate Canvas with new size
-        m_StyledWindow->RecreateCanvasForCurrentSize();
+        m_TopmostWindow->RecreateCanvasForCurrentSize();
         // redraw styled window
-        m_StyledWindow->Invalidate();
+        m_TopmostWindow->Invalidate();
     }
 }
 
@@ -157,10 +181,10 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext)
 
 void Tilc::TWindow::Destroy()
 {
-    if (m_StyledWindow)
+    if (m_TopmostWindow)
     {
-        delete m_StyledWindow;
-        m_StyledWindow = nullptr;
+        delete m_TopmostWindow;
+        m_TopmostWindow = nullptr;
     }
     if (gContext)
 	{

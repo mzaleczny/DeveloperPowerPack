@@ -143,7 +143,7 @@ target_include_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_options(Tilc PRIVATE "${SetSubsystem}")
 #target_link_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "$<BUILD_INTERFACE:f:/libs/SDL3>")
-target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} ${ASSIMP_LIBRARY} ${MYSQL_LIBRARY} "${GLOBAL_LIB_DIR}/zlib.lib")
+target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} ${ASSIMP_LIBRARY} ${MYSQL_LIBRARY} "${GLOBAL_LIB_DIR}/zlib.lib" "${GLOBAL_LIB_DIR}/svg_raster.lib")
 
 # define the symbol stating we are using the declspec(dllexport) when
 # building on windows

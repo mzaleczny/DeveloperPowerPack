@@ -18,12 +18,12 @@ namespace Tilc::Game2D
 {
 	struct DECLSPEC TMapTileSetData
 	{
-		int m_TileWidth;
-		int m_TileHeight;
+        int m_TileWidth{};
+        int m_TileHeight{};
 		// Vector of all unique tiles in image containing tiles
-		TTileSet m_TileSet;
+        TTileSet m_TileSet{};
 		// Image containing tileset extracted to member above (m_TileSet)
-		SDL_Surface* m_TileSetImage;
+        SDL_Surface* m_TileSetImage{};
 	};
 
 	class DECLSPEC TWorld2D

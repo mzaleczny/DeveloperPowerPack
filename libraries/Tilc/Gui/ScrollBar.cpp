@@ -3,7 +3,7 @@
 #include "Tilc/Gui/StyledWindow.h"
 
 Tilc::Gui::TScrollBar::TScrollBar(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, int thumbPosition, int maxValue, int minValue, bool autosize)
-    : Tilc::Gui::TGuiControl(parent, name, position), m_ThumbOffsetX{}, m_ThumbOffsetY{}
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_ScrollBarControl), m_ThumbOffsetX{}, m_ThumbOffsetY{}
 {
     m_Type = CSCROLLBAR_TYPE_UNDEFINED;
     m_State = CSCROLLBAR_STATE_NORMAL;
@@ -12,7 +12,6 @@ Tilc::Gui::TScrollBar::TScrollBar(Tilc::Gui::TGuiControl* parent, const Tilc::TE
     m_Autosize = autosize;
     m_SmallStep = 1;
     m_LargeStep = 10;
-    m_LeftMouseButtonPressed = false;
 
     m_MinValue = minValue;
     if (maxValue > minValue)
@@ -88,7 +87,7 @@ void Tilc::Gui::TScrollBar::OnPositionChanged(int oldPosition)
 
     if (OnPositionChangeCallback)
     {
-        OnPositionChangeCallback(nullptr);
+        OnPositionChangeCallback(this);
     }
 }
 
