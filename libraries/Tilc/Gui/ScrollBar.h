@@ -86,6 +86,10 @@ namespace Tilc::Gui {
         {
             OnPositionChangeCallback = std::bind(Func, Instance, std::placeholders::_1);
         }
+        void SetOnPositionChangeCallback(void(*Func)(void*))
+        {
+            OnPositionChangeCallback = std::bind(Func, std::placeholders::_1);
+        }
         virtual bool ResetControlState(int StatesToClear = CONTROL_STATE_HOVER) override
         {
             bool Result = Tilc::Gui::TGuiControl::ResetControlState(StatesToClear);

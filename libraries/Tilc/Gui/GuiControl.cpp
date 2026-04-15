@@ -10,6 +10,7 @@
 #include "Tilc/Game.h"
 #include "Tilc/Game2D/Sprite/DirectionalAnimation.h"
 #include "Tilc/Utils/StdObject.h"
+#include "Tilc/Resources/TextureManager.h"
 #include <algorithm>
 #include <ranges>
 
@@ -1341,6 +1342,15 @@ void Tilc::Gui::TGuiControl::SetActiveWindow(Tilc::Gui::TStyledWindow* Window, b
             // nie moglibyśmy klikać ani wysyłać zdarzeń do podokien
             (*it)->MoveAllSubWindowsToTheEndOfGlobalWindowsOrder();
         }
+    }
+}
+
+void Tilc::Gui::TGuiControl::LoadBackground(const Tilc::TExtString& Filename)
+{
+    Tilc::Resources::TResourceTexture* ResourceTexture = Tilc::GameObject->GetContext()->m_TextureManager->AddResourceFromFile(m_Name, Filename, "SDL_Texture");
+    if (ResourceTexture)
+    {
+        m_Bg = ResourceTexture->AsSDLTexture();
     }
 }
 

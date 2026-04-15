@@ -488,6 +488,15 @@ namespace Tilc {
             std::list<Tilc::Gui::TStyledWindow*>& AllWindowsList() { return m_AllWindows; }
             Tilc::Gui::TStyledWindow* GetActiveWindow() const { return m_ActiveWindow; }
 
+            SDL_Texture* m_Bg{};
+            void LoadBackground(const Tilc::TExtString& Filename);
+
+            float m_Alpha = 1.0f;
+            void inline SetAlpha(float Alpha)
+            {
+                m_Alpha = Alpha;
+                Invalidate();
+            }
         protected:
             SDL_Texture* m_Canvas{};
             TStyledWindow* m_ParentWindow{};

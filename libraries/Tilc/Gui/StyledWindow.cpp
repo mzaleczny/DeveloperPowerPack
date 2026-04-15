@@ -126,9 +126,16 @@ void Tilc::Gui::TStyledWindow::Draw()
         {
             DestRect = { 0, 0, m_Position.w, m_Position.h };
         }
-        // Full Canvas of window is light gray
-        SDL_SetRenderDrawColor(Renderer, 0xa0, 0xa0, 0xa0, 0xff);
-        SDL_RenderFillRect(Renderer, &DestRect);
+        if (!m_Bg)
+        {
+            // Full Canvas of window is light gray
+            SDL_SetRenderDrawColor(Renderer, 0xa0, 0xa0, 0xa0, 0xff);
+            SDL_RenderFillRect(Renderer, &DestRect);
+        }
+        else
+        {
+            SDL_RenderTexture(Renderer, m_Bg, nullptr, &DestRect);
+        }
 
         // ================================================================
         // Rysujemy obramowanie okna
@@ -210,7 +217,18 @@ void Tilc::Gui::TStyledWindow::Draw()
             m_Canvas = GrayTex;
         }
     }
-    SDL_RenderTexture(Renderer, m_Canvas, nullptr, &m_Position);
+
+    if (m_Alpha < 1.0f)
+    {
+        SDL_SetTextureBlendMode(m_Canvas, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureAlphaMod(m_Canvas, static_cast<int>(m_Alpha * 255.0f));
+        SDL_RenderTexture(Renderer, m_Canvas, nullptr, &m_Position);
+    }
+    else
+    {
+        SDL_SetTextureBlendMode(m_Canvas, SDL_BLENDMODE_NONE);
+        SDL_RenderTexture(Renderer, m_Canvas, nullptr, &m_Position);
+    }
 }
 
 void Tilc::Gui::TStyledWindow::DrawCaptionButtons()
