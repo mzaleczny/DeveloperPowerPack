@@ -45,10 +45,22 @@ namespace Tilc {
 
         enum class EControlType
         {
-            ECT_RegularControl,
-            ECT_ScrollBarControl,
-            ECT_WindowControl
+            ECT_WindowControl,
+            ECT_Menu,
+            ECT_ScrollBar,
+            ECT_Slider,
+            ECT_Button,
+            ECT_Label,
+            ECT_TextField
         };
+
+        enum class EControlBorderType
+        {
+            ECBT_None,
+            ECBT_Solid
+        };
+
+
         class DECLSPEC TGuiControlItem
         {
         public:
@@ -499,6 +511,15 @@ namespace Tilc {
                 m_Alpha = Alpha;
                 Invalidate();
             }
+
+            // Two function below mark and unmark control as in updating state. If control is in updating state, not processes Invalidate function.
+            void inline BeginUpdate() { m_BeginUpdate = true; }
+            void inline EndUpdate()
+            {
+                m_BeginUpdate = false;
+                Invalidate();
+            }
+
         protected:
             SDL_Texture* m_Canvas{};
             TStyledWindow* m_ParentWindow{};
@@ -560,6 +581,8 @@ namespace Tilc {
 
             // List of child controls
             std::list<TGuiControl*> m_Children;
+
+            bool m_BeginUpdate{};
 
             // Wskaźnik na sprite'a, na którym zarezerwowano zdarzenia WM_MOUSE (w wyniku kliknięcia na nim).
             // Jeśli jest różny od NULL, to inne Sprite'y powinny ignorować zdarzenia myszki.

@@ -676,7 +676,7 @@ void Tilc::Gui::TGuiControl::AddVerticalScrollbar(int min, int max, int size)
             DesiredHeight -= top + theme->wnd_frame_bottom_rc.h;
         }
         SDL_FRect ChildPosition{ static_cast<float>(m_Position.w - vscr_w), top, static_cast<float>(vscr_w), DesiredHeight };
-        Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarVertical(this, m_Name + "_VSB", ChildPosition, min, max, min, true);
+        Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarVertical(this, m_Name + "_VSB", ChildPosition, Tilc::Gui::EControlType::ECT_ScrollBar, min, max, min, true);
         if (scrbar)
         {
             if (!size)
@@ -714,7 +714,7 @@ void Tilc::Gui::TGuiControl::AddHorizontalScrollbar(int min, int max, int size)
             DesiredWidth -= theme->wnd_frame_left_rc.w + theme->wnd_frame_right_rc.w;
         }
         SDL_FRect ChildPosition{ left, m_Position.h - hscr_h, DesiredWidth, static_cast<float>(hscr_h) };
-        Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarHorizontal(this, m_Name + "_HSB", ChildPosition, min, max, min, true);
+        Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarHorizontal(this, m_Name + "_HSB", ChildPosition, Tilc::Gui::EControlType::ECT_ScrollBar, min, max, min, true);
         if (scrbar)
         {
             if (!size)
@@ -1108,6 +1108,7 @@ bool Tilc::Gui::TGuiControl::ProcessEvent(const SDL_Event& event)
 
 void Tilc::Gui::TGuiControl::Invalidate(ENeedUpdate WhatNeedUpdate)
 {
+    if (m_BeginUpdate) return;
     m_NeedUpdate = WhatNeedUpdate;
     // if there are parent windows then invalidate all of them also
     if (m_Parent)
