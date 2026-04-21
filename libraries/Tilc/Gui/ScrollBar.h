@@ -35,7 +35,7 @@ namespace Tilc::Gui {
     class DECLSPEC TScrollBar : public TGuiControl
     {
     public:
-        TScrollBar(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, int thumbPosition = 1, int maxValue = 100, int minValue = 1, bool autosize = false);
+        TScrollBar(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, int thumbPosition = 1, int maxValue = 100, int minValue = 1, bool autosize = false);
         virtual ~TScrollBar();
 
         void SetSteps(int _small, int _large);

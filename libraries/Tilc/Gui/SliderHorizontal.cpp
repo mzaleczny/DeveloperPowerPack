@@ -3,7 +3,7 @@
 #include "Tilc/Gui/StyledWindow.h"
 
 Tilc::Gui::TSliderHorizontal::TSliderHorizontal(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, int thumbPosition, int maxValue, int minValue, bool autosize)
-    : Tilc::Gui::TScrollBarHorizontal(parent, name, position, thumbPosition, maxValue, minValue, autosize)
+    : Tilc::Gui::TScrollBarHorizontal(parent, name, position, Tilc::Gui::EControlType::ECT_Slider, thumbPosition, maxValue, minValue, autosize)
 {
     TTheme * m_Theme = Tilc::GameObject->GetContext()->m_Theme;
     m_ThumbSize = m_Theme->slider_horizontal_thumb_rc.w;

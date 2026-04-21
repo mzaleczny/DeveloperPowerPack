@@ -2,8 +2,8 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/StyledWindow.h"
 
-Tilc::Gui::TScrollBar::TScrollBar(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, int thumbPosition, int maxValue, int minValue, bool autosize)
-    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_ScrollBarControl), m_ThumbOffsetX{}, m_ThumbOffsetY{}
+Tilc::Gui::TScrollBar::TScrollBar(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, int thumbPosition, int maxValue, int minValue, bool autosize)
+    : Tilc::Gui::TGuiControl(parent, name, position, ControlType), m_ThumbOffsetX{}, m_ThumbOffsetY{}
 {
     m_Type = CSCROLLBAR_TYPE_UNDEFINED;
     m_State = CSCROLLBAR_STATE_NORMAL;

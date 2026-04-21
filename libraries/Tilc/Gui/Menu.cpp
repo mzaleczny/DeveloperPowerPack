@@ -21,13 +21,13 @@ Tilc::Gui::TMenuItem::TMenuItem(const char* Caption, bool Available, bool DrawIc
 }
 
 Tilc::Gui::TMenu::TMenu(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, TFont* MenuFont, float SizeSelected)
-    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl), m_Font(MenuFont)
+    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Menu), m_Font(MenuFont)
 {
     ++MenuCounter;
 }
 
 Tilc::Gui::TMenu::TMenu(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, TFont* MenuFont, bool OpenGLVersion, int SurfaceWidth, int SurfaceHeight)
-    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl), m_Font(MenuFont)
+    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Menu), m_Font(MenuFont)
 {
     ++MenuCounter;
     Tilc::TExtString TextureResourceName = "Menu" + std::to_string(MenuCounter);
@@ -39,7 +39,7 @@ Tilc::Gui::TMenu::TMenu(TGuiControl* parent, const Tilc::TExtString& name, const
 }
 
 Tilc::Gui::TMenu::TMenu(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const char* MenuResourceName, const char* FontResourceName, float Size, float SizeSelected)
-    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl)
+    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Menu)
 {
 	char* Buffer;
 	size_t BufferSize;

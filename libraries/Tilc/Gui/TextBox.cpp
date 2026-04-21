@@ -5,7 +5,7 @@
 #include "Tilc/Utils/ExtString.h"
 
 Tilc::Gui::TTextBox::TTextBox(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, const char* Content, size_t ContentLength, TFont* ExistingFont, float FontSize)
-	: Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl, false)
+	: Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Label, false)
 {
 	Alignment = Tilc::Gui::ETextLinesAlignment::ETLA_Top;
 	ColorR = 0xff;
@@ -18,7 +18,7 @@ Tilc::Gui::TTextBox::TTextBox(TGuiControl* parent, Tilc::TExtString name, const 
 }
 
 Tilc::Gui::TTextBox::TTextBox(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, const char* Content, size_t ContentLength, TTF_Font* ExistingFont, float FontSize)
-    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl, false)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Label, false)
 {
 	Alignment = Tilc::Gui::ETextLinesAlignment::ETLA_Top;
 	ColorR = 0xff;
@@ -31,7 +31,7 @@ Tilc::Gui::TTextBox::TTextBox(TGuiControl* parent, Tilc::TExtString name, const 
 }
 
 Tilc::Gui::TTextBox::TTextBox(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, const char* DbResourcesFname, const char* ResourceName, const char* FontResourceName, float FontSize)
-    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl, false)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Label, false)
 {
 	char* Buffer = nullptr;
 	size_t BufferSize;

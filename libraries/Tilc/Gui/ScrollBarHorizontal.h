@@ -8,7 +8,7 @@ namespace Tilc {
 
         class DECLSPEC TScrollBarHorizontal : public TScrollBar {
         public:
-            TScrollBarHorizontal(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, int thumbPosition = 1, int maxValue = 100, int minValue = 1, bool autosize = false); 
+            TScrollBarHorizontal(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType = EControlType::ECT_ScrollBar, int thumbPosition = 1, int maxValue = 100, int minValue = 1, bool autosize = false);
 
             virtual void Draw() override;
             //virtual bool Update(float DeltaTime) override;

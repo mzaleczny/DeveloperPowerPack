@@ -2,8 +2,8 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/StyledWindow.h"
 
-Tilc::Gui::TScrollBarVertical::TScrollBarVertical(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, int thumbPosition, int maxValue, int minValue, bool autosize)
-    : Tilc::Gui::TScrollBar(parent, name, position, thumbPosition, maxValue, minValue, autosize)
+Tilc::Gui::TScrollBarVertical::TScrollBarVertical(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, int thumbPosition, int maxValue, int minValue, bool autosize)
+    : Tilc::Gui::TScrollBar(parent, name, position, ControlType, thumbPosition, maxValue, minValue, autosize)
 {
     // w konstruktorze ustawiamy minimalną wielkość rozmiaru suwaka
     SetThumbSize();

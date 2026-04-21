@@ -3,7 +3,7 @@
 #include "Tilc/Game.h"
 
 Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, bool tabStop)
-    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl, true)
+    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_TextField, true)
 {
     //this->_commonInit(Tilc::TExtString(L""), width, tabStop);
 }
