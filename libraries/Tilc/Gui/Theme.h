@@ -159,6 +159,18 @@ namespace Tilc {
             SDL_FRect scrollbar_vertical_bg_disabled_rc;
             SDL_FRect scrollbar_vertical_bg_pushed_rc;
 
+
+            // Bitmapy sliderów
+            SDL_FRect slider_horizontal_thumb_rc;
+            SDL_FRect slider_horizontal_rail_left_rc;
+            SDL_FRect slider_horizontal_rail_middle_rc;
+            SDL_FRect slider_horizontal_rail_right_rc;
+
+            SDL_FRect slider_vertical_thumb_rc;
+            SDL_FRect slider_vertical_rail_top_rc;
+            SDL_FRect slider_vertical_rail_middle_rc;
+            SDL_FRect slider_vertical_rail_bottom_rc;
+
             /*
             // Bitmapy textfield
             SDL_FRect textfield_frame_left_rc;
@@ -279,6 +291,7 @@ namespace Tilc {
             void LoadToolbar16SkinResources(Tilc::TExtString themeName);
             void LoadLabelSkinResources(Tilc::TExtString themeName);
             void LoadScrollBarSkinResources(Tilc::TExtString themeName);
+            void LoadSliderSkinResources(Tilc::TExtString themeName);
             void LoadTextfieldSkinResources(Tilc::TExtString themeName);
             void LoadButtonSkinResources(Tilc::TExtString themeName);
             void LoadCheckboxSkinResources(Tilc::TExtString themeName);

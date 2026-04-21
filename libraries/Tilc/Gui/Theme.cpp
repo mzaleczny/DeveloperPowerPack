@@ -48,17 +48,18 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
   
 
     LayoutInputStream.open(Filename + ".txt", std::ios::in);
-
     //this->globalStandardFont = new CFont(NULL, RGB(0, 0, 0), "Verdana", 8);
     this->LoadWindowSkinResources(name);
+    this->LoadScrollBarSkinResources(name);
+    this->LoadButtonSkinResources(name);
+    this->LoadSliderSkinResources(name);
+
     this->LoadPanelSkinResources(name);
     this->LoadMenuSkinResources(name);
     this->LoadPopupmenuSkinResources(name);
     this->LoadToolbar16SkinResources(name);
     this->LoadLabelSkinResources(name);
-    this->LoadScrollBarSkinResources(name);
     this->LoadTextfieldSkinResources(name);
-    this->LoadButtonSkinResources(name);
     this->LoadCheckboxSkinResources(name);
     this->LoadListboxSkinResources(name);
     this->LoadGridSkinResources(name);
@@ -367,30 +368,61 @@ void Tilc::Gui::TTheme::LoadScrollBarSkinResources(Tilc::TExtString themeName)
             }
         }
     }
-            /*
-    this->scrollbar_horizontal_arrow_left = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_arrow_left.bmp").c_str());
-    this->scrollbar_horizontal_arrow_left_clicked = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_arrow_left_clicked.bmp").c_str());
-    this->scrollbar_horizontal_arrow_right = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_arrow_right.bmp").c_str());
-    this->scrollbar_horizontal_arrow_right_clicked = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_arrow_right_clicked.bmp").c_str());
-    this->scrollbar_horizontal_thumb_left = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_thumb_left.bmp").c_str());
-    this->scrollbar_horizontal_thumb_middle = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_thumb_middle.bmp").c_str());
-    this->scrollbar_horizontal_thumb_right = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_thumb_right.bmp").c_str());
-    this->scrollbar_horizontal_thumb_bg = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_thumb_bg.bmp").c_str());
-    this->scrollbar_horizontal_bg = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_bg.bmp").c_str());
-    this->scrollbar_horizontal_bg_clicked = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "horizontal_bg_clicked.bmp").c_str());
-    */
-    /*
-    this->scrollbar_vertical_arrow_up = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_arrow_up.png").c_str());
-    this->scrollbar_vertical_arrow_up_clicked = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_arrow_up_clicked.png").c_str());
-    this->scrollbar_vertical_arrow_down = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_arrow_down.png").c_str());
-    this->scrollbar_vertical_arrow_down_clicked = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_arrow_down_clicked.png").c_str());
-    this->scrollbar_vertical_thumb_top = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_thumb_top.png").c_str());
-    this->scrollbar_vertical_thumb_middle = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_thumb_middle.png").c_str());
-    this->scrollbar_vertical_thumb_bottom = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_thumb_bottom.png").c_str());
-    this->scrollbar_vertical_thumb_bg = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_thumb_bg.png").c_str());
-    this->scrollbar_vertical_bg = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_bg.png").c_str());
-    this->scrollbar_vertical_bg_clicked = progmar::sdl3engine::TResources::LoadTexture(Application->Screen, DbResourcesFname, (ScrbarName + "vertical_bg_clicked.png").c_str());
-    */
+}
+
+void Tilc::Gui::TTheme::LoadSliderSkinResources(Tilc::TExtString themeName)
+{
+    if (GameObject)
+    {
+        Tilc::TExtString Line;
+        while (std::getline(LayoutInputStream, Line))
+        {
+            std::stringstream Keystream(Line);
+            Tilc::TExtString Item, sx, sy, sw, sh;
+            Keystream >> Item >> sx >> sy >> sw >> sh;
+            Item = Item.substr(0, Item.length() - 1);
+            sx = sx.substr(0, sx.length() - 1);
+            sy = sy.substr(0, sy.length() - 1);
+            sw = sw.substr(0, sw.length() - 1);
+            //sh = sh.substr(0, sh.length() - 1);
+            int RoundedPixels = 20;
+
+            SDL_FRect Rect;
+            if (Item == "slider-vertical-rail_rc")
+            {
+                Rect = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                slider_vertical_rail_top_rc = Rect;
+                slider_vertical_rail_top_rc.h = RoundedPixels;
+
+                slider_vertical_rail_middle_rc = Rect;
+                slider_vertical_rail_middle_rc.y += RoundedPixels;
+                slider_vertical_rail_middle_rc.h -= 2 * RoundedPixels;
+
+                slider_vertical_rail_bottom_rc = Rect;
+                slider_vertical_rail_bottom_rc.y = slider_vertical_rail_bottom_rc.y + slider_vertical_rail_bottom_rc.h - RoundedPixels;
+                slider_vertical_rail_bottom_rc.h = RoundedPixels;
+            }
+            else if (Item == "slider-vertical-thumb_rc")
+                slider_vertical_thumb_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "slider-horizontal-thumb_rc")
+                slider_horizontal_thumb_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "slider-horizontal-rail_rc")
+            {
+                Rect = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                slider_horizontal_rail_left_rc = Rect;
+                slider_horizontal_rail_left_rc.w = RoundedPixels;
+
+                slider_horizontal_rail_middle_rc = Rect;
+                slider_horizontal_rail_middle_rc.x += RoundedPixels;
+                slider_horizontal_rail_middle_rc.w -= 2 * RoundedPixels;
+
+                slider_horizontal_rail_right_rc = Rect;
+                slider_horizontal_rail_right_rc.x = slider_horizontal_rail_right_rc.x + slider_horizontal_rail_right_rc.w - RoundedPixels;
+                slider_horizontal_rail_right_rc.w = RoundedPixels;
+                break;
+            }
+        }
+    }
 }
 
 void Tilc::Gui::TTheme::LoadTextfieldSkinResources(Tilc::TExtString themeName)
