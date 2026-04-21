@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "05_StackingWindowsWithBackgroundsAndOpacity.exe",
+      "name": "05_StackingWindowsWithBackgroundsAndOpacity.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}

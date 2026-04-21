@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "06_Sliders.exe",
+      "name": "06_Sliders.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}

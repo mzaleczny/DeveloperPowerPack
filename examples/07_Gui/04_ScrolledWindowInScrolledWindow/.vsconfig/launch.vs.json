@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "04_ScrolledWindowInScrolledWindow.exe",
+      "name": "04_ScrolledWindowInScrolledWindow.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "01_SimpleWindow.exe",
+      "name": "01_SimpleWindow.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}
