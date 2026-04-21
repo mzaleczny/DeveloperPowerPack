@@ -16,12 +16,18 @@ static SDL_Renderer *renderer = NULL;
 static SDL_Texture *OutputTexture = NULL;
 static int texture_width = 0;
 static int texture_height = 0;
+int CurrentColumnX, CurrentColumnWidth, CurrentRowHeight;
+int X, Y;
 std::string OutputFile = "GUI.png";
 std::string ThemeDir;// = "f:\\resources\\Gtk Themes\\Relax-Light-GTK\\assets";
 std::ofstream of;
 
 constexpr const int WINDOW_WIDTH = 1920;
 constexpr const int WINDOW_HEIGHT = 1080;
+constexpr const int TEXTURE_WIDTH = 1920;
+constexpr const int TEXTURE_HEIGHT = 1080;
+constexpr const int DEFAULT_COLUMN_WIDTH = 80;
+
 
 void SaveTextureToFile(SDL_Texture* Texture);
 std::string FindThemeDir();
@@ -30,9 +36,11 @@ void RenderWindow();
 void RenderFullNonScaledTexture(std::string FileName, float x, float y, int& TexWidth, int& TexHeight);
 void RenderStretchedTexture(std::string FileName, float x, float y, float w, float h, int& TexWidth, int& TexHeight);
 void RenderScrollBars();
-void RenderSvgTile(std::string Name, SDL_Rect StartRect, bool Split, bool OutputTileToDescriptionFile = true);
-void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split = true);
-
+void RenderSliders();
+void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputTileToDescriptionFile = true);
+void RenderButtons(std::string Name, int width, int height, bool Split = true);
+void AddX(int Value, int NextItemWidth);
+void AddY(int Value, int NextItemHeight);
 std::ofstream& operator<<(std::ofstream& out, const SDL_Rect& rc);
 
 std::ofstream& operator<<(std::ofstream& out, const SDL_Rect& rc)
@@ -64,7 +72,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
         return SDL_APP_FAILURE;
     }
 
-    OutputTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, WINDOW_WIDTH, WINDOW_HEIGHT);
+    OutputTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     SDL_SetTextureBlendMode(OutputTexture, SDL_BLENDMODE_BLEND);
     if (!OutputTexture)
     {
@@ -72,6 +80,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
         return SDL_APP_FAILURE;
     }
 
+    X = 0;
+    Y = 0;
+    CurrentColumnWidth = 0;
+    CurrentRowHeight = 0;
+    CurrentColumnX = X;
     return SDL_APP_CONTINUE;
 }
 
@@ -93,7 +106,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
     RenderWindow();
     RenderScrollBars();
-    RenderButtons("button", { 5, 86, 75, 25 });
+    RenderButtons("button", 75, 25);
+    AddY(7 * 25, 0);
+    X = CurrentColumnX;
+    RenderSliders();
 
     SDL_SetRenderTarget(renderer, nullptr);
 
@@ -162,7 +178,6 @@ std::string FindThemeDir()
 void RenderWindow()
 {
     SDL_FRect dr;
-    SDL_Rect rc;
     int FrameWidth{}, FrameHeight{};
     int CaptionWidth{}, CaptionHeight{};
     int CloseButtonWidth{}, CloseButtonHeight{};
@@ -173,44 +188,34 @@ void RenderWindow()
     int top, left;
     float TitleButtonSpacing = 8.0f;
 
-    rc = { 0, 1, 1, 24 };
-    RenderSvgTile("line-v", rc, false, false);
-    rc.x += 1;
-    rc.w = 20;
-    RenderSvgTile("window_caption_active", rc, false, false);
-    rc.x += 20;
-    rc.w = 1;
-    RenderSvgTile("line-v", rc, false, false);
+    RenderSvgTile("line-v", { X, Y, 1, 24 }, false, false);
+    ++X;
+    RenderSvgTile("window_caption_active", { X, Y, 20, 24 }, false, false);
+    X += 20;
+    RenderSvgTile("line-v", { X, Y, 1, 24 }, false, false);
 
-    rc.x += 1;
-    RenderSvgTile("line-v-inactive", rc, false, false);
-    rc.x += 1;
-    rc.w = 20;
-    RenderSvgTile("window_caption_inactive", rc, false, false);
-    rc.x += 20;
-    rc.w = 1;
-    RenderSvgTile("line-v-inactive", rc, false, false);
+    ++X;
+    RenderSvgTile("line-v-inactive", { X, Y, 1, 24 }, false, false);
+    ++X;
+    RenderSvgTile("window_caption_inactive", { X, Y, 20, 24 }, false, false);
+    X += 20;
+    RenderSvgTile("line-v-inactive", { X, Y, 1, 24 }, false, false);
 
 
-    rc.y = 0;
-    rc.x = 0;
-    rc.w = 22;
-    rc.h = 1;
-    RenderSvgTile("line-h", rc, false, false);
-    rc.y += 25;
-    RenderSvgTile("line-h", rc, false, false);
+    X = 0;
+    RenderSvgTile("line-h", { X, Y, 22, 1 }, false, false);
+    Y += 24;
+    RenderSvgTile("line-h", { X, Y, 22, 1 }, false, false);
 
-    rc.y = 0;
-    rc.x += 22;
-    RenderSvgTile("line-h-inactive", rc, false, false);
-    rc.y += 25;
-    RenderSvgTile("line-h-inactive", rc, false, false);
+    Y = 0;
+    X += 22;
+    RenderSvgTile("line-h-inactive", { X, Y, 22, 1 }, false, false);
+    Y += 24;
+    RenderSvgTile("line-h-inactive", { X, Y, 22, 1 }, false, false);
 
-    rc.x = 44;
-    rc.y = 0;
-    rc.w = 1;
-    rc.h = 1;
-    RenderSvgTile("frame_bg", rc, false, false);
+    X = 44;
+    Y = 0;
+    RenderSvgTile("frame_bg", { X, Y, 1, 1 }, false, false);
 
     FrameWidth = 1;
     FrameHeight = 1;
@@ -237,18 +242,20 @@ void RenderWindow()
 
     top = FrameHeight + 2 * CaptionHeight + 2;
 
-    rc.x = FrameWidth + 1 + BgWidth;
-    rc.y = 26;
-    rc.w = CloseButtonWidth = 20;
-    rc.h = CloseButtonHeight = 20;
-    RenderButtons("wnd_close_button", rc, false);
-    rc.x += 20;
-    RenderButtons("wnd_maximize_button", rc, false);
-    rc.x += 20;
-    RenderButtons("wnd_minimize_button", rc, false);
-    rc.x += 20;
-    RenderButtons("wnd_restore_button", rc, false);
+    X = 0;
+    Y = 26;
+    CloseButtonWidth = 20;
+    CloseButtonHeight = 20;
+    RenderButtons("wnd_close_button", 20, 20, false);
+    X += 20;
+    RenderButtons("wnd_maximize_button", 20, 20, false);
+    X += 20;
+    RenderButtons("wnd_minimize_button", 20, 20, false);
+    X += 20;
+    RenderButtons("wnd_restore_button", 20, 20, false);
 
+    X = 0;
+    AddY(3 * 20, 25);
     of << "wnd_leftmenu_button: 0, 0, 0, 0" << std::endl;
 }
 
@@ -299,92 +306,80 @@ void RenderStretchedTexture(std::string FileName, float x, float y, float w, flo
 void RenderScrollBars()
 {
     constexpr const int size = 16;
-    SDL_Rect rc{ 84, 26, size, size }, LeftRC, MiddleRC, RightRC;
+    SDL_Rect LeftRC, MiddleRC, RightRC;
     SDL_FRect frc;
     SDL_Texture* Texture;
-    int x, y;
 
-    RenderButtons("scrollbar-vertical-arrow-down", rc, false);
-    rc.x += size;
-    RenderButtons("scrollbar-vertical-arrow-up", rc, false);
-    rc.x += size;
-    RenderButtons("scrollbar-horizontal-arrow-left", rc, false);
-    rc.x += size;
-    RenderButtons("scrollbar-horizontal-arrow-right", rc, false);
+    X = 0;
+    RenderButtons("scrollbar-vertical-arrow-down", size, size, false);
+    AddX(size, size);
+    RenderButtons("scrollbar-vertical-arrow-up", size, size, false);
+    AddX(size, size);
+    RenderButtons("scrollbar-horizontal-arrow-left", size, size, false);
+    AddX(size, size);
+    RenderButtons("scrollbar-horizontal-arrow-right", size, size, false);
 
-    rc.x += size;
-    rc.w = 1;
-    RenderButtons("scrollbar-horizontal-bg", rc, false);
-    rc.x += 1;
-    RenderButtons("scrollbar-horizontal-bg_disabled", rc, false);
-    rc.x += 1;
-    RenderButtons("scrollbar-horizontal-bg_pushed", rc, false);
-    rc.x += 1;
-    rc.w = 3;
-    RenderButtons("scrollbar-horizontal-thumb-left", rc, false);
-    rc.x += rc.w;
-    rc.w = size - 2 * rc.w;
-    RenderButtons("scrollbar-horizontal-thumb-middle", rc, false);
-    rc.x += rc.w;
-    rc.w = 3;
-    RenderButtons("scrollbar-horizontal-thumb-right", rc, false);
-    rc.x += rc.w;
-    rc.w = size - 2 * rc.w;
-    RenderButtons("scrollbar-horizontal-thumb-bg", rc, false);
+    X = 0;
+    AddY(4*size, 0);
+    RenderSvgTile("scrollbar-horizontal-bg", {X, Y, 1, 16}, false);
+    AddX(1, 1);
+    RenderSvgTile("scrollbar-horizontal-bg_disabled", { X, Y, 1, 16 }, false);
+    AddX(1, 1);
+    RenderSvgTile("scrollbar-horizontal-bg_pushed", { X, Y, 1, 16 }, false);
+    AddX(1, 3);
+    RenderSvgTile("scrollbar-horizontal-thumb-left", { X, Y, 3, 16 }, false);
+    AddX(3, size - 2 * 3);
+    RenderSvgTile("scrollbar-horizontal-thumb-middle", { X, Y, size - 2 * 3, 16 }, false);
+    AddX(size - 2 * 3, 3);
+    RenderSvgTile("scrollbar-horizontal-thumb-right", { X, Y, 3, 16 }, false);
+    AddX(3, size);
+    RenderSvgTile("scrollbar-horizontal-thumb-bg", { X, Y, size, size }, false);
 
-    rc.x += rc.w;
-    x = rc.x;
-    y = rc.y;
-    rc.w = size;
-    rc.h = 1;
-    RenderButtons("scrollbar-vertical-bg", rc, false);
-    rc.y += 1;
-    RenderButtons("scrollbar-vertical-bg_disabled", rc, false);
-    rc.y += 1;
-    RenderButtons("scrollbar-vertical-bg_pushed", rc, false);
-    rc.y += 1;
-    rc.h = 3;
-    RenderButtons("scrollbar-vertical-thumb-top", rc, false);
-    rc.y += rc.h;
-    rc.h = size - 2 * rc.h;
-    RenderButtons("scrollbar-vertical-thumb-middle", rc, false);
-    rc.x = x + rc.w;
-    rc.y = y;
-    rc.h = 3;
-    RenderButtons("scrollbar-vertical-thumb-bottom", rc, false);
-    rc.y += rc.h;
-    rc.h = size - 2 * rc.h;
-    RenderButtons("scrollbar-vertical-thumb-bg", rc, false);
-    /*
-    Texture = LoadSVG((ThemeDir + "/button.svg").c_str(), 75, 25);
-    if (Texture)
-    {
-        SDL_RectToFRect(&rc, &frc);
-        SDL_RenderTexture(renderer, ButtonTexture, nullptr, &frc);
-
-        LeftRC = rc;
-        LeftRC.w = static_cast<int>(rc.w / 3.0f);
-        of << "button_left_rc: ";
-        of << LeftRC << std::endl;
-
-        RightRC = rc;
-        RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
-        RightRC.w = static_cast<int>(rc.w / 3.0f);
-        of << "button_right_rc: ";
-        of << RightRC << std::endl;
-
-        MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-        of << "button_middle_rc: ";
-        of << MiddleRC << std::endl;
-
-        SDL_DestroyTexture(ButtonTexture);
-    }
-    */
+    AddX(size, 0);
+    RenderSvgTile("scrollbar-vertical-bg", { X, Y, size, 1 }, false);
+    AddY(1, 1);
+    RenderSvgTile("scrollbar-vertical-bg_disabled", { X, Y, size, 1 }, false);
+    AddY(1, 1);
+    RenderSvgTile("scrollbar-vertical-bg_pushed", { X, Y, size, 1 }, false);
+    AddY(1, 3);
+    AddX(size, 0);
+    Y -= 3;
+    RenderSvgTile("scrollbar-vertical-thumb-top", { X, Y, size, 3 }, false);
+    AddY(3, size - 2 * 3);
+    RenderSvgTile("scrollbar-vertical-thumb-middle", { X, Y, size, size - 2 * 3 }, false);
+    AddY(size - 2 * 3, 3);
+    RenderSvgTile("scrollbar-vertical-thumb-bottom", { X, Y, size, 3 }, false);
+    AddX(size, size);
+    Y -= size - 2 * 3 + 3;
+    RenderSvgTile("scrollbar-vertical-thumb-bg", { X, Y, size, size }, false);
+    X = 0;
+    AddY(size, 0);
 }
 
-void RenderSvgTile(std::string Name, SDL_Rect StartRect, bool Split, bool OutputTileToDescriptionFile)
+void RenderSliders()
 {
-    SDL_Rect rc = StartRect, LeftRC, MiddleRC, RightRC;
+    constexpr const int ThumbSize = 20;
+    SDL_Rect LeftRC, MiddleRC, RightRC;
+    SDL_FRect frc;
+    SDL_Texture* Texture;
+
+    X = 75;
+    Y -= 3 * ThumbSize;
+    RenderSvgTile("slider-vertical-rail", { X, Y, 5, 3 * ThumbSize }, false);
+    X = 0;
+    Y += 3 * ThumbSize;
+    RenderSvgTile("slider-vertical-thumb", { X, Y, ThumbSize, ThumbSize }, false);
+    X += ThumbSize;
+    RenderSvgTile("slider-horizontal-thumb", { X, Y, ThumbSize, ThumbSize }, false);
+    AddX(ThumbSize, 0);
+    RenderSvgTile("slider-horizontal-rail", { X, Y, 2 * ThumbSize, 5 }, false);
+    AddY(7 * 25 + ThumbSize, 0);
+    X = 0;
+}
+
+void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputTileToDescriptionFile)
+{
+    SDL_Rect rc = DestRect, LeftRC, MiddleRC, RightRC;
     SDL_FRect frc;
     SDL_Texture* Texture;
     Texture = LoadSVG((ThemeDir + "/" + Name + ".svg").c_str(), rc.w, rc.h);
@@ -419,13 +414,17 @@ void RenderSvgTile(std::string Name, SDL_Rect StartRect, bool Split, bool Output
             }
         }
         SDL_DestroyTexture(Texture);
-        rc.y += StartRect.h;
+        rc.y += DestRect.h;
     }
 }
 
-void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
+void RenderButtons(std::string Name, int width, int height, bool Split)
 {
-    SDL_Rect rc = StartRect, LeftRC, MiddleRC, RightRC;
+    if (X + width > CurrentColumnX + CurrentColumnWidth)
+    {
+        CurrentColumnWidth = X + width - CurrentColumnX;
+    }
+    SDL_Rect rc = {X, Y, width, height}, LeftRC, MiddleRC, RightRC;
     SDL_FRect frc;
     SDL_Texture* ButtonTexture;
     ButtonTexture = LoadSVG((ThemeDir + "/" + Name + ".svg").c_str(), rc.w, rc.h);
@@ -457,7 +456,7 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
-        rc.y += StartRect.h;
+        rc.y += height;
     }
 
     ButtonTexture = LoadSVG((ThemeDir + "/" + Name + "-focused.svg").c_str(), 75, 25);
@@ -489,7 +488,7 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
-        rc.y += StartRect.h;
+        rc.y += height;
     }
 
     ButtonTexture = LoadSVG((ThemeDir + "/" + Name + "-disabled.svg").c_str(), 75, 25);
@@ -521,7 +520,7 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
-        rc.y += StartRect.h;
+        rc.y += height;
     }
 
     ButtonTexture = LoadSVG((ThemeDir + "/" + Name + "-hover.svg").c_str(), 75, 25);
@@ -553,7 +552,7 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
-        rc.y += StartRect.h;
+        rc.y += height;
     }
 
     ButtonTexture = LoadSVG((ThemeDir + "/" + Name + "-hover-focused.svg").c_str(), 75, 25);
@@ -585,7 +584,7 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
-        rc.y += StartRect.h;
+        rc.y += height;
     }
 
     ButtonTexture = LoadSVG((ThemeDir + "/" + Name + "-pushed.svg").c_str(), 75, 25);
@@ -617,7 +616,7 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
-        rc.y += StartRect.h;
+        rc.y += height;
     }
 
     ButtonTexture = LoadSVG((ThemeDir + "/" + Name + "-pushed-focused.svg").c_str(), 75, 25);
@@ -654,6 +653,10 @@ void RenderButtons(std::string Name, SDL_Rect StartRect, bool Split)
 
 SDL_Texture* LoadSVG(const char* Filename, int Width, int Height)
 {
+    if (X + Width > CurrentColumnX + CurrentColumnWidth)
+    {
+        CurrentColumnWidth = X + Width - CurrentColumnX;
+    }
     SDL_Texture* Texture{};
     if (UseSDLSvgRasterizer)
     {
@@ -694,4 +697,39 @@ SDL_Texture* LoadSVG(const char* Filename, int Width, int Height)
     }
 
     return Texture;
+}
+
+void AddX(int Value, int NextItemWidth)
+{
+    if (X + Value + NextItemWidth >= CurrentColumnWidth)
+    {
+        X = 0;
+        Y += CurrentRowHeight;
+        CurrentRowHeight = 0;
+        if (Y + 25 > TEXTURE_HEIGHT)
+        {
+            X = CurrentColumnX + CurrentColumnWidth;
+            CurrentColumnX = X;
+            Y = 0;
+            CurrentColumnWidth = DEFAULT_COLUMN_WIDTH;
+            CurrentRowHeight = 0;
+        }
+        return;
+    }
+
+    X += Value;
+}
+
+void AddY(int Value, int NextItemHeight)
+{
+    if (Y + NextItemHeight > TEXTURE_HEIGHT)
+    {
+        X = CurrentColumnX + CurrentColumnWidth;
+        CurrentColumnX = X;
+        Y = 0;
+        CurrentColumnWidth = DEFAULT_COLUMN_WIDTH;
+        CurrentRowHeight = 0;
+        return;
+    }
+    Y += Value;
 }
