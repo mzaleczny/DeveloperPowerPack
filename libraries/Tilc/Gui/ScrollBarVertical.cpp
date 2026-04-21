@@ -529,28 +529,28 @@ bool Tilc::Gui::TScrollBarVertical::OnMouseButtonDown(const SDL_Event& event)
         }
 
         // jeśli kliknięto w strzałkę w dół, to przechodzimy do odpowiedniego stanu
-        if (MouseOnArrowDown(localX, localY))
+        else if (MouseOnArrowDown(localX, localY))
         {
             SetDetailedState(CSCROLLBAR_STATE_SMALL_SCROLLING_DOWN);
             StepBy(m_SmallStep, true);
         }
 
         // jeśli kliknięto w tło nad suwakiem, to przechodzimy do odpowiedniego stanu
-        if (MouseOnBgUp(localX, localY))
+        else if (MouseOnBgUp(localX, localY))
         {
             SetDetailedState(CSCROLLBAR_STATE_LARGE_SCROLLING_UP);
             StepBy(-m_LargeStep, true);
         }
 
         // jeśli kliknięto w tło pod suwakiem, to przechodzimy do odpowiedniego stanu
-        if (MouseOnBgDown(localX, localY))
+        else if (MouseOnBgDown(localX, localY))
         {
             SetDetailedState(CSCROLLBAR_STATE_LARGE_SCROLLING_DOWN);
             StepBy(m_LargeStep, true);
         }
 
         // jeśli kliknięto w suwak, to przechodzimy do odpowiedniego stanu
-        if (MouseOnThumb(localX, localY))
+        else if (MouseOnThumb(localX, localY))
         {
             SetDetailedState(CSCROLLBAR_STATE_THUMB_DRAGGING);
             CalculateThumbLeftTopCorner(m_ThumbOffsetX, m_ThumbOffsetY);
