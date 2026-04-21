@@ -9,12 +9,12 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
 {
 	Tilc::TExtString s("Seeded random number generator with: " + std::to_string(time(NULL)));
     //m_TextBox = new Tilc::Gui::TTextBox(nullptr, "", nullptr, {}, s.c_str(), s.length(), Tilc::GameObject->GetFont("Arial"), 14.0f);
-    Tilc::GameObject->GetContext()->m_Window->m_StyledWindow = new Tilc::Gui::TStyledWindow(
+    Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow = new Tilc::Gui::TStyledWindow(
         nullptr,
         "MainWindow",
         { 0, 0, static_cast<float>(Tilc::GameObject->m_Window->GetWindowWidth()) , static_cast<float>(Tilc::GameObject->m_Window->GetWindowHeight()) }
     );
-    Tilc::GameObject->GetContext()->m_Window->m_StyledWindow->SetText("Przykładowe okienko");
+    Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow->SetText("Przykładowe okienko");
 }
 
 TStateGame::~TStateGame()
@@ -36,9 +36,9 @@ void TStateGame::OnCreate()
 	m_Elapsed = 0.0f;
 
     Tilc::TWindow* Window = Tilc::GameObject->GetContext()->m_Window;
-    if (Window->m_StyledWindow)
+    if (Window->m_TopmostWindow)
     {
-        Window->m_StyledWindow->AllowResizing(true);
+        Window->m_TopmostWindow->AllowResizing(true);
     }
 }
 
@@ -64,7 +64,7 @@ void TStateGame::Draw()
 	static SDL_Renderer* Renderer = Window->GetRenderer();
 
     SDL_RenderClear(Renderer);
-    Window->m_StyledWindow->Draw();
+    Window->m_TopmostWindow->Draw();
 }
 
 void TStateGame::KeyEscapePressed(Tilc::TEventDetails* Details)
