@@ -5,7 +5,7 @@
 #include "Tilc/Game.h"
 
 Tilc::Gui::TButton::TButton(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text)
-    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_RegularControl)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Button)
 {
     CommonInit(text);
 }
