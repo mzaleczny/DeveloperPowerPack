@@ -65,9 +65,16 @@ Tilc::Gui::TFont::~TFont()
 
 void Tilc::Gui::TFont::DrawString(SDL_Renderer* Renderer, const char* String, float x, float y)
 {
-    SDL_Surface* TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
-    //SDL_Surface* TextSurface = TTF_RenderText_Solid(m_Font, String, 0, m_Color); // TTF_RenderText_Blended(m_Font, String, 0, m_Color);
-	if (TextSurface)
+    SDL_Surface* TextSurface{};
+    if (m_WrapTo > 0)
+    {
+        TextSurface = TTF_RenderText_Blended_Wrapped(m_Font, String, 0, m_Color, m_WrapTo);
+    }
+    else
+    {
+        TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
+    }
+    if (TextSurface)
 	{
 		SDL_Texture* TextTexture = SDL_CreateTextureFromSurface(Renderer, TextSurface);
 		if (TextTexture != nullptr)
@@ -87,9 +94,16 @@ void Tilc::Gui::TFont::DrawString(SDL_Renderer* Renderer, const char* String, fl
 
 void Tilc::Gui::TFont::DrawString(SDL_Renderer* Renderer, const char* String, SDL_FRect* DestRect, int Align)
 {
-    SDL_Surface* TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
-    //SDL_Surface* TextSurface = TTF_RenderText_Solid(m_Font, String, 0, m_Color); // TTF_RenderText_Blended(m_Font, String, 0, m_Color);
-	if (TextSurface)
+    SDL_Surface* TextSurface{};
+    if (m_WrapTo > 0)
+    {
+        TextSurface = TTF_RenderText_Blended_Wrapped(m_Font, String, 0, m_Color, m_WrapTo);
+    }
+    else
+    {
+        TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
+    }
+    if (TextSurface)
 	{
 		SDL_Texture* TextTexture = SDL_CreateTextureFromSurface(Renderer, TextSurface);
 		if (TextTexture != nullptr)
@@ -135,8 +149,16 @@ void Tilc::Gui::TFont::DrawString(SDL_Renderer* Renderer, const char* String, SD
 
 void Tilc::Gui::TFont::DrawString(SDL_Surface* Surface, const char* String, float x, float y)
 {
-	SDL_Surface* TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
-	if (TextSurface)
+    SDL_Surface* TextSurface{};
+    if (m_WrapTo > 0)
+    {
+        TextSurface = TTF_RenderText_Blended_Wrapped(m_Font, String, 0, m_Color, m_WrapTo);
+    }
+    else
+    {
+        TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
+    }
+    if (TextSurface)
 	{
 		SDL_Rect Rect{ (int)x, (int)y, TextSurface->w, TextSurface->h };
 		SDL_BlitSurface(TextSurface, nullptr, Surface, &Rect);
@@ -146,8 +168,16 @@ void Tilc::Gui::TFont::DrawString(SDL_Surface* Surface, const char* String, floa
 
 void Tilc::Gui::TFont::DrawString(SDL_Surface* Surface, const char* String, SDL_FRect* DestRect, int Align)
 {
-	SDL_Surface* TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
-	if (TextSurface)
+    SDL_Surface* TextSurface{};
+    if (m_WrapTo > 0)
+    {
+        TextSurface = TTF_RenderText_Blended_Wrapped(m_Font, String, 0, m_Color, m_WrapTo);
+    }
+    else
+    {
+        TextSurface = TTF_RenderText_Blended(m_Font, String, 0, m_Color);
+    }
+    if (TextSurface)
 	{
 		SDL_Rect Rect{ static_cast<int>(DestRect->x), static_cast<int>(DestRect->y), TextSurface->w, TextSurface->h };
 

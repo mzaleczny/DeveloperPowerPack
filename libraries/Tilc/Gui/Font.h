@@ -39,8 +39,11 @@ namespace Tilc::Gui
         Tilc::TExtString m_FontName;
 		char* m_FontResourceData = nullptr;
 		SDL_Color m_Color = { 255, 255, 255, 0 };
+		SDL_Color m_BgColor = { 80, 80, 80, 255 };
 		float m_Size;
 		bool m_ReleaseFont = true;
+        // Size to which wrap text. If set to 0 or negative then no wrapping is performed.
+        int m_WrapTo{};
 	};
 
 }
