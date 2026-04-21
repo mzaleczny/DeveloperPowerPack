@@ -285,7 +285,9 @@ namespace Tilc {
 
             inline TGuiControl* GetParent() { return m_Parent; }
             inline void SetParent(TGuiControl* Parent) { m_Parent = Parent; }
-            virtual void DrawChildren();
+            // Draw All children default without vertical scrollbar and horizontal scrollbar id both present
+            virtual void DrawChildren(bool SkipVerticalAndHorizontalScrollBars = true);
+            virtual void DrawVerticalAndHorizontalScrollBars();
             virtual void DrawChildWindows();
             virtual void InvalidateAllChildren();
 

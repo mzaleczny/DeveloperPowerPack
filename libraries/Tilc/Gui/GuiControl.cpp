@@ -876,17 +876,40 @@ size_t Tilc::Gui::TGuiControl::RemoveChild(Tilc::Gui::TGuiControl* child)
     return OrigSize - m_Children.size();
 }
 
-void Tilc::Gui::TGuiControl::DrawChildren()
+void Tilc::Gui::TGuiControl::DrawChildren(bool SkipVerticalAndHorizontalScrollBars)
 {
     // ================================================================
     // Rysowanie dzieci
     // ================================================================
     for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
     {
+        if (SkipVerticalAndHorizontalScrollBars && ((*it) == m_VScrollBar || (*it) == m_HScrollBar))
+        {
+            continue;
+        }
         (*it)->Draw();
     }
     // ================================================================
     // Koniec rysowania dzieci
+    // ================================================================
+}
+
+void Tilc::Gui::TGuiControl::DrawVerticalAndHorizontalScrollBars()
+{
+    // ================================================================
+    // Rysowanie scrollbarów - tylko domyślnych pionowego i poziomego przy obrzeżach okna, bo pozostałe scrollbary rysowane są normalnie
+    // Te dwa muszą być narysowane ostatnie, bo okna dzieci lub kontrolki dzieci mogłyby na nie najechać i przesłonić co nie jest wskazane.
+    // ================================================================
+    if (m_VScrollBar)
+    {
+        m_VScrollBar->Draw();
+    }
+    if (m_HScrollBar)
+    {
+        m_HScrollBar->Draw();
+    }
+    // ================================================================
+    // Koniec rysowania scrollbarów
     // ================================================================
 }
 

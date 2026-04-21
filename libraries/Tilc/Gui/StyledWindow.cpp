@@ -170,6 +170,7 @@ void Tilc::Gui::TStyledWindow::Draw()
         // Dzieci rysujemy po wypelnieniu okna tlem po to, żeby po uwzględnienia scrollowania, przesuniete dzieci nie narysowaly się na nagłówku czy obramowaniu okna
         DrawChildren();
         DrawChildWindows();
+        DrawVerticalAndHorizontalScrollBars();
         DrawCaption();
 
 
@@ -801,33 +802,38 @@ bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
         }
         else
         {
-            ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_maximize_button_rc.w;
-            // Maximize/Restore button is handled only if window allows resizing
-            if (m_AllowResizing && event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_maximize_button_rc.w)
+            // Przyciski minimize i restore na razie obslugujemy tylko dla głównego okna aplikacji. Minimalizacja/Przywracanie okien dzieci, na razie nie jest
+            // obsługiwane. Obsługę tego dotrzeba później dodać.
+            if (TopWindow == this)
             {
-                if (!wnd->IsMaximized())
+                ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_maximize_button_rc.w;
+                // Maximize/Restore button is handled only if window allows resizing
+                if (m_AllowResizing && event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_maximize_button_rc.w)
                 {
-                    wnd->Maximize();
+                    if (!wnd->IsMaximized())
+                    {
+                        wnd->Maximize();
+                    }
+                    else
+                    {
+                        wnd->Restore();
+                    }
+                    wnd->m_TopmostWindow->Invalidate();
+                    return true;
                 }
                 else
                 {
-                    wnd->Restore();
-                }
-                wnd->m_TopmostWindow->Invalidate();
-                return true;
-            }
-            else
-            {
-                // if window allows resizing then we must shift ButtonX left by the length of minimize_button, because maximize/restore button is visible and now we pointed to it
-                // if not then we just pointed at minimize button
-                if (m_AllowResizing)
-                {
-                    ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_minimize_button_rc.w;
-                }
-                if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_minimize_button_rc.w)
-                {
-                    wnd->Minimize();
-                    return true;
+                    // if window allows resizing then we must shift ButtonX left by the length of minimize_button, because maximize/restore button is visible and now we pointed to it
+                    // if not then we just pointed at minimize button
+                    if (m_AllowResizing)
+                    {
+                        ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_minimize_button_rc.w;
+                    }
+                    if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_minimize_button_rc.w)
+                    {
+                        wnd->Minimize();
+                        return true;
+                    }
                 }
             }
         }

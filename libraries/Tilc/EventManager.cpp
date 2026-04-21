@@ -3,6 +3,7 @@
 #include "Tilc/Graphics/Camera.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/Gui/ScrollBar.h"
 #include "Game.h"
 #include <iostream>
 #include <fstream>
@@ -153,8 +154,35 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             SDL_FRect Position{ (*it)->GetRealPosition() };
             if (SDL_PointInRectFloat(&pt, &Position))
             {
-                wnd = (*it);
-                break;
+                Tilc::Gui::TStyledWindow* FoundWnd = *it;
+                // By default we take window under cursor into account
+                bool WindowOK = true;
+                if (FoundWnd->GetParent())
+                {
+                    // But if we are on the parent window vertical scrollbar, then mark not to take this window into account
+                    if (WindowOK && FoundWnd->GetParent()->m_VScrollBar)
+                    {
+                        SDL_FRect Position{ FoundWnd->GetParent()->m_VScrollBar->GetRealPosition() };
+                        if (SDL_PointInRectFloat(&pt, &Position))
+                        {
+                            WindowOK = false;
+                        }
+                    }
+                    // And if we are on the parent window horizontal scrollbar, then mark not to take this window into account either.
+                    if (WindowOK && FoundWnd->GetParent()->m_HScrollBar)
+                    {
+                        SDL_FRect Position{ FoundWnd->GetParent()->m_HScrollBar->GetRealPosition() };
+                        if (SDL_PointInRectFloat(&pt, &Position))
+                        {
+                            WindowOK = false;
+                        }
+                    }
+                }
+                if (WindowOK)
+                {
+                    wnd = (*it);
+                    break;
+                }
             }
         }
 
