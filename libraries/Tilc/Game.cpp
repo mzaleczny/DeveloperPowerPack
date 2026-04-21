@@ -199,7 +199,7 @@ void Tilc::TGame::Render()
 Tilc::Gui::TFont* Tilc::TGame::AddFont(const Tilc::TExtString& Key, Tilc::TExtString FontFilename, float Size, bool FromFile)
 {
     Tilc::Gui::TFont* Font = new Tilc::Gui::TFont(FontFilename.c_str(), Size, FromFile);
-	if (Font)
+	if (Font && Font->m_Font)
 	{
         Font->m_FontName = Key;
 		m_Context.m_Fonts[Key] = Font;
