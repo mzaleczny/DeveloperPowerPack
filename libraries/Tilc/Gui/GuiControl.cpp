@@ -7,6 +7,7 @@
 #include "Tilc/Gui/Menu.h"
 #include "Tilc/Gui/TextField.h"
 #include "Tilc/Gui/Button.h"
+#include "Tilc/Gui/Font.h"
 #include "Tilc/Game.h"
 #include "Tilc/Game2D/Sprite/DirectionalAnimation.h"
 #include "Tilc/Utils/StdObject.h"
@@ -71,7 +72,7 @@ void Tilc::Gui::TGuiControl::CommonInit(bool editable)
     
     m_Editable = false;
     m_IsEditor = false;
-    if (editable)
+    if (m_HasEditor)
     {
         AddEditor();
         if (m_Editor)
@@ -557,6 +558,44 @@ void Tilc::Gui::TGuiControl::SetActiveControl(TGuiControl* Control)
     }
 }
 
+void Tilc::Gui::TGuiControl::Focus()
+{
+    if (m_TabStop)
+    {
+        Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
+        if (wnd && wnd->GetActiveControl() != this)
+        {
+            wnd->SetActiveControl(this);
+            return;
+        }
+        AddState(CONTROL_STATE_FOCUSED);
+    }
+    Invalidate();
+}
+
+void Tilc::Gui::TGuiControl::LooseFocus()
+{
+    if (m_TabStop)
+    {
+        Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
+        float x = -1000.0;
+        float y = -1000.0f;
+
+        wnd->SetOnlyActiveControlPointer(nullptr);
+        GetCurrentMousePosition(&x, &y);
+
+        if (PointIn(x, y))
+        {
+            SetState(CONTROL_STATE_HOVER);
+        }
+        else
+        {
+            SetState(CONTROL_STATE_NORMAL);
+        }
+    }
+    Invalidate();
+}
+
 void Tilc::Gui::TGuiControl::SetState(int state, bool redraw)
 {
     if (m_State != state)
@@ -631,7 +670,7 @@ bool Tilc::Gui::TGuiControl::SetTextForSprite(Tilc::TExtString value, Tilc::TExt
         return false;
     }
 
-    Control->SetText(value, redraw);
+    Control->SetText(value);
 
     return true;
 }
@@ -1376,6 +1415,76 @@ void Tilc::Gui::TGuiControl::LoadBackground(const Tilc::TExtString& Filename)
     {
         m_Bg = ResourceTexture->AsSDLTexture();
     }
+}
+
+void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& left_rc, const SDL_FRect& middle_rc, const SDL_FRect& right_rc, const SDL_FRect& left_disabled_rc, const SDL_FRect& middle_disabled_rc, const SDL_FRect& right_disabled_rc, const SDL_FRect& left_focused_rc, const SDL_FRect& middle_focused_rc, const SDL_FRect& right_focused_rc, const SDL_FRect& left_hover_focused_rc, const SDL_FRect& middle_hover_focused_rc, const SDL_FRect& right_hover_focused_rc, const SDL_FRect& left_pushed_focused_rc, const SDL_FRect& middle_pushed_focused_rc, const SDL_FRect& right_pushed_focused_rc, const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc, const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc)
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+    SDL_Texture* TextureMap = t->GuiTextureMap1;
+    Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
+    SDL_FRect rc, DestRect;
+    SDL_FRect Position{ GetRealPosition() };
+    float x{}, y{};
+
+    SDL_FRect ctrl_left = left_rc;
+    SDL_FRect ctrl_middle = middle_rc;
+    SDL_FRect ctrl_right = right_rc;
+
+    if (m_State & CONTROL_STATE_DISABLED)
+    {
+        ctrl_left = left_disabled_rc;
+        ctrl_middle = middle_disabled_rc;
+        ctrl_right = right_disabled_rc;
+    }
+    else if (m_State & CONTROL_STATE_FOCUSED)
+    {
+        ctrl_left = left_focused_rc;
+        ctrl_middle = middle_focused_rc;
+        ctrl_right = right_focused_rc;
+        if (m_State & CONTROL_STATE_HOVER)
+        {
+            //std::cout << "HOVER: " << m_Name << std::endl;
+            ctrl_left = left_hover_focused_rc;
+            ctrl_middle = middle_hover_focused_rc;
+            ctrl_right = right_hover_focused_rc;
+        }
+        else if (m_State & CONTROL_STATE_PUSHED)
+        {
+            ctrl_left = left_pushed_focused_rc;
+            ctrl_middle = middle_pushed_focused_rc;
+            ctrl_right = right_pushed_focused_rc;
+        }
+    }
+    else if (m_State & CONTROL_STATE_HOVER)
+    {
+        ctrl_left = left_hover_rc;
+        ctrl_middle = middle_hover_rc;
+        ctrl_right = right_hover_rc;
+    }
+    else if (m_State & CONTROL_STATE_PUSHED)
+    {
+        ctrl_left = left_pushed_rc;
+        ctrl_middle = middle_pushed_rc;
+        ctrl_right = right_pushed_rc;
+    }
+    float frame_left_width = ctrl_left.w;
+    float frame_right_width = ctrl_right.w;
+
+    // ================================================================
+    // Rysujemy tło
+    // ================================================================
+    RenderTexture(TextureMap, &ctrl_left, x, y);
+    x += ctrl_left.w;
+
+    float middle_width = Position.w - frame_left_width - frame_right_width;
+    RenderTexture(TextureMap, &ctrl_middle, x, y, middle_width, ctrl_middle.h);
+    x += middle_width;
+
+    RenderTexture(TextureMap, &ctrl_right, x, y);
+    // ================================================================
+    // Koniec rysowania tła
+    // ================================================================
 }
 
 void Tilc::Gui::TGuiControl::MoveAllSubWindowsToTheEndOfGlobalWindowsOrder()

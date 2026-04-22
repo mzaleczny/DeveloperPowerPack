@@ -207,13 +207,10 @@ namespace Tilc {
             }
             virtual Tilc::TExtString GetName() { return m_Name; }
             virtual Tilc::TExtString GetText() { return m_Text; }
-            virtual void SetText(const Tilc::TExtString& Text, bool redraw = true)
+            virtual void SetText(const Tilc::TExtString& Text)
             {
                 m_Text = Text;
-                if (redraw)
-                {
-                    m_NeedUpdate = ENeedUpdate::ENU_Everything;
-                }
+                Invalidate();
             }
             bool PointIn(float x, float y);
             void Play(bool forward = true);
@@ -309,16 +306,10 @@ namespace Tilc {
             // Zwraca sprite'a o podanej nazwie
             TGuiControl* GetChildByName(const Tilc::TExtString& name);
 
-            // Funkcja ustawiająca focus na kontrolce - implementacja we właściwej kontrolce
-            virtual void Focus()
-            {
-                Invalidate();
-            }
-            // Funkcja odbierająca kontrolce focus - implementacja we właściwej kontrolce
-            virtual void LooseFocus()
-            {
-                Invalidate();
-            }
+            // Funkcja ustawiająca focus na kontrolce - możliwość customizacji we właściwej kontrolce
+            virtual void Focus();
+            // Funkcja odbierająca kontrolce focus - możliwość customizacji we właściwej kontrolce
+            virtual void LooseFocus();
             void SetState(int state, bool redraw = true);
             void SetDetailedState(int state, bool redraw = true);
             // dodaje do bieżącego stanu podany stan (wartości stanów muszą być potęgami dwójki, gdyż
@@ -520,6 +511,16 @@ namespace Tilc {
                 Invalidate();
             }
 
+            void DrawCommon(
+                const SDL_FRect& left_rc, const SDL_FRect& middle_rc, const SDL_FRect& right_rc,
+                const SDL_FRect& left_disabled_rc, const SDL_FRect& middle_disabled_rc, const SDL_FRect& right_disabled_rc,
+                const SDL_FRect& left_focused_rc, const SDL_FRect& middle_focused_rc, const SDL_FRect& right_focused_rc,
+                const SDL_FRect& left_hover_focused_rc, const SDL_FRect& middle_hover_focused_rc, const SDL_FRect& right_hover_focused_rc,
+                const SDL_FRect& left_pushed_focused_rc, const SDL_FRect& middle_pushed_focused_rc, const SDL_FRect& right_pushed_focused_rc,
+                const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc,
+                const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc
+            );
+
         protected:
             SDL_Texture* m_Canvas{};
             TStyledWindow* m_ParentWindow{};
@@ -570,6 +571,8 @@ namespace Tilc {
 
             // if control is editable
             bool m_Editable{};
+            // if control has editor. Editor is a TextField that appear inside control to edit holded text data in cells/columns etc. By default control has no editor.
+            bool m_HasEditor{};
             // if we are editor control
             bool m_IsEditor{};
             // if caret position must be updated

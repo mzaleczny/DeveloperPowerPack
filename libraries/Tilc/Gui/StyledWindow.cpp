@@ -300,7 +300,8 @@ void Tilc::Gui::TStyledWindow::DrawCaption()
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;
-    Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
+    Tilc::Gui::TFont* Font = t->DefaultFont;
+    Font->SetColor({ 255, 255, 255, 255 });
     float x{}, y{};
 
     // ================================================================
@@ -363,9 +364,9 @@ void Tilc::Gui::TStyledWindow::DrawCaption()
         rc.x += t->wnd_leftmenu_button_rc.w + 4.0f;
     }
 
-    if (DefaultFont)
+    if (Font)
     {
-        DefaultFont->DrawString(GetRenderer(), caption.c_str(), rc.x, rc.y);
+        Font->DrawString(GetRenderer(), caption.c_str(), rc.x, rc.y);
     }
     // ================================================================
     // Koniec rysowania nagłówka okienka

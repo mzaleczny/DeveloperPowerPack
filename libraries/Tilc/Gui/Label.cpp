@@ -1,6 +1,6 @@
-#include "Label.h"
-#include "Font.h"
-#include "Theme.h"
+#include "Tilc/Gui/Label.h"
+#include "Tilc/Gui/Font.h"
+#include "Tilc/Gui/Theme.h"
 
 Tilc::Gui::TLabel::TLabel(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, Tilc::TExtString text, bool autosize, int LineHeight)
     : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Label), m_LineHeight(LineHeight), m_AutoSize(autosize)

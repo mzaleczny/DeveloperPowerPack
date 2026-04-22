@@ -38,12 +38,6 @@ void Tilc::Gui::TButton::CleanupText()
 void Tilc::Gui::TButton::Draw()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
-    SDL_Texture* TextureMap = t->GuiTextureMap1;
-    Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
-    SDL_FRect rc, DestRect;
-    SDL_FRect Position{ GetRealPosition() };
-    float x{}, y{};
     SDL_Texture* OldRenderTarget{ nullptr };
 
     if (m_Canvas)
@@ -52,75 +46,31 @@ void Tilc::Gui::TButton::Draw()
         SDL_SetRenderTarget(Renderer, m_Canvas);
     }
 
-    SDL_FRect btn_left = t->button_left_rc;
-    SDL_FRect btn_middle = t->button_middle_rc;
-    SDL_FRect btn_right = t->button_right_rc;
-
-    if (m_State & CONTROL_STATE_DISABLED)
-    {
-        btn_left = t->button_left_disabled_rc;
-        btn_middle = t->button_middle_disabled_rc;
-        btn_right = t->button_right_disabled_rc;
-    }
-    else if (m_State & CONTROL_STATE_FOCUSED)
-    {
-        btn_left = t->button_left_focused_rc;
-        btn_middle = t->button_middle_focused_rc;
-        btn_right = t->button_right_focused_rc;
-        if (m_State & CONTROL_STATE_HOVER)
-        {
-            //std::cout << "HOVER: " << m_Name << std::endl;
-            btn_left = t->button_left_hover_focused_rc;
-            btn_middle = t->button_middle_hover_focused_rc;
-            btn_right = t->button_right_hover_focused_rc;
-        }
-        else if (m_State & CONTROL_STATE_PUSHED)
-        {
-            btn_left = t->button_left_pushed_focused_rc;
-            btn_middle = t->button_middle_pushed_focused_rc;
-            btn_right = t->button_right_pushed_focused_rc;
-        }
-    }
-    else if (m_State & CONTROL_STATE_HOVER)
-    {
-        btn_left = t->button_left_hover_rc;
-        btn_middle = t->button_middle_hover_rc;
-        btn_right = t->button_right_hover_rc;
-    }
-    else if (m_State & CONTROL_STATE_PUSHED)
-    {
-        btn_left = t->button_left_pushed_rc;
-        btn_middle = t->button_middle_pushed_rc;
-        btn_right = t->button_right_pushed_rc;
-    }
-    float frame_left_width = btn_left.w;
-    float frame_right_width = btn_right.w;
-
-    // ================================================================
-    // Rysujemy tło button-a
-    // ================================================================
-    RenderTexture(TextureMap, &btn_left, x, y);
-    x += btn_left.w;
-
-    float middle_width = Position.w - frame_left_width - frame_right_width;
-    RenderTexture(TextureMap, &btn_middle, x, y, middle_width, btn_middle.h);
-    x += middle_width;
-
-    RenderTexture(TextureMap, &btn_right, x, y);
-    // ================================================================
-    // Koniec rysowania tła button-a
-    // ================================================================
+    DrawCommon(
+        t->button_left_rc, t->button_middle_rc, t->button_right_rc,
+        t->button_left_disabled_rc, t->button_middle_disabled_rc, t->button_right_disabled_rc,
+        t->button_left_focused_rc, t->button_middle_focused_rc, t->button_right_focused_rc,
+        t->button_left_hover_focused_rc, t->button_middle_hover_focused_rc, t->button_right_hover_focused_rc,
+        t->button_left_pushed_focused_rc, t->button_middle_pushed_focused_rc, t->button_right_pushed_focused_rc,
+        t->button_left_hover_rc, t->button_middle_hover_rc, t->button_right_hover_rc,
+        t->button_left_pushed_rc, t->button_middle_pushed_rc, t->button_right_pushed_rc
+    );
 
     // ================================================================
     // Rysujemy tekst i ewentualną ikonkę
     // ================================================================
+    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+    SDL_Texture* TextureMap = t->GuiTextureMap1;
+    Tilc::Gui::TFont* Font = t->DefaultFont;
+    Font->SetColor({ 255, 255, 255, 255 });
+
     Tilc::TExtString caption = GetText();
-    rc = m_Position;
-    if (DefaultFont)
+    SDL_FRect rc = m_Position;
+    if (Font)
     {
         //std::string s = caption + ": " + std::to_string(m_State);
         //DefaultFont->DrawString(GetRenderer(), s.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
-        DefaultFont->DrawString(GetRenderer(), caption.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
+        Font->DrawString(GetRenderer(), caption.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
     }
 
     // IKONKA
@@ -163,36 +113,6 @@ void Tilc::Gui::TButton::Draw()
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
     m_NeedUpdate = ENeedUpdate::ENU_None;
-}
-
-void Tilc::Gui::TButton::Focus()
-{
-    Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
-    if (wnd && wnd->GetActiveControl() != this)
-    {
-        wnd->SetActiveControl(this);
-        return;
-    }
-    AddState(CONTROL_STATE_FOCUSED);
-}
-
-void Tilc::Gui::TButton::LooseFocus()
-{
-    Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
-    float x = -1000.0;
-    float y = -1000.0f;
-
-    wnd->SetOnlyActiveControlPointer(nullptr);
-    GetCurrentMousePosition(&x, &y);
-
-    if (PointIn(x, y))
-    {
-        SetState(CONTROL_STATE_HOVER);
-    }
-    else
-    {
-        SetState(CONTROL_STATE_NORMAL);
-    }
 }
 
 bool Tilc::Gui::TButton::CommonKeyProcessing(const SDL_Event& Event)
