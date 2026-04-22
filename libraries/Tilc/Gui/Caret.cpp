@@ -8,7 +8,7 @@ Tilc::Gui::TCaret::TCaret(Tilc::Gui::TStyledWindow* wnd, int x, int y, int width
 {
 }
 
-void Tilc::Gui::TCaret::Draw(SDL_Texture* Dest)
+void Tilc::Gui::TCaret::Draw()
 {
     if (!m_Active || !m_ParentWindow)
     {
@@ -18,10 +18,7 @@ void Tilc::Gui::TCaret::Draw(SDL_Texture* Dest)
     if (m_Visible)
     {
         SDL_FRect rc = GetRect();
-        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(m_ParentWindow->Renderer);
-        SDL_SetRenderTarget(m_ParentWindow->Renderer, Dest);
         SDL_RenderFillRect(m_ParentWindow->Renderer, &rc);
-        SDL_SetRenderTarget(m_ParentWindow->Renderer, OldRenderTarget);
     }
 }
 

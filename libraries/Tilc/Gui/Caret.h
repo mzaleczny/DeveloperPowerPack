@@ -23,7 +23,7 @@ namespace Tilc
 
             TCaret(TStyledWindow* wnd, int x, int y, int width = 2, int height = 20);
 
-            virtual void Draw(SDL_Texture* Dest);
+            virtual void Draw();
             void Update(float DeltaTime);
             inline void setColor(SDL_Color color)
             {

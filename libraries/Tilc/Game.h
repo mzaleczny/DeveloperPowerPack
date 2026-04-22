@@ -33,6 +33,7 @@ namespace Tilc
 	}
 	namespace Gui
 	{
+        class TClipboard;
         class TCursor;
         class TFont;
         class TTheme;
@@ -52,6 +53,7 @@ namespace Tilc
 		Tilc::Game3D::TWorld3D* m_World3D{};
         Tilc::Gui::TTheme* m_Theme{};
         Tilc::Gui::TCursor* m_Cursor{};
+        Tilc::Gui::TClipboard* m_Clipboard{};
         std::unordered_map<TExtString, Tilc::Gui::TFont*> m_Fonts;
         MIX_Mixer* m_MixMixer{};
 		int m_CurrentCamera = -1;

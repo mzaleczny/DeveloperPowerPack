@@ -53,13 +53,13 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     this->LoadScrollBarSkinResources(name);
     this->LoadButtonSkinResources(name);
     this->LoadSliderSkinResources(name);
+    this->LoadTextFieldSkinResources(name);
 
     this->LoadPanelSkinResources(name);
     this->LoadMenuSkinResources(name);
     this->LoadPopupmenuSkinResources(name);
     this->LoadToolbar16SkinResources(name);
     this->LoadLabelSkinResources(name);
-    this->LoadTextfieldSkinResources(name);
     this->LoadCheckboxSkinResources(name);
     this->LoadListboxSkinResources(name);
     this->LoadGridSkinResources(name);
@@ -425,25 +425,71 @@ void Tilc::Gui::TTheme::LoadSliderSkinResources(Tilc::TExtString themeName)
     }
 }
 
-void Tilc::Gui::TTheme::LoadTextfieldSkinResources(Tilc::TExtString themeName)
+void Tilc::Gui::TTheme::LoadTextFieldSkinResources(Tilc::TExtString themeName)
 {
-    /*
-    this->textfield_frame_left = new CBitmap(this->_hInst, textfieldDir + L"frame_left.bmp");
-    this->textfield_frame_right = new CBitmap(this->_hInst, textfieldDir + L"frame_right.bmp");
-    this->textfield_frame_middle = new CBitmap(this->_hInst, textfieldDir + L"frame_middle.bmp");
-    this->textfield_frame_left_hover = new CBitmap(this->_hInst, textfieldDir + L"frame_left_hover.bmp");
-    this->textfield_frame_right_hover = new CBitmap(this->_hInst, textfieldDir + L"frame_right_hover.bmp");
-    this->textfield_frame_middle_hover = new CBitmap(this->_hInst, textfieldDir + L"frame_middle_hover.bmp");
-    this->textfield_frame_left_active = new CBitmap(this->_hInst, textfieldDir + L"frame_left_active.bmp");
-    this->textfield_frame_right_active = new CBitmap(this->_hInst, textfieldDir + L"frame_right_active.bmp");
-    this->textfield_frame_middle_active = new CBitmap(this->_hInst, textfieldDir + L"frame_middle_active.bmp");
-    this->textfield_selection = new CBitmap(this->_hInst, textfieldDir + L"selection.bmp");
+    if (GameObject)
+    {
+        Tilc::TExtString Line;
+        while (std::getline(LayoutInputStream, Line))
+        {
+            std::stringstream Keystream(Line);
+            Tilc::TExtString Item, sx, sy, sw, sh;
+            Keystream >> Item >> sx >> sy >> sw >> sh;
+            Item = Item.substr(0, Item.length() - 1);
+            sx = sx.substr(0, sx.length() - 1);
+            sy = sy.substr(0, sy.length() - 1);
+            sw = sw.substr(0, sw.length() - 1);
+            //sh = sh.substr(0, sh.length() - 1);
 
-    // Pozostałe parametry i zasoby
-    this->commonTextControlNormalFontColor = RGB(0, 0, 0);
-    this->commonTextControlSelectedFontColor = RGB(0xff, 0xff, 0xff);
-    this->commonTextControlFont = new CFont(NULL, this->commonTextControlNormalFontColor, "Verdana", 8);
-    */
+            if (Item == "textfield_left_rc")
+                textfield_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_right_rc")
+                textfield_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_middle_rc")
+                textfield_middle_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_left_focused_rc")
+                textfield_left_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_right_focused_rc")
+                textfield_right_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_middle_focused_rc")
+                textfield_middle_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_left_disabled_rc")
+                textfield_left_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_right_disabled_rc")
+                textfield_right_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_middle_disabled_rc")
+                textfield_middle_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_left_hover_rc")
+                textfield_left_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_right_hover_rc")
+                textfield_right_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_middle_hover_rc")
+                textfield_middle_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_left_hover_focused_rc")
+                textfield_left_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_right_hover_focused_rc")
+                textfield_right_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_middle_hover_focused_rc")
+                textfield_middle_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_left_pushed_rc")
+                textfield_left_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_right_pushed_rc")
+                textfield_right_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_middle_pushed_rc")
+                textfield_middle_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_left_pushed_focused_rc")
+                textfield_left_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_right_pushed_focused_rc")
+                textfield_right_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield_middle_pushed_focused_rc")
+                textfield_middle_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "textfield-selection_rc")
+            {
+                textfield_selection_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                break;
+            }
+        }
+    }
 }
 
 void Tilc::Gui::TTheme::LoadButtonSkinResources(Tilc::TExtString themeName)
@@ -478,7 +524,7 @@ void Tilc::Gui::TTheme::LoadButtonSkinResources(Tilc::TExtString themeName)
                 button_left_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
             else if (Item == "button_right_disabled_rc")
                 button_right_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "button_middle_diasbled_rc")
+            else if (Item == "button_middle_disabled_rc")
                 button_middle_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
             else if (Item == "button_left_hover_rc")
                 button_left_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
@@ -509,10 +555,6 @@ void Tilc::Gui::TTheme::LoadButtonSkinResources(Tilc::TExtString themeName)
             }
         }
     }
-    /*
-    // Fonty
-    this->commonButtonControlFont = this->globalStandardFont;
-    */
 }
 
 void Tilc::Gui::TTheme::LoadCheckboxSkinResources(Tilc::TExtString themeName)

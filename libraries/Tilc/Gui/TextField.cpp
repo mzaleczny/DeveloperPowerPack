@@ -1,139 +1,68 @@
 #include "Tilc/Gui/TextField.h"
 #include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/Gui/Theme.h"
+#include "Tilc/Gui/Font.h"
+#include "Tilc/Gui/Caret.h"
 #include "Tilc/Game.h"
 
-Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, bool tabStop)
+Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const TExtString& text, bool tabStop)
     : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_TextField, true)
 {
-    //this->_commonInit(Tilc::TExtString(L""), width, tabStop);
-}
-
-void Tilc::Gui::TTextField::CommonInit(const Tilc::TExtString& text)
-{
-    /*
     Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
-    this->_caret = wnd->getCaret();
-    this->_clipboard = wnd->getApplication()->clipboard;
-
-    this->_font = NULL;
-    this->_state = Tilc::Gui::TTextField_STATE_NORMAL;
-    this->_startChar = 0;
-    this->_caretAtChar = 0;
-    this->_tabStop = tabStop;
-    LONG min_width = this->getMinWidth();
-    if (width < min_width) {
-        width = min_width;
+    m_Caret = wnd->getCaret();
+    m_Clipboard = Tilc::GameObject->GetContext()->m_Clipboard;
+    m_StartChar = 0;
+    m_CaretAtChar = 0;
+    m_SelStart = 0;
+    m_SelEnd = 0;
+    m_SelBegin = 0;
+    m_TabStop = true;
+    int min_width = GetMinWidth();
+    if (m_Position.w < min_width)
+    {
+        m_Position.w = min_width;
     }
-    this->setSize(width, this->_theme->textfield_frame_left->height());
-    this->setText(text, FALSE);
-
-    CFont* font = this->getFont();
-    HDC hdc = this->canvas->getDC();
-    if (hdc == 0) {
-        this->canvas->beginPaint();
-    }
-    this->_lineHeight = font->measureString(COMMON_MEASURE_STRING, this->canvas->getDC()).cy;
-    if (hdc == 0) {
-        this->canvas->endPaint();
-    }
-
-    this->_selStart = 0;
-    this->_selEnd = 0;
-    this->_selBegin = 0;
-
-    this->_tabStop = TRUE;
-    */
+    SetText(text);
 }
 
 Tilc::Gui::TTextField::~TTextField()
 {
 }
 
-/*
-LONG Tilc::Gui::TTextField::getMinWidth() {
-    return this->_theme->textfield_frame_left->width() + 1 + this->_theme->textfield_frame_right->width();
-}
+void Tilc::Gui::TTextField::Draw()
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+    SDL_Texture* TextureMap = t->GuiTextureMap1;
+    Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
+    SDL_Texture* OldRenderTarget{ nullptr };
 
-VOID Tilc::Gui::TTextField::setText(Tilc::TExtString text, BOOL redraw) {
-    this->_text = text;
-    this->cleanupText();
-    this->_startChar = 0;
-    this->_caretAtChar = 0;
-    if (redraw) {
-        this->redraw();
-    }
-}
-
-VOID Tilc::Gui::TTextField::cleanupText() {
-    this->_text.removeCharsWithCodeLessThan(32);
-}
-
-CFont* Tilc::Gui::TTextField::getFont() {
-    CFont* font = this->_theme->commonTextControlFont;
-    if (this->_font) {
-        font = this->_font;
-    }
-    return font;
-}
-
-VOID Tilc::Gui::TTextField::_updateCanvas() {
-    this->_needUpdate = FALSE;
-    if (!this->canvas) {
-		return;
+    if (m_Canvas)
+    {
+        OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, m_Canvas);
     }
 
-	LONG x = 0;
-    LONG y = 0;
-    HDC hdc = GetDC(0);
-	CTheme *t = this->_theme;
-    CBitmap* frame_left = this->_theme->textfield_frame_left;
-    CBitmap* frame_middle = this->_theme->textfield_frame_middle;
-    CBitmap* frame_right = this->_theme->textfield_frame_right;
-
-    if (this->_state & Tilc::Gui::TTextField_STATE_HOVER) {
-        frame_left = this->_theme->textfield_frame_left_hover;
-        frame_middle = this->_theme->textfield_frame_middle_hover;
-        frame_right = this->_theme->textfield_frame_right_hover;
-    } else if (this->_state & Tilc::Gui::TTextField_STATE_ACTIVE) {
-        frame_left = this->_theme->textfield_frame_left_active;
-        frame_middle = this->_theme->textfield_frame_middle_active;
-        frame_right = this->_theme->textfield_frame_right_active;
-    }
-    LONG frame_left_width = frame_left->width();
-
-	this->canvas->beginPaint(hdc);
-    // ================================================================
-    // Rysujemy tło textfield-a
-    // ================================================================
-    this->canvas->drawBitmap(frame_left, x, y);
-    x += frame_left->width();
-
-    LONG middle_width = this->width - frame_left_width - frame_right->width();
-    this->canvas->stretchBitmap(frame_middle,
-        x, y,
-        middle_width,
-        frame_middle->height()
+    DrawCommon(
+        t->textfield_left_rc, t->textfield_middle_rc, t->textfield_right_rc,
+        t->textfield_left_disabled_rc, t->textfield_middle_disabled_rc, t->textfield_right_disabled_rc,
+        t->textfield_left_focused_rc, t->textfield_middle_focused_rc, t->textfield_right_focused_rc,
+        t->textfield_left_hover_focused_rc, t->textfield_middle_hover_focused_rc, t->textfield_right_hover_focused_rc,
+        t->textfield_left_pushed_focused_rc, t->textfield_middle_pushed_focused_rc, t->textfield_right_pushed_focused_rc,
+        t->textfield_left_hover_rc, t->textfield_middle_hover_rc, t->textfield_right_hover_rc,
+        t->textfield_left_pushed_rc, t->textfield_middle_pushed_rc, t->textfield_right_pushed_rc
     );
-    x += middle_width;
-
-    this->canvas->drawBitmap(frame_right, x, y);
-    // ================================================================
-    // Koniec rysowania tła textfield-a
-    // ================================================================
 
     // ================================================================
     // Rysujemy zaznaczenie
     // ================================================================
-    RECT selRect;
-    ZeroMemory(&selRect, sizeof(selRect));
-    if (this->_selStart < this->_selEnd) {
-        selRect = this->_calculateSelectionRectForText(&this->_text);
-        if (selRect.left < selRect.right) {
-            this->canvas->stretchBitmap(this->_theme->textfield_selection,
-                selRect.left, selRect.top,
-                selRect.right - selRect.left,
-                selRect.bottom - selRect.top
-            );
+    SDL_FRect SelRect{};
+    if (m_SelStart < m_SelEnd)
+    {
+        SelRect = CalculateSelectionRectForText(m_Text);
+        if (SelRect.w > 0)
+        {
+            RenderTexture(TextureMap, SelRect.x, SelRect.y, SelRect.w, SelRect.h);
         }
     }
     // ================================================================
@@ -143,123 +72,128 @@ VOID Tilc::Gui::TTextField::_updateCanvas() {
     // ================================================================
     // Rysujemy tekst
     // ================================================================
-    CFont* font = this->getFont();
-    RECT rc = this->getRect();
-    rc.left += frame_left_width;
-    rc.right = this->_getMaxXPosAllowedForContent();
-    LONG oldBkMode = this->canvas->setBkMode(TRANSPARENT);
-    if (selRect.left == selRect.right) {
-        LONG last_char_pos = this->getLastVisibleCharPos();
+    TFont* Font = t->DefaultFont;
+    Font->SetColor({ 0, 0, 0, 0 });
+    SDL_FRect rc = m_Position;
+    rc.x += m_PaddingLeft;
+    rc.w = GetMaxXPosAllowedForContent() - rc.x;
+    if (SelRect.w < 0.01f)
+    {
+        int last_char_pos = GetLastVisibleCharPos();
         last_char_pos += 1; // zwiększamy o 1, żeby ewentualnie wyświetlić fragment następnej
         // litery w wyznaczonym prostokącie
-        Tilc::TExtString s = this->_text.substr(this->_startChar, last_char_pos - this->_startChar + 1);
-        font->color = this->_theme->commonTextControlNormalFontColor;
-        this->canvas->drawText(font, s, rc, TRUE, DT_VCENTER | DT_NOPREFIX);
-    } else {
-        font->color = this->_theme->commonTextControlNormalFontColor;
-        LONG last_char_pos = this->getLastVisibleCharPos();
-        LONG char_pos = this->getLastVisibleCharPos(selRect.left - frame_left_width);
-        ULONG drawedChars = 0;
+        Tilc::TExtString s = m_Text.substr(m_StartChar, last_char_pos - m_StartChar + 1);
+        Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
+    }
+    else
+    {
+        int last_char_pos = GetLastVisibleCharPos();
+        int char_pos = GetLastVisibleCharPos(SelRect.x - t->textfield_left_rc.w);
+        unsigned int drawedChars = 0;
         Tilc::TExtString s;
         // najpierw tekst przed zaznaczeniem
-        if (char_pos >= 0 && char_pos - this->_startChar + 1 > 0) {
-            s = this->_text.substr(this->_startChar, char_pos - this->_startChar + 1);
+        if (char_pos >= 0 && char_pos - m_StartChar + 1 > 0)
+        {
+            s = m_Text.substr(m_StartChar, char_pos - m_StartChar + 1);
             drawedChars = s.length();
-            font->color = this->_theme->commonTextControlNormalFontColor;
-            this->canvas->drawText(font, s, rc, TRUE, DT_VCENTER | DT_NOPREFIX);
+            Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
         }
-        char_pos = this->getLastVisibleCharPos(selRect.right - frame_left_width);
+        char_pos = GetLastVisibleCharPos(SelRect.x + SelRect.w - t->textfield_left_rc.w);
         // następnie tekst w zaznaczeniu
-        if (char_pos >= 0 && char_pos - this->_startChar - drawedChars + 1 > 0) {
+        if (char_pos >= 0 && char_pos - m_StartChar - drawedChars + 1 > 0)
+        {
             // jeśli zaznaczenie dobiega do końca pola tekstowego
-            if (selRect.right == this->_getMaxXPosAllowedForContent()) {
-                char_pos  += 1; // to zwiększamy char_pos, żeby wyświetlić fragment następnej
+            if (SelRect.x + SelRect.w >= GetMaxXPosAllowedForContent())
+            {
+                char_pos += 1; // to zwiększamy char_pos, żeby wyświetlić fragment następnej
                 // litery, która się cała nie mieści ale zaczyna się w wyznaczonym prostokącie
             }
-            s = this->_text.substr(this->_startChar + drawedChars, char_pos - this->_startChar - drawedChars + 1);
+            s = m_Text.substr(m_StartChar + drawedChars, char_pos - m_StartChar - drawedChars + 1);
             drawedChars += s.length();
-            font->color = this->_theme->commonTextControlSelectedFontColor;
-            rc.left = selRect.left;
-            this->canvas->drawText(font, s, rc, TRUE, DT_VCENTER | DT_NOPREFIX);
-        } else if (char_pos > 0 && selRect.right > selRect.left) {
-            s = this->_text.substr(this->_startChar + drawedChars, 1);
-            font->color = this->_theme->commonTextControlSelectedFontColor;
-            rc.left = selRect.left;
-            this->canvas->drawText(font, s, rc, TRUE, DT_VCENTER | DT_NOPREFIX);
+            rc.x = SelRect.x;
+            Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
+        }
+        else if (char_pos > 0 && SelRect.w > 0)
+        {
+            s = m_Text.substr(m_StartChar + drawedChars, 1);
+            rc.x = SelRect.x;
+            Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
         }
         char_pos = last_char_pos;
         char_pos += 1; // zwiększamy o 1 żeby wyświetlić fragment ostatniej litery
         // i na koniec tekst po zaznaczeniu
-        if (char_pos >= 0 && char_pos - this->_startChar - drawedChars + 1 > 0) {
-            s = this->_text.substr(this->_startChar + drawedChars, char_pos - this->_startChar - drawedChars + 1);
-            font->color = this->_theme->commonTextControlNormalFontColor;
-            rc.left = selRect.right;
-            if (rc.right - rc.left > 0) {
-                this->canvas->drawText(font, s, rc, TRUE, DT_VCENTER | DT_NOPREFIX);
+        if (char_pos >= 0 && char_pos - m_StartChar - drawedChars + 1 > 0)
+        {
+            s = m_Text.substr(m_StartChar + drawedChars, char_pos - m_StartChar - drawedChars + 1);
+            rc.x += SelRect.w;
+            if (rc.w > 0)
+            {
+                Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
             }
         }
     }
-    this->canvas->setBkColor(oldBkMode);
     // ================================================================
     // Koniec rysowania tekstu
     // ================================================================
 
-    this->canvas->endPaint();
-
-	ReleaseDC(0, hdc);
-}
-
-VOID Tilc::Gui::TTextField::onDraw(CBitmap *dest) {
-	CSprite::onDraw(dest);
-}
-
-VOID Tilc::Gui::TTextField::focus() {
-    CStyledWindow* swnd = this->getParentWindow();
-    if (swnd && swnd->getActiveControl() != this) {
-        swnd->setActiveControl(this);
-        return;
+    if (m_Canvas)
+    {
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
+    m_NeedUpdate = ENeedUpdate::ENU_None;
+}
 
-    this->removeState(Tilc::Gui::TTextField_STATE_NORMAL);
-    this->removeState(Tilc::Gui::TTextField_STATE_HOVER);
-    this->addState(Tilc::Gui::TTextField_STATE_ACTIVE);
+int Tilc::Gui::TTextField::GetMinWidth()
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    return t->textfield_left_rc.w + 1 + t->textfield_right_rc.w;
+}
 
-    if (this->_caret) {
-        this->_caret->height = this->getCaretHeight();
-        this->updateCaretPos();
-        this->_caret->update(0);
-        this->_caret->show();
+void Tilc::Gui::TTextField::SetText(const Tilc::TExtString& Text)
+{
+    Tilc::Gui::TGuiControl::SetText(Text);
+    m_StartChar = 0;
+    m_CaretAtChar = 0;
+}
 
-        if (this->_caret->isVisible()) {
-            this->getParentWindow()->drawCaret(this->getParentWindow()->getCanvas()->getDC());
+void Tilc::Gui::TTextField::CleanupText()
+{
+    m_Text.RemoveCharsWithCodeLessThan(32);
+}
+
+void Tilc::Gui::TTextField::Focus()
+{
+    Tilc::Gui::TGuiControl::Focus();
+
+    if (m_Caret)
+    {
+        m_Caret->m_Height = GetCaretHeight();
+        UpdateCaretPos();
+        m_Caret->Update(0);
+        m_Caret->Show();
+
+        if (m_Caret->IsVisible())
+        {
+            //GetParentWindow()->drawCaret(this->getParentWindow()->getCanvas()->getDC());
         }
 
-        HWND hwnd = this->getParentWindow()->getHwnd();
-        HDC hdc = GetDC(hwnd);
-        this->_caret->draw(hdc);
-        ReleaseDC(hwnd, hdc);
-        this->_caret->resetLastFlippedTime();
+        m_Caret->Draw();
+        //m_Caret->ResetLastFlippedTime();
     }
 }
 
-VOID Tilc::Gui::TTextField::looseFocus() {
-    CStyledWindow* wnd = this->getParentWindow();
-    LONG x = MININT, y = MININT;
-    wnd->setOnlyActiveControlPointer(NULL);
-    this->getCurrentMousePosition(x, y);
-    this->clearSelection(FALSE);
+void Tilc::Gui::TTextField::LooseFocus()
+{
+    Tilc::Gui::TGuiControl::LooseFocus();
 
-    if (x != MININT && y != MININT) {
-        if (this->pointIn(x, y)) {
-            this->setState(Tilc::Gui::TTextField_STATE_HOVER);
-        } else {
-            this->setState(Tilc::Gui::TTextField_STATE_NORMAL);
-        }
-    } else {
-        this->setState(Tilc::Gui::TTextField_STATE_NORMAL);
-    }
+    TStyledWindow* wnd = GetParentWindow();
+    float x = -1, y = -1;
+    wnd->SetOnlyActiveControlPointer(nullptr);
+    GetCurrentMousePosition(&x, &y);
+    ClearSelection(false);
 }
 
+/*
 BOOL Tilc::Gui::TTextField::onMouseMove(LONG x, LONG y) {
     if (!this->_visible) return FALSE;
     CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
@@ -377,91 +311,84 @@ VOID Tilc::Gui::TTextField::_positionCaretNearClickedPoint(LONG localX, LONG loc
         this->updateCaretPos();
     }
 }
+*/
 
-POINT Tilc::Gui::TTextField::calculateCaretPos() {
-    LONG lettersBeforeCaret = this->_caretAtChar - this->_startChar;
-    SIZE size;
-    POINT pt;
-    ZeroMemory(&size, sizeof(size));
-    ZeroMemory(&pt, sizeof(pt));
+SDL_FPoint Tilc::Gui::TTextField::CalculateCaretPos()
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    int lettersBeforeCaret = m_CaretAtChar - m_StartChar;
+    SDL_Rect size{};
+    SDL_FPoint pt{};
 
-    if (lettersBeforeCaret > 0) {
-        Tilc::TExtString s = this->_text.substr(this->_startChar, lettersBeforeCaret);
-        CFont* font = this->getFont();
-
-        HDC hdc = this->canvas->getDC();
-        if (hdc == 0) {
-            this->canvas->beginPaint();
-        }
-        size = font->measureString(s, this->canvas->getDC());
-        if (hdc == 0) {
-            this->canvas->endPaint();
-        }
+    if (lettersBeforeCaret > 0)
+    {
+        Tilc::TExtString s = m_Text.substr(m_StartChar, lettersBeforeCaret);
+        Tilc::Gui::TFont* Font = t->DefaultFont;
+        Font->GetTextSize(s.c_str(), size.w, size.h);
     }
 
-    if (this->_caret) {
-        pt.x = this->_theme->textfield_frame_left->width() + size.cx;
-        pt.y = (this->height - this->_caret->height) / 2;
+    if (m_Caret)
+    {
+        pt.x = m_PaddingLeft + size.w;
+        pt.y = (m_Position.h - m_Caret->m_Height) / 2.0f;
     }
 
     return pt;
 }
 
-POINT Tilc::Gui::TTextField::calculateCharPos(LONG currentChar) {
-    SIZE size;
-    POINT pt;
-    ZeroMemory(&pt, sizeof(pt));
-    ZeroMemory(&size, sizeof(size));
+SDL_FPoint Tilc::Gui::TTextField::CalculateCharPos(int CurrentChar, int& Result)
+{
+    SDL_Rect size{};
+    SDL_FPoint pt{};
 
-    if (currentChar < this->_startChar) {
-        pt.x = -1;
-        pt.y = -1;
+    Result = 0;
+
+    if (CurrentChar < m_StartChar)
+    {
+        Result = -1;
         return pt;
     }
 
-    LONG lettersBefore = currentChar - this->_startChar;
+    int LettersBefore = CurrentChar - m_StartChar;
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
 
-    if (lettersBefore > 0) {
-        Tilc::TExtString s = this->_text.substr(this->_startChar, lettersBefore);
-        CFont* font = this->getFont();
-        HDC hdc = this->canvas->getDC();
-        if (hdc == 0) {
-            this->canvas->beginPaint();
-        }
-        size = font->measureString(s, this->canvas->getDC());
-        if (hdc == 0) {
-            this->canvas->endPaint();
-        }
+    if (LettersBefore > 0)
+    {
+        Tilc::TExtString s = m_Text.substr(m_StartChar, LettersBefore);
+        Tilc::Gui::TFont* Font = Tilc::GameObject->GetFont(FontNameInUse);
+        Font->GetTextSize(s.c_str(), size.w, size.h);
     }
 
-    pt.x = this->_theme->textfield_frame_left->width() + size.cx;
-    pt.y = (this->height - this->_theme->textfield_selection->height()) / 2;
+    pt.x = t->textfield_left_rc.w + size.w;
+    pt.y = (m_Position.h - t->textfield_selection_rc.h) / 2.0f;
 
-    if (pt.x < this->_theme->textfield_frame_left->width()) {
-        pt.x = -1;
-        pt.y = -1;
+    if (pt.x < t->textfield_left_rc.w)
+    {
+        Result = -1;
     }
 
-    if (pt.x > this->_getMaxXPosAllowedForContent()) {
-        pt.x = -2;
-        pt.y = -2;
+    if (pt.x > GetMaxXPosAllowedForContent())
+    {
+        Result = -2;
     }
 
     return pt;
 }
 
-VOID Tilc::Gui::TTextField::updateCaretPos() {
-    LONG x;
-    LONG y;
-    LONG controlX;
-    LONG controlY;
-    CStyledWindow* wnd;
+void Tilc::Gui::TTextField::UpdateCaretPos()
+{
+    float x;
+    float y;
+    float controlX;
+    float controlY;
+    Tilc::Gui::TStyledWindow* wnd;
 
-    wnd = this->getParentWindow();
-    if (wnd) {
-        wnd->getSpritePosition(this, x, y);
+    wnd = GetParentWindow();
+    if (wnd)
+    {
+        wnd->GetPositionInWindow(&x, &y);
 
-        POINT pt = this->calculateCaretPos();
+        SDL_FPoint pt = CalculateCaretPos();
 
         controlX = pt.x;
         controlY = pt.y;
@@ -469,14 +396,15 @@ VOID Tilc::Gui::TTextField::updateCaretPos() {
         x += controlX;
         y += controlY;
 
-        this->_caret->x = x;
-        this->_caret->y = y;
-        this->_caret->controlX = controlX;
-        this->_caret->controlY = controlY;
-        this->_caret->show();
+        m_Caret->m_X = x;
+        m_Caret->m_Y = y;
+        m_Caret->m_ControlX = controlX;
+        m_Caret->m_ControlY = controlY;
+        m_Caret->Show();
     }
 }
 
+/*
 VOID Tilc::Gui::TTextField::_updateCursorPosition(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
         BOOL vkLAlt, BOOL vkRAlt,
         BOOL vkLShift, BOOL vkRShift,
@@ -568,24 +496,29 @@ VOID Tilc::Gui::TTextField::_updateCursorPosition(BOOL vkAlt, BOOL vkShift, BOOL
         return;
     }
 }
+*/
 
-BOOL Tilc::Gui::TTextField::adjustStartCharForCaretAtChar() {
-    POINT pt = this->calculateCaretPos();
-    if (pt.x + this->_caret->width < this->_getMaxXPosAllowedForContent()) {
-        return FALSE;
+bool Tilc::Gui::TTextField::AdjustStartCharForCaretAtChar()
+{
+    SDL_FPoint pt = CalculateCaretPos();
+    if (pt.x + m_Caret->m_Width < GetMaxXPosAllowedForContent())
+    {
+        return false;
     }
-    LONG lastStartChar = this->_startChar;
-    this->_startChar = this->_caretAtChar - 1;
-    pt = this->calculateCaretPos();
-    while (this->_startChar > 0 && pt.x > 0 && pt.x + this->_caret->width < this->_getMaxXPosAllowedForContent()) {
-        lastStartChar = this->_startChar;
-        this->_startChar -= 1;
-        pt = this->calculateCaretPos();
+    int lastStartChar = m_StartChar;
+    m_StartChar = m_CaretAtChar - 1;
+    pt = CalculateCaretPos();
+    while (m_StartChar > 0 && pt.x > 0 && pt.x + m_Caret->m_Width < GetMaxXPosAllowedForContent())
+    {
+        lastStartChar = m_StartChar;
+        m_StartChar -= 1;
+        pt = CalculateCaretPos();
     }
-    this->_startChar = lastStartChar;
-    return TRUE;
+    m_StartChar = lastStartChar;
+    return true;
 }
 
+/*
 BOOL Tilc::Gui::TTextField::_commonKeyProcessing(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
             BOOL vkLAlt, BOOL vkRAlt,
             BOOL vkLShift, BOOL vkRShift,
@@ -839,117 +772,160 @@ BOOL Tilc::Gui::TTextField::onKeyUp(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
         ULONG virtualCode, ULONG scanCode, WCHAR ch) {
     return TRUE;
 }
+*/
 
-VOID Tilc::Gui::TTextField::_updateSelection(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl, ULONG vkKey, LONG lastCaretAtChar,
-        BOOL& updateCaretPos, BOOL& redraw) {
-
+void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw)
+{
     // ta metoda jest wywołana po poprawnym zaktualizowaniu atrybutów:
     // this->_startChar i this->_caretAtChar
-    if (vkKey == VK_LEFT) {
-        if (abs(this->_caretAtChar - lastCaretAtChar) == 1) {
-            if (this->_selStart == this->_selEnd) {
-                if ((ULONG)this->_caretAtChar < this->_text.length()) {
-                    this->_selStart = this->_caretAtChar;
-                    this->_selEnd = this->_caretAtChar + 1;
-                    this->_selBegin = this->_selEnd;
-                    redraw = TRUE;
+    if (vkKey == SDLK_LEFT)
+    {
+        int Diff = m_CaretAtChar - lastCaretAtChar;
+        if (Diff < 0) Diff = -Diff;
+        if (Diff == 1)
+        {
+            if (m_SelStart == m_SelEnd)
+            {
+                if (static_cast<unsigned int>(m_CaretAtChar) < m_Text.length())
+                {
+                    m_SelStart = m_CaretAtChar;
+                    m_SelEnd = m_CaretAtChar + 1;
+                    m_SelBegin = m_SelEnd;
+                    redraw = true;
                 }
-            } else if (this->_caretAtChar >= this->_selBegin) {
-                this->_selEnd = this->_caretAtChar;
-                redraw = TRUE;
-            } else if (this->_caretAtChar < this->_selBegin) {
-                this->_selStart = this->_caretAtChar;
-                redraw = TRUE;
             }
-        } else {
-            if (this->_selStart == this->_selEnd) {
-                this->_selStart = this->_caretAtChar;
-                this->_selEnd = lastCaretAtChar;
-                this->_selBegin = this->_selEnd;
-                redraw = TRUE;
-            } else if (this->_caretAtChar < this->_selBegin) {
-                this->_selStart = this->_caretAtChar;
-                this->_selEnd = this->_selBegin;
-                redraw = TRUE;
-            } else {
-                this->_selStart = this->_selBegin;
-                this->_selEnd = this->_caretAtChar;
-                redraw = TRUE;
+            else if (m_CaretAtChar >= m_SelBegin)
+            {
+                m_SelEnd = m_CaretAtChar;
+                redraw = true;
+            }
+            else if (m_CaretAtChar < m_SelBegin)
+            {
+                m_SelStart = m_CaretAtChar;
+                redraw = true;
+            }
+        }
+        else
+        {
+            if (m_SelStart == m_SelEnd)
+            {
+                m_SelStart = m_CaretAtChar;
+                m_SelEnd = lastCaretAtChar;
+                m_SelBegin = m_SelEnd;
+                redraw = true;
+            }
+            else if (m_CaretAtChar < m_SelBegin)
+            {
+                m_SelStart = m_CaretAtChar;
+                m_SelEnd = m_SelBegin;
+                redraw = true;
+            }
+            else
+            {
+                m_SelStart = m_SelBegin;
+                m_SelEnd = m_CaretAtChar;
+                redraw = true;
             }
         }
         return;
     }
 
-    if (vkKey == VK_RIGHT) {
-        if (abs(this->_caretAtChar - lastCaretAtChar) == 1) {
-            if (this->_selStart == this->_selEnd) {
-                if (this->_caretAtChar > 0) {
-                    this->_selStart = this->_caretAtChar - 1;
-                    this->_selEnd = this->_caretAtChar;
-                    this->_selBegin = this->_selStart;
-                    redraw = TRUE;
+    if (vkKey == SDLK_RIGHT)
+    {
+        int Diff = m_CaretAtChar - lastCaretAtChar;
+        if (Diff < 0) Diff = -Diff;
+        if (Diff == 1)
+        {
+            if (m_SelStart == m_SelEnd)
+            {
+                if (m_CaretAtChar > 0)
+                {
+                    m_SelStart = m_CaretAtChar - 1;
+                    m_SelEnd = m_CaretAtChar;
+                    m_SelBegin = m_SelStart;
+                    redraw = true;
                 }
-            } else if (this->_caretAtChar > this->_selBegin) {
-                this->_selEnd = this->_caretAtChar;
-                redraw = TRUE;
-            } else if (this->_caretAtChar <= this->_selBegin) {
-                this->_selStart = this->_caretAtChar;
-                redraw = TRUE;
             }
-        } else {
-            if (this->_selStart == this->_selEnd) {
-                this->_selStart = lastCaretAtChar;
-                this->_selEnd = this->_caretAtChar;
-                this->_selBegin = this->_selStart;
-                redraw = TRUE;
-            } else if (this->_caretAtChar < this->_selBegin) {
-                this->_selStart = this->_caretAtChar;
-                this->_selEnd = this->_selBegin;
-                redraw = TRUE;
-            } else if (this->_caretAtChar > this->_selBegin) {
-                this->_selStart = this->_selBegin;
-                this->_selEnd = this->_caretAtChar;
-                redraw = TRUE;
-            } else if (this->_caretAtChar == this->_selBegin) {
-                this->clearSelection(FALSE);
-                redraw = TRUE;
+            else if (m_CaretAtChar > m_SelBegin)
+            {
+                m_SelEnd = m_CaretAtChar;
+                redraw = true;
+            }
+            else if (m_CaretAtChar <= m_SelBegin)
+            {
+                m_SelStart = m_CaretAtChar;
+                redraw = true;
+            }
+        }
+        else
+        {
+            if (m_SelStart == m_SelEnd)
+            {
+                m_SelStart = lastCaretAtChar;
+                m_SelEnd = m_CaretAtChar;
+                m_SelBegin = m_SelStart;
+                redraw = true;
+            }
+            else if (m_CaretAtChar < m_SelBegin)
+            {
+                m_SelStart = m_CaretAtChar;
+                m_SelEnd = m_SelBegin;
+                redraw = true;
+            }
+            else if (m_CaretAtChar > m_SelBegin)
+            {
+                m_SelStart = m_SelBegin;
+                m_SelEnd = m_CaretAtChar;
+                redraw = true;
+            }
+            else if (m_CaretAtChar == m_SelBegin)
+            {
+                ClearSelection(false);
+                redraw = true;
             }
         }
         return;
     }
 
-    if (vkKey == VK_HOME) {
-        if (this->isSelection()) {
-            this->_selStart = 0;
-            this->_selEnd = this->_selBegin;
-        } else {
-            this->_selStart = 0;
-            this->_selEnd = lastCaretAtChar;
-            this->_selBegin = this->_selEnd;
+    if (vkKey == SDLK_HOME)
+    {
+        if (IsSelection())
+        {
+            m_SelStart = 0;
+            m_SelEnd = m_SelBegin;
         }
-        redraw = TRUE;
+        else
+        {
+            m_SelStart = 0;
+            m_SelEnd = lastCaretAtChar;
+            m_SelBegin = m_SelEnd;
+        }
+        redraw = true;
         return;
     }
 
-    if (vkKey == VK_END) {
-        if (this->isSelection()) {
-            this->_selStart = this->_selBegin;
-            this->_selEnd = this->_text.length();
-        } else {
-            this->_selStart = lastCaretAtChar;
-            this->_selEnd = this->_text.length();
-            this->_selBegin = this->_selStart;
+    if (vkKey == SDLK_END)
+    {
+        if (IsSelection())
+        {
+            m_SelStart = m_SelBegin;
+            m_SelEnd = m_Text.length();
         }
-        redraw = TRUE;
+        else
+        {
+            m_SelStart = lastCaretAtChar;
+            m_SelEnd = m_Text.length();
+            m_SelBegin = m_SelStart;
+        }
+        redraw = true;
         return;
     }
 }
 
-VOID Tilc::Gui::TTextField::drawCaret() {
-    this->_caret->hide();
+void Tilc::Gui::TTextField::DrawCaret()
+{
+    /*
+    m_Caret->Hide();
 
     HWND hwnd = this->getParentWindow()->getHwnd();
     HDC hdc = GetDC(hwnd);
@@ -963,189 +939,208 @@ VOID Tilc::Gui::TTextField::drawCaret() {
     hdc = GetDC(hwnd);
     this->_caret->draw(hdc);
     ReleaseDC(hwnd, hdc);
+    */
 }
 
-RECT Tilc::Gui::TTextField::_calculateSelectionRectForText(Tilc::TExtString* s) {
-    RECT rc;
-    ZeroMemory(&rc, sizeof(rc));
+SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRectForText(const Tilc::TExtString& s)
+{
+    SDL_FRect rc{};
 
-    if (
-        (this->_selStart < this->_selEnd) &&
-        (this->_selStart >= this->_startChar || this->_selEnd > this->_startChar)
-        ) {
-            POINT pt;
-            POINT lastGoodPt;
+    if ((m_SelStart < m_SelEnd) && (m_SelStart >= m_StartChar || m_SelEnd > m_StartChar))
+    {
+        SDL_FPoint pt;
+        SDL_FPoint LastGoodPt;
 
-            LONG currentChar = this->_selStart;
-            if (currentChar < this->_startChar) {
-                currentChar = this->_startChar;
+        int CurrentChar = m_SelStart;
+        if (CurrentChar < m_StartChar)
+        {
+            CurrentChar = m_StartChar;
+        }
+
+        int Result;
+        TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        pt = CalculateCharPos(CurrentChar, Result);
+        // jeśli na starcie jesteśmy poza wyświetlanym obszarem, to powrót
+        if (Result == -2 || Result == -1)
+        {
+            return rc;
+        }
+
+        rc.x = pt.x;
+        rc.y = pt.y;
+        rc.w = 0;
+        rc.h = t->textfield_selection_rc.h;
+
+        CurrentChar++;
+        LastGoodPt = pt;
+        pt = CalculateCharPos(CurrentChar, Result);
+        int InnerWidth = CalculateInnerWidth();
+        int MaxXPosAllowedForText = GetMaxXPosAllowedForContent();
+        while (CurrentChar < m_SelEnd && pt.x > 0 && pt.x <= MaxXPosAllowedForText)
+        {
+            CurrentChar += 1;
+            LastGoodPt = pt;
+            pt = CalculateCharPos(CurrentChar, Result);
+        }
+        if (pt.x > 0 && pt.x <= MaxXPosAllowedForText)
+        {
+            rc.w = pt.x - rc.x;
+        }
+        else
+        {
+            // UWAGA!!!
+            // W tym miejscu celowo nie ustawiamy wartości maxXPosAllowedForText, bo obszar
+            // zaznaczenia nie powinien wchodzić na prawy margines. Wyjątkiem jest sytuacja
+            // w której ostatnia wyświetlana litera wymusza takie zaznaczenie.
+            int MaxXAllowedForSelection = GetMaxXPosAllowedForContent();
+            CurrentChar -= 1;
+            char ch = '\0';
+            if (CurrentChar >= 0 && static_cast<unsigned int>(CurrentChar) < m_Text.length())
+            {
+                ch = m_Text[CurrentChar];
             }
+            if (ch != '\0')
+            {
+                SDL_Rect size;
+                Tilc::Gui::TFont* Font = Tilc::GameObject->GetFont(FontNameInUse);
+                Font->GetTextSize(s.c_str(), size.w, size.h);
 
-            pt = this->calculateCharPos(currentChar);
-            // jeśli na starcie jesteśmy poza wyświetlanym obszarem, to powrót
-            if ((pt.x == -2 && pt.y == -2) || (pt.x == -1 && pt.y == -1)) {
-                return rc;
-            }
-
-            rc.left = pt.x;
-            rc.top = pt.y;
-            rc.right = rc.left;
-            rc.bottom = rc.top + this->_theme->textfield_selection->height();
-
-            currentChar++;
-            lastGoodPt = pt;
-            pt = this->calculateCharPos(currentChar);
-            LONG inner_width = this->_calculateInnerWidth();
-            LONG maxXPosAllowedForText = this->_getMaxXPosAllowedForContent();
-            while (currentChar < this->_selEnd && pt.x > 0 && pt.x <= maxXPosAllowedForText) {
-                currentChar += 1;
-                lastGoodPt = pt;
-                pt = this->calculateCharPos(currentChar);
-            }
-            if (pt.x > 0 && pt.x <= maxXPosAllowedForText) {
-                rc.right = pt.x;
-            } else {
-                // UWAGA!!!
-                // W tym miejscu celowo nie ustawiamy wartości maxXPosAllowedForText, bo obszar
-                // zaznaczenia nie powinien wchodzić na prawy margines. Wyjątkiem jest sytuacja
-                // w której ostatnia wyświetlana litera wymusza takie zaznaczenie.
-                LONG max_x_allowed_for_selection = this->_getMaxXPosAllowedForContent();
-                currentChar -= 1;
-                WCHAR ch = NULL;
-                if (currentChar >= 0 && (ULONG)currentChar < this->_text.length()) {
-                    ch = this->_text.getCharAt(currentChar);
+                if (LastGoodPt.x + size.w <= MaxXPosAllowedForText)
+                {
+                    rc.w = LastGoodPt.x + size.w - rc.x;
                 }
-                if (ch != NULL) {
-                    CFont* font = this->getFont();
-
-                    HDC hdc = this->canvas->getDC();
-                    if (hdc == 0) {
-                        this->canvas->beginPaint();
-                    }
-                    SIZE size = font->measureChar(ch, this->canvas->getDC());
-                    if (hdc == 0) {
-                        this->canvas->endPaint();
-                    }
-                    if (lastGoodPt.x + size.cx <= maxXPosAllowedForText) {
-                        rc.right = lastGoodPt.x + size.cx;
-                    } else {
-                        rc.right = max_x_allowed_for_selection;
-                    }
-                } else {
-                    rc.right = max_x_allowed_for_selection;
+                else
+                {
+                    rc.w = MaxXAllowedForSelection - rc.x;
                 }
             }
+            else
+            {
+                rc.w = MaxXAllowedForSelection - rc.x;
+            }
+        }
     }
 
     return rc;
 }
 
-LONG Tilc::Gui::TTextField::getLastVisibleCharPos(LONG max_inner_width) {
-    ULONG strLen = this->_text.length();
-    if (strLen < 1 || this->_startChar < 0) {
+int Tilc::Gui::TTextField::CalculateInnerWidth()
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    return m_Position.w - t->textfield_left_rc.w - t->textfield_right_rc.w;
+}
+
+int Tilc::Gui::TTextField::GetMaxXPosAllowedForContent()
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    return t->textfield_left_rc.w + CalculateInnerWidth();
+}
+
+int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
+{
+    size_t StrLen = m_Text.length();
+    if (StrLen < 1 || m_StartChar < 0)
+    {
         return -1;
     }
-    if (max_inner_width == 0) {
+    if (max_inner_width == 0)
+    {
         return -1;
     }
 
     // zakładamy, że znak ma średnio 4 piksele, żeby później móc ograniczyć długość kopiowanego
     // podłańcucha
-    LONG char_width = 2; // literka jak np. i może być jednopikselowa (ale do tego dochodzi minimum
+    int char_width = 2; // literka jak np. i może być jednopikselowa (ale do tego dochodzi minimum
                         // jeden piksel odstępu.
-    LONG inner_width = this->_calculateInnerWidth();
-    if (max_inner_width > 0 && inner_width > max_inner_width) {
+    int inner_width = CalculateInnerWidth();
+    if (max_inner_width > 0 && inner_width > max_inner_width)
+    {
         inner_width = max_inner_width;
     }
-    LONG maxCopyChars = inner_width / char_width;
+    int maxCopyChars = inner_width / char_width;
 
-    SIZE size;
-    POINT pt;
-    ZeroMemory(&size, sizeof(size));
-    ZeroMemory(&pt, sizeof(pt));
+    SDL_Rect size{};
+    SDL_FPoint pt{};
 
-    Tilc::TExtString s = this->_text.substr(this->_startChar, maxCopyChars);
-    CFont* font = this->getFont();
+    Tilc::TExtString s = m_Text.substr(m_StartChar, maxCopyChars);
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    Tilc::Gui::TFont* Font = t->DefaultFont;
+    Font->GetTextSize(s.c_str(), size.w, size.h);
 
-    HDC hdc = this->canvas->getDC();
-    if (hdc == 0) {
-        this->canvas->beginPaint();
+    if (size.w <= inner_width)
+    {
+        return m_StartChar + s.length() - 1;
     }
-    size = font->measureString(s, this->canvas->getDC());
-    if (s.length() < 1) {
-        if (hdc == 0) {
-            this->canvas->endPaint();
-        }
+
+    while (size.w > inner_width)
+    {
+        s.TruncateAtEnd(1);
+        Font->GetTextSize(s.c_str(), size.w, size.h);
+    }
+
+    StrLen = s.length();
+    if (StrLen < 1)
+    {
         return -1;
     }
 
-    if (size.cx <= inner_width) {
-        if (hdc == 0) {
-            this->canvas->endPaint();
-        }
-        return this->_startChar + s.length() - 1;
-    }
-
-    while (size.cx > inner_width) {
-        s.truncateAtEnd(1);
-        size = font->measureString(s, this->canvas->getDC());
-    }
-    if (hdc == 0) {
-        this->canvas->endPaint();
-    }
-
-    strLen = s.length();
-    if (strLen < 1) {
-        return -1;
-    }
-
-    return this->_startChar + strLen - 1;
+    return m_StartChar + StrLen - 1;
 }
 
-WCHAR Tilc::Gui::TTextField::getLastVisibleChar(LONG max_inner_width) {
-    LONG pos = this->getLastVisibleCharPos(max_inner_width);
-    if (pos >= 0) {
-        return this->_text.getCharAt(pos);
+char Tilc::Gui::TTextField::GetLastVisibleChar(int max_inner_width)
+{
+    int pos = GetLastVisibleCharPos(max_inner_width);
+    if (pos >= 0)
+    {
+        return m_Text[pos];
     }
 
-    return NULL;
+    return '\0';
 }
 
-BOOL Tilc::Gui::TTextField::update() {
-    BOOL retval = FALSE;
+bool Tilc::Gui::TTextField::Update(float DeltaTime)
+{
+    bool retval = false;
+/*
+    if (!m_Visible) return false;
 
-    if (!this->_visible) return FALSE;
-
-    if (!(this->_state & Tilc::Gui::TTextField_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS)) {
-        return FALSE;
+    if (!(m_State & CONTROL_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS))
+    {
+        return false;
     }
 
-    ULONG str_len = this->_text.length();
-    if (str_len < 1) {
-        return FALSE;
+    size_t str_len = m_Text.length();
+    if (str_len < 1)
+    {
+        return false;
     }
 
-    LONG localX = MININT, localY = MININT;
-    BOOL updateCaretPos = FALSE, redraw = FALSE;
+    float localX = -1.0f, localY = -1.0f;
+    bool updateCaretPos = false, redraw = false;
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
 
-    this->getCurrentMousePosition(localX, localY);
-    if (localX != MININT && localY != MININT) {
-        LONG oldCaretAtChar = this->_caretAtChar;
-        BOOL processed = FALSE;
-        LONG frame_left_width = this->_theme->textfield_frame_left->width();
-        LONG inner_width = this->_calculateInnerWidth();
+    GetCurrentMousePosition(&localX, &localY);
+    if (localX >= 0 && localY >= 0)
+    {
+        int oldCaretAtChar = m_CaretAtChar;
+        bool processed = false;
+        int frame_left_width = m_PaddingLeft;
+        int inner_width = CalculateInnerWidth();
 
-        if (localX < 0) {
+        if (localX < 0)
+        {
             localX = 1;
         }
-        if (localX > this->width) {
-            localX = this->width - 1;
+        if (localX > m_Position.w)
+        {
+            localX = m_Position.w - 1;
         }
-        LONG last_char_pos = this->getLastVisibleCharPos();
+        int last_char_pos = GetLastVisibleCharPos();
 
-        if (localX <= frame_left_width && abs(this->_caretAtChar - this->_startChar) <= 2) {
+        if (localX <= frame_left_width && fabs(m_CaretAtChar - m_StartChar) <= 2)
+        {
             // przesuwamy karetkę o jeden znak w lewo
-            this->_updateCursorPosition(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, VK_LEFT, updateCaretPos, redraw);
+            UpdateCursorPosition(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, VK_LEFT, updateCaretPos, redraw);
             // i jeśli trzeba to aktualizujemy zaznaczenie
             if (oldCaretAtChar != this->_caretAtChar) {
                 this->_updateSelection(FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, VK_LEFT, oldCaretAtChar, updateCaretPos, redraw);
@@ -1245,143 +1240,162 @@ BOOL Tilc::Gui::TTextField::update() {
         this->redraw();
         retval = TRUE;
     }
-
+*/
     return retval;
 }
 
-VOID Tilc::Gui::TTextField::clearSelection(BOOL redraw) {
-    if (!this->isSelection()) {
-        redraw = FALSE;
+void Tilc::Gui::TTextField::ClearSelection(bool redraw)
+{
+    if (!IsSelection())
+    {
+        redraw = false;
     }
 
-    this->_selStart = 0;
-    this->_selEnd = 0;
-    this->_selBegin = 0;
+    m_SelStart = 0;
+    m_SelEnd = 0;
+    m_SelBegin = 0;
 
-    if (redraw) {
-        this->redraw();
+    if (redraw)
+    {
+        Invalidate();
     }
 }
 
-ULONG Tilc::Gui::TTextField::getSelectionLength() {
-    if (this->_selStart > this->_selEnd) {
+size_t Tilc::Gui::TTextField::GetSelectionLength()
+{
+    if (m_SelStart > m_SelEnd)
+    {
         return 0;
     }
 
-    return this->_selEnd - this->_selStart;
+    return m_SelEnd - m_SelStart;
 }
 
-Tilc::TExtString Tilc::Gui::TTextField::getSelectedText() {
-    if (this->_selStart > this->_selEnd) {
-        return L"";
+Tilc::TExtString Tilc::Gui::TTextField::GetSelectedText()
+{
+    if (m_SelStart > m_SelEnd)
+    {
+        return "";
     }
 
-    ULONG sel_len = this->getSelectionLength();
-    return this->_text.substr(this->_selStart, sel_len);
+    size_t sel_len = GetSelectionLength();
+    return m_Text.substr(m_SelStart, sel_len);
 }
 
-VOID Tilc::Gui::TTextField::selectAll(BOOL redraw) {
-    ULONG len = this->_text.length();
-    if (len < 1) {
+void Tilc::Gui::TTextField::SelectAll(bool redraw)
+{
+    size_t len = m_Text.length();
+    if (len < 1)
+    {
         return;
     }
 
-    this->_selStart = 0;
-    this->_selEnd = len;
-    this->_selBegin = this->_selEnd;
-    this->_caretAtChar = len;
-    this->adjustStartCharForCaretAtChar();
+    m_SelStart = 0;
+    m_SelEnd = len;
+    m_SelBegin = m_SelEnd;
+    m_CaretAtChar = len;
+    AdjustStartCharForCaretAtChar();
 
-    this->updateCaretPos();
+    UpdateCaretPos();
 
-    if (redraw) {
-        this->redraw();
+    if (redraw)
+    {
+        Invalidate();
     }
 }
 
-VOID Tilc::Gui::TTextField::setSelection(ULONG start, ULONG length, BOOL redraw) {
-    ULONG str_len = this->_text.length();
-    if (str_len < 1) {
+void Tilc::Gui::TTextField::SetSelection(size_t start, size_t length, bool redraw)
+{
+    size_t str_len = m_Text.length();
+    if (str_len < 1)
+    {
         return;
     }
 
-    this->_selStart = start;
-    if ((ULONG)this->_selStart > str_len) {
-        this->_selStart = str_len;
+    m_SelStart = start;
+    if (static_cast<size_t>(m_SelStart) > str_len)
+    {
+        m_SelStart = str_len;
     }
 
-    this->_selEnd = this->_selStart + length;
-    if ((ULONG)this->_selEnd > str_len) {
-        this->_selEnd = str_len;
+    m_SelEnd = m_SelStart + length;
+    if (static_cast<size_t>(m_SelEnd) > str_len)
+    {
+        m_SelEnd = str_len;
     }
 
-    this->_selBegin = this->_selEnd;
+    m_SelBegin = m_SelEnd;
 
-    if (redraw) {
-        this->redraw();
-    }
-}
-
-LONG Tilc::Gui::TTextField::_calculateInnerWidth() {
-    return this->width - this->_theme->textfield_frame_left->width() - this->_theme->textfield_frame_right->width();
-}
-
-VOID Tilc::Gui::TTextField::insertText(Tilc::TExtString s, BOOL redraw) {
-    if (this->isSelection()) {
-        this->replaceSelectionWith(s, FALSE);
-    } else {
-        s.replaceCharsWithCodeLessThan(32, L' ');
-        this->_text.insertAt(this->_caretAtChar, s);
-        this->_caretAtChar = this->_caretAtChar + s.length();;
-        this->adjustStartCharForCaretAtChar();
-    }
-
-    if (redraw) {
-        this->redraw();
+    if (redraw)
+    {
+        Invalidate();
     }
 }
 
-VOID Tilc::Gui::TTextField::replaceSelectionWith(Tilc::TExtString replaceWith, BOOL redraw) {
-    if (this->isSelection()) {
-        replaceWith.replaceCharsWithCodeLessThan(32, L' ');
-        ULONG start = this->_selStart;
-        ULONG len = this->getSelectionLength();
-        if ((ULONG)this->_startChar >= start) {
-            this->_startChar = start;
+void Tilc::Gui::TTextField::InsertText(Tilc::TExtString s, bool redraw)
+{
+    if (IsSelection())
+    {
+        ReplaceSelectionWith(s, false);
+    }
+    else
+    {
+        m_Text.InsertAt(m_CaretAtChar, s);
+        m_CaretAtChar = m_CaretAtChar + s.length();
+        AdjustStartCharForCaretAtChar();
+    }
+
+    if (redraw)
+    {
+        Invalidate();
+    }
+}
+
+void Tilc::Gui::TTextField::ReplaceSelectionWith(const Tilc::TExtString& replaceWith, bool redraw)
+{
+    if (IsSelection())
+    {
+        size_t start = m_SelStart;
+        size_t len = GetSelectionLength();
+        if (static_cast<size_t>(m_StartChar) >= start)
+        {
+            m_StartChar = start;
         }
-        this->_caretAtChar = start;
-        if (this->_startChar + 5 > this->_caretAtChar) {
-            for (LONG i = 0; i < 5; i++) {
-                if (this->_startChar > 1) {
-                    this->_startChar--;
+        m_CaretAtChar = start;
+        if (m_StartChar + 5 > m_CaretAtChar)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                if (m_StartChar > 1)
+                {
+                    --m_StartChar;
                 }
             }
         }
-        this->_text.replace(start, len, replaceWith);
-        this->_caretAtChar = this->_selStart + replaceWith.length();
-        this->adjustStartCharForCaretAtChar();
+        m_Text.replace(start, len, replaceWith);
+        m_CaretAtChar = m_SelStart + replaceWith.length();
+        AdjustStartCharForCaretAtChar();
 
-        this->clearSelection(FALSE);
-        this->updateCaretPos();
-        if (redraw) {
-            this->redraw();
+        ClearSelection(false);
+        UpdateCaretPos();
+        if (redraw)
+        {
+            Invalidate();
         }
     }
 }
 
-VOID Tilc::Gui::TTextField::removeSelectedText(BOOL redraw) {
-    this->replaceSelectionWith(L"", redraw);
+void Tilc::Gui::TTextField::RemoveSelectedText(bool redraw)
+{
+    ReplaceSelectionWith("", redraw);
 }
 
-Tilc::TExtString Tilc::Gui::TTextField::getText() {
-    return this->_text;
-}
-
-VOID Tilc::Gui::TTextField::hide() {
-    if (this->_caret) {
-        this->_caret->active = FALSE;
-        this->_caret->hide();
+void Tilc::Gui::TTextField::Hide()
+{
+    if (m_Caret)
+    {
+        m_Caret->m_Active = false;
+        m_Caret->Hide();
     }
-    __super::hide();
+    __super::Hide();
 }
-*/

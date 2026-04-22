@@ -171,19 +171,37 @@ namespace Tilc {
             SDL_FRect slider_vertical_rail_middle_rc;
             SDL_FRect slider_vertical_rail_bottom_rc;
 
-            /*
             // Bitmapy textfield
-            SDL_FRect textfield_frame_left_rc;
-            SDL_FRect textfield_frame_right_rc;
-            SDL_FRect textfield_frame_middle_rc;
-            SDL_FRect textfield_frame_left_hover_rc;
-            SDL_FRect textfield_frame_right_hover_rc;
-            SDL_FRect textfield_frame_middle_hover_rc;
-            SDL_FRect textfield_frame_left_active_rc;
-            SDL_FRect textfield_frame_right_active_rc;
-            SDL_FRect textfield_frame_middle_active_rc;
+            SDL_FRect textfield_left_rc;
+            SDL_FRect textfield_right_rc;
+            SDL_FRect textfield_middle_rc;
+
+            SDL_FRect textfield_left_focused_rc;
+            SDL_FRect textfield_right_focused_rc;
+            SDL_FRect textfield_middle_focused_rc;
+
+            SDL_FRect textfield_left_disabled_rc;
+            SDL_FRect textfield_right_disabled_rc;
+            SDL_FRect textfield_middle_disabled_rc;
+
+            SDL_FRect textfield_left_hover_rc;
+            SDL_FRect textfield_right_hover_rc;
+            SDL_FRect textfield_middle_hover_rc;
+
+            SDL_FRect textfield_left_hover_focused_rc;
+            SDL_FRect textfield_right_hover_focused_rc;
+            SDL_FRect textfield_middle_hover_focused_rc;
+
+
+            SDL_FRect textfield_left_pushed_rc;
+            SDL_FRect textfield_right_pushed_rc;
+            SDL_FRect textfield_middle_pushed_rc;
+
+            SDL_FRect textfield_left_pushed_focused_rc;
+            SDL_FRect textfield_right_pushed_focused_rc;
+            SDL_FRect textfield_middle_pushed_focused_rc;
+
             SDL_FRect textfield_selection_rc;
-            */
 
             // Bitmapy button
             SDL_FRect button_left_rc;
@@ -292,7 +310,7 @@ namespace Tilc {
             void LoadLabelSkinResources(Tilc::TExtString themeName);
             void LoadScrollBarSkinResources(Tilc::TExtString themeName);
             void LoadSliderSkinResources(Tilc::TExtString themeName);
-            void LoadTextfieldSkinResources(Tilc::TExtString themeName);
+            void LoadTextFieldSkinResources(Tilc::TExtString themeName);
             void LoadButtonSkinResources(Tilc::TExtString themeName);
             void LoadCheckboxSkinResources(Tilc::TExtString themeName);
             void LoadListboxSkinResources(Tilc::TExtString themeName);

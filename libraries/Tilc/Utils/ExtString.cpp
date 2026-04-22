@@ -650,6 +650,22 @@ Tilc::TExtString Tilc::TExtString::StrAfterLastchar(const char* StringOfChars)
 	return "";
 }
 
+void Tilc::TExtString::InsertAt(size_t pos, const TExtString& s)
+{
+    if (pos == 0)
+    {
+        *this = s + *this;
+    }
+    else if (pos < length())
+    {
+        *this = substr(0, pos) + s + substr(pos);
+    }
+    else
+    {
+        append(s.c_str());
+    }
+}
+
 
 Tilc::TExtString& Tilc::TExtString::Prepend(TExtString& s)
 {
@@ -786,6 +802,27 @@ Tilc::TExtString& Tilc::TExtString::PrependEachLine(unsigned long long num)
 Tilc::TExtString& Tilc::TExtString::PrependEachLine(float num)
 {
 	return PrependEachLine(std::to_string(num).c_str());
+}
+
+void Tilc::TExtString::TruncateAtEnd(size_t NumChars)
+{
+    if (NumChars > 0)
+    {
+        size_t len = this->length();
+        if (NumChars > len) {
+            NumChars = len;
+        }
+        size_t pos = len;
+        if (pos > NumChars)
+        {
+            pos -= NumChars;
+        }
+        else
+        {
+            pos = 0;
+        }
+        data()[pos] = '\0';
+    }
 }
 
 bool Tilc::TExtString::StartsWith(const Tilc::TExtString& s)

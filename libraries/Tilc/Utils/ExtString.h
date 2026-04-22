@@ -192,6 +192,8 @@ namespace Tilc
 		// 'stringOfChars'
 		TExtString StrAfterLastchar(const char* stringOfChars);
 
+        void InsertAt(size_t pos, const TExtString& s);
+
 		// dokleja na początku tego łańcucha odpowiedni element i zwraca referencję do tego łańcucha.
 		TExtString& Prepend(TExtString& s);
 		TExtString& Prepend(const char* s);
@@ -210,7 +212,10 @@ namespace Tilc
 		TExtString& PrependEachLine(unsigned long long num);
 		TExtString& PrependEachLine(float num);
 
-		bool StartsWith(const TExtString& s);
+        // odcina z końca łańcucha podaną liczbę znaków
+        void TruncateAtEnd(size_t NumChars);
+
+        bool StartsWith(const TExtString& s);
 		bool StartsWithchar(char ch);
 		bool StartsWithOneOfChars(const char* StringOfChars);
 		bool EndsWith(const TExtString& s);
