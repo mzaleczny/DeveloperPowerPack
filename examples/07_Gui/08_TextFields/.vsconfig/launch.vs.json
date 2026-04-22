@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "08_TextFields.exe",
+      "name": "08_TextFields.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}
