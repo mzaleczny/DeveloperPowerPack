@@ -110,6 +110,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     AddY(7 * 25, 0);
     X = CurrentColumnX;
     RenderSliders();
+    RenderButtons("textfield", 75, 25);
+    AddY(7 * 25, 0);
+    X = CurrentColumnX;
+    RenderSvgTile("textfield-selection", { X, Y, 1, 25 }, false, true);
+    AddY(25, 0);
 
     SDL_SetRenderTarget(renderer, nullptr);
 
@@ -363,6 +368,7 @@ void RenderSliders()
     SDL_FRect frc;
     SDL_Texture* Texture;
 
+    float OldY = Y;
     X = 75;
     Y -= 3 * ThumbSize;
     RenderSvgTile("slider-vertical-rail", { X, Y, 5, 3 * ThumbSize }, false);
@@ -373,7 +379,8 @@ void RenderSliders()
     RenderSvgTile("slider-horizontal-thumb", { X, Y, ThumbSize, ThumbSize }, false);
     AddX(ThumbSize, 0);
     RenderSvgTile("slider-horizontal-rail", { X, Y, 2 * ThumbSize, 5 }, false);
-    AddY(7 * 25 + ThumbSize, 0);
+    Y = OldY;
+    AddY(ThumbSize, 0);
     X = 0;
 }
 
@@ -597,7 +604,7 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_hover_pushed_rc: ";
+            of << Name + "_left_pushed_rc: ";
             of << LeftRC << std::endl;
 
             RightRC = rc;
