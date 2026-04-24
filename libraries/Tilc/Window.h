@@ -116,6 +116,9 @@ namespace Tilc
         std::list<Tilc::Gui::TGuiControl*> m_ControlsToDestroy;
         std::list<Tilc::Gui::TStyledWindow*> m_WindowsToDestroy;
 
+        inline void DoCloseWindowByPressingQ(bool Value) { m_QKeyClosesWindow = Value; }
+        inline bool CloseWindowByPressingQ() const { return m_QKeyClosesWindow; }
+
 	private:
 		void Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext);
 		SDL_AppResult Create(int Flags, bool WithGLContext);
@@ -134,6 +137,7 @@ namespace Tilc
         bool m_IsFocused;
         bool m_IsMaximized{};
         bool m_IsMinimized{};
+        bool m_QKeyClosesWindow{ true };
         TEventManager m_EventManager;
 		void Destroy();
 	};

@@ -53,7 +53,10 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
 		switch (Event->key.key)
 		{
 		case SDLK_Q:
-			Tilc::GameObject->m_Window->Close();
+            if (Tilc::GameObject->m_Window->CloseWindowByPressingQ())
+            {
+                Tilc::GameObject->m_Window->Close();
+            }
 			break;
 		case SDLK_UP:
 			// Camera Forward

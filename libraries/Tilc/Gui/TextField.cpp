@@ -3,13 +3,17 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Caret.h"
+#include "Tilc/Gui/Cursor.h"
+#include "Tilc/Gui/Clipboard.h"
 #include "Tilc/Game.h"
+#include <ctype.h>
+#include <cmath>
 
 Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const TExtString& text, bool tabStop)
     : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_TextField, true)
 {
     Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
-    m_Caret = wnd->getCaret();
+    m_Caret = Tilc::GameObject->GetContext()->m_Caret;
     m_Clipboard = Tilc::GameObject->GetContext()->m_Clipboard;
     m_StartChar = 0;
     m_CaretAtChar = 0;
@@ -74,7 +78,7 @@ void Tilc::Gui::TTextField::Draw()
     // ================================================================
     TFont* Font = t->DefaultFont;
     Font->SetColor({ 0, 0, 0, 0 });
-    SDL_FRect rc = m_Position;
+    SDL_FRect rc = GetRealPosition();
     rc.x += m_PaddingLeft;
     rc.w = GetMaxXPosAllowedForContent() - rc.x;
     if (SelRect.w < 0.01f)
@@ -136,6 +140,12 @@ void Tilc::Gui::TTextField::Draw()
     // Koniec rysowania tekstu
     // ================================================================
 
+    // I na koniec karetka
+    if (Tilc::GameObject->GetContext()->m_Caret)
+    {
+        Tilc::GameObject->GetContext()->m_Caret->Draw();
+    }
+
     if (m_Canvas)
     {
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
@@ -167,7 +177,7 @@ void Tilc::Gui::TTextField::Focus()
 
     if (m_Caret)
     {
-        m_Caret->m_Height = GetCaretHeight();
+        SetCaretRect();
         UpdateCaretPos();
         m_Caret->Update(0);
         m_Caret->Show();
@@ -193,125 +203,136 @@ void Tilc::Gui::TTextField::LooseFocus()
     ClearSelection(false);
 }
 
-/*
-BOOL Tilc::Gui::TTextField::onMouseMove(LONG x, LONG y) {
-    if (!this->_visible) return FALSE;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return FALSE;
-    }
+void Tilc::Gui::TTextField::SetCaretRect()
+{
+    Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    Tilc::Gui::TFont* Font = t->DefaultFont;
+    int w, h;
+    Font->GetTextSize("Testy qjY", w, h);
+    m_Caret->m_Position.w = 2.0f;
+    m_Caret->m_Position.h = h;
 
-    if (this->_lMouseButtonPressed) {
-        this->addState(Tilc::Gui::TTextField_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS);
-    }
-
-    if (this->pointIn(x, y)) {
-        this->_cursor->setIBeamCursor();
-        if (this->_state & Tilc::Gui::TTextField_STATE_NORMAL) {
-            this->removeState(Tilc::Gui::TTextField_STATE_NORMAL);
-            this->addState(Tilc::Gui::TTextField_STATE_HOVER);
-        }
-
-        return TRUE;
-    }
-
-    if (this->_state & Tilc::Gui::TTextField_STATE_HOVER) {
-        this->removeState(Tilc::Gui::TTextField_STATE_HOVER);
-        this->addState(Tilc::Gui::TTextField_STATE_NORMAL);
-    }
-
-    return FALSE;
+    SDL_FPoint pt = CalculateCaretPos();
+    m_Caret->m_Position.x = pt.x;
+    m_Caret->m_Position.y = pt.y;
 }
 
-BOOL Tilc::Gui::TTextField::onMouseDown(LONG x, LONG y) {
-    if (!this->_visible) return FALSE;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return FALSE;
+bool Tilc::Gui::TTextField::OnMouseMove(const SDL_Event& event)
+{
+    if (!m_Visible) return false;
+    if (OtherControlCapturedMouse())
+    {
+        return false;
     }
 
-    if (this->pointIn(x, y)) {
-        this->_cursor->setIBeamCursor();
-        this->_lMouseButtonPressed = TRUE;
-        this->getParentWindow()->captureMouse(this);
+    __super::OnMouseMove(event);
+
+    if (event.button.button == SDL_BUTTON_LEFT)
+    {
+        AddState(CONTROL_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS);
+    }
+
+    if (PointIn(event.motion.x, event.motion.y))
+    {
+        Tilc::GameObject->GetContext()->m_Cursor->SetIBeamCursor();
+        return true;
+    }
+
+    return false;
+}
+
+bool Tilc::Gui::TTextField::OnMouseButtonDown(const SDL_Event& event)
+{
+    if (!m_Visible) return false;
+    if (OtherControlCapturedMouse())
+    {
+        return false;
+    }
+
+    __super::OnMouseButtonDown(event);
+
+    if (PointIn(event.motion.x, event.motion.y))
+    {
+        Tilc::GameObject->GetContext()->m_Cursor->SetIBeamCursor();
+        CaptureMouse(this);
 
         // pozycjonujemy karetkę na odpowiednim znaku
-        this->_positionCaretNearClickedPoint(x - this->x, y - this->y);
+        PositionCaretNearClickedPoint(event.motion.x - m_Position.x, event.motion.y - m_Position.y);
 
-        if (!(this->_state & Tilc::Gui::TTextField_STATE_ACTIVE)) {
-            this->getParentWindow()->setActiveControl(this);
-        }
-
-        this->clearSelection(FALSE);
-        this->redraw();
-        return TRUE;
+        ClearSelection(false);
+        Invalidate();
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
-BOOL Tilc::Gui::TTextField::onMouseUp(LONG x, LONG y) {
-    if (!this->_visible) return FALSE;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return FALSE;
+bool Tilc::Gui::TTextField::OnMouseButtonUp(const SDL_Event& event)
+{
+    if (!m_Visible) return false;
+    if (OtherControlCapturedMouse())
+    {
+        return false;
     }
 
-    this->_lMouseButtonPressed = FALSE;
-    this->removeState(Tilc::Gui::TTextField_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS);
-    this->getParentWindow()->captureMouse(NULL);
+    __super::OnMouseButtonUp(event);
 
-    if (this->pointIn(x, y)) {
-        this->_cursor->setIBeamCursor();
-        return TRUE;
+    if (PointIn(event.motion.x, event.motion.y))
+    {
+        Tilc::GameObject->GetContext()->m_Cursor->SetIBeamCursor();
+        return true;
     }
 
 
-    return FALSE;
+    return false;
 }
 
-VOID Tilc::Gui::TTextField::_positionCaretNearClickedPoint(LONG localX, LONG localY) {
-    if (this->_text.length() > 0) {
-        ULONG strLen = this->_text.length();
+void Tilc::Gui::TTextField::PositionCaretNearClickedPoint(float localX, float localY)
+{
+    if (!m_Text.empty())
+    {
+        size_t strLen = m_Text.length();
         Tilc::TExtString tmp;
-        CFont* font = this->getFont();
-        SIZE si;
-        si.cx = 0;
-        LONG count = 0;
+        Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        Tilc::Gui::TFont* Font = t->DefaultFont;
+        SDL_Rect si;
+        si.w = 0;
+        size_t count = 0;
         // poniższe dwie zmienne służą do określenia czy kursor powinien się znajdować
         // przed czy po klikniętej literze (w zależności czy kliknięto bliżej jej
         // początku czy końca). Jeśli kliknięto między literami, to kursor jest lokowany
         // dokładnie między nimi.
-        LONG delta = localX - (si.cx + this->_theme->textfield_frame_left->width()), lastDelta = localX - (si.cx + this->_theme->textfield_frame_left->width());
+        float delta = localX - (si.w + m_PaddingLeft), lastDelta = localX - (si.w + m_PaddingLeft);
         tmp = "";
-        HDC hdc = this->canvas->getDC();
-        if (hdc == 0) {
-            this->canvas->beginPaint();
-        }
-        while ((ULONG)(this->_startChar + count) < strLen && si.cx + this->_theme->textfield_frame_left->width() < localX) {
+        while (static_cast<size_t>(m_StartChar + count) < strLen && si.w + m_PaddingLeft < localX)
+        {
             count += 1;
-            tmp = this->_text.substr(this->_startChar, count);
-            si = font->measureString(tmp, this->canvas->getDC());
+            // traversujemy opcjonalnie przez kolejne znaki litery UTF8 jeśli taka jest
+            while (static_cast<size_t>(m_StartChar + count) < strLen && IsUtf8ContinuationByte(m_Text[m_StartChar + count]))
+            {
+                count += 1;
+            }
+            tmp = m_Text.substr(m_StartChar, count);
+            Font->GetTextSize(tmp.c_str(), si.w, si.h);
             lastDelta = delta;
-            delta = localX - (si.cx + this->_theme->textfield_frame_left->width());
+            delta = localX - (si.w + m_PaddingLeft);
         }
-        if (hdc == 0) {
-            this->canvas->endPaint();
-        }
-        if (lastDelta < 0) {
+        if (lastDelta < 0)
+        {
             lastDelta = -lastDelta;
         }
-        if (delta < 0) {
+        if (delta < 0)
+        {
             delta = -delta;
         }
-        if (count > 0 && (lastDelta < delta)) {
+        if (count > 0 && (lastDelta < delta))
+        {
             count--;
         }
-        this->_caretAtChar = this->_startChar + count;
-        this->updateCaretPos();
+        m_CaretAtChar = m_StartChar + count;
+        UpdateCaretPos();
     }
 }
-*/
 
 SDL_FPoint Tilc::Gui::TTextField::CalculateCaretPos()
 {
@@ -329,8 +350,9 @@ SDL_FPoint Tilc::Gui::TTextField::CalculateCaretPos()
 
     if (m_Caret)
     {
-        pt.x = m_PaddingLeft + size.w;
-        pt.y = (m_Position.h - m_Caret->m_Height) / 2.0f;
+        SDL_FRect RealPosition = GetRealPosition();
+        pt.x = RealPosition.x + m_PaddingLeft + size.w;
+        pt.y = RealPosition.y + (RealPosition.h - m_Caret->m_Position.h) / 2.0f;
     }
 
     return pt;
@@ -388,127 +410,137 @@ void Tilc::Gui::TTextField::UpdateCaretPos()
     {
         wnd->GetPositionInWindow(&x, &y);
 
-        SDL_FPoint pt = CalculateCaretPos();
-
-        controlX = pt.x;
-        controlY = pt.y;
-
-        x += controlX;
-        y += controlY;
-
-        m_Caret->m_X = x;
-        m_Caret->m_Y = y;
-        m_Caret->m_ControlX = controlX;
-        m_Caret->m_ControlY = controlY;
+        SetCaretRect();
+        m_Caret->m_ControlX = m_Position.x;
+        m_Caret->m_ControlY = m_Position.y;
         m_Caret->Show();
     }
 }
 
-/*
-VOID Tilc::Gui::TTextField::_updateCursorPosition(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl, ULONG vkKey, BOOL& updateCaretPos, BOOL& redraw) {
-    updateCaretPos = FALSE;
-    redraw = FALSE;
+void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw)
+{
+    updateCaretPos = false;
+    redraw = false;
 
-    LONG strLen = this->_text.length();
-    if (strLen < 1) {
+    size_t strLen = m_Text.length();
+    if (strLen < 1)
+    {
         return;
     }
 
-    POINT pt;
-    LONG inner_width = this->_calculateInnerWidth();
+    SDL_FPoint pt;
+    int inner_width = CalculateInnerWidth();
 
 
-    if (vkKey == VK_RIGHT) {
+    if (vkKey == SDLK_RIGHT)
+    {
         // przetwarzamy zdarzenie jeśli jeszcze nie jesteśmy na końcu tekstu
-        if (this->_caretAtChar < strLen) {
+        if (m_CaretAtChar < strLen)
+        {
+            const bool* Keys = SDL_GetKeyboardState(nullptr);
+
             // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
             // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
             // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
-            if (vkControl) {
-                this->_caretAtChar += 1;
-                while (this->_caretAtChar < strLen && isCharAlphanumeric(this->_text.getCharAt(this->_caretAtChar))) {
-                    this->_caretAtChar += 1;
+            if (Keys[SDL_SCANCODE_LCTRL])
+            {
+                MoveCaretOneCharRight();
+                while (m_CaretAtChar < strLen && std::isalpha(m_Text[m_CaretAtChar]))
+                {
+                    MoveCaretOneCharRight();
                 }
-            } else {
-                this->_caretAtChar += 1;
             }
-            pt = this->calculateCaretPos();
-            while (pt.x + this->_caret->width > this->_getMaxXPosAllowedForContent()) {
-                this->_startChar += 3;
-                pt = this->calculateCaretPos();
-                redraw = TRUE;
+            else
+            {
+                MoveCaretOneCharRight();
             }
-            updateCaretPos = TRUE;
+            pt = CalculateCaretPos();
+            while (pt.x + m_Caret->m_Position.w > GetMaxXPosAllowedForContent())
+            {
+                m_StartChar += 3;
+                pt = CalculateCaretPos();
+                redraw = true;
+            }
+            updateCaretPos = true;
         }
         return;
     }
 
-    if (vkKey == VK_LEFT) {
+    if (vkKey == SDLK_LEFT)
+    {
         // jeśli nie jesteśmy na początku tekstu, to przetwarzamy zdarzenie
-        if (this->_caretAtChar > 0) {
+        if (m_CaretAtChar > 0)
+        {
+            const bool* Keys = SDL_GetKeyboardState(nullptr);
+
             // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
             // alfanumerycznego, przed którym znajduje się znak nie-alfanumeryczny lub na początek
             // tekstu jeśli przed bieżącą pozycją są wyłącznie znaki alfanumeryczne
-            if (vkControl) {
-                this->_caretAtChar -= 1;
-                while (this->_caretAtChar > 0 && isCharAlphanumeric(this->_text.getCharAt(this->_caretAtChar - 1))) {
-                    this->_caretAtChar -= 1;
+            if (Keys[SDL_SCANCODE_LCTRL])
+            {
+                MoveCaretOneCharLeft();
+                while (m_CaretAtChar > 0 && std::isalnum(m_Text[m_CaretAtChar - 1]))
+                {
+                    MoveCaretOneCharLeft();
                 }
-            } else {
-                this->_caretAtChar -= 1;
             }
-            if (this->_caretAtChar <= this->_startChar) {
-                this->_startChar = this->_caretAtChar - 3;
-                if (this->_startChar < 0) {
-                    this->_startChar = 0;
+            else
+            {
+                MoveCaretOneCharLeft();
+            }
+            if (m_CaretAtChar <= m_StartChar)
+            {
+                m_StartChar = m_CaretAtChar - 3;
+                if (m_StartChar < 0)
+                {
+                    m_StartChar = 0;
                 }
-                redraw = TRUE;
+                redraw = true;
             }
 
-            updateCaretPos = TRUE;
+            updateCaretPos = true;
         }
         return;
     }
 
-    if (vkKey == VK_HOME) {
-        if (this->_caretAtChar > 0) {
-            this->_caretAtChar = 0;
-            this->_startChar = 0;
-            updateCaretPos = TRUE;
-            redraw = TRUE;
+    if (vkKey == SDLK_HOME)
+    {
+        if (m_CaretAtChar > 0)
+        {
+            m_CaretAtChar = 0;
+            m_StartChar = 0;
+            updateCaretPos = true;
+            redraw = true;
         }
         return;
     }
 
-    if (vkKey == VK_END) {
+    if (vkKey == SDLK_END) {
         // jeśli jesteśmy już na końcu pola tekstowego, to nie podejmujemy żadnej akcji
-        if (this->_caretAtChar == strLen) {
+        if (m_CaretAtChar == strLen)
+        {
             return;
         }
 
-        this->_caretAtChar = strLen;
-        this->adjustStartCharForCaretAtChar();
-        updateCaretPos = TRUE;
-        redraw = TRUE;
+        m_CaretAtChar = strLen;
+        AdjustStartCharForCaretAtChar();
+        updateCaretPos = true;
+        redraw = true;
         return;
     }
 }
-*/
 
 bool Tilc::Gui::TTextField::AdjustStartCharForCaretAtChar()
 {
     SDL_FPoint pt = CalculateCaretPos();
-    if (pt.x + m_Caret->m_Width < GetMaxXPosAllowedForContent())
+    if (pt.x + m_Caret->m_Position.w < GetMaxXPosAllowedForContent())
     {
         return false;
     }
     int lastStartChar = m_StartChar;
     m_StartChar = m_CaretAtChar - 1;
     pt = CalculateCaretPos();
-    while (m_StartChar > 0 && pt.x > 0 && pt.x + m_Caret->m_Width < GetMaxXPosAllowedForContent())
+    while (m_StartChar > 0 && pt.x > 0 && pt.x + m_Caret->m_Position.w < GetMaxXPosAllowedForContent())
     {
         lastStartChar = m_StartChar;
         m_StartChar -= 1;
@@ -518,261 +550,234 @@ bool Tilc::Gui::TTextField::AdjustStartCharForCaretAtChar()
     return true;
 }
 
-/*
-BOOL Tilc::Gui::TTextField::_commonKeyProcessing(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-            BOOL vkLAlt, BOOL vkRAlt,
-            BOOL vkLShift, BOOL vkRShift,
-            BOOL vkLControl, BOOL vkRControl,
-            BOOL systemKey,
-            ULONG virtualCode, ULONG scanCode, WCHAR ch, BOOL& updateCaretPos, BOOL& redraw) {
-    updateCaretPos = FALSE;
-    redraw = FALSE;
-
-    CKeyboard* kbd = this->getKbd();
-
-    // jeśli mamy tyldę, to odpowiednio ustawiamy wartość zmiennej ch, bo z jakichś dziwnych
-    // powodów system nie konwertuje poprawnie do tego znaku
-    if (virtualCode == VK_OEM_3 && kbd->isShiftPressed()) {
-        ch = L'~';
-    }
-
-    if (virtualCode != VK_BACK &&
-            virtualCode != VK_OEM_1 &&
-            virtualCode != VK_OEM_PLUS &&
-            virtualCode != VK_OEM_COMMA &&
-            virtualCode != VK_OEM_MINUS &&
-            virtualCode != VK_OEM_PERIOD &&
-            virtualCode != VK_OEM_2 &&
-            virtualCode != VK_OEM_3 &&
-            virtualCode != VK_OEM_4 &&
-            virtualCode != VK_OEM_5 &&
-            virtualCode != VK_OEM_6 &&
-            virtualCode != VK_OEM_7 &&
-            virtualCode != VK_OEM_8 &&
-            virtualCode != VK_TAB &&
-            (virtualCode < 0x20 || virtualCode > 0x6f)) {
-        return TRUE;
-    }
-    
-    return FALSE;
+bool Tilc::Gui::TTextField::CommonKeyProcessing(const SDL_Event& event, bool& updateCaretPos, bool& redraw)
+{
+    updateCaretPos = false;
+    redraw = false;
+    return true;
 }
 
-BOOL Tilc::Gui::TTextField::onKeyDown(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl,
-        BOOL systemKey,
-        ULONG virtualCode, ULONG scanCode, WCHAR ch) {
-    
-    BOOL updateCaretPos = FALSE;
-    BOOL redraw = FALSE;
+bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
+{
+    bool updateCaretPos = false;
+    bool redraw = false;
 
     // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    if (!systemKey) {
-        this->_commonKeyProcessing(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift,
-            vkLControl, vkRControl, systemKey, virtualCode, scanCode, ch, updateCaretPos, redraw);
-    }
+    bool process = CommonKeyProcessing(event, updateCaretPos, redraw);
 
-    if (updateCaretPos) {
-        this->drawCaret();
-    }
+    if (process)
+    {
+        //CKeyboard* kbd = this->getKbd();
+        bool processed = false;
+        bool isCaretMovingKey = IsCaretMovingKey(event.key.key);
 
-    if (redraw) {
-        this->redraw();
-    }
+        bool vkControl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+        bool vkAlt = (event.key.mod & SDL_KMOD_ALT) != 0;
+        bool vkShift = (event.key.mod & SDL_KMOD_SHIFT) != 0;
 
-    return TRUE;
-}
+        // najpierw obsługujemy domyślne skróty
+        if (!processed && vkControl && !vkAlt && !vkShift)
+        {
+            // obsługa Ctrl+A - Zaznacz wszystko
+            if (event.key.key == SDLK_A)
+            { // 'A'
+                SelectAll(false);
 
-BOOL Tilc::Gui::TTextField::onKeyPressed(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl,
-        BOOL systemKey,
-        ULONG virtualCode, ULONG scanCode, WCHAR ch) {
-
-    BOOL updateCaretPos = FALSE;
-    BOOL redraw = FALSE;
-
-
-    // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    if (!systemKey) {
-        BOOL process = !this->_commonKeyProcessing(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift,
-            vkLControl, vkRControl, systemKey, virtualCode, scanCode, ch, updateCaretPos, redraw);
-            
-        if (process) {
-            CKeyboard* kbd = this->getKbd();
-            BOOL processed = FALSE;
-            if (kbd) {
-                BOOL isCaretMovingKey = kbd->isCaretMovingKey(virtualCode);
-
-                // najpierw obsługujemy domyślne skróty
-                if (!processed && vkControl && !vkAlt && !vkShift) {
-                    // obsługa Ctrl+A - Zaznacz wszystko
-                    if (virtualCode == 0x41) { // 'A'
-                        this->selectAll(FALSE);
-
-                        processed = TRUE;
-                        redraw = TRUE;
-                        return TRUE;
-                    }
-                    // obsługa Ctrl+C - Kopiuj do schowka
-                    else if (virtualCode == 0x43) { // 'C'
-                        if (this->getSelectionLength() > 0) {
-                            this->_clipboard->copyTextToClipboard(this->getParentWindow()->getHwnd(), this->getSelectedText());
-                        }
-
-                        processed = TRUE;
-                        redraw = FALSE;
-                        return TRUE;
-                    }
-                    // obsługa Ctrl+X - Wytnij do schowka
-                    else if (virtualCode == 0x58) { // 'X'
-                        if (this->getSelectionLength() > 0) {
-                            this->_clipboard->copyTextToClipboard(this->getParentWindow()->getHwnd(), this->getSelectedText());
-                            this->removeSelectedText(FALSE);
-                            redraw = TRUE;
-                        }
-
-                        processed = TRUE;
-                        // jeśli nic nie wycięliśmy, to powrót z funkcji
-                        if (!redraw) {
-                            return TRUE;
-                        }
-                    }
-                    // obsługa Ctrl+V - Wklej ze schowka
-                    else if (virtualCode == 0x56) { // 'V'
-                        Tilc::TExtString s = this->_clipboard->getTextFromClipboard(this->getParentWindow()->getHwnd());
-                        if (s.length() > 0) {
-                            this->insertText(s, FALSE);
-                            updateCaretPos = TRUE;
-                            redraw = TRUE;
-                        }
-
-                        processed = TRUE;
-                        // jeśli nic nie wkleiliśmy, to powrót z funkcji
-                        if (!redraw) {
-                            return TRUE;
-                        }
-                    }
-                }
-                // teraz obsługa Tabulatora - nawigacja między sprite'ami
-                if (!processed && virtualCode == VK_TAB) {
-                    return TRUE;
-                }
-                if (!processed && isCaretMovingKey) {
-                    LONG oldCaretAtChar = this->_caretAtChar;
-                    this->_updateCursorPosition(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift, vkLControl, vkRControl, virtualCode, updateCaretPos, redraw);
-                    // jeśli nie jest wciśnięty Shift, to czyścimy zaznaczenie
-                    if (!vkShift) {
-                        if (this->isSelection()) {
-                            this->clearSelection(FALSE);
-                            redraw = TRUE;
-                        }
-                    } else {
-                        // jeśli pozycja kursora się zmieniła, to aktualizujemy zaznaczenie
-                        if (oldCaretAtChar != this->_caretAtChar) {
-                            this->_updateSelection(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift, vkLControl, vkRControl, virtualCode, oldCaretAtChar, updateCaretPos, redraw);
-                            if (virtualCode == VK_RIGHT && this->isSelection()) {
-                                // jeśli mamy zaznaczenie to w przypadku naciśnięcia klawisza VK_RIGHT
-                                // gwarantujemy, że jeśli kończy ono pole tekstowe to nie będzie mniejsze
-                                // niż 4 piksele
-                                RECT rc = this->_calculateSelectionRectForText(&this->_text);
-                                if (rc.right == this->_getMaxXPosAllowedForContent() && rc.right - rc.left < 4) {
-                                    this->_startChar += 3;
-                                    redraw = TRUE;
-                                }
-                            }
-                        }
-                    }
-                    processed = TRUE;
-                }
-                if (!processed && virtualCode == VK_DELETE) {
-                    if (this->isSelection()) {
-                        this->removeSelectedText(FALSE);
-                    } else if ((ULONG)this->_caretAtChar < this->_text.length()) {
-                        this->_text.deleteCharAt(this->_caretAtChar);
-                    }
-                    redraw = TRUE;
-                    processed = TRUE;
-                }
-                if (!processed && virtualCode == VK_BACK) {
-                    if (this->_caretAtChar > 0 || this->isSelection()) {
-                        if (this->isSelection()) {
-                            this->removeSelectedText(FALSE);
-                        } else {
-                            // usuwamy poprzedni znak
-                            this->_text.deleteCharAt(this->_caretAtChar - 1);
-
-                            // jeśli usunęliśmy pierwszy wyświetlany w polu tekstowym znak, to zmniejszamy
-                            // wartość pola this->_startChar tak, żeby widać było trochę tekstu ( i nie
-                            // powstało wrażenie, że nie ma już żadnych znaków)
-                            if (this->_caretAtChar - this->_startChar == 1) {
-                                this->_startChar -= 3;
-                                if (this->_startChar < 0) {
-                                    this->_startChar = 0;
-                                }
-                            }
-                            // i przesuwamy karetkę o jeden znak w lewo
-                            this->_updateCursorPosition(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, VK_LEFT, updateCaretPos, redraw);
-                        }
-
-                        updateCaretPos = TRUE;
-                        redraw = TRUE;
-                    }
-                    processed = TRUE;
+                processed = true;
+                redraw = true;
+                Invalidate();
+            }
+            // obsługa Ctrl+C - Kopiuj do schowka
+            else if (event.key.key == SDLK_C)
+            { // 'C'
+                if (GetSelectionLength() > 0)
+                {
+                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(GetSelectedText());
                 }
 
-                if (!processed) {
-                    // jeśli jeszcze nie obsłżyliśmy znaku i wartość zmiennej ch == L'.', ale virtualCode
-                    // jest różne od VK_OEM_PERIOD, to pomijamy obsługę tego klawisza (czyli doklejenie go
-                    // do tekstu), bo nie został on poprawnie przekonwertowany (tzn. nie jest to poprawny
-                    // znak printable)
-                    if (ch == L'.' && virtualCode != VK_OEM_PERIOD) {
-                        return FALSE;
-                    }
-                    // jeśli trzymany jest Control i nie jest wciśnięty Alt, to nic nie robimy, żeby nie
-                    // dodawać znaczków prostokątów do tesktu
-                    if (vkControl  && !vkAlt) {
-                        return FALSE;
-                    }
+                Invalidate();
+                return true;
+            }
+            // obsługa Ctrl+X - Wytnij do schowka
+            else if (event.key.key == SDLK_X)
+            { // 'X'
+                if (GetSelectionLength() > 0)
+                {
+                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(GetSelectedText());
+                    RemoveSelectedText(false);
+                    redraw = true;
+                }
 
-                    if (this->isSelection()) {
-                        this->replaceSelectionWith(ch, FALSE);
-                    } else {
-                        // wstawiamy znak
-                        this->_text.insertCharAt(ch, this->_caretAtChar);
-                        // i przesuwamy karetkę o jeden znak w prawo
-                        this->_updateCursorPosition(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, VK_RIGHT, updateCaretPos, redraw);
-                    }
+                processed = true;
+                // jeśli nic nie wycięliśmy, to powrót z funkcji
+                if (!redraw)
+                {
+                    return true;
+                }
+            }
+            // obsługa Ctrl+V - Wklej ze schowka
+            else if (event.key.key == SDLK_V)
+            { // 'V'
+                Tilc::TExtString s = Tilc::GameObject->GetContext()->m_Clipboard->GetTextFromClipboard();
+                if (s.length() > 0)
+                {
+                    InsertText(s, false);
+                    updateCaretPos = true;
+                    redraw = true;
+                }
 
-                    updateCaretPos = TRUE;
-                    redraw = TRUE;
+                processed = true;
+                // jeśli nic nie wkleiliśmy, to powrót z funkcji
+                if (!redraw)
+                {
+                    return true;
                 }
             }
         }
+
+        // teraz obsługa Tabulatora - nawigacja między sprite'ami
+        if (!processed && event.key.key == SDLK_TAB)
+        {
+            return true;
+        }
+        if (!processed && isCaretMovingKey)
+        {
+            int oldCaretAtChar = m_CaretAtChar;
+            UpdateCursorPosition(event.key.key, updateCaretPos, redraw);
+            Invalidate();
+
+            // jeśli nie jest wciśnięty Shift, to czyścimy zaznaczenie
+            if (!vkShift)
+            {
+                if (IsSelection())
+                {
+                    ClearSelection(false);
+                    redraw = true;
+                }
+            }
+            else
+            {
+                // jeśli pozycja kursora się zmieniła, to aktualizujemy zaznaczenie
+                if (oldCaretAtChar != m_CaretAtChar)
+                {
+                    UpdateSelection(event.key.key, oldCaretAtChar, updateCaretPos, redraw);
+                    if (event.key.key == SDLK_RIGHT && IsSelection())
+                    {
+                        // jeśli mamy zaznaczenie to w przypadku naciśnięcia klawisza VK_RIGHT
+                        // gwarantujemy, że jeśli kończy ono pole tekstowe to nie będzie mniejsze
+                        // niż 4 piksele
+                        SDL_FRect rc = CalculateSelectionRectForText(m_Text);
+                        if (rc.x + rc.w >= GetMaxXPosAllowedForContent() && rc.w < 4)
+                        {
+                            m_StartChar += 3;
+                            redraw = true;
+                        }
+                    }
+                }
+            }
+            processed = true;
+        }
+        if (!processed && event.key.key == SDLK_DELETE) {
+            if (IsSelection())
+            {
+                RemoveSelectedText(false);
+            }
+            else if (static_cast<size_t>(m_CaretAtChar) < m_Text.length())
+            {
+                m_Text.DeleteCharAt(m_CaretAtChar);
+            }
+            redraw = true;
+            processed = true;
+        }
+        if (!processed && event.key.key == SDLK_BACKSPACE)
+        {
+            if (m_CaretAtChar > 0 || IsSelection())
+            {
+                if (IsSelection())
+                {
+                    RemoveSelectedText(false);
+                }
+                else
+                {
+                    // usuwamy poprzedni znak
+                    int BytesRemoved = m_Text.DeleteSingleUtf8CharBeforePos(m_CaretAtChar);
+                    // przesuwamy karetkę o jeden ilość usuniętych znaków w lewo
+                    m_CaretAtChar -= BytesRemoved;
+
+                    // jeśli usunęliśmy pierwszy wyświetlany w polu tekstowym znak, to zmniejszamy
+                    // wartość pola this->_startChar tak, żeby widać było trochę tekstu ( i nie
+                    // powstało wrażenie, że nie ma już żadnych znaków)
+                    if (m_CaretAtChar - m_StartChar == 1)
+                    {
+                        m_StartChar -= 3;
+                        if (m_StartChar < 0)
+                        {
+                            m_StartChar = 0;
+                        }
+                    }
+                }
+
+                updateCaretPos = true;
+                redraw = true;
+            }
+            processed = true;
+        }
+
+        // Wpisywanie tekstu jest obsługiwane przez zddarzenie TextInput
     }
 
-    if (updateCaretPos) {
-        this->drawCaret();
+    if (updateCaretPos)
+    {
+        DrawCaret();
     }
 
-    if (redraw) {
-        this->redraw();
+    if (redraw)
+    {
+        Invalidate();
     }
 
-    return TRUE;
+    return true;
 }
 
-BOOL Tilc::Gui::TTextField::onKeyUp(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl,
-        BOOL systemKey,
-        ULONG virtualCode, ULONG scanCode, WCHAR ch) {
-    return TRUE;
+bool Tilc::Gui::TTextField::OnTextInput(const SDL_Event& event)
+{
+    bool updateCaretPos = false;
+    bool redraw = false;
+
+    if (event.text.text && SDL_strlen(event.text.text) > 0)
+    {
+        if (IsSelection())
+        {
+            //int SelUtf8Len = GetSelectionLength();
+            //int Utf8Len = SDL_utf8strlen(event.text.text);
+            ReplaceSelectionWith(event.text.text, false);
+            updateCaretPos = true;
+            redraw = true;
+        }
+        else
+        {
+            int Len = SDL_strlen(event.text.text);
+            // wstawiamy znak
+            m_Text.InsertAt(m_CaretAtChar, event.text.text);
+            // i przesuwamy karetkę o jeden znak w prawo
+            m_CaretAtChar += Len;
+            updateCaretPos = true;
+            redraw = true;
+        }
+    }
+
+    if (updateCaretPos)
+    {
+        DrawCaret();
+    }
+
+    if (redraw)
+    {
+        Invalidate();
+    }
+
+    return true;
 }
-*/
 
 void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw)
 {
@@ -924,22 +929,12 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
 
 void Tilc::Gui::TTextField::DrawCaret()
 {
-    /*
     m_Caret->Hide();
+    m_Caret->Draw();
+    m_Caret->Show();
 
-    HWND hwnd = this->getParentWindow()->getHwnd();
-    HDC hdc = GetDC(hwnd);
-    this->_caret->draw(hdc);
-    ReleaseDC(hwnd, hdc);
-
-    this->_caret->show();
-
-    this->updateCaretPos();
-
-    hdc = GetDC(hwnd);
-    this->_caret->draw(hdc);
-    ReleaseDC(hwnd, hdc);
-    */
+    UpdateCaretPos();
+    m_Caret->Draw();
 }
 
 SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRectForText(const Tilc::TExtString& s)
@@ -1101,10 +1096,10 @@ char Tilc::Gui::TTextField::GetLastVisibleChar(int max_inner_width)
 bool Tilc::Gui::TTextField::Update(float DeltaTime)
 {
     bool retval = false;
-/*
+
     if (!m_Visible) return false;
 
-    if (!(m_State & CONTROL_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS))
+    if (!HasState(CONTROL_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS))
     {
         return false;
     }
@@ -1140,107 +1135,136 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
         if (localX <= frame_left_width && fabs(m_CaretAtChar - m_StartChar) <= 2)
         {
             // przesuwamy karetkę o jeden znak w lewo
-            UpdateCursorPosition(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, VK_LEFT, updateCaretPos, redraw);
+            UpdateCursorPosition(SDLK_LEFT, updateCaretPos, redraw);
             // i jeśli trzeba to aktualizujemy zaznaczenie
-            if (oldCaretAtChar != this->_caretAtChar) {
-                this->_updateSelection(FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, VK_LEFT, oldCaretAtChar, updateCaretPos, redraw);
-                updateCaretPos = TRUE;
-                redraw = TRUE;
+            if (oldCaretAtChar != m_CaretAtChar)
+            {
+                UpdateSelection(SDLK_LEFT, oldCaretAtChar, updateCaretPos, redraw);
+                updateCaretPos = true;
+                redraw = true;
             }
-            processed = TRUE;
+            processed = true;
         }
 
-        if (!processed && localX > frame_left_width + inner_width && abs((last_char_pos+1) - this->_caretAtChar) <= 2) {
+        if (!processed && localX > frame_left_width + inner_width && std::fabs((last_char_pos+1) - m_CaretAtChar) <= 2)
+        {
             // przesuwamy karetkę o jeden znak w prawo
-            this->_updateCursorPosition(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, VK_RIGHT, updateCaretPos, redraw);
+            UpdateCursorPosition(SDLK_RIGHT, updateCaretPos, redraw);
             // i jeśli trzeba to aktualizujemy zaznaczenie
-            if (oldCaretAtChar != this->_caretAtChar) {
-                this->_updateSelection(FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, VK_RIGHT, oldCaretAtChar, updateCaretPos, redraw);
+            if (oldCaretAtChar != m_CaretAtChar)
+            {
+                UpdateSelection(SDLK_RIGHT, oldCaretAtChar, updateCaretPos, redraw);
             }
-            processed = TRUE;
+            processed = true;
         }
 
-        if (!processed && localX < this->_caret->controlX) {
-            LONG char_pos_for_mouse_pointer = this->_startChar;
-            if (localX - frame_left_width >= 0) {
-                char_pos_for_mouse_pointer = this->getLastVisibleCharPos(localX - frame_left_width) + 1;
-                if (char_pos_for_mouse_pointer <= 0) {
-                    char_pos_for_mouse_pointer = this->_startChar;
+        if (!processed && localX < m_Caret->m_ControlX)
+        {
+            int char_pos_for_mouse_pointer = m_StartChar;
+            if (localX - m_PaddingLeft >= 0)
+            {
+                char_pos_for_mouse_pointer = GetLastVisibleCharPos(localX - frame_left_width) + 1;
+                if (char_pos_for_mouse_pointer <= 0)
+                {
+                    char_pos_for_mouse_pointer = m_StartChar;
                 }
             }
-            LONG char_pos_for_caret = this->getLastVisibleCharPos(this->_caret->controlX - frame_left_width) + 1;
-            if (char_pos_for_mouse_pointer < char_pos_for_caret) {
+            int char_pos_for_caret = GetLastVisibleCharPos(m_Caret->m_ControlX - frame_left_width) + 1;
+            if (char_pos_for_mouse_pointer < char_pos_for_caret)
+            {
                 // pozycjonujemy kursor
-                this->_caretAtChar = char_pos_for_mouse_pointer;
+                m_CaretAtChar = char_pos_for_mouse_pointer;
                 // jeśli pozycja kursora się zmieniła, to ustawiamy odpowiednio zaznaczenie
-                if (oldCaretAtChar != this->_caretAtChar) {
+                if (oldCaretAtChar != m_CaretAtChar)
+                {
                     // jeśli zaznaczenia nie było to je inicjalizujey
-                    if (this->_selStart == this->_selEnd) {
-                        this->_selStart = this->_caretAtChar;
-                        this->_selEnd = oldCaretAtChar;
-                        this->_selBegin = this->_selEnd;
-                    } else {
-                        if (this->_caretAtChar < this->_selBegin) {
-                            this->_selStart = this->_caretAtChar;
-                            this->_selEnd = this->_selBegin;
-                        } else if (this->_caretAtChar > this->_selBegin) {
-                            this->_selStart = this->_selBegin;
-                            this->_selEnd = this->_caretAtChar;
-                        } else {
-                            this->_selStart = this->_selBegin;
-                            this->_selEnd = this->_selBegin;
+                    if (m_SelStart == m_SelEnd)
+                    {
+                        m_SelStart = m_CaretAtChar;
+                        m_SelEnd = oldCaretAtChar;
+                        m_SelBegin = m_SelEnd;
+                    }
+                    else
+                    {
+                        if (m_CaretAtChar < m_SelBegin)
+                        {
+                            m_SelStart = m_CaretAtChar;
+                            m_SelEnd = m_SelBegin;
+                        }
+                        else if (m_CaretAtChar > m_SelBegin)
+                        {
+                            m_SelStart = m_SelBegin;
+                            m_SelEnd = m_CaretAtChar;
+                        }
+                        else
+                        {
+                            m_SelStart = m_SelBegin;
+                            m_SelEnd = m_SelBegin;
                         }
                     }
-                    redraw = TRUE;
-                    updateCaretPos = TRUE;
+                    redraw = true;
+                    updateCaretPos = true;
                 }
             }
-            processed = TRUE;
+            processed = true;
         }
 
-        if (!processed && localX > this->_caret->controlX) {
-            LONG char_pos_for_mouse_pointer = this->getLastVisibleCharPos(localX - frame_left_width) + 1;
-            LONG char_pos_for_caret = this->getLastVisibleCharPos(this->_caret->controlX - frame_left_width) + 1;
-            if (char_pos_for_mouse_pointer > char_pos_for_caret) {
+        if (!processed && localX > m_Caret->m_ControlX)
+        {
+            int char_pos_for_mouse_pointer = GetLastVisibleCharPos(localX - m_PaddingLeft) + 1;
+            int char_pos_for_caret = GetLastVisibleCharPos(m_Caret->m_ControlX - m_PaddingLeft) + 1;
+            if (char_pos_for_mouse_pointer > char_pos_for_caret)
+            {
                 // pozycjonujemy kursor
-                this->_caretAtChar = char_pos_for_mouse_pointer;
+                m_CaretAtChar = char_pos_for_mouse_pointer;
                 // jeśli pozycja kursora się zmieniła, to ustawiamy odpowiednio zaznaczenie
-                if (oldCaretAtChar != this->_caretAtChar) {
+                if (oldCaretAtChar != m_CaretAtChar)
+                {
                     // jeśli zaznaczenia nie było to je inicjalizujey
-                    if (this->_selStart == this->_selEnd) {
-                        this->_selStart = oldCaretAtChar;
-                        this->_selEnd = this->_caretAtChar;
-                        this->_selBegin = this->_selStart;
-                    } else {
-                        if (this->_caretAtChar < this->_selBegin) {
-                            this->_selStart = this->_caretAtChar;
-                            this->_selEnd = this->_selBegin;
-                        } else if (this->_caretAtChar > this->_selBegin) {
-                            this->_selStart = this->_selBegin;
-                            this->_selEnd = this->_caretAtChar;
-                        } else {
-                            this->_selStart = this->_selBegin;
-                            this->_selEnd = this->_selBegin;
+                    if (m_SelStart == m_SelEnd)
+                    {
+                        m_SelStart = oldCaretAtChar;
+                        m_SelEnd = m_CaretAtChar;
+                        m_SelBegin = m_SelStart;
+                    }
+                    else
+                    {
+                        if (m_CaretAtChar < m_SelBegin)
+                        {
+                            m_SelStart = m_CaretAtChar;
+                            m_SelEnd = m_SelBegin;
+                        }
+                        else if (m_CaretAtChar > m_SelBegin)
+                        {
+                            m_SelStart = m_SelBegin;
+                            m_SelEnd = m_CaretAtChar;
+                        }
+                        else
+                        {
+                            m_SelStart = m_SelBegin;
+                            m_SelEnd = m_SelBegin;
                         }
                     }
-                    redraw = TRUE;
-                    updateCaretPos = TRUE;
+                    redraw = true;
+                    updateCaretPos = true;
                 }
             }
-            processed = TRUE;
+            processed = true;
         }
     }
 
-    if (updateCaretPos) {
-        this->updateCaretPos();
-        this->drawCaret();
+    if (updateCaretPos)
+    {
+        UpdateCaretPos();
+        DrawCaret();
     }
 
-    if (redraw) {
-        this->redraw();
-        retval = TRUE;
+    if (redraw)
+    {
+        Invalidate();
+        retval = true;
     }
-*/
+
     return retval;
 }
 
@@ -1398,4 +1422,26 @@ void Tilc::Gui::TTextField::Hide()
         m_Caret->Hide();
     }
     __super::Hide();
+}
+
+void Tilc::Gui::TTextField::MoveCaretOneCharLeft()
+{
+    size_t strLen = m_Text.length();
+    int count = -1;
+    while (m_CaretAtChar + count < strLen && m_CaretAtChar + count >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
+    {
+        count -= 1;
+    }
+    m_CaretAtChar += count;
+}
+
+void Tilc::Gui::TTextField::MoveCaretOneCharRight()
+{
+    size_t strLen = m_Text.length();
+    int count = 1;
+    while (static_cast<size_t>(m_CaretAtChar + count) < strLen && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
+    {
+        count += 1;
+    }
+    m_CaretAtChar += count;
 }

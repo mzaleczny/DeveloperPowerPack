@@ -365,6 +365,12 @@ namespace Tilc {
             {
                 return false;
             }
+
+            // Funkcja wywoływana w momencie wprowadzenia tekstu.
+            virtual bool OnTextInput(const SDL_Event& event)
+            {
+                return false;
+            }
             // Funkcja wywoływana w momencie zwolnienia wciśniętego klawisza
             // Jeśli wciśnięto tylko klawisz systemowy jak np. ALT, SHIFT, CONTROL to argument
             // systemKey jest równy true.
@@ -520,6 +526,8 @@ namespace Tilc {
                 const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc,
                 const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc
             );
+
+            bool IsCaretMovingKey(unsigned int virtualCode);
 
         protected:
             SDL_Texture* m_Canvas{};

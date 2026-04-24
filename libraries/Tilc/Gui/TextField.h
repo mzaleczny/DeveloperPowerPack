@@ -52,7 +52,7 @@ namespace Tilc
             virtual void LooseFocus() override;
 
             // Zwraca wysokość (height) karetki
-            inline int GetCaretHeight() { return m_LineHeight + 4; }
+            void SetCaretRect();
             // Aktualizuje położenie karetki i pokazuje ją (jeśli aktualnie była niewidoczna) w obrębie
             // tej kontrolki.
             void UpdateCaretPos();
@@ -124,31 +124,14 @@ namespace Tilc
             // Wykorzystuje funkcję this->getLastVisibleCharPos i zwraca ostatni widoczny w całości
             // w podanej szerokości znak.
             virtual char GetLastVisibleChar(int max_inner_width = -1);
-/*
-            // Funkcje obsługi zdarzeń
-            virtual BOOL WINAPI onMouseMove(LONG x, LONG y);
-            virtual BOOL WINAPI onMouseDown(LONG x, LONG y);
-            virtual BOOL WINAPI onMouseUp(LONG x, LONG y);
 
-            virtual BOOL WINAPI onKeyDown(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-                BOOL vkLAlt, BOOL vkRAlt,
-                BOOL vkLShift, BOOL vkRShift,
-                BOOL vkLControl, BOOL vkRControl,
-                BOOL systemKey,
-                ULONG virtualCode, ULONG scanCode, WCHAR ch);
-            virtual BOOL WINAPI onKeyPressed(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-                BOOL vkLAlt, BOOL vkRAlt,
-                BOOL vkLShift, BOOL vkRShift,
-                BOOL vkLControl, BOOL vkRControl,
-                BOOL systemKey,
-                ULONG virtualCode, ULONG scanCode, WCHAR ch);
-            virtual BOOL WINAPI onKeyUp(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-                BOOL vkLAlt, BOOL vkRAlt,
-                BOOL vkLShift, BOOL vkRShift,
-                BOOL vkLControl, BOOL vkRControl,
-                BOOL systemKey,
-                ULONG virtualCode, ULONG scanCode, WCHAR ch);
-*/
+            // Funkcje obsługi zdarzeń
+            virtual bool OnMouseMove(const SDL_Event& event) override;
+            virtual bool OnMouseButtonDown(const SDL_Event& event) override;
+            virtual bool OnMouseButtonUp(const SDL_Event& event) override;
+            virtual bool OnKeyDown(const SDL_Event& event) override;
+            virtual bool OnTextInput(const SDL_Event& event) override;
+
         protected:
             int m_PaddingLeft{ 8 };
             int m_PaddingRight{ 8 };
@@ -179,33 +162,22 @@ namespace Tilc
             // początku tej kontrolki.
             virtual SDL_FRect CalculateSelectionRectForText(const Tilc::TExtString& s);
 
-            /*
             // poniższa funkcja odpowiada za ustawienie karetki najbliżej miejsca kliknięcia, ale tak by
             // znajdowała się między literami.
             // localX i localY, to współrzędne kliknięcia względem początku tego pola tekstowego.
-            virtual VOID WINAPI _positionCaretNearClickedPoint(LONG localX, LONG localY);
-*/
+            virtual void PositionCaretNearClickedPoint(float localX, float localY);
+
             virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw);
-            /*
-            virtual VOID WINAPI _updateCursorPosition(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-                BOOL vkLAlt, BOOL vkRAlt,
-                BOOL vkLShift, BOOL vkRShift,
-                BOOL vkLControl, BOOL vkRControl, ULONG vkKey, BOOL& updateCaretPos, BOOL& redraw);
+
+            virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw);
             // Poniższa funkcja zwraca TRUE, jeśli przetworzyła klawisz i FALSE jeśli go zignorowała.
-            virtual BOOL WINAPI _commonKeyProcessing(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-                BOOL vkLAlt, BOOL vkRAlt,
-                BOOL vkLShift, BOOL vkRShift,
-                BOOL vkLControl, BOOL vkRControl,
-                BOOL systemKey,
-                ULONG virtualCode, ULONG scanCode, WCHAR ch, BOOL& updateCaretPos, BOOL& redraw);
-*/
+            virtual bool CommonKeyProcessing(const SDL_Event& event, bool& updateCaretPos, bool& redraw);
+
             virtual int CalculateInnerWidth();
             virtual int GetMaxXPosAllowedForContent();
 
-        private:
-/*
-            virtual VOID WINAPI _updateCanvas();
-*/
+            virtual void MoveCaretOneCharLeft();
+            virtual void MoveCaretOneCharRight();
         };
 
     }

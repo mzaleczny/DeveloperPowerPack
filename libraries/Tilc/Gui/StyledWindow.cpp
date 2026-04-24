@@ -22,7 +22,6 @@ void Tilc::Gui::TStyledWindow::CommonInit(Tilc::TExtString layoutFilename)
     m_DestroyCanvas = true;
 
     m_ActiveControl = nullptr;
-    m_Caret = new Tilc::Gui::TCaret(this, 0, 0);
 
     m_NeedUpdate = ENeedUpdate::ENU_Everything;
     
@@ -63,11 +62,6 @@ Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString na
 Tilc::Gui::TStyledWindow::~TStyledWindow()
 {
     RemoveFromParent();
-    if (m_Caret)
-    {
-        delete m_Caret;
-        m_Caret = nullptr;
-    }
 }
 
 void Tilc::Gui::TStyledWindow::RemoveFromParent()
@@ -766,6 +760,11 @@ void Tilc::Gui::TStyledWindow::LoadGuiLayoutFromFile(Tilc::TExtString fname, boo
     */
 }
 
+Tilc::Gui::TCaret* Tilc::Gui::TStyledWindow::GetCaret() const
+{
+    return Tilc::GameObject->GetContext()->m_Caret;
+}
+
 bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
 {
     Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
@@ -891,7 +890,8 @@ void Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
     TGuiControl::SetActiveControl(Control);
 
     // domyślnie ukrywamy karetkę
-    m_Caret->m_Active = false;
+    Tilc::Gui::TCaret* Caret = Tilc::GameObject->GetContext()->m_Caret;
+    Caret->m_Active = false;
  
     if (m_ActiveControl == Control)
     {
@@ -899,8 +899,8 @@ void Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
         Tilc::Gui::TTextField* tf = dynamic_cast<Tilc::Gui::TTextField*>(Control);
         if (tf)
         {
-            m_Caret->m_Active = true;
-            m_Caret->Show();
+            Caret->m_Active = true;
+            Caret->Show();
         }
     }
 }

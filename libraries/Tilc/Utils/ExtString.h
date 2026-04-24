@@ -38,6 +38,7 @@ namespace Tilc
 	const constexpr int ENC_ISO2			= 11;
 	const constexpr int ENC_OEM_852			= 12;
 
+
 	class DECLSPEC TExtString : public std::string
 	{
 	public:
@@ -193,6 +194,9 @@ namespace Tilc
 		TExtString StrAfterLastchar(const char* stringOfChars);
 
         void InsertAt(size_t pos, const TExtString& s);
+        void DeleteCharAt(size_t pos);
+        // Returns bytes removed
+        int DeleteSingleUtf8CharBeforePos(size_t pos);
 
 		// dokleja na początku tego łańcucha odpowiedni element i zwraca referencję do tego łańcucha.
 		TExtString& Prepend(TExtString& s);
@@ -234,6 +238,8 @@ namespace Tilc
 		long long StrPos(const char* SubString, size_t StartFrom = 0);
 		long long StrPosLast(const char* SubString, size_t StartFrom = 0);
         size_t RemoveCharsWithCodeLessThan(int CharCode);
+        // zwraca długość w bajtach znaku na pozycji pos, jeśli od tej pozycji zaczyna się znak utf8
+        int GetUtf8CharLength(size_t pos);
 	};
 
 
@@ -243,6 +249,15 @@ namespace Tilc
 	DECLSPEC void Oem852ToAnsi(unsigned char* buf, size_t buflen);
 	DECLSPEC void AnsiToOem852(unsigned char* buf, size_t buflen);
 	//DECLSPEC_MZSTD VOID WINAPI UnicodeToAnsi(unsigned char *buf, unsigned long buflen);
+
+    DECLSPEC inline bool IsUtf8StartByte(unsigned char c)
+    {
+        return (c < 0x80) || (c >= 0xc0);
+    }
+    DECLSPEC inline bool IsUtf8ContinuationByte(unsigned char c)
+    {
+        return (c >= 0x80) && (c < 0xc0);
+    }
 
 	DECLSPEC bool CharIsSentenceBoundary(wchar_t ch);
 

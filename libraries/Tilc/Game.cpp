@@ -11,7 +11,9 @@
 #include <Tilc/Graphics/TextRenderer.h>
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Theme.h"
-#include "Tilc/Gui/GuiCOntrol.h"
+#include "Tilc/Gui/Cursor.h"
+#include "Tilc/Gui/Caret.h"
+#include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -41,7 +43,19 @@ Tilc::TGame::TGame(EGameType GameType)
 
 Tilc::TGame::~TGame()
 {
-	if (Loc)
+    if (!m_Context.m_Caret)
+    {
+        delete m_Context.m_Caret;
+        m_Context.m_Caret = nullptr;
+    }
+
+    if (!m_Context.m_Cursor)
+    {
+        delete m_Context.m_Cursor;
+        m_Context.m_Cursor = nullptr;
+    }
+
+    if (Loc)
 	{
 		delete Loc;
 		Loc = nullptr;
@@ -330,4 +344,29 @@ void Tilc::TGame::ApplyLightingStuffToShaderCode(Tilc::TExtString& Code)
         Template = Template.StrReplace("SpotLights[SPOT_LIGHTS_COUNT]", "SpotLights[1]");
     }
 	Code = Code.StrReplace("{{ LIGHTING_STUFF }}", Template);
+}
+
+void Tilc::TGame::InitGuiMode()
+{
+    CreateCursor();
+    CreateCaret();
+    SDL_StartTextInput(m_Context.m_Window->GetRenderWindow());
+    // Do not close window by pressing Q key on keyboard, to allow type it into TextFields
+    m_Context.m_Window->DoCloseWindowByPressingQ(false);
+}
+
+void Tilc::TGame::CreateCursor()
+{
+    if (!m_Context.m_Cursor)
+    {
+        m_Context.m_Cursor = new Tilc::Gui::TCursor();
+    }
+}
+
+void Tilc::TGame::CreateCaret()
+{
+    if (!m_Context.m_Caret)
+    {
+        m_Context.m_Caret = new Tilc::Gui::TCaret(0, 0);
+    }
 }

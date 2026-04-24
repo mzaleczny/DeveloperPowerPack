@@ -339,7 +339,7 @@ bool Tilc::Gui::TGuiControl::OnMouseMove(const SDL_Event& event)
             else
             {
                 SetState(CONTROL_STATE_HOVER);
-           }
+            }
         }
         else
         {
@@ -1008,6 +1008,10 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
     {
         pt = SDL_FPoint(event.button.x, event.button.y);
     }
+    else
+    {
+        SDL_GetMouseState(&pt.x, &pt.y);
+    }
 
     // Jesli to zdarzenie myszy i jesteśmy nad nagłówkiem okienka, to nie wysyłamy zdarzeń do kontrolekj dzieci
     if (event.type == SDL_EVENT_MOUSE_MOTION || event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
@@ -1120,6 +1124,9 @@ bool Tilc::Gui::TGuiControl::ProcessEvent(const SDL_Event& event)
         break;
     case SDL_EVENT_KEY_UP:
         if (OnKeyUp(event)) return true;
+        break;
+    case SDL_EVENT_TEXT_INPUT:
+        if (OnTextInput(event)) return true;
         break;
     case SDL_EVENT_MOUSE_MOTION:
         // Poniższy if obsluguje wyczyszczenie stanu HOVER po przejechaniu z jednej kontrolki na nastepną w obrębie tego samego okna
@@ -1485,6 +1492,11 @@ void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& left_rc, const SDL_FRec
     // ================================================================
     // Koniec rysowania tła
     // ================================================================
+}
+
+bool Tilc::Gui::TGuiControl::IsCaretMovingKey(unsigned int virtualCode)
+{
+    return virtualCode == SDLK_LEFT || virtualCode == SDLK_RIGHT || virtualCode == SDLK_UP || virtualCode == SDLK_DOWN || virtualCode == SDLK_HOME || virtualCode == SDLK_END;
 }
 
 void Tilc::Gui::TGuiControl::MoveAllSubWindowsToTheEndOfGlobalWindowsOrder()

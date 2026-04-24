@@ -35,6 +35,7 @@ namespace Tilc
 	{
         class TClipboard;
         class TCursor;
+        class TCaret;
         class TFont;
         class TTheme;
 	}
@@ -53,6 +54,8 @@ namespace Tilc
 		Tilc::Game3D::TWorld3D* m_World3D{};
         Tilc::Gui::TTheme* m_Theme{};
         Tilc::Gui::TCursor* m_Cursor{};
+        // karetka - migający wskaźnik w polu tekstowym
+        Tilc::Gui::TCaret* m_Caret{};
         Tilc::Gui::TClipboard* m_Clipboard{};
         std::unordered_map<TExtString, Tilc::Gui::TFont*> m_Fonts;
         MIX_Mixer* m_MixMixer{};
@@ -118,6 +121,9 @@ namespace Tilc
 		inline void AddLight(Tilc::Graphics::ELightType LightType, Tilc::Graphics::TLight* Light);
 		void DoLighting(Tilc::Graphics::TMesh* Mesh);
 		void ApplyLightingStuffToShaderCode(Tilc::TExtString& Code);
+        void InitGuiMode();
+        void CreateCursor();
+        void CreateCaret();
 
 	protected:
 		TSharedContext m_Context;

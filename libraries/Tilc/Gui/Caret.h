@@ -12,26 +12,20 @@ namespace Tilc
         class DECLSPEC TCaret
         {
         public:
-            // współrzędne karetki w oknie
-            int m_X, m_Y;
+            // rectangle karetki w oknie
+            SDL_FRect m_Position;
             // współrzędne karetki w aktywnej kontrolce
             int m_ControlX, m_ControlY;
-            int m_Width, m_Height;
             // czy karetka jest aktywna, tzn. czy migotanie ma miejsce
             bool m_Active;
-            TStyledWindow* m_ParentWindow;
 
-            TCaret(TStyledWindow* wnd, int x, int y, int width = 2, int height = 20);
+            TCaret(float x = 0, float y = 0, float width = 2, float height = 20);
 
             virtual void Draw();
             void Update(float DeltaTime);
-            inline void setColor(SDL_Color color)
+            inline void SetColor(SDL_Color color)
             {
                 m_Color = color;
-            }
-            virtual inline SDL_FRect GetRect()
-            {
-                return { static_cast<float>(m_X), static_cast<float>(m_Y), static_cast<float>(m_Width), static_cast<float>(m_Height) };
             }
             inline void Show() { m_Visible = true; }
             inline void Hide() { m_Visible = false; }

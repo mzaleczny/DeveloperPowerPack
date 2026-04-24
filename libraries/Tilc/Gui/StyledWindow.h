@@ -31,7 +31,7 @@ namespace Tilc {
 
             virtual void LoadGuiLayout(Tilc::TExtString content, bool clearActualContent = true);
             virtual void LoadGuiLayoutFromFile(Tilc::TExtString fname, bool clearActualContent = true);
-            inline TCaret* getCaret() const { return m_Caret; }
+            TCaret* GetCaret() const;
 
             // odpowiada za wyrysowanie karetki
             //void DrawCaret();
@@ -97,9 +97,6 @@ namespace Tilc {
             virtual void SetActiveControl(TGuiControl* Control) override;
 
         protected:
-            // karetka - migający wskaźnik w polu tekstowym
-            TCaret* m_Caret;
-
             // Parametry wpływające na szybkość obsługi zdarzeń klawiatury
             // opóźnienie po pierwszym wciśnięciu klawisza
             float m_DelayAfterKeyDown;
