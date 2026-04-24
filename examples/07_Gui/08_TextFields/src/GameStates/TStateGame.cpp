@@ -14,6 +14,7 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
 
     Tilc::GameObject->AddFont("Label", t->GetThemeDir() +  "/fonts/Aller_Bd.ttf", 36.0f);
+    Tilc::GameObject->InitGuiMode();
 
     Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow = new Tilc::Gui::TStyledWindow(
         nullptr,
