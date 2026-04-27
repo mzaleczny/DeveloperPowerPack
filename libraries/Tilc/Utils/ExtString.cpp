@@ -683,7 +683,7 @@ void Tilc::TExtString::DeleteCharAt(size_t pos)
 int Tilc::TExtString::DeleteSingleUtf8CharBeforePos(size_t pos)
 {
     size_t str_len = length();
-    if (pos > 0 && pos <= str_len)
+    if (str_len > 0 && pos > 0 && pos <= str_len)
     {
         if (str_len == 1)
         {
@@ -695,17 +695,17 @@ int Tilc::TExtString::DeleteSingleUtf8CharBeforePos(size_t pos)
         {
             --CurrentPos;
         }
-        if (CurrentPos > 0 && pos + 1 < str_len)
+        if (CurrentPos > 0 && pos < str_len)
         {
-            *this = substr(0, CurrentPos) + substr(pos + 1);
+            *this = substr(0, CurrentPos) + substr(pos);
         }
         else if (CurrentPos > 0)
         {
             *this = substr(0, CurrentPos);
         }
-        else if (pos + 1 < str_len)
+        else if (pos < str_len)
         {
-            *this = substr(pos + 1);
+            *this = substr(pos);
         }
         else
         {
@@ -713,6 +713,39 @@ int Tilc::TExtString::DeleteSingleUtf8CharBeforePos(size_t pos)
         }
         return pos - CurrentPos;
     }
+    return 0;
+}
+
+int Tilc::TExtString::DeleteSingleUtf8CharAtPos(size_t pos)
+{
+    size_t str_len = length();
+    if (str_len > 0 && pos >= 0 && pos < str_len)
+    {
+        if (str_len == 1)
+        {
+            *this = "";
+            return 1;
+        }
+        size_t CurrentPos = pos + 1;
+        while (CurrentPos < str_len && IsUtf8ContinuationByte(c_str()[CurrentPos]))
+        {
+            ++CurrentPos;
+        }
+        if (pos == 0)
+        {
+            *this = substr(CurrentPos);
+        }
+        else if (CurrentPos < str_len)
+        {
+            *this = substr(0, pos) + substr(CurrentPos);
+        }
+        else
+        {
+            *this = substr(pos);
+        }
+        return CurrentPos - pos;
+    }
+    return 0;
 }
 
 
@@ -870,7 +903,14 @@ void Tilc::TExtString::TruncateAtEnd(size_t NumChars)
         {
             pos = 0;
         }
-        data()[pos] = '\0';
+        if (pos > 0)
+        {
+            *this = substr(0, pos);
+        }
+        else
+        {
+            *this = "";
+        }
     }
 }
 
@@ -983,13 +1023,50 @@ int Tilc::TExtString::GetUtf8CharLength(size_t pos)
     {
         ++Len;
         ++pos;
-        while (pos < CurrentLength && c_str()[pos])
+        while (pos < CurrentLength && IsUtf8ContinuationByte(c_str()[pos]))
         {
             ++Len;
             ++pos;
         }
     }
     return Len;
+}
+
+int Tilc::TExtString::TruncateUtf8AtEnd(size_t NumChars)
+{
+    if (NumChars > 0)
+    {
+        size_t len = this->length();
+        if (NumChars > len) {
+            NumChars = len;
+        }
+        size_t pos = len;
+        if (pos > NumChars)
+        {
+            for (int i = 0; i < NumChars; ++i)
+            {
+                --pos;
+                while (IsUtf8ContinuationByte(pos) && pos > 0)
+                {
+                    --pos;
+                }
+            }
+        }
+        else
+        {
+            pos = 0;
+        }
+        if (pos > 0)
+        {
+            *this = substr(0, pos);
+        }
+        else
+        {
+            *this = "";
+        }
+        return len - length();
+    }
+    return 0;
 }
 
 long Tilc::DetectDataEncoding(unsigned char* buf, size_t buflen)

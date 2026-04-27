@@ -195,8 +195,13 @@ namespace Tilc
 
         void InsertAt(size_t pos, const TExtString& s);
         void DeleteCharAt(size_t pos);
-        // Returns bytes removed
+        // Removes single Utf8 char just befor current pos and returns bytes removed
         int DeleteSingleUtf8CharBeforePos(size_t pos);
+        // Removes single Utf8 char at current pos and returns bytes removed
+        int DeleteSingleUtf8CharAtPos(size_t pos);
+        // zwraca długość w bajtach znaku na pozycji pos, jeśli od tej pozycji zaczyna się znak utf8
+        int GetUtf8CharLength(size_t pos);
+        int TruncateUtf8AtEnd(size_t NumChars);
 
 		// dokleja na początku tego łańcucha odpowiedni element i zwraca referencję do tego łańcucha.
 		TExtString& Prepend(TExtString& s);
@@ -238,8 +243,6 @@ namespace Tilc
 		long long StrPos(const char* SubString, size_t StartFrom = 0);
 		long long StrPosLast(const char* SubString, size_t StartFrom = 0);
         size_t RemoveCharsWithCodeLessThan(int CharCode);
-        // zwraca długość w bajtach znaku na pozycji pos, jeśli od tej pozycji zaczyna się znak utf8
-        int GetUtf8CharLength(size_t pos);
 	};
 
 
