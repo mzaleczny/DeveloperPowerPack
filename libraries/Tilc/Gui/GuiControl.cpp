@@ -542,6 +542,114 @@ void Tilc::Gui::TGuiControl::ResetToDefaultState()
     std::for_each(m_Children.begin(), m_Children.end(), [](Tilc::Gui::TGuiControl* c) { c->ResetControl(); });
 }
 
+void Tilc::Gui::TGuiControl::MoveTabStopForward()
+{
+    // jeśli nie ma dzieci, to nic nie robimy
+    if (m_Children.empty()) return;
+
+    // jeśli nie ma aktywnej kontrolki, to próbujemy aktywować pierwszą dozwoloną
+    if (!m_ActiveControl)
+    {
+        for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
+        {
+            if ((*it)->CanTabStop())
+            {
+                SetActiveControl(*it);
+                return;
+            }
+        }
+    }
+
+    // Jeśli już jest jakaś aktywna kontrolka, to ją zapamiętujemy
+    Tilc::Gui::TGuiControl* Current = m_ActiveControl;
+    // i zaznaczamy flagę, że jeszcze nie szukamy kontrolki do aktywacji
+    bool SearchForNextControl = false;
+    for (auto it = m_Children.begin(); true; ++it)
+    {
+        // jeśli osiągnęliśmy koniec, to wrapujemy do początku
+        if (it == m_Children.end())
+        {
+            it = m_Children.begin();
+        }
+        // Jeśli natknęliśmy się na bieżąco aktywną kontrolkę
+        if ((*it) == Current)
+        {
+            // i nie jesteśmy jeszcze w trakcie szukania kontrolki do aktywacji
+            if (!SearchForNextControl)
+            {
+                // to ustawiamy flagę informującą, że teraz już szukamy następnej kontrolki do aktywacji
+                SearchForNextControl = true;
+                continue;
+            }
+            // jeśli to już drugi obieg listy i nie znaleźliśmy do tej pory kontrolki do aktywacji, to znaczy, że takiej nie ma i przerywamy pętlę
+            else
+            {
+                break;
+            }
+        }
+        // jeśli znaleźliśmy kontrolkę do aktywacji, to ją aktywujemy i końcvzymy pętlę
+        if (SearchForNextControl && (*it)->CanTabStop())
+        {
+            SetActiveControl(*it);
+            break;
+        }
+    }
+}
+
+void Tilc::Gui::TGuiControl::MoveTabStopBackward()
+{
+    // jeśli nie ma dzieci, to nic nie robimy
+    if (m_Children.empty()) return;
+
+    // jeśli nie ma aktywnej kontrolki, to próbujemy aktywować pierwszą dozwoloną
+    if (!m_ActiveControl)
+    {
+        for (auto it = m_Children.rbegin(); it != m_Children.rend(); ++it)
+        {
+            if ((*it)->CanTabStop())
+            {
+                SetActiveControl(*it);
+                return;
+            }
+        }
+    }
+
+    // Jeśli już jest jakaś aktywna kontrolka, to ją zapamiętujemy
+    Tilc::Gui::TGuiControl* Current = m_ActiveControl;
+    // i zaznaczamy flagę, że jeszcze nie szukamy kontrolki do aktywacji
+    bool SearchForNextControl = false;
+    for (auto it = m_Children.rbegin(); true; ++it)
+    {
+        // jeśli osiągnęliśmy koniec, to wrapujemy do początku
+        if (it == m_Children.rend())
+        {
+            it = m_Children.rbegin();
+        }
+        // Jeśli natknęliśmy się na bieżąco aktywną kontrolkę
+        if ((*it) == Current)
+        {
+            // i nie jesteśmy jeszcze w trakcie szukania kontrolki do aktywacji
+            if (!SearchForNextControl)
+            {
+                // to ustawiamy flagę informującą, że teraz już szukamy następnej kontrolki do aktywacji
+                SearchForNextControl = true;
+                continue;
+            }
+            // jeśli to już drugi obieg listy i nie znaleźliśmy do tej pory kontrolki do aktywacji, to znaczy, że takiej nie ma i przerywamy pętlę
+            else
+            {
+                break;
+            }
+        }
+        // jeśli znaleźliśmy kontrolkę do aktywacji, to ją aktywujemy i końcvzymy pętlę
+        if (SearchForNextControl && (*it)->CanTabStop())
+        {
+            SetActiveControl(*it);
+            break;
+        }
+    }
+}
+
 void Tilc::Gui::TGuiControl::SetActiveControl(TGuiControl* Control)
 {
     if (Control && (!Control->CanTabStop() || m_ActiveControl == Control)) return;
@@ -1027,7 +1135,7 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
             }
         }
     }
-    // Jeśli nie kliknięto na nagłóku okna. Jeśli ta kontrolka nie jest oknem to InCaption zawsze będzie dla niej false
+    // Jeśli nie kliknięto na nagłówku okna. Jeśli ta kontrolka nie jest oknem to InCaption zawsze będzie dla niej false
     if (!InCaption)
     {
         // First we traverse childs list, to handle ecvent by innermost child first and then pop upwards
@@ -1035,7 +1143,39 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
         for (auto it = m_Children.rbegin(); it != m_Children.rend(); ++it)
         {
             SDL_FRect Position{ (*it)->GetRealPosition() };
-            if (SDL_PointInRectFloat(&pt, &Position))
+            bool DoActualEventProcessing = false;
+            TGuiControl* Target = nullptr;
+            if (event.type == SDL_EVENT_TEXT_INPUT || event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)
+            {
+                if (event.key.key == SDLK_TAB)
+                {
+                    // jesli nie wciśnięto SHIFT, to idziemy do następnej kontrolki
+                    if ((event.key.mod & SDL_KMOD_SHIFT) == 0)
+                    {
+                        MoveTabStopForward();
+                    }
+                    // w przeciwnym razie idziemy wstecz
+                    else
+                    {
+                        MoveTabStopBackward();
+                    }
+                }
+                else
+                {
+                    if (m_ActiveControl == *it)
+                    {
+                        DoActualEventProcessing = true;
+                        Target = *it;
+                    }
+                }
+            }
+            else if (SDL_PointInRectFloat(&pt, &Position))
+            {
+                DoActualEventProcessing = true;
+                Target = *it;
+            }
+
+            if (DoActualEventProcessing && Target == *it)
             {
                 result = (*it)->ProcessEvent(event);
                 if (result)

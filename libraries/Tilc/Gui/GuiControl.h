@@ -468,6 +468,8 @@ namespace Tilc {
             // Reset control and all it's children to default state
             void ResetToDefaultState();
 
+            virtual void MoveTabStopForward();
+            virtual void MoveTabStopBackward();
             virtual void SetActiveControl(TGuiControl* Control);
             inline TGuiControl* GetActiveControl() { return m_ActiveControl; }
             inline void SetOnlyActiveControlPointer(Tilc::Gui::TGuiControl* Control) { m_ActiveControl = Control; }
