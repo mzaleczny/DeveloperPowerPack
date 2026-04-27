@@ -27,7 +27,10 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     float Y = 30.0f;
     Tilc::Gui::TStyledWindow* wnd = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
     Tilc::Gui::TTextField* txt;
-    txt = new Tilc::Gui::TTextField(wnd, "Text Field 1", { X, Y, 220, 25 }, "Wartość 1");
+    txt = new Tilc::Gui::TTextField(wnd, "Text Field 1", { X, Y, 720, 25 },
+        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polski literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ "
+        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polski literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ"
+    );
     Y += 30.0f;
     txt = new Tilc::Gui::TTextField(wnd, "Text Field 2", { X, Y, 220, 25 }, "Wartość 2");
     Y += 30.0f;
