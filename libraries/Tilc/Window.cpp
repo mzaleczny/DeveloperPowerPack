@@ -30,6 +30,7 @@ void Tilc::TWindow::SetIsFocused(bool IsFocused)
     m_IsFocused = IsFocused;
     if (m_TopmostWindow)
     {
+        m_TopmostWindow->Invalidate();
         // we must invalidate all styled windows to prevent coloured versions for one and grayscaled for others
         for (auto it = m_AllWindows.begin(); it != m_AllWindows.end(); ++it)
         {
