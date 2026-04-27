@@ -66,7 +66,7 @@ void Tilc::Gui::TTextField::Draw()
         SelRect = CalculateSelectionRectForText(m_Text);
         if (SelRect.w > 0)
         {
-            RenderTexture(TextureMap, SelRect.x, SelRect.y, SelRect.w, SelRect.h);
+            RenderTiledTexture(TextureMap, &t->textfield_selection_rc, &SelRect);
         }
     }
     // ================================================================
@@ -91,8 +91,10 @@ void Tilc::Gui::TTextField::Draw()
     }
     else
     {
+        SDL_FRect RealPosition = GetRealPosition();
         int last_char_pos = GetLastVisibleCharPos();
-        int char_pos = GetLastVisibleCharPos(SelRect.x - t->textfield_left_rc.w);
+        // SelRect.x contains RealPosition.x and m_PaddingLeft so we must subtract it
+        int char_pos = GetLastVisibleCharPos(SelRect.x - RealPosition.x - m_PaddingLeft);
         unsigned int drawedChars = 0;
         Tilc::TExtString s;
         // najpierw tekst przed zaznaczeniem
@@ -102,7 +104,7 @@ void Tilc::Gui::TTextField::Draw()
             drawedChars = s.length();
             Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
         }
-        char_pos = GetLastVisibleCharPos(SelRect.x + SelRect.w - t->textfield_left_rc.w);
+        char_pos = GetLastVisibleCharPos(SelRect.x + SelRect.w - RealPosition.x - m_PaddingLeft);
         // następnie tekst w zaznaczeniu
         if (char_pos >= 0 && char_pos - m_StartChar - drawedChars + 1 > 0)
         {
@@ -119,20 +121,26 @@ void Tilc::Gui::TTextField::Draw()
         }
         else if (char_pos > 0 && SelRect.w > 0)
         {
-            s = m_Text.substr(m_StartChar + drawedChars, 1);
-            rc.x = SelRect.x;
-            Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
+            if (m_StartChar + drawedChars < m_Text.length())
+            {
+                s = m_Text.substr(m_StartChar + drawedChars, 1);
+                rc.x = SelRect.x;
+                Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
+            }
         }
         char_pos = last_char_pos;
         char_pos += 1; // zwiększamy o 1 żeby wyświetlić fragment ostatniej litery
         // i na koniec tekst po zaznaczeniu
         if (char_pos >= 0 && char_pos - m_StartChar - drawedChars + 1 > 0)
         {
-            s = m_Text.substr(m_StartChar + drawedChars, char_pos - m_StartChar - drawedChars + 1);
-            rc.x += SelRect.w;
-            if (rc.w > 0)
+            if (m_StartChar + drawedChars < m_Text.length() && char_pos - m_StartChar - drawedChars + 1 > 0)
             {
-                Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
+                s = m_Text.substr(m_StartChar + drawedChars, char_pos - m_StartChar - drawedChars + 1);
+                rc.x += SelRect.w;
+                if (rc.w > 0)
+                {
+                    Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
+                }
             }
         }
     }
@@ -381,10 +389,11 @@ SDL_FPoint Tilc::Gui::TTextField::CalculateCharPos(int CurrentChar, int& Result)
         Font->GetTextSize(s.c_str(), size.w, size.h);
     }
 
-    pt.x = t->textfield_left_rc.w + size.w;
-    pt.y = (m_Position.h - t->textfield_selection_rc.h) / 2.0f;
+    SDL_FRect RealPos = GetRealPosition();
+    pt.x = RealPos.x + m_PaddingLeft + size.w;
+    pt.y = RealPos.y + (m_Position.h - t->textfield_selection_rc.h) / 2.0f;
 
-    if (pt.x < t->textfield_left_rc.w)
+    if (pt.x < RealPos.x + m_PaddingLeft)
     {
         Result = -1;
     }
@@ -399,21 +408,23 @@ SDL_FPoint Tilc::Gui::TTextField::CalculateCharPos(int CurrentChar, int& Result)
 
 void Tilc::Gui::TTextField::UpdateCaretPos()
 {
-    float x;
-    float y;
-    float controlX;
-    float controlY;
-    Tilc::Gui::TStyledWindow* wnd;
+    SetCaretRect();
+    m_Caret->m_ControlX = m_Position.x;
+    m_Caret->m_ControlY = m_Position.y;
+    m_Caret->Show();
 
-    wnd = GetParentWindow();
-    if (wnd)
+    while (m_Caret->m_Position.x >= m_Position.x + CalculateInnerWidth())
     {
-        wnd->GetPositionInWindow(&x, &y);
-
+        ++m_StartChar;
+        while (m_StartChar < m_Text.length() && IsUtf8ContinuationByte(m_Text.c_str()[m_StartChar]))
+        {
+            ++m_StartChar;
+        }
         SetCaretRect();
-        m_Caret->m_ControlX = m_Position.x;
-        m_Caret->m_ControlY = m_Position.y;
-        m_Caret->Show();
+        if (m_StartChar >= m_Text.length())
+        {
+            break;
+        }
     }
 }
 
@@ -677,14 +688,15 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
             }
             processed = true;
         }
-        if (!processed && event.key.key == SDLK_DELETE) {
+        if (!processed && event.key.key == SDLK_DELETE)
+        {
             if (IsSelection())
             {
                 RemoveSelectedText(false);
             }
             else if (static_cast<size_t>(m_CaretAtChar) < m_Text.length())
             {
-                m_Text.DeleteCharAt(m_CaretAtChar);
+                m_Text.DeleteSingleUtf8CharAtPos(m_CaretAtChar);
             }
             redraw = true;
             processed = true;
@@ -707,9 +719,13 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
                     // jeśli usunęliśmy pierwszy wyświetlany w polu tekstowym znak, to zmniejszamy
                     // wartość pola this->_startChar tak, żeby widać było trochę tekstu ( i nie
                     // powstało wrażenie, że nie ma już żadnych znaków)
-                    if (m_CaretAtChar - m_StartChar == 1)
+                    if (m_CaretAtChar - m_StartChar < 2)
                     {
-                        m_StartChar -= 3;
+                        m_StartChar -= 4;
+                        while (m_StartChar > 0 && IsUtf8ContinuationByte(m_Text.c_str()[m_StartChar]))
+                        {
+                            --m_StartChar;
+                        }
                         if (m_StartChar < 0)
                         {
                             m_StartChar = 0;
@@ -929,10 +945,6 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
 
 void Tilc::Gui::TTextField::DrawCaret()
 {
-    m_Caret->Hide();
-    m_Caret->Draw();
-    m_Caret->Show();
-
     UpdateCaretPos();
     m_Caret->Draw();
 }
@@ -966,14 +978,14 @@ SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRectForText(const Tilc::TExtS
         rc.w = 0;
         rc.h = t->textfield_selection_rc.h;
 
-        CurrentChar++;
+        CurrentChar += m_Text.GetUtf8CharLength(CurrentChar);
         LastGoodPt = pt;
         pt = CalculateCharPos(CurrentChar, Result);
         int InnerWidth = CalculateInnerWidth();
         int MaxXPosAllowedForText = GetMaxXPosAllowedForContent();
         while (CurrentChar < m_SelEnd && pt.x > 0 && pt.x <= MaxXPosAllowedForText)
         {
-            CurrentChar += 1;
+            CurrentChar += m_Text.GetUtf8CharLength(CurrentChar);
             LastGoodPt = pt;
             pt = CalculateCharPos(CurrentChar, Result);
         }
@@ -1022,7 +1034,7 @@ SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRectForText(const Tilc::TExtS
 int Tilc::Gui::TTextField::CalculateInnerWidth()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    return m_Position.w - t->textfield_left_rc.w - t->textfield_right_rc.w;
+    return m_Position.w - m_PaddingLeft - m_PaddingRight;
 }
 
 int Tilc::Gui::TTextField::GetMaxXPosAllowedForContent()
@@ -1069,7 +1081,7 @@ int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
 
     while (size.w > inner_width)
     {
-        s.TruncateAtEnd(1);
+        s.TruncateUtf8AtEnd(1);
         Font->GetTextSize(s.c_str(), size.w, size.h);
     }
 
