@@ -113,8 +113,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     RenderButtons("textfield", 75, 25);
     AddY(7 * 25, 0);
     X = CurrentColumnX;
-    RenderSvgTile("textfield-selection", { X, Y, 1, 25 }, false, true);
-    AddY(25, 0);
+    RenderSvgTile("textfield-selection", { X, Y, 1, 20 }, false, true);
+    AddY(20, 0);
 
     SDL_SetRenderTarget(renderer, nullptr);
 

@@ -103,4 +103,4 @@ textfield_middle_pushed_rc: 26, 486, 1, 25
 textfield_left_pushed_focused_rc: 0, 511, 25, 25
 textfield_right_pushed_focused_rc: 50, 511, 25, 25
 textfield_middle_pushed_focused_rc: 26, 511, 1, 25
-textfield-selection_rc: 0, 536, 1, 25
+textfield-selection_rc: 0, 536, 1, 20
