@@ -1032,6 +1032,48 @@ int Tilc::TExtString::GetUtf8CharLength(size_t pos)
     return Len;
 }
 
+int Tilc::TExtString::GetUtf8CharsLength(size_t pos, int NumChars)
+{
+    int Len = 0;
+    size_t CurrentLength = length();
+    if (IsUtf8StartByte(c_str()[pos]))
+    {
+        ++Len;
+        ++pos;
+        while (NumChars > 0)
+        {
+            --NumChars;
+            while (pos < CurrentLength && IsUtf8ContinuationByte(c_str()[pos]))
+            {
+                ++Len;
+                ++pos;
+            }
+        }
+    }
+    return Len;
+}
+
+int Tilc::TExtString::GetPrecedingUtf8CharsLength(size_t pos, int NumChars)
+{
+    int Len = 0;
+    size_t CurrentLength = length();
+    if (IsUtf8StartByte(c_str()[pos]))
+    {
+        ++Len;
+        --pos;
+        while (NumChars > 0)
+        {
+            --NumChars;
+            while (pos >= 0 && pos < CurrentLength && IsUtf8ContinuationByte(c_str()[pos]))
+            {
+                ++Len;
+                --pos;
+            }
+        }
+    }
+    return Len;
+}
+
 int Tilc::TExtString::TruncateUtf8AtEnd(size_t NumChars)
 {
     if (NumChars > 0)
@@ -1046,7 +1088,7 @@ int Tilc::TExtString::TruncateUtf8AtEnd(size_t NumChars)
             for (int i = 0; i < NumChars; ++i)
             {
                 --pos;
-                while (IsUtf8ContinuationByte(pos) && pos > 0)
+                while (IsUtf8ContinuationByte(c_str()[pos]) && pos > 0)
                 {
                     --pos;
                 }
