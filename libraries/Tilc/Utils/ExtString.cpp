@@ -1392,3 +1392,169 @@ Tilc::TExtString Tilc::GetRandomString(int DesiredLength, const char* Chars)
     }
     return Result;
 }
+
+DECLSPEC Tilc::TExtString Tilc::IntToHex(uint64_t num, size_t minHexNumberLength, bool useSmallAlpha, bool prependx0)
+{
+    Tilc::TExtString retval;
+    const char* smallAlpha = "abcdef";
+    const char* largeAlpha = "ABCDEF";
+    const char* usedAlpha;
+    if (useSmallAlpha)
+    {
+        usedAlpha = smallAlpha;
+    }
+    else
+    {
+        usedAlpha = largeAlpha;
+    }
+
+    // jeśliminHexNumberLength jest liczbą nieparzystą, to zwiększamy go o 1, żeby ilość
+    // wyświetlanych cyfr była parzysta
+    if (minHexNumberLength % 2)
+    {
+        minHexNumberLength += 1;
+    }
+
+    uint64_t len = sizeof(uint64_t) * 8; // rozmiar LONGLONG-a w bitach
+    uint64_t numCompare = len / 4;   // porównujemy łańcuchy 4-bitowe, numCompare zawiera ilość tych
+    // porównań
+    int64_t mask = 0x0f; // maska wskazuje najpierw najmłodsze 4 bity
+    int64_t out;
+    for (uint64_t i = 0; i < numCompare; i++)
+    {
+        out = num & mask;
+        out >>= i * 4;
+        if (out < 10)
+        {
+            retval = std::to_string(out) + retval;
+        }
+        else
+        {
+            out -= 10;
+            retval = usedAlpha[out] + retval;
+        }
+        // przesuwamy maskę o 4 bity w lewo
+        mask <<= 4;
+    }
+
+    // usuwamy początkowe zera
+    retval.LTrim('0');
+
+    // jeśli minimalna długość łańcucha jest większa od aktualnej, to paddujemy łańcuch 0-ami
+    // z lewej strony
+    size_t padCount = 0;
+    size_t retval_len = retval.length();
+    if (minHexNumberLength >= retval_len)
+    {
+        padCount = minHexNumberLength - retval_len;
+    }
+    while (padCount > 0)
+    {
+        retval = "0" + retval;
+        --padCount;
+    }
+
+    if (prependx0)
+    {
+        retval = "0x" + retval;
+    }
+
+    return retval;
+}
+
+int hexToInt(Tilc::TExtString hex)
+{
+    size_t len = hex.length();
+    if (len < 1)
+    {
+        return 0;
+    }
+
+    char* buf = hex.data();
+    if (buf[len - 1] == 'h')
+    {
+        buf[len - 1] = '\0';
+        len -= 1;
+    }
+
+    if (len == 0)
+    {
+        return 0;
+    }
+
+    if (buf[0] == '#')
+    {
+        hex.LTrim('#');
+        len -= 1;
+    }
+
+    if (len == 0)
+    {
+        return 0;
+    }
+
+    if (buf[0] == '0' && buf[1] == 'x')
+    {
+        hex = hex.substr(2);
+        len -= 2;
+    }
+
+    if (len == 0)
+    {
+        return 0;
+    }
+
+    int retval = 0;
+    buf = hex.data();
+    int count = 0;
+    int maxcount = sizeof(int) << 1;
+    char c;
+    int b;
+    for (int i = (int)len - 1; i >= 0; i--)
+    {
+        c = buf[i];
+        if (c >= 0x30 && c <= 0x39)
+        {
+            b = (int)(c - 0x30);
+        }
+        else
+        {
+            if (c == 'a' || c == 'A')
+            {
+                b = 10;
+            }
+            else if (c == 'b' || c == 'B')
+            {
+                b = 11;
+            }
+            else if (c == 'c' || c == 'C')
+            {
+                b = 12;
+            }
+            else if (c == 'd' || c == 'D')
+            {
+                b = 13;
+            }
+            else if (c == 'e' || c == 'E')
+            {
+                b = 14;
+            }
+            else if (c == 'f' || c == 'F')
+            {
+                b = 15;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        retval = retval | (b << (count * 4));
+        ++count;
+        if (count == maxcount)
+        {
+            break;
+        }
+    }
+
+    return retval;
+}

@@ -287,6 +287,14 @@ namespace Tilc
             std::equal(b.begin(), b.end(), c.begin() + a.size());
     }
 
+    // Zwraca łańcuch z postacią heksadecymalną dla podanej liczby. Zwracany jest np ciąg 0x45.
+    // Parametr minHexNumber określa minimalną liczbę znaków po ciągu '0x'. Jeśli jest on wiekszy
+    // niż wynikowy łańcuch, to wtedy ten wynikowy łańcuch jest uzupełniany 0-ami po lewej stronie.
+    // Jeśli useSmallAlpah jest równe TRUE, to dla cyfr 10..15 użyte są znaki 'a'..'f', w przeciwnym
+    // razie użyte są znaki 'A'..'F'
+    DECLSPEC TExtString IntToHex(uint64_t num, size_t minHexNumberLength = 2, bool useSmallAlpha = true, bool prependx0 = true);
+    DECLSPEC int HexToInt(const TExtString& hex);
+
     /*
     struct TConcatProxy
     {
