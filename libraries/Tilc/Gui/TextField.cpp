@@ -9,6 +9,7 @@
 #include "Tilc/Game.h"
 #include <ctype.h>
 #include <cmath>
+#include <windows.h>
 
 Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const TExtString& text, bool tabStop)
     : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_TextField, true)
@@ -522,6 +523,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
         //CKeyboard* kbd = this->getKbd();
         bool processed = false;
         bool isCaretMovingKey = IsCaretMovingKey(event.key.key);
+        void* WindowHandle = ::GetActiveWindow();
 
         bool vkControl = (event.key.mod & SDL_KMOD_CTRL) != 0;
         bool vkAlt = (event.key.mod & SDL_KMOD_ALT) != 0;
@@ -544,7 +546,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
             { // 'C'
                 if (GetSelectionLength() > 0)
                 {
-                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(GetSelectedText());
+                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(WindowHandle, GetSelectedText());
                 }
 
                 Invalidate();
@@ -555,7 +557,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
             { // 'X'
                 if (GetSelectionLength() > 0)
                 {
-                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(GetSelectedText());
+                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(WindowHandle, GetSelectedText());
                     RemoveSelectedText(false);
                     redraw = true;
                 }
@@ -570,7 +572,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
             // obsługa Ctrl+V - Wklej ze schowka
             else if (event.key.key == SDLK_V)
             { // 'V'
-                Tilc::TExtString s = Tilc::GameObject->GetContext()->m_Clipboard->GetTextFromClipboard();
+                Tilc::TExtString s = Tilc::GameObject->GetContext()->m_Clipboard->GetTextFromClipboard(WindowHandle);
                 if (s.length() > 0)
                 {
                     InsertText(s, false);

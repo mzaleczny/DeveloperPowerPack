@@ -5,6 +5,8 @@ project(Tilc VERSION 1.0)
 
 set_property(GLOBAL PROPERTY Tilc_HEADERS_Property "")
 set_property(GLOBAL PROPERTY Tilc_SOURCES_Property "")
+set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property "")
+set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_SOURCES_Property "")
 set_property(GLOBAL PROPERTY BuildWithMySQL FALSE)
 
 function(CheckIfDiscard FILE)
@@ -46,9 +48,11 @@ function(AddSources DIR)
     set_property(GLOBAL PROPERTY Tilc_SOURCES_Property ${FileList})
 endfunction()
 
+
 function(AddSourcesRecurse DIR)
     file(GLOB_RECURSE _SOURCES LIST_DIRECTORIES false "${DIR}/*.c*")
     file(GLOB_RECURSE _HEADERS LIST_DIRECTORIES false "${DIR}/*.h")
+
 
     get_property(FileList GLOBAL PROPERTY Tilc_HEADERS_Property)
     foreach (f ${_HEADERS})
@@ -69,6 +73,39 @@ function(AddSourcesRecurse DIR)
     set_property(GLOBAL PROPERTY Tilc_SOURCES_Property ${FileList})
 endfunction()
 
+
+function(AddPlatformSpecificSourcesRecurse DIR)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        file(GLOB_RECURSE _SOURCES_OS LIST_DIRECTORIES false "${DIR}/Linux/*.c*")
+        file(GLOB_RECURSE _HEADERS_OS LIST_DIRECTORIES false "${DIR}/Linux/*.h")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        file(GLOB_RECURSE _SOURCES_OS LIST_DIRECTORIES true "${DIR}/Windows/*.c*")
+        file(GLOB_RECURSE _HEADERS_OS LIST_DIRECTORIES true "${DIR}/Windows/*.h")
+        message(${_SOURCES_OS})
+    else()
+        message(FATAL_ERROR "CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME} not supported.")
+    endif()
+
+
+    get_property(FileList GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property)
+    foreach (f ${_HEADERS_OS})
+        CheckIfDiscard(${f})
+        if (NOT "${f}" STREQUAL "")
+            list(APPEND FileList ${f})
+        endif()
+    endforeach()
+    set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property ${FileList})
+
+    get_property(FileList GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_SOURCES_Property)
+    foreach (f ${_SOURCES_OS})
+        CheckIfDiscard(${f})
+        if (NOT "${f}" STREQUAL "")
+            list(APPEND FileList ${f})
+        endif()
+    endforeach()
+    set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_SOURCES_Property ${FileList})
+endfunction()
+
 AddSources(Tilc)
 AddSourcesRecurse(Tilc/Audio)
 AddSourcesRecurse(Tilc/Commerce)
@@ -79,11 +116,15 @@ AddSourcesRecurse(Tilc/Graphics)
 AddSourcesRecurse(Tilc/Gui)
 AddSourcesRecurse(Tilc/Resources)
 AddSourcesRecurse(Tilc/Utils)
+AddPlatformSpecificSourcesRecurse(Tilc/OS)
 get_property(Tilc_HEADERS GLOBAL PROPERTY Tilc_HEADERS_Property)
 get_property(Tilc_SOURCES GLOBAL PROPERTY Tilc_SOURCES_Property)
-message("After call: " ${Tilc_SOURCES})
+get_property(Tilc_HEADERS_OS GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property)
+get_property(Tilc_SOURCES_OS GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_SOURCES_Property)
 list(REMOVE_DUPLICATES Tilc_HEADERS)
 list(REMOVE_DUPLICATES Tilc_SOURCES)
+list(REMOVE_DUPLICATES Tilc_HEADERS_OS)
+list(REMOVE_DUPLICATES Tilc_SOURCES_OS)
 
 
 add_library(Tilc_compiler_flags INTERFACE)
@@ -122,7 +163,7 @@ endif()
 
 add_definitions (-DDLL_EXPORT)
 
-add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS}  ${GLAD_LIBRARY})
+add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${GLAD_LIBRARY})
 
 # state that anybody linking to us needs to include the current source dir
 # to find MathFunctions.h, while we don't.

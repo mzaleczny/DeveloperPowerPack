@@ -124,6 +124,7 @@ namespace Tilc
         void InitGuiMode();
         void CreateCursor();
         void CreateCaret();
+        void CreateClipboard();
 
 	protected:
 		TSharedContext m_Context;

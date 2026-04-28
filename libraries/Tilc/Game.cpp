@@ -15,6 +15,7 @@
 #include "Tilc/Gui/Caret.h"
 #include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/OS/Windows/Gui/Clipboard.h"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <sstream>
@@ -43,6 +44,12 @@ Tilc::TGame::TGame(EGameType GameType)
 
 Tilc::TGame::~TGame()
 {
+    if (!m_Context.m_Clipboard)
+    {
+        delete m_Context.m_Clipboard;
+        m_Context.m_Clipboard = nullptr;
+    }
+
     if (!m_Context.m_Caret)
     {
         delete m_Context.m_Caret;
@@ -350,6 +357,7 @@ void Tilc::TGame::InitGuiMode()
 {
     CreateCursor();
     CreateCaret();
+    CreateClipboard();
     SDL_StartTextInput(m_Context.m_Window->GetRenderWindow());
     // Do not close window by pressing Q key on keyboard, to allow type it into TextFields
     m_Context.m_Window->DoCloseWindowByPressingQ(false);
@@ -368,5 +376,13 @@ void Tilc::TGame::CreateCaret()
     if (!m_Context.m_Caret)
     {
         m_Context.m_Caret = new Tilc::Gui::TCaret(0, 0);
+    }
+}
+
+void Tilc::TGame::CreateClipboard()
+{
+    if (!m_Context.m_Clipboard)
+    {
+        m_Context.m_Clipboard = new Tilc::OS::Gui::TWindowsClipboard();
     }
 }
