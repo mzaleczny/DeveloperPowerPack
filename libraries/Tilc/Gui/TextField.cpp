@@ -1,4 +1,5 @@
 #include "Tilc/Gui/TextField.h"
+#include "Tilc/Gui/TextField.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
@@ -80,70 +81,10 @@ void Tilc::Gui::TTextField::Draw()
     Font->SetColor({ 0, 0, 0, 0 });
     SDL_FRect rc = GetRealPosition();
     rc.x += m_PaddingLeft;
-    rc.w = GetMaxXPosAllowedForContent() - rc.x;
-    if (SelRect.w < 0.01f)
-    {
-        int last_char_pos = GetLastVisibleCharPos();
-        last_char_pos += 1; // zwiększamy o 1, żeby ewentualnie wyświetlić fragment następnej
-        // litery w wyznaczonym prostokącie
-        Tilc::TExtString s = m_Text.substr(m_StartChar, last_char_pos - m_StartChar + 1);
-        Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
-    }
-    else
-    {
-        SDL_FRect RealPosition = GetRealPosition();
-        int last_char_pos = GetLastVisibleCharPos();
-        // SelRect.x contains RealPosition.x and m_PaddingLeft so we must subtract it
-        int char_pos = GetLastVisibleCharPos(SelRect.x - RealPosition.x - m_PaddingLeft);
-        unsigned int drawedChars = 0;
-        Tilc::TExtString s;
-        // najpierw tekst przed zaznaczeniem
-        if (char_pos >= 0 && char_pos - m_StartChar + 1 > 0)
-        {
-            s = m_Text.substr(m_StartChar, char_pos - m_StartChar + 1);
-            drawedChars = s.length();
-            Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
-        }
-        char_pos = GetLastVisibleCharPos(SelRect.x + SelRect.w - RealPosition.x - m_PaddingLeft);
-        // następnie tekst w zaznaczeniu
-        if (char_pos >= 0 && char_pos - m_StartChar - drawedChars + 1 > 0)
-        {
-            // jeśli zaznaczenie dobiega do końca pola tekstowego
-            if (SelRect.x + SelRect.w >= GetMaxXPosAllowedForContent())
-            {
-                char_pos += 1; // to zwiększamy char_pos, żeby wyświetlić fragment następnej
-                // litery, która się cała nie mieści ale zaczyna się w wyznaczonym prostokącie
-            }
-            s = m_Text.substr(m_StartChar + drawedChars, char_pos - m_StartChar - drawedChars + 1);
-            drawedChars += s.length();
-            rc.x = SelRect.x;
-            Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
-        }
-        else if (char_pos > 0 && SelRect.w > 0)
-        {
-            if (m_StartChar + drawedChars < m_Text.length())
-            {
-                s = m_Text.substr(m_StartChar + drawedChars, 1);
-                rc.x = SelRect.x;
-                Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
-            }
-        }
-        char_pos = last_char_pos;
-        char_pos += 1; // zwiększamy o 1 żeby wyświetlić fragment ostatniej litery
-        // i na koniec tekst po zaznaczeniu
-        if (char_pos >= 0 && char_pos - m_StartChar - drawedChars + 1 > 0)
-        {
-            if (m_StartChar + drawedChars < m_Text.length() && char_pos - m_StartChar - drawedChars + 1 > 0)
-            {
-                s = m_Text.substr(m_StartChar + drawedChars, char_pos - m_StartChar - drawedChars + 1);
-                rc.x += SelRect.w;
-                if (rc.w > 0)
-                {
-                    Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
-                }
-            }
-        }
-    }
+    rc.w = GetMaxXPosAllowedForContent() - rc.x - m_PaddingRight;
+    int LastCharPos = GetLastVisibleCharPos();
+    Tilc::TExtString s = m_Text.substr(m_StartChar, LastCharPos - m_StartChar);
+    Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_CenterVertical);
     // ================================================================
     // Koniec rysowania tekstu
     // ================================================================
@@ -164,7 +105,7 @@ void Tilc::Gui::TTextField::Draw()
 int Tilc::Gui::TTextField::GetMinWidth()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    return t->textfield_left_rc.w + 1 + t->textfield_right_rc.w;
+    return m_PaddingLeft + 1 + m_PaddingRight;
 }
 
 void Tilc::Gui::TTextField::SetText(const Tilc::TExtString& Text)
@@ -456,7 +397,7 @@ void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updat
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 MoveCaretOneCharRight();
-                while (m_CaretAtChar < strLen && std::isalpha(m_Text[m_CaretAtChar]))
+                while (m_CaretAtChar < strLen && !IsCharWhiteSpace(m_Text[m_CaretAtChar]))
                 {
                     MoveCaretOneCharRight();
                 }
@@ -468,7 +409,7 @@ void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updat
             pt = CalculateCaretPos();
             while (pt.x + m_Caret->m_Position.w > GetMaxXPosAllowedForContent())
             {
-                m_StartChar += 3;
+                m_StartChar += m_Text.GetUtf8CharsLength(m_StartChar, 3);
                 pt = CalculateCaretPos();
                 redraw = true;
             }
@@ -490,7 +431,7 @@ void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updat
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 MoveCaretOneCharLeft();
-                while (m_CaretAtChar > 0 && std::isalnum(m_Text[m_CaretAtChar - 1]))
+                while (m_CaretAtChar > 0 && !IsCharWhiteSpace(m_Text[m_CaretAtChar - 1]))
                 {
                     MoveCaretOneCharLeft();
                 }
@@ -501,7 +442,7 @@ void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updat
             }
             if (m_CaretAtChar <= m_StartChar)
             {
-                m_StartChar = m_CaretAtChar - 3;
+                m_StartChar = m_CaretAtChar - m_Text.GetPrecedingUtf8CharsLength(m_CaretAtChar, 3);
                 if (m_StartChar < 0)
                 {
                     m_StartChar = 0;
@@ -549,12 +490,12 @@ bool Tilc::Gui::TTextField::AdjustStartCharForCaretAtChar()
         return false;
     }
     int lastStartChar = m_StartChar;
-    m_StartChar = m_CaretAtChar - 1;
+    m_StartChar = m_CaretAtChar - m_Text.GetPrecedingUtf8CharsLength(m_CaretAtChar, 1);
     pt = CalculateCaretPos();
     while (m_StartChar > 0 && pt.x > 0 && pt.x + m_Caret->m_Position.w < GetMaxXPosAllowedForContent())
     {
         lastStartChar = m_StartChar;
-        m_StartChar -= 1;
+        m_StartChar -= m_Text.GetPrecedingUtf8CharsLength(m_StartChar, 1);
         pt = CalculateCaretPos();
     }
     m_StartChar = lastStartChar;
@@ -656,7 +597,6 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
             int oldCaretAtChar = m_CaretAtChar;
             UpdateCursorPosition(event.key.key, updateCaretPos, redraw);
             Invalidate();
-
             // jeśli nie jest wciśnięty Shift, to czyścimy zaznaczenie
             if (!vkShift)
             {
@@ -681,6 +621,10 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
                         if (rc.x + rc.w >= GetMaxXPosAllowedForContent() && rc.w < 4)
                         {
                             m_StartChar += 3;
+                            while (m_StartChar < m_Text.length() && IsUtf8ContinuationByte(m_Text[m_StartChar]))
+                            {
+                                ++m_StartChar;
+                            }
                             redraw = true;
                         }
                     }
@@ -1040,7 +984,8 @@ int Tilc::Gui::TTextField::CalculateInnerWidth()
 int Tilc::Gui::TTextField::GetMaxXPosAllowedForContent()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    return t->textfield_left_rc.w + CalculateInnerWidth();
+    SDL_FRect rc = GetRealPosition();
+    return rc.x + m_PaddingLeft + CalculateInnerWidth();
 }
 
 int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
@@ -1064,21 +1009,32 @@ int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
     {
         inner_width = max_inner_width;
     }
-    int maxCopyChars = inner_width / char_width;
+    int maxCopyChars = StrLen;//inner_width / char_width;
 
     SDL_Rect size{};
     SDL_FPoint pt{};
 
-    Tilc::TExtString s = m_Text.substr(m_StartChar, maxCopyChars);
+    Tilc::TExtString s = m_Text.substr(m_StartChar, m_Text.GetUtf8CharLength(m_StartChar));
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     Tilc::Gui::TFont* Font = t->DefaultFont;
     Font->GetTextSize(s.c_str(), size.w, size.h);
 
-    if (size.w <= inner_width)
+    if (size.w > inner_width)
     {
-        return m_StartChar + s.length() - 1;
+        return m_StartChar;
     }
 
+    int CurrentChar = m_StartChar + s.length();
+    while (size.w <= inner_width)
+    {
+        s += m_Text.substr(CurrentChar, m_Text.GetUtf8CharsLength(CurrentChar, 10));
+        Font->GetTextSize(s.c_str(), size.w, size.h);
+        ++CurrentChar;
+        if (CurrentChar >= m_Text.length())
+        {
+            break;
+        }
+    }
     while (size.w > inner_width)
     {
         s.TruncateUtf8AtEnd(1);
@@ -1090,8 +1046,7 @@ int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
     {
         return -1;
     }
-
-    return m_StartChar + StrLen - 1;
+    return m_StartChar + StrLen;
 }
 
 char Tilc::Gui::TTextField::GetLastVisibleChar(int max_inner_width)
