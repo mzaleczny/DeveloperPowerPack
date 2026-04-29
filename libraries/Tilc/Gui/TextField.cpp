@@ -185,10 +185,69 @@ bool Tilc::Gui::TTextField::OnMouseMove(const SDL_Event& event)
     if (PointIn(event.motion.x, event.motion.y))
     {
         Tilc::GameObject->GetContext()->m_Cursor->SetIBeamCursor();
-        return true;
     }
 
-    return false;
+    if (event.button.button == SDL_BUTTON_LEFT)
+    {
+        int oldCaretAtChar = m_CaretAtChar;
+        PositionCaretNearClickedPoint(event.motion.x - m_Position.x, event.motion.y - m_Position.y);
+        // Jeśli ruszamy myszką w lewo przesuwając zaznaczenie i jesteśmy tuż przy lewym końcu
+        if (m_StartChar > 0 && m_CaretAtChar - m_StartChar < 3)
+        {
+            // to scrollujemy tekst w lewo, zmniejszając wartośc m_StartChar
+            m_StartChar -= 3;
+            if (m_StartChar < 0) m_StartChar = 0;
+            while (m_StartChar > 0 && IsUtf8ContinuationByte(m_Text[m_StartChar]))
+            {
+                --m_StartChar;
+            }
+        }
+        // Jesli ruszamy sie w lewo
+        if (m_CaretAtChar < oldCaretAtChar)
+        {
+            // i jesteśmy po prawej stronie początku zaznaczenia
+            if (m_CaretAtChar > m_SelStart)
+            {
+                // modyfikujemy koniec zaznaczenia
+                m_SelEnd = m_CaretAtChar;
+            }
+            // a jeśli jesteśmy w początku zaznaczenia
+            else if (m_CaretAtChar == m_SelStart)
+            {
+                // to resetujemy zaznaczenie tak, żeby go nie było
+                m_SelStart = m_SelEnd = m_CaretAtChar;
+            }
+            else
+            {
+                // w przeciwnym razie modyfikujemy początek zaznaczenia
+                m_SelStart = m_CaretAtChar;
+            }
+            Invalidate();
+        }
+        // Jesli ruszamy sie w prawo
+        else if (m_CaretAtChar > oldCaretAtChar)
+        {
+            // i jesteśmy po lewej stronie końca zaznaczenia
+            if (m_CaretAtChar < m_SelEnd)
+            {
+                m_SelStart = m_CaretAtChar;
+            }
+            // a jeśli jesteśmy w początku zaznaczenia
+            else if (m_CaretAtChar == m_SelEnd)
+            {
+                // to resetujemy zaznaczenie tak, żeby go nie było
+                m_SelStart = m_SelEnd = m_CaretAtChar;
+            }
+            else
+            {
+                // w przeciwnym razie modyfikujemy koniec zaznaczenia
+                m_SelEnd = m_CaretAtChar;
+            }
+            Invalidate();
+        }
+        m_SelBegin = m_SelStart;
+    }
+    return true;
 }
 
 bool Tilc::Gui::TTextField::OnMouseButtonDown(const SDL_Event& event)
@@ -201,15 +260,14 @@ bool Tilc::Gui::TTextField::OnMouseButtonDown(const SDL_Event& event)
 
     __super::OnMouseButtonDown(event);
 
-    if (PointIn(event.motion.x, event.motion.y))
+    if (PointIn(event.button.x, event.button.y))
     {
         Tilc::GameObject->GetContext()->m_Cursor->SetIBeamCursor();
         CaptureMouse(this);
 
         // pozycjonujemy karetkę na odpowiednim znaku
-        PositionCaretNearClickedPoint(event.motion.x - m_Position.x, event.motion.y - m_Position.y);
-
-        ClearSelection(false);
+        PositionCaretNearClickedPoint(event.button.x - m_Position.x, event.button.y - m_Position.y);
+        m_SelBegin = m_SelStart = m_SelEnd = m_CaretAtChar;
         Invalidate();
         return true;
     }
@@ -227,9 +285,10 @@ bool Tilc::Gui::TTextField::OnMouseButtonUp(const SDL_Event& event)
 
     __super::OnMouseButtonUp(event);
 
-    if (PointIn(event.motion.x, event.motion.y))
+    if (PointIn(event.button.x, event.button.y))
     {
         Tilc::GameObject->GetContext()->m_Cursor->SetIBeamCursor();
+
         return true;
     }
 
@@ -280,6 +339,10 @@ void Tilc::Gui::TTextField::PositionCaretNearClickedPoint(float localX, float lo
             count--;
         }
         m_CaretAtChar = m_StartChar + count;
+        while (m_CaretAtChar > 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar]))
+        {
+            --m_CaretAtChar;
+        }
         UpdateCaretPos();
     }
 }
