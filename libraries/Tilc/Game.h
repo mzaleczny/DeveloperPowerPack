@@ -3,6 +3,8 @@
 #include "Tilc/Utils/ExtString.h"
 #include <unordered_map>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include "Tilc/Window.h"
 #include "Tilc/StateManager.h"
 #include "Tilc/GameState.h"
@@ -60,6 +62,7 @@ namespace Tilc
         std::unordered_map<TExtString, Tilc::Gui::TFont*> m_Fonts;
         MIX_Mixer* m_MixMixer{};
 		int m_CurrentCamera = -1;
+        std::mutex m_Mutex;
 	};
 
 	enum class EGameType
