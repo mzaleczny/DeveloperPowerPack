@@ -193,29 +193,29 @@ void RenderWindow()
     int top, left;
     float TitleButtonSpacing = 8.0f;
 
-    RenderSvgTile("line-v", { X, Y, 1, 24 }, false, false);
+    RenderSvgTile("line-v", { X, Y, 1, 25 }, false, false);
     ++X;
-    RenderSvgTile("window_caption_active", { X, Y, 20, 24 }, false, false);
+    RenderSvgTile("window_caption_active", { X, Y, 20, 25 }, false, false);
     X += 20;
-    RenderSvgTile("line-v", { X, Y, 1, 24 }, false, false);
+    RenderSvgTile("line-v", { X, Y, 1, 25 }, false, false);
 
     ++X;
-    RenderSvgTile("line-v-inactive", { X, Y, 1, 24 }, false, false);
+    RenderSvgTile("line-v-inactive", { X, Y, 1, 25 }, false, false);
     ++X;
-    RenderSvgTile("window_caption_inactive", { X, Y, 20, 24 }, false, false);
+    RenderSvgTile("window_caption_inactive", { X, Y, 20, 25 }, false, false);
     X += 20;
-    RenderSvgTile("line-v-inactive", { X, Y, 1, 24 }, false, false);
+    RenderSvgTile("line-v-inactive", { X, Y, 1, 25 }, false, false);
 
 
     X = 0;
     RenderSvgTile("line-h", { X, Y, 22, 1 }, false, false);
-    Y += 24;
+    Y += 25;
     RenderSvgTile("line-h", { X, Y, 22, 1 }, false, false);
 
     Y = 0;
     X += 22;
     RenderSvgTile("line-h-inactive", { X, Y, 22, 1 }, false, false);
-    Y += 24;
+    Y += 25;
     RenderSvgTile("line-h-inactive", { X, Y, 22, 1 }, false, false);
 
     X = 44;
