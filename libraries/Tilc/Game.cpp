@@ -15,7 +15,9 @@
 #include "Tilc/Gui/Caret.h"
 #include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
+#ifdef WIN32
 #include "Tilc/OS/Windows/Gui/Clipboard.h"
+#endif
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <sstream>
@@ -383,6 +385,8 @@ void Tilc::TGame::CreateClipboard()
 {
     if (!m_Context.m_Clipboard)
     {
+#ifdef WIN32
         m_Context.m_Clipboard = new Tilc::OS::Gui::TWindowsClipboard();
+#endif
     }
 }
