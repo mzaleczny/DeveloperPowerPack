@@ -62,6 +62,12 @@ Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString na
 Tilc::Gui::TStyledWindow::~TStyledWindow()
 {
     RemoveFromParent();
+    // Jeśli to okno (wskaznik na nie) jest na szczycie stosu okien modalnych, to ściągamy je z niego
+    std::stack<Tilc::Gui::TStyledWindow*>& ModalStack = Tilc::GameObject->GetContext()->m_Window->m_ModalStack;
+    if (ModalStack.size() > 0 && ModalStack.top() == this)
+    {
+        ModalStack.pop();
+    }
 }
 
 void Tilc::Gui::TStyledWindow::RemoveFromParent()
@@ -1170,6 +1176,11 @@ void Tilc::Gui::TStyledWindow::OnThumbChange(int oldPosition, int curPosition, T
     {
         OnScrollVertical();
     }
+}
+
+void Tilc::Gui::TStyledWindow::SetModal()
+{
+    Tilc::GameObject->GetContext()->m_Window->m_ModalStack.push(this);
 }
 
 void Tilc::Gui::TStyledWindow::InternalProcessOnGetEditedValues(Tilc::TStdObject* eventInfo)

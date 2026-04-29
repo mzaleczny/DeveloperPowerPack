@@ -1,6 +1,7 @@
 #include "EventManager.h"
 #include "StateManager.h"
 #include "Tilc/Graphics/Camera.h"
+#include "Tilc/Audio/Music.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/ScrollBar.h"
@@ -8,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <thread>
+#include <filesystem>
 
 Tilc::TEventManager::~TEventManager()
 {
@@ -189,21 +192,35 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             }
         }
 
+        Tilc::TWindow* RenderWindow = Tilc::GameObject->m_Window;
+
         // Poniższy if odpowiada za usunięcie stanu hover z kontrolek okna po wyjechaniu z niego do innego okna
-        if (Tilc::GameObject->m_Window->m_LastProcessedWindow != wnd)
+        if (RenderWindow->m_LastProcessedWindow != wnd)
         {
-            if (Tilc::GameObject->m_Window->m_LastProcessedWindow)
+            if (RenderWindow->m_LastProcessedWindow)
             {
-                if (Tilc::GameObject->m_Window->m_LastProcessedWindow->ResetControlsState(CONTROL_STATE_HOVER | CONTROL_STATE_PUSHED, false))
+                if (RenderWindow->m_LastProcessedWindow->ResetControlsState(CONTROL_STATE_HOVER | CONTROL_STATE_PUSHED, false))
                 {
-                    Tilc::GameObject->m_Window->m_LastProcessedWindow->Invalidate();
+                    RenderWindow->m_LastProcessedWindow->Invalidate();
                 }
             }
-            Tilc::GameObject->m_Window->m_LastProcessedWindow = wnd;
+            RenderWindow->m_LastProcessedWindow = wnd;
         }
-        // Pass event to the found styled window
-        //std::cout << "ProcessChildEvents for: " << wnd->GetName() << std::endl;
-        wnd->ProcessChildEvent(*Event);
+
+        if (RenderWindow->m_ModalStack.empty() || RenderWindow->m_ModalStack.top() == wnd)
+        {
+            // Pass event to the found styled window
+            //std::cout << "ProcessChildEvents for: " << wnd->GetName() << std::endl;
+            wnd->ProcessChildEvent(*Event);
+        }
+        else
+        {
+            if (Event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+            {
+                Tilc::TExtString CurrentDir{ std::filesystem::current_path().string().c_str() };
+                Tilc::Audio::Play(CurrentDir + "/../assets/sfx/SFX_Squeaky_Toy.wav");
+            }
+        }
     }
 
 	return SDL_APP_CONTINUE;

@@ -3,6 +3,8 @@
 #include "Tilc/Utils/ExtString.h"
 #include <SDL3/SDL.h>
 #include "Tilc/EventManager.h"
+#include <list>
+#include <stack>
 
 namespace Tilc
 {
@@ -102,6 +104,8 @@ namespace Tilc
             SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         }
 
+        // Stos okien modalnych
+        std::stack<Tilc::Gui::TStyledWindow*> m_ModalStack;
         // domyślnie nie tworzymy kontrolki okna i interfejsu GUI
         Tilc::Gui::TStyledWindow* m_TopmostWindow{};
         // Stores pointer to Styled Window that is being dragged

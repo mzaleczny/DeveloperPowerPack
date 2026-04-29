@@ -96,6 +96,9 @@ namespace Tilc {
 
             virtual void SetActiveControl(TGuiControl* Control) override;
 
+            // Ads this window on top of Render Window's modal stack
+            void SetModal();
+
         protected:
             // Parametry wpływające na szybkość obsługi zdarzeń klawiatury
             // opóźnienie po pierwszym wciśnięciu klawisza
