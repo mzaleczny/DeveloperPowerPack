@@ -69,15 +69,23 @@ bool Tilc::OS::Gui::TWindowsClipboard::CopyTextToClipboard(void* Window, const T
     }
 
     // najpierw kopiujemy dane UNICODE
+    std::u32string U32Str = Utf8ToUtf32(s);
+    std::u16string U16Str = Utf32ToUtf16(U32Str);
     LPVOID mem = ::GlobalLock(hglbCopyUnicode);
-    // kopiujemy tekst razem ze znkiem NULL kończącym go
-    memcpy(mem, s.data(), (str_len + 1) * sizeof(CHAR));
-    ::GlobalUnlock(hglbCopyUnicode);
+    if (mem)
+    {
+        // kopiujemy tekst razem ze znkiem NULL kończącym go
+        memcpy(mem, U16Str.data(), (U16Str.size() + 1) * sizeof(char16_t));
+        ::GlobalUnlock(hglbCopyUnicode);
+    }
 
     // a następnie konwerujemy i kopiujemy dane ANSI
     mem = ::GlobalLock(hglbCopyAnsi);
-    memcpy(mem, s.data(), (str_len + 1) * sizeof(CHAR));
-    ::GlobalUnlock(hglbCopyAnsi);
+    if (mem)
+    {
+        memcpy(mem, s.data(), (s.size() + 1) * sizeof(char));
+        ::GlobalUnlock(hglbCopyAnsi);
+    }
 
     ::EmptyClipboard();
     // umieszczamy dane (a właściwie uchwyt HGLOBAL na przydzielony obszar pamięci) w schowku
@@ -110,13 +118,14 @@ Tilc::TExtString Tilc::OS::Gui::TWindowsClipboard::GetTextFromClipboard(void* Wi
     // W pierwszej kolejności próbujemy pobrać tekst UNICODE
     HGLOBAL hglb;
 
-    hglb = ::GetClipboardData(CF_TEXT);
+    hglb = ::GetClipboardData(CF_UNICODETEXT);
     if (hglb != NULL)
     {
         char* str = (char*)::GlobalLock(hglb);
         if (str != NULL)
         {
-            retval = str;
+            std::u16string U16Str(reinterpret_cast<char16_t*>(str));
+            retval = Utf16ToUtf8(U16Str);
             ::GlobalUnlock(hglb);
             ::CloseClipboard();
 
@@ -124,7 +133,7 @@ Tilc::TExtString Tilc::OS::Gui::TWindowsClipboard::GetTextFromClipboard(void* Wi
         }
     }
 
-    hglb = ::GetClipboardData(CF_UNICODETEXT);
+    hglb = ::GetClipboardData(CF_TEXT);
     if (hglb != NULL)
     {
         char* str = (char*)::GlobalLock(hglb);
