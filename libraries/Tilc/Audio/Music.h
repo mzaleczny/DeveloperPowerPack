@@ -12,7 +12,7 @@ namespace Tilc::Audio
 		TMusic(MIX_Mixer* Mixer, const std::string& ResOrigPath, char* Buffer, size_t BufferSize);
 		TMusic(MIX_Mixer* Mixer, const char* ResourceName, bool FromFile);
 		~TMusic();
-        // Loop = 1 means endless Loop
+        // Volume = 100 is full, Loop = 1 means endless Loop
         void Play(float Volume, int Loops = 1);
 		void Stop(int FadeOutDelay = 100);
 		bool IsPlaying();
@@ -37,4 +37,7 @@ namespace Tilc::Audio
         MIX_SetMixerGain(MixMixer, Volume / 100.0f);
         MIX_PlayTrack(MixTrack, Loops);
     }
+
+    // Loop = 1 means endless Loop
+    DECLSPEC void Play(const Tilc::TExtString& Filename, float Volume = 100, int Loops = 1);
 }
