@@ -1462,7 +1462,7 @@ DECLSPEC Tilc::TExtString Tilc::IntToHex(uint64_t num, size_t minHexNumberLength
     return retval;
 }
 
-int hexToInt(Tilc::TExtString hex)
+int HexToInt(Tilc::TExtString hex)
 {
     size_t len = hex.length();
     if (len < 1)
@@ -1557,4 +1557,136 @@ int hexToInt(Tilc::TExtString hex)
     }
 
     return retval;
+}
+
+DECLSPEC char32_t Tilc::DecodeUtf8(const char*& p, const char* end)
+{
+    unsigned char c = *p++;
+
+    if (c < 0x80) return c;
+
+    if ((c >> 5) == 0x6)
+    {
+        if (p >= end) return U'?';
+        return ((c & 0x1F) << 6) | (*p++ & 0x3F);
+    }
+
+    if ((c >> 4) == 0xE)
+    {
+        if (p + 1 >= end) return U'?';
+        char32_t r = ((c & 0x0F) << 12)
+            | ((*p++ & 0x3F) << 6)
+            | (*p++ & 0x3F);
+        return r;
+    }
+
+    if ((c >> 3) == 0x1E)
+    {
+        if (p + 2 >= end) return U'?';
+        char32_t r = ((c & 0x07) << 18)
+            | ((*p++ & 0x3F) << 12)
+            | ((*p++ & 0x3F) << 6)
+            | (*p++ & 0x3F);
+        return r;
+    }
+
+    return U'?';
+}
+
+DECLSPEC void Tilc::EncodeUtf8(uint32_t cp, TExtString& out)
+{
+    if (cp <= 0x7F) {
+        out.push_back(static_cast<char>(cp));
+    }
+    else if (cp <= 0x7FF) {
+        out.push_back(static_cast<char>(0xC0 | (cp >> 6)));
+        out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+    }
+    else if (cp <= 0xFFFF) {
+        out.push_back(static_cast<char>(0xE0 | (cp >> 12)));
+        out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+    }
+    else {
+        out.push_back(static_cast<char>(0xF0 | (cp >> 18)));
+        out.push_back(static_cast<char>(0x80 | ((cp >> 12) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+    }
+}
+
+DECLSPEC std::u32string Tilc::Utf8ToUtf32(const TExtString& s)
+{
+    std::u32string out;
+    const char* p = s.data();
+    const char* end = p + s.size();
+
+    while (p < end)
+    {
+        out.push_back(DecodeUtf8(p, end));
+    }
+
+    return out;
+}
+
+DECLSPEC std::u16string Tilc::Utf32ToUtf16(const std::u32string& s)
+{
+    std::u16string out;
+    for (char32_t cp : s)
+    {
+        if (cp <= 0xFFFF)
+        {
+            out.push_back(static_cast<char16_t>(cp));
+        }
+        else
+        {
+            cp -= 0x10000;
+            out.push_back(static_cast<char16_t>(0xD800 + (cp >> 10)));
+            out.push_back(static_cast<char16_t>(0xDC00 + (cp & 0x3FF)));
+        }
+    }
+    return out;
+}
+
+DECLSPEC Tilc::TExtString Tilc::Utf16ToUtf8(const std::u16string& s)
+{
+    Tilc::TExtString out;
+    out.reserve(s.size()); // minimalne, i tak się rozszerzy
+
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        uint16_t w1 = s[i];
+
+        // Para surogatowa?
+        if (w1 >= 0xD800 && w1 <= 0xDBFF)
+        {
+            if (i + 1 < s.size())
+            {
+                uint16_t w2 = s[i + 1];
+                if (w2 >= 0xDC00 && w2 <= 0xDFFF)
+                {
+                    uint32_t cp = 0x10000
+                            + (((w1 - 0xD800) << 10)
+                            | (w2 - 0xDC00));
+                    EncodeUtf8(cp, out);
+                    ++i; // zużyliśmy dwa
+                    continue;
+                }
+            }
+            // Niepoprawna para — zakoduj U+FFFD
+            EncodeUtf8(0xFFFD, out);
+        }
+        else if (w1 >= 0xDC00 && w1 <= 0xDFFF)
+        {
+            // Samotny surogat dolny — błąd
+            EncodeUtf8(0xFFFD, out);
+        }
+        else
+        {
+            // BMP
+            EncodeUtf8(w1, out);
+        }
+    }
+
+    return out;
 }

@@ -294,6 +294,11 @@ namespace Tilc
     // razie użyte są znaki 'A'..'F'
     DECLSPEC TExtString IntToHex(uint64_t num, size_t minHexNumberLength = 2, bool useSmallAlpha = true, bool prependx0 = true);
     DECLSPEC int HexToInt(const TExtString& hex);
+    DECLSPEC char32_t DecodeUtf8(const char*& p, const char* end);
+    DECLSPEC void EncodeUtf8(uint32_t cp, TExtString& out);
+    DECLSPEC std::u32string Utf8ToUtf32(const TExtString& s);
+    DECLSPEC std::u16string Utf32ToUtf16(const std::u32string& s);
+    DECLSPEC TExtString Utf16ToUtf8(const std::u16string& s);
 
     /*
     struct TConcatProxy
