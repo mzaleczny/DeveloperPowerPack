@@ -119,11 +119,10 @@ bool Tilc::Audio::TMusic::IsPlaying()
 
 DECLSPEC void Tilc::Audio::Play(const Tilc::TExtString& Filename, float Volume, int Loops)
 {
-    std::unique_lock Lock(Tilc::GameObject->GetContext()->m_Mutex);
-
     std::thread Thread([Filename, Volume, Loops] {
         if (Tilc::FileExists(Filename))
         {
+            //std::unique_lock Lock(Tilc::GameObject->GetContext()->m_Mutex);
             MIX_Mixer* Mixer = Tilc::GameObject->GetContext()->m_MixMixer;
             MIX_Audio* MixAudio = MIX_LoadAudio(Mixer, Filename.c_str(), true);
             if (MixAudio)
