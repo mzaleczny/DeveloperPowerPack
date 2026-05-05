@@ -151,6 +151,18 @@ find_package(assimp REQUIRED)
 set(mysql_DIR "./cmake")
 find_package(mysql REQUIRED)
 
+include(FetchContent)
+message("***********************************************************************")
+message("Checking for zlib and downloading it when no found")
+message("***********************************************************************")
+FetchContent_Declare(external-zlib
+    GIT_REPOSITORY https://github.com/madler/zlib.git
+    GIT_TAG v1.3.2
+    FIND_PACKAGE_ARGS NAMES zlib
+)
+FetchContent_MakeAvailable(external-zlib)
+
+
 set(GLOBAL_LIB_DIR "f:/libs")
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -162,12 +174,6 @@ endif()
 add_definitions (-DDLL_EXPORT)
 
 add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
-
-# state that anybody linking to us needs to include the current source dir
-# to find MathFunctions.h, while we don't.
-#target_include_directories(MathFunctions
-#                           INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
-#                           )
 
 target_link_libraries(Tilc PUBLIC Tilc_compiler_flags)
 set_target_properties(Tilc PROPERTIES LINKER_LANGUAGE CXX)
@@ -182,7 +188,7 @@ target_include_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_options(Tilc PRIVATE "${SetSubsystem}")
 #target_link_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "$<BUILD_INTERFACE:f:/libs/SDL3>")
-target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} ${ASSIMP_LIBRARY} ${MYSQL_LIBRARY} "${GLOBAL_LIB_DIR}/zlib.lib")
+target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} ${ASSIMP_LIBRARY} ${MYSQL_LIBRARY} ZLIB::ZLIB)
 
 # define the symbol stating we are using the declspec(dllexport) when
 # building on windows
