@@ -13,3 +13,20 @@ git config --global --get safe.directory "%SAFEDIR_ZLIB_RELEASE%" >nul
 if NOT %ERRORLEVEL% equ 0 (
     git config --global --add safe.directory "%SAFEDIR_ZLIB_RELEASE%"
 )
+
+
+
+SET SAFEDIR_GLM_DEBUG=%OUTDIR%/build/x64-Debug/_deps/glm-src
+SET SAFEDIR_GLM_RELEASE=%OUTDIR%/build/x64-Release/_deps/glm-src
+mkdir "%SAFEDIR_GLM_DEBUG%" 2>nul
+mkdir "%SAFEDIR_GLM_RELEASE%" 2>nul
+git config --global --get safe.directory "%SAFEDIR_GLM_DEBUG%" >nul
+if NOT %ERRORLEVEL% equ 0 (
+    git config --global --add safe.directory "%SAFEDIR_GLM_DEBUG%"
+)
+git config --global --get safe.directory "%SAFEDIR_GLM_RELEASE%" >nul
+if NOT %ERRORLEVEL% equ 0 (
+    git config --global --add safe.directory "%SAFEDIR_GLM_RELEASE%"
+)
+
+

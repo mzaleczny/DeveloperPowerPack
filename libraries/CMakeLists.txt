@@ -134,8 +134,6 @@ set(SetSubsystem "/SUBSYSTEM:WINDOWS")
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 
-set(glm_DIR "./cmake")
-find_package(glm REQUIRED)
 set(sdl3_DIR "./cmake")
 find_package(sdl3 REQUIRED)
 set(sdl3_image_DIR "./cmake")
@@ -153,14 +151,22 @@ find_package(mysql REQUIRED)
 
 include(FetchContent)
 message("***********************************************************************")
-message("Checking for zlib and downloading it when no found")
+message("Checking for **zlib** and downloading it when no found")
 message("***********************************************************************")
 FetchContent_Declare(external-zlib
     GIT_REPOSITORY https://github.com/madler/zlib.git
     GIT_TAG v1.3.2
     FIND_PACKAGE_ARGS NAMES zlib
 )
-FetchContent_MakeAvailable(external-zlib)
+message("***********************************************************************")
+message("Checking for **glm** and downloading it when no found")
+message("***********************************************************************")
+FetchContent_Declare(glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.3
+)
+
+FetchContent_MakeAvailable(external-zlib glm)
 
 
 set(GLOBAL_LIB_DIR "f:/libs")
@@ -171,7 +177,7 @@ else()
     set(TilcBinDir "x64-Release")
 endif()
 
-add_definitions (-DDLL_EXPORT)
+add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
 add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
 
@@ -180,15 +186,13 @@ set_target_properties(Tilc PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
 	"$<BUILD_INTERFACE:${SDL3_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
-	"$<BUILD_INTERFACE:${GLM_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${ASSIMP_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${MYSQL_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
 	"$<BUILD_INTERFACE:${GLOBAL_LIB_DIR}/include>"
 )
 target_link_options(Tilc PRIVATE "${SetSubsystem}")
-#target_link_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "$<BUILD_INTERFACE:f:/libs/SDL3>")
-target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} ${ASSIMP_LIBRARY} ${MYSQL_LIBRARY} ZLIB::ZLIB)
+target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} ${ASSIMP_LIBRARY} ${MYSQL_LIBRARY} glm::glm ZLIB::ZLIB)
 
 # define the symbol stating we are using the declspec(dllexport) when
 # building on windows
@@ -198,13 +202,3 @@ add_custom_command(TARGET ${PROJECT_NAME}
 	POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/Tilc.dll" "f:/libs/Tilc.dll"
 )
-
-#if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-	#Lines below do copying after successfull build
-#	add_custom_command(TARGET Tilc POST_BUILD
-#		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Tilc> "${CMAKE_CURRENT_BINARY_DIR}/../../../../SDL3/03_OpenGL/out/build/x64-Debug/Tilc.dll"
-#	)
-	#Lines below do copying during configuration time not after successfull build
-    #message("COPY ${CMAKE_CURRENT_BINARY_DIR}/Tilc.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../../../../SDL3/03_OpenGL/out/build/x64-Debug")
-    #file(COPY "${CMAKE_CURRENT_BINARY_DIR}/Tilc.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../../../../SDL3/03_OpenGL/out/build/x64-Debug")
-#endif()
