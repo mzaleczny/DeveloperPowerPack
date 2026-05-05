@@ -1,0 +1,2 @@
+The Glad Library is available for download on the website: https://glad.dav1d.de/
+The library is generated on the fly by specifying required options on the website and clicking Generate buton.
