@@ -136,8 +136,6 @@ set(SetSubsystem "/SUBSYSTEM:WINDOWS")
 
 set(glm_DIR "./cmake")
 find_package(glm REQUIRED)
-set(glad_DIR "./cmake")
-find_package(glad REQUIRED)
 set(sdl3_DIR "./cmake")
 find_package(sdl3 REQUIRED)
 set(sdl3_image_DIR "./cmake")
@@ -163,7 +161,7 @@ endif()
 
 add_definitions (-DDLL_EXPORT)
 
-add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${GLAD_LIBRARY})
+add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
 
 # state that anybody linking to us needs to include the current source dir
 # to find MathFunctions.h, while we don't.
@@ -175,7 +173,7 @@ target_link_libraries(Tilc PUBLIC Tilc_compiler_flags)
 set_target_properties(Tilc PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
 	"$<BUILD_INTERFACE:${SDL3_INCLUDE_DIR}>"
-	"$<BUILD_INTERFACE:${GLAD_INCLUDE_DIR}>"
+	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
 	"$<BUILD_INTERFACE:${GLM_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${ASSIMP_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${MYSQL_INCLUDE_DIR}>"
