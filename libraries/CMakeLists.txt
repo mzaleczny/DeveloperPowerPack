@@ -144,8 +144,6 @@ set(sdl3_ttf_DIR "./cmake")
 find_package(sdl3_ttf REQUIRED)
 set(sdl3_net_DIR "./cmake")
 find_package(sdl3_net REQUIRED)
-set(assimp_DIR "./cmake")
-find_package(assimp REQUIRED)
 set(mysql_DIR "./cmake")
 find_package(mysql REQUIRED)
 
@@ -153,20 +151,58 @@ include(FetchContent)
 message("***********************************************************************")
 message("Checking for **zlib** and downloading it when no found")
 message("***********************************************************************")
-FetchContent_Declare(external-zlib
+FetchContent_Declare(external_zlib
     GIT_REPOSITORY https://github.com/madler/zlib.git
     GIT_TAG v1.3.2
     FIND_PACKAGE_ARGS NAMES zlib
 )
+FetchContent_MakeAvailable(external_zlib)
+if(NOT TARGET ZLIB::ZLIB)
+    add_library(ZLIB::ZLIB INTERFACE IMPORTED)
+    target_include_directories(ZLIB::ZLIB INTERFACE
+        ${external_zlib_SOURCE_DIR}
+        ${external_zlib_BINARY_DIR}
+    )
+    target_link_libraries(ZLIB::ZLIB INTERFACE zlibstatic)
+endif()
+# 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
+set(ZLIB_INCLUDE_DIR "${external_zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
+set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
+
 message("***********************************************************************")
 message("Checking for **glm** and downloading it when no found")
 message("***********************************************************************")
-FetchContent_Declare(glm
-    GIT_REPOSITORY https://github.com/g-truc/glm.git
-    GIT_TAG 1.0.3
-)
+find_package(glm CONFIG QUIET)
+# Wymuś, że glm NIE buduje biblioteki, nawet jeśli coś (np. Assimp) to zmienia
+set(GLM_BUILD_LIBRARY OFF CACHE BOOL "" FORCE)
+set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
+if(NOT TARGET glm::glm)
+    FetchContent_Declare(external_glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG 1.0.3
+    )
+    FetchContent_MakeAvailable(external_glm)
+endif()
+# KEY CONDITION — alias for Assimp to not broke our config
+if(TARGET glm::glm AND NOT TARGET glm)
+    add_library(glm INTERFACE)
+    target_link_libraries(glm INTERFACE glm::glm)
+endif()
 
-FetchContent_MakeAvailable(external-zlib glm)
+message("***********************************************************************")
+message("Checking for **assimp** and downloading it when no found")
+message("***********************************************************************")
+FetchContent_Declare(external_assimp
+    GIT_REPOSITORY https://github.com/assimp/assimp.git
+    GIT_TAG        v6.0.5
+    FIND_PACKAGE_ARGS NAMES assimp
+)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
+set(ASSIMP_USE_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
+set(ASSIMP_USE_EXTERNAL_GLM ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(external_assimp)
 
 
 set(GLOBAL_LIB_DIR "f:/libs")
@@ -192,13 +228,8 @@ target_include_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
 	"$<BUILD_INTERFACE:${GLOBAL_LIB_DIR}/include>"
 )
 target_link_options(Tilc PRIVATE "${SetSubsystem}")
-target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} ${ASSIMP_LIBRARY} ${MYSQL_LIBRARY} glm::glm ZLIB::ZLIB)
+target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} assimp::assimp ${MYSQL_LIBRARY} glm::glm ZLIB::ZLIB)
 
 # define the symbol stating we are using the declspec(dllexport) when
 # building on windows
 target_compile_definitions(Tilc PRIVATE "EXPORTING_TILC")
-
-add_custom_command(TARGET ${PROJECT_NAME}
-	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/Tilc.dll" "f:/libs/Tilc.dll"
-)
