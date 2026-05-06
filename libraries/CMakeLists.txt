@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.28.0)
 
 # set the project name and version
 project(Tilc VERSION 1.0)
@@ -134,20 +134,11 @@ set(SetSubsystem "/SUBSYSTEM:WINDOWS")
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 
-set(sdl3_DIR "./cmake")
-find_package(sdl3 REQUIRED)
-set(sdl3_image_DIR "./cmake")
-find_package(sdl3_image REQUIRED)
-set(sdl3_mixer_DIR "./cmake")
-find_package(sdl3_mixer REQUIRED)
-set(sdl3_ttf_DIR "./cmake")
-find_package(sdl3_ttf REQUIRED)
-set(sdl3_net_DIR "./cmake")
-find_package(sdl3_net REQUIRED)
-set(mysql_DIR "./cmake")
-find_package(mysql REQUIRED)
+
 
 include(FetchContent)
+
+
 message("***********************************************************************")
 message("Checking for **zlib** and downloading it when no found")
 message("***********************************************************************")
@@ -170,6 +161,77 @@ set(ZLIB_INCLUDE_DIR "${external_zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
 set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
 
 message("***********************************************************************")
+message("Checking for **libpng** and downloading it when no found")
+message("***********************************************************************")
+
+FetchContent_Declare(external_libpng
+    GIT_REPOSITORY https://github.com/pnggroup/libpng.git
+    GIT_TAG v1.6.58
+    FIND_PACKAGE_ARGS NAMES png
+)
+set(PNG_SHARED ON CACHE BOOL "" FORCE)
+set(PNG_STATIC OFF CACHE BOOL "" FORCE)
+set(PNG_TESTS OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(external_libpng)
+
+
+message("***********************************************************************")
+message("Checking for **SDL3** and downloading it when no found")
+message("***********************************************************************")
+FetchContent_Declare(external_sdl3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.4.8
+    FIND_PACKAGE_ARGS NAMES sdl3
+)
+FetchContent_MakeAvailable(external_sdl3)
+
+message("***********************************************************************")
+message("Checking for **SDL3_image** and downloading it when no found")
+message("***********************************************************************")
+set(SDLIMAGE_PNG ON)
+set(SDLIMAGE_BACKEND_PNG OFF)
+set(SDLIMAGE_ZLIB ON)
+set(SDLIMAGE_BACKEND_ZLIB OFF)
+# Uncomment line below if you does not have nasm installed and do not want to install it. It required to compile avif image format support
+set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(external_sdl3_image
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+    GIT_TAG release-3.2.4
+    FIND_PACKAGE_ARGS NAMES sdl3_image
+)
+FetchContent_MakeAvailable(external_sdl3_image)
+# Patch SDL_image to disable internal libpng and zlib as we have zlib in our dependencies
+set(_sdlimage_cmake "${external_sdl3_image_SOURCE_DIR}/CMakeLists.txt")
+file(READ "${_sdlimage_cmake}" _sdlimage_cmake_content)
+# Usuń pobieranie libpng
+string(REPLACE "add_subdirectory(external/libpng external/libpng-build EXCLUDE_FROM_ALL)" "#add_subdirectory!!(external/libpng external/libpng-build EXCLUDE_FROM_ALL) # patched: removed libpng" _sdlimage_cmake_content "${_sdlimage_cmake_content}")
+# Usuń pobieranie zlib (jeśli występuje)
+string(REPLACE "add_subdirectory(external/zlib external/zlib-build EXCLUDE_FROM_ALL)" "#add_subdirectory!!(external/zlib external/zlib-build EXCLUDE_FROM_ALL) # patched: removed zlib" _sdlimage_cmake_content "${_sdlimage_cmake_content}")
+file(WRITE "${_sdlimage_cmake}" "${_sdlimage_cmake_content}")
+
+
+message("***********************************************************************")
+message("Checking for **SDL3_mixer** and downloading it when no found")
+message("***********************************************************************")
+FetchContent_Declare(external_sdl3_mixer
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+    GIT_TAG release-3.2.0
+    FIND_PACKAGE_ARGS NAMES sdl3_mixer
+)
+FetchContent_MakeAvailable(external_sdl3_mixer)
+
+message("***********************************************************************")
+message("Checking for **SDL3_ttf** and downloading it when no found")
+message("***********************************************************************")
+FetchContent_Declare(external_sdl3_ttf
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+    GIT_TAG release-3.2.2
+    FIND_PACKAGE_ARGS NAMES sdl3_ttf
+)
+FetchContent_MakeAvailable(external_sdl3_ttf)
+
+message("***********************************************************************")
 message("Checking for **glm** and downloading it when no found")
 message("***********************************************************************")
 find_package(glm CONFIG QUIET)
@@ -189,6 +251,8 @@ if(TARGET glm::glm AND NOT TARGET glm)
     target_link_libraries(glm INTERFACE glm::glm)
 endif()
 
+
+
 message("***********************************************************************")
 message("Checking for **assimp** and downloading it when no found")
 message("***********************************************************************")
@@ -205,13 +269,76 @@ set(ASSIMP_USE_EXTERNAL_GLM ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(external_assimp)
 
 
-set(GLOBAL_LIB_DIR "f:/libs")
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(TilcBinDir "x64-Debug")
-else()
-    set(TilcBinDir "x64-Release")
+#[=[
+message("***********************************************************************")
+message("Checking for **mariadbc** and downloading it when no found")
+message("***********************************************************************")
+FetchContent_Declare(external_mariadbc
+    GIT_REPOSITORY https://github.com/mariadb-corporation/mariadb-connector-c.git
+    GIT_TAG        v3.4.8
+    FIND_PACKAGE_ARGS NAMES mariadbc
+)
+set(WITH_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(WITH_SSL OFF CACHE BOOL "" FORCE)
+set(WITH_MSI OFF CACHE BOOL "" FORCE)
+set(WITH_PV OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(external_mariadbc)
+
+
+
+message("***********************************************************************")
+message("Checking for **mariadb-connector-cpp** and downloading it when no found")
+message("***********************************************************************")
+find_package(MariaDBConnector QUIET)
+
+if(NOT TARGET MariaDB::mariadbcpp)
+    # Patch MariaDB connector to greater version as its original value fails during configuration
+    FetchContent_Declare(external_mariadbcpp
+        GIT_REPOSITORY https://github.com/mariadb-corporation/mariadb-connector-cpp.git
+        GIT_TAG 1.1.7
+        FIND_PACKAGE_ARGS NAMES mariadbcpp
+    )
+
+    # 1. Pobierz źródła, ale NIE konfiguruj projektu
+    FetchContent_Populate(external_mariadbcpp)
+    # 2. Patch: podnieś minimalną wersję CMake
+    set(_mariadb_cmake "${external_mariadbcpp_SOURCE_DIR}/CMakeLists.txt")
+
+    file(READ "${_mariadb_cmake}" _content)
+    string(REPLACE
+        "CMAKE_MINIMUM_REQUIRED(VERSION 3.1)"
+        "CMAKE_MINIMUM_REQUIRED(VERSION 3.28)"
+        _content
+        "${_content}"
+    )
+    # Patch 2: usuń wininstall
+#    string(REPLACE
+#        "add_subdirectory(wininstall)"
+#        "# patched out: add_subdirectory(wininstall)"
+#        _content
+#        "${_content}"
+#    )
+    file(WRITE "${_mariadb_cmake}" "${_content}")
+
+    set(WITH_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
+    set(WITH_MSI OFF CACHE BOOL "" FORCE)
+    set(MARIADB_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(MARIADB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+    # 3. Dodaj projekt ręcznie
+    add_subdirectory(
+        ${external_mariadbcpp_SOURCE_DIR}
+        ${external_mariadbcpp_BINARY_DIR}
+    )
+    FetchContent_MakeAvailable(external_mariadbcpp)
+    # 4. Dodaj alias, żeby mieć spójny target
+    if(NOT TARGET MariaDB::mariadbcpp)
+        add_library(MariaDB::mariadbcpp ALIAS mariadbcpp)
+    endif()
 endif()
+#]=]
+
 
 add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
@@ -220,16 +347,9 @@ add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Til
 target_link_libraries(Tilc PUBLIC Tilc_compiler_flags)
 set_target_properties(Tilc PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
-	"$<BUILD_INTERFACE:${SDL3_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
-	"$<BUILD_INTERFACE:${ASSIMP_INCLUDE_DIR}>"
-	"$<BUILD_INTERFACE:${MYSQL_INCLUDE_DIR}>"
 	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
-	"$<BUILD_INTERFACE:${GLOBAL_LIB_DIR}/include>"
 )
 target_link_options(Tilc PRIVATE "${SetSubsystem}")
-target_link_libraries(Tilc PUBLIC Tilc_compiler_flags ${SDL3_LIBRARY} ${SDL3_IMAGE_LIBRARY} ${SDL3_TTF_LIBRARY} ${SDL3_MIXER_LIBRARY} assimp::assimp ${MYSQL_LIBRARY} glm::glm ZLIB::ZLIB)
-
-# define the symbol stating we are using the declspec(dllexport) when
-# building on windows
-target_compile_definitions(Tilc PRIVATE "EXPORTING_TILC")
+#target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp MariaDB::MariaDB MariaDB::mariadbcpp glm::glm ZLIB::ZLIB)
+target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB)

@@ -1,7 +1,7 @@
 #pragma once
 
 #if defined(_WIN32)
-#  if defined(EXPORTING_TILC)
+#  if defined(DLL_EXPORT)
 #    define DECLSPEC __declspec(dllexport)
 #  else
 #    define DECLSPEC __declspec(dllimport)
