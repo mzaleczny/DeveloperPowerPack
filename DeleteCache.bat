@@ -1,11 +1,4 @@
-rmdir /S /Q libraries\.vs\libraries
-del libraries\.vs\cmake.db
-del "libraries\.vs\CMake Overview"
-del libraries\.vs\ProjectSettings.json
-del libraries\.vs\slnx.sqlite
-del libraries\.vs\tasks.vs.json
-del libraries\.vs\VSWorkspaceState.json
-del libraries\.vs\CMakeWorkspaceSettings.json
+rmdir /S /Q libraries\.vs
 rmdir /S /Q libraries\out
 
 rmdir /S /Q SDL3\01_Renderer\.vs\01_Renderer

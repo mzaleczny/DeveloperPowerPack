@@ -17,5 +17,11 @@ on VFAT partition, then before you open it in VS you should:
    This is required because VFAT does not handle users permissions opposite to NTFS and Linux filesystems. And git forces this requirement on
    when the directory is not added to safe.directory. Without this step Tilc library does not fetch dependency libraries and not compile on vfat.
 
+The library depends on following libraries and theirs dependencies:
+sdl3, sdl3_image, sdl3_mixer, sdl3_ttf, zlib, glm, mixer
+If you have them properly installed on your system then building script detects them and uses for Tilc compilation. Otherwise (usually for Windows users)
+the libraries will be downloaded from github.com and configured and builded automatically during Tilc building process. So regardless of your configuration
+all building process should work out of the box.
+
 If you wish to have a significant way to direct developing the library in specified direction then feel free to contact me at:
 mzaleczny@gmail.com
