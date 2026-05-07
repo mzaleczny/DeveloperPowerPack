@@ -115,6 +115,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     X = CurrentColumnX;
     RenderSvgTile("textfield-selection", { X, Y, 1, 20 }, false, true);
     AddY(20, 0);
+    RenderButtons("multiline-textfield", 75, 50);
+    AddY(7 * 50, 0);
+    X = CurrentColumnX;
 
     SDL_SetRenderTarget(renderer, nullptr);
 
@@ -149,7 +152,7 @@ void SaveTextureToFile(SDL_Texture* Texture)
 
 std::string FindThemeDir()
 {
-    return "f:/sources/vs/cpp/_commercial_/DeveloperPowerPack/examples/07_Gui/assets/themes/Blue";
+    return "d:/repos/DeveloperPowerPack/examples/07_Gui/assets/themes/Blue";
     /*
     std::string Dir = fs::current_path().string();
     bool Found = false;
