@@ -140,96 +140,109 @@ include(FetchContent)
 
 
 message("***********************************************************************")
-message("Checking for **zlib** and downloading it when no found")
-message("***********************************************************************")
-FetchContent_Declare(external_zlib
-    GIT_REPOSITORY https://github.com/madler/zlib.git
-    GIT_TAG v1.3.2
-    FIND_PACKAGE_ARGS NAMES zlib
-)
-FetchContent_MakeAvailable(external_zlib)
-if(NOT TARGET ZLIB::ZLIB)
-    add_library(ZLIB::ZLIB INTERFACE IMPORTED)
-    target_include_directories(ZLIB::ZLIB INTERFACE
-        ${external_zlib_SOURCE_DIR}
-        ${external_zlib_BINARY_DIR}
-    )
-    target_link_libraries(ZLIB::ZLIB INTERFACE zlibstatic)
-endif()
-# 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
-set(ZLIB_INCLUDE_DIR "${external_zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
-set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
-
-message("***********************************************************************")
-message("Checking for **libpng** and downloading it when no found")
-message("***********************************************************************")
-
-FetchContent_Declare(external_libpng
-    GIT_REPOSITORY https://github.com/pnggroup/libpng.git
-    GIT_TAG v1.6.58
-    FIND_PACKAGE_ARGS NAMES png
-)
-set(PNG_SHARED ON CACHE BOOL "" FORCE)
-set(PNG_STATIC OFF CACHE BOOL "" FORCE)
-set(PNG_TESTS OFF CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(external_libpng)
-
-
-message("***********************************************************************")
 message("Checking for **SDL3** and downloading it when no found")
 message("***********************************************************************")
-FetchContent_Declare(external_sdl3
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.4.8
-    FIND_PACKAGE_ARGS NAMES sdl3
-)
-FetchContent_MakeAvailable(external_sdl3)
+find_package(sdl3 CONFIG QUIET)
+if(NOT TARGET SDL3::SDL3)
+    FetchContent_Populate(external_sdl3
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG release-3.4.8
+    )
+    # Teraz dopiero konfiguruj
+    add_subdirectory(
+        ${external_sdl3_SOURCE_DIR}
+        ${external_sdl3_BINARY_DIR}
+    )
+endif()
 
 message("***********************************************************************")
 message("Checking for **SDL3_image** and downloading it when no found")
 message("***********************************************************************")
-set(SDLIMAGE_PNG ON)
-set(SDLIMAGE_BACKEND_PNG OFF)
-set(SDLIMAGE_ZLIB ON)
-set(SDLIMAGE_BACKEND_ZLIB OFF)
-# Uncomment line below if you does not have nasm installed and do not want to install it. It required to compile avif image format support
-set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(external_sdl3_image
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-    GIT_TAG release-3.2.4
-    FIND_PACKAGE_ARGS NAMES sdl3_image
-)
-FetchContent_MakeAvailable(external_sdl3_image)
-# Patch SDL_image to disable internal libpng and zlib as we have zlib in our dependencies
-set(_sdlimage_cmake "${external_sdl3_image_SOURCE_DIR}/CMakeLists.txt")
-file(READ "${_sdlimage_cmake}" _sdlimage_cmake_content)
-# Usuń pobieranie libpng
-string(REPLACE "add_subdirectory(external/libpng external/libpng-build EXCLUDE_FROM_ALL)" "#add_subdirectory!!(external/libpng external/libpng-build EXCLUDE_FROM_ALL) # patched: removed libpng" _sdlimage_cmake_content "${_sdlimage_cmake_content}")
-# Usuń pobieranie zlib (jeśli występuje)
-string(REPLACE "add_subdirectory(external/zlib external/zlib-build EXCLUDE_FROM_ALL)" "#add_subdirectory!!(external/zlib external/zlib-build EXCLUDE_FROM_ALL) # patched: removed zlib" _sdlimage_cmake_content "${_sdlimage_cmake_content}")
-file(WRITE "${_sdlimage_cmake}" "${_sdlimage_cmake_content}")
+find_package(sdl3_image CONFIG QUIET)
+if(NOT TARGET SDL3_image::SDL3_image)
+    set(SDLIMAGE_PNG_LIBPNG ON CACHE BOOL "" FORCE)
+    set(SDLIMAGE_PNG_VENDORED OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_ZLIB_VENDORED OFF CACHE BOOL "" FORCE)
+    # Uncomment line below if you does not have nasm installed and do not want to install it. It required to compile avif image format support
+    set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
+
+    FetchContent_Populate(external_sdl3_image
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+        GIT_TAG release-3.4.4
+    )
+
+    # Teraz dopiero konfiguruj SDL_image
+    add_subdirectory(
+        ${external_sdl3_image_SOURCE_DIR}
+        ${external_sdl3_image_BINARY_DIR}
+    )
+    # SDL_image buduje vendored zlib i libpng.
+    # Wystawiamy je jako globalne targety, żeby cały projekt mógł ich używać.
+
+    if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    endif()
+else()
+    # Our own zlib we add/download only if SDL_image was not donloaded because it requires its inner zlib
+    message("***********************************************************************")
+    message("Checking for **zlib** and downloading it when no found")
+    message("***********************************************************************")
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_STATIC ON  CACHE BOOL "" FORCE)
+    FetchContent_Declare(external_zlib
+        GIT_REPOSITORY https://github.com/madler/zlib.git
+        GIT_TAG v1.3.2
+        FIND_PACKAGE_ARGS NAMES zlib
+    )
+    FetchContent_MakeAvailable(external_zlib)
+    if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    elseif(TARGET zlib AND NOT TARGET ZLIB::ZLIB)
+        add_library(ZLIB::ZLIB ALIAS zlib)
+    endif()
+    # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
+    set(ZLIB_INCLUDE_DIR "${external_zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
+    set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
+endif()
+
 
 
 message("***********************************************************************")
 message("Checking for **SDL3_mixer** and downloading it when no found")
 message("***********************************************************************")
-FetchContent_Declare(external_sdl3_mixer
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-    GIT_TAG release-3.2.0
-    FIND_PACKAGE_ARGS NAMES sdl3_mixer
-)
-FetchContent_MakeAvailable(external_sdl3_mixer)
+find_package(sdl3_mixer CONFIG QUIET)
+if(NOT TARGET SDL3_mixer::SDL3_mixer)
+    FetchContent_Populate(external_sdl3_mixer
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+        GIT_TAG release-3.2.0
+    )
+    # Teraz dopiero konfiguruj
+    add_subdirectory(
+        ${external_sdl3_mixer_SOURCE_DIR}
+        ${external_sdl3_mixer_BINARY_DIR}
+    )
+endif()
+
+
 
 message("***********************************************************************")
 message("Checking for **SDL3_ttf** and downloading it when no found")
 message("***********************************************************************")
-FetchContent_Declare(external_sdl3_ttf
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
-    GIT_TAG release-3.2.2
-    FIND_PACKAGE_ARGS NAMES sdl3_ttf
-)
-FetchContent_MakeAvailable(external_sdl3_ttf)
+find_package(sdl3_ttf CONFIG QUIET)
+if(NOT TARGET SDL3_ttf::SDL3_ttf)
+    FetchContent_Populate(external_sdl3_ttf
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+        GIT_TAG release-3.2.2
+    )
+    # Teraz dopiero konfiguruj
+    add_subdirectory(
+        ${external_sdl3_ttf_SOURCE_DIR}
+        ${external_sdl3_ttf_BINARY_DIR}
+    )
+endif()
+
+
 
 message("***********************************************************************")
 message("Checking for **glm** and downloading it when no found")
@@ -239,11 +252,15 @@ find_package(glm CONFIG QUIET)
 set(GLM_BUILD_LIBRARY OFF CACHE BOOL "" FORCE)
 set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
 if(NOT TARGET glm::glm)
-    FetchContent_Declare(external_glm
+    FetchContent_Populate(external_glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
         GIT_TAG 1.0.3
     )
-    FetchContent_MakeAvailable(external_glm)
+    # Teraz dopiero konfiguruj
+    add_subdirectory(
+        ${external_glm_SOURCE_DIR}
+        ${external_glm_BINARY_DIR}
+    )
 endif()
 # KEY CONDITION — alias for Assimp to not broke our config
 if(TARGET glm::glm AND NOT TARGET glm)
@@ -256,17 +273,23 @@ endif()
 message("***********************************************************************")
 message("Checking for **assimp** and downloading it when no found")
 message("***********************************************************************")
-FetchContent_Declare(external_assimp
-    GIT_REPOSITORY https://github.com/assimp/assimp.git
-    GIT_TAG        v6.0.5
-    FIND_PACKAGE_ARGS NAMES assimp
-)
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
-set(ASSIMP_USE_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
-set(ASSIMP_USE_EXTERNAL_GLM ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(external_assimp)
+find_package(assimp CONFIG QUIET)
+if(NOT TARGET assimp::assimp)
+    FetchContent_Populate(external_assimp
+        GIT_REPOSITORY https://github.com/assimp/assimp.git
+        GIT_TAG        v6.0.5
+    )
+    # Teraz dopiero konfiguruj
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_USE_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
+    set(ASSIMP_USE_EXTERNAL_GLM ON CACHE BOOL "" FORCE)
+    add_subdirectory(
+        ${external_assimp_SOURCE_DIR}
+        ${external_assimp_BINARY_DIR}
+    )
+endif()
 
 
 
