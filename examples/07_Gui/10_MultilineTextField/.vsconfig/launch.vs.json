@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "10_MultilineTextField.exe",
+      "name": "10_MultilineTextField.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}
