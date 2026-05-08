@@ -182,6 +182,9 @@ if(NOT TARGET SDL3_image::SDL3_image)
     if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
         add_library(ZLIB::ZLIB ALIAS zlibstatic)
     endif()
+    # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
+    set(ZLIB_INCLUDE_DIR "${external_sdl3_image_BINARY_DIR}/external/zlib" CACHE PATH "" FORCE)
+    set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
 else()
     # Our own zlib we add/download only if SDL_image was not donloaded because it requires its inner zlib
     message("***********************************************************************")
@@ -285,6 +288,8 @@ if(NOT TARGET assimp::assimp)
     set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
     set(ASSIMP_USE_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
     set(ASSIMP_USE_EXTERNAL_GLM ON CACHE BOOL "" FORCE)
+    # KLUCZOWE: wyłącz instalację/export assimp
+    set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
     add_subdirectory(
         ${external_assimp_SOURCE_DIR}
         ${external_assimp_BINARY_DIR}
