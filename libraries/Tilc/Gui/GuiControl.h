@@ -51,7 +51,8 @@ namespace Tilc {
             ECT_Slider,
             ECT_Button,
             ECT_Label,
-            ECT_TextField
+            ECT_TextField,
+            ECT_MultilineTextField
         };
 
         enum class EControlBorderType
@@ -527,6 +528,16 @@ namespace Tilc {
                 const SDL_FRect& left_pushed_focused_rc, const SDL_FRect& middle_pushed_focused_rc, const SDL_FRect& right_pushed_focused_rc,
                 const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc,
                 const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc
+            );
+
+            void DrawCommonComplex(
+                const SDL_FRect& top_left_rc, const SDL_FRect& top_middle_rc, const SDL_FRect& top_right_rc, const SDL_FRect& inner_left_rc, const SDL_FRect& inner_right_rc, const SDL_FRect& bottom_left_rc, const SDL_FRect& bottom_middle_rc, const SDL_FRect& bottom_right_rc,
+                const SDL_FRect& top_left_disabled_rc, const SDL_FRect& top_middle_disabled_rc, const SDL_FRect& top_right_disabled_rc, const SDL_FRect& inner_left_disabled_rc, const SDL_FRect& inner_right_disabled_rc, const SDL_FRect& bottom_left_disabled_rc, const SDL_FRect& bottom_middle_disabled_rc, const SDL_FRect& bottom_right_disabled_rc,
+                const SDL_FRect& top_left_focused_rc, const SDL_FRect& top_middle_focused_rc, const SDL_FRect& top_right_focused_rc, const SDL_FRect& inner_left_focused_rc, const SDL_FRect& inner_right_focused_rc, const SDL_FRect& bottom_left_focused_rc, const SDL_FRect& bottom_middle_focused_rc, const SDL_FRect& bottom_right_focused_rc,
+                const SDL_FRect& top_left_hover_focused_rc, const SDL_FRect& top_middle_hover_focused_rc, const SDL_FRect& top_right_hover_focused_rc, const SDL_FRect& inner_left_hover_focused_rc, const SDL_FRect& inner_right_hover_focused_rc, const SDL_FRect& bottom_left_hover_focused_rc, const SDL_FRect& bottom_middle_hover_focused_rc, const SDL_FRect& bottom_right_hover_focused_rc,
+                const SDL_FRect& top_left_pushed_focused_rc, const SDL_FRect& top_middle_pushed_focused_rc, const SDL_FRect& top_right_pushed_focused_rc, const SDL_FRect& inner_left_pushed_focused_rc, const SDL_FRect& inner_right_pushed_focused_rc, const SDL_FRect& bottom_left_pushed_focused_rc, const SDL_FRect& bottom_middle_pushed_focused_rc, const SDL_FRect& bottom_right_pushed_focused_rc,
+                const SDL_FRect& top_left_hover_rc, const SDL_FRect& top_middle_hover_rc, const SDL_FRect& top_right_hover_rc, const SDL_FRect& inner_left_hover_rc, const SDL_FRect& inner_right_hover_rc, const SDL_FRect& bottom_left_hover_rc, const SDL_FRect& bottom_middle_hover_rc, const SDL_FRect& bottom_right_hover_rc,
+                const SDL_FRect& top_left_pushed_rc, const SDL_FRect& top_middle_pushed_rc, const SDL_FRect& top_right_pushed_rc, const SDL_FRect& inner_left_pushed_rc, const SDL_FRect& inner_right_pushed_rc, const SDL_FRect& bottom_left_pushed_rc, const SDL_FRect& bottom_middle_pushed_rc, const SDL_FRect& bottom_right_pushed_rc
             );
 
             bool IsCaretMovingKey(unsigned int virtualCode);

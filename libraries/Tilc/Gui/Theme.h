@@ -171,6 +171,7 @@ namespace Tilc {
             SDL_FRect slider_vertical_rail_middle_rc;
             SDL_FRect slider_vertical_rail_bottom_rc;
 
+
             // Bitmapy textfield
             SDL_FRect textfield_left_rc;
             SDL_FRect textfield_right_rc;
@@ -202,6 +203,73 @@ namespace Tilc {
             SDL_FRect textfield_middle_pushed_focused_rc;
 
             SDL_FRect textfield_selection_rc;
+
+
+            // Bitmapy multiline_textfield
+            SDL_FRect multiline_textfield_top_left_rc;
+            SDL_FRect multiline_textfield_top_right_rc;
+            SDL_FRect multiline_textfield_top_middle_rc;
+            SDL_FRect multiline_textfield_inner_left_rc;
+            SDL_FRect multiline_textfield_inner_right_rc;
+            SDL_FRect multiline_textfield_bottom_left_rc;
+            SDL_FRect multiline_textfield_bottom_right_rc;
+            SDL_FRect multiline_textfield_bottom_middle_rc;
+
+            SDL_FRect multiline_textfield_top_left_focused_rc;
+            SDL_FRect multiline_textfield_top_right_focused_rc;
+            SDL_FRect multiline_textfield_top_middle_focused_rc;
+            SDL_FRect multiline_textfield_inner_left_focused_rc;
+            SDL_FRect multiline_textfield_inner_right_focused_rc;
+            SDL_FRect multiline_textfield_bottom_left_focused_rc;
+            SDL_FRect multiline_textfield_bottom_right_focused_rc;
+            SDL_FRect multiline_textfield_bottom_middle_focused_rc;
+
+            SDL_FRect multiline_textfield_top_left_disabled_rc;
+            SDL_FRect multiline_textfield_top_right_disabled_rc;
+            SDL_FRect multiline_textfield_top_middle_disabled_rc;
+            SDL_FRect multiline_textfield_inner_left_disabled_rc;
+            SDL_FRect multiline_textfield_inner_right_disabled_rc;
+            SDL_FRect multiline_textfield_bottom_left_disabled_rc;
+            SDL_FRect multiline_textfield_bottom_right_disabled_rc;
+            SDL_FRect multiline_textfield_bottom_middle_disabled_rc;
+
+            SDL_FRect multiline_textfield_top_left_hover_rc;
+            SDL_FRect multiline_textfield_top_right_hover_rc;
+            SDL_FRect multiline_textfield_top_middle_hover_rc;
+            SDL_FRect multiline_textfield_inner_left_hover_rc;
+            SDL_FRect multiline_textfield_inner_right_hover_rc;
+            SDL_FRect multiline_textfield_bottom_left_hover_rc;
+            SDL_FRect multiline_textfield_bottom_right_hover_rc;
+            SDL_FRect multiline_textfield_bottom_middle_hover_rc;
+
+            SDL_FRect multiline_textfield_top_left_hover_focused_rc;
+            SDL_FRect multiline_textfield_top_right_hover_focused_rc;
+            SDL_FRect multiline_textfield_top_middle_hover_focused_rc;
+            SDL_FRect multiline_textfield_inner_left_hover_focused_rc;
+            SDL_FRect multiline_textfield_inner_right_hover_focused_rc;
+            SDL_FRect multiline_textfield_bottom_left_hover_focused_rc;
+            SDL_FRect multiline_textfield_bottom_right_hover_focused_rc;
+            SDL_FRect multiline_textfield_bottom_middle_hover_focused_rc;
+
+            SDL_FRect multiline_textfield_top_left_pushed_rc;
+            SDL_FRect multiline_textfield_top_right_pushed_rc;
+            SDL_FRect multiline_textfield_top_middle_pushed_rc;
+            SDL_FRect multiline_textfield_inner_left_pushed_rc;
+            SDL_FRect multiline_textfield_inner_right_pushed_rc;
+            SDL_FRect multiline_textfield_bottom_left_pushed_rc;
+            SDL_FRect multiline_textfield_bottom_right_pushed_rc;
+            SDL_FRect multiline_textfield_bottom_middle_pushed_rc;
+
+            SDL_FRect multiline_textfield_top_left_pushed_focused_rc;
+            SDL_FRect multiline_textfield_top_right_pushed_focused_rc;
+            SDL_FRect multiline_textfield_top_middle_pushed_focused_rc;
+            SDL_FRect multiline_textfield_inner_left_pushed_focused_rc;
+            SDL_FRect multiline_textfield_inner_right_pushed_focused_rc;
+            SDL_FRect multiline_textfield_bottom_left_pushed_focused_rc;
+            SDL_FRect multiline_textfield_bottom_right_pushed_focused_rc;
+            SDL_FRect multiline_textfield_bottom_middle_pushed_focused_rc;
+
+            SDL_Color multiline_textfield_inner_bg{ 255, 255, 255, 255 };
 
             // Bitmapy button
             SDL_FRect button_left_rc;
@@ -311,6 +379,7 @@ namespace Tilc {
             void LoadScrollBarSkinResources(Tilc::TExtString themeName);
             void LoadSliderSkinResources(Tilc::TExtString themeName);
             void LoadTextFieldSkinResources(Tilc::TExtString themeName);
+            void LoadMultilineTextFieldSkinResources(Tilc::TExtString themeName);
             void LoadButtonSkinResources(Tilc::TExtString themeName);
             void LoadCheckboxSkinResources(Tilc::TExtString themeName);
             void LoadListboxSkinResources(Tilc::TExtString themeName);
@@ -329,6 +398,11 @@ namespace Tilc {
             void initAttributes();
             SDL_Color getIniColorValue(Tilc::TExtString settings_fname, WCHAR_T* ini_varname);
             */
+            void CreateComplexRects(const SDL_FRect& LeftRc, const SDL_FRect& MiddleRc, const SDL_FRect& RightRc,
+                SDL_FRect& TopLeftRc, SDL_FRect& TopMiddleRc, SDL_FRect& TopRightRc,
+                SDL_FRect& InnerLeftRc, SDL_FRect& InnerRightRc,
+                SDL_FRect& BottomLeftRc, SDL_FRect& BottomMiddleRc, SDL_FRect& BottomRightRc
+            );
         };
     }
 }

@@ -17,6 +17,7 @@ namespace Tilc
         {
         public:
             TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const TExtString& text = "", bool tabStop = true);
+            TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, const TExtString& text = "", bool tabStop = true);
             virtual ~TTextField();
 
             // Funkcje obsługi zdarzeń
@@ -178,6 +179,8 @@ namespace Tilc
 
             virtual void MoveCaretOneCharLeft();
             virtual void MoveCaretOneCharRight();
+
+            void CommonInit(const Tilc::TExtString& text);
         };
 
     }

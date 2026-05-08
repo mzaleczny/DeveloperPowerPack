@@ -1634,6 +1634,150 @@ void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& left_rc, const SDL_FRec
     // ================================================================
 }
 
+void Tilc::Gui::TGuiControl::DrawCommonComplex(
+    const SDL_FRect& top_left_rc, const SDL_FRect& top_middle_rc, const SDL_FRect& top_right_rc, const SDL_FRect& inner_left_rc, const SDL_FRect& inner_right_rc, const SDL_FRect& bottom_left_rc, const SDL_FRect& bottom_middle_rc, const SDL_FRect& bottom_right_rc,
+    const SDL_FRect& top_left_disabled_rc, const SDL_FRect& top_middle_disabled_rc, const SDL_FRect& top_right_disabled_rc, const SDL_FRect& inner_left_disabled_rc, const SDL_FRect& inner_right_disabled_rc, const SDL_FRect& bottom_left_disabled_rc, const SDL_FRect& bottom_middle_disabled_rc, const SDL_FRect& bottom_right_disabled_rc,
+    const SDL_FRect& top_left_focused_rc, const SDL_FRect& top_middle_focused_rc, const SDL_FRect& top_right_focused_rc, const SDL_FRect& inner_left_focused_rc, const SDL_FRect& inner_right_focused_rc, const SDL_FRect& bottom_left_focused_rc, const SDL_FRect& bottom_middle_focused_rc, const SDL_FRect& bottom_right_focused_rc,
+    const SDL_FRect& top_left_hover_focused_rc, const SDL_FRect& top_middle_hover_focused_rc, const SDL_FRect& top_right_hover_focused_rc, const SDL_FRect& inner_left_hover_focused_rc, const SDL_FRect& inner_right_hover_focused_rc, const SDL_FRect& bottom_left_hover_focused_rc, const SDL_FRect& bottom_middle_hover_focused_rc, const SDL_FRect& bottom_right_hover_focused_rc,
+    const SDL_FRect& top_left_pushed_focused_rc, const SDL_FRect& top_middle_pushed_focused_rc, const SDL_FRect& top_right_pushed_focused_rc, const SDL_FRect& inner_left_pushed_focused_rc, const SDL_FRect& inner_right_pushed_focused_rc, const SDL_FRect& bottom_left_pushed_focused_rc, const SDL_FRect& bottom_middle_pushed_focused_rc, const SDL_FRect& bottom_right_pushed_focused_rc,
+    const SDL_FRect& top_left_hover_rc, const SDL_FRect& top_middle_hover_rc, const SDL_FRect& top_right_hover_rc, const SDL_FRect& inner_left_hover_rc, const SDL_FRect& inner_right_hover_rc, const SDL_FRect& bottom_left_hover_rc, const SDL_FRect& bottom_middle_hover_rc, const SDL_FRect& bottom_right_hover_rc,
+    const SDL_FRect& top_left_pushed_rc, const SDL_FRect& top_middle_pushed_rc, const SDL_FRect& top_right_pushed_rc, const SDL_FRect& inner_left_pushed_rc, const SDL_FRect& inner_right_pushed_rc, const SDL_FRect& bottom_left_pushed_rc, const SDL_FRect& bottom_middle_pushed_rc, const SDL_FRect& bottom_right_pushed_rc
+)
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+    SDL_Texture* TextureMap = t->GuiTextureMap1;
+    Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
+    SDL_FRect rc, DestRect;
+    SDL_FRect Position{ GetRealPosition() };
+    float x{}, y{};
+
+    SDL_FRect ctrl_top_left_rc = top_left_rc;
+    SDL_FRect ctrl_top_middle_rc = top_middle_rc;
+    SDL_FRect ctrl_top_right_rc = top_right_rc;
+    SDL_FRect ctrl_inner_left_rc = inner_left_rc;
+    SDL_FRect ctrl_inner_right_rc = inner_right_rc;
+    SDL_FRect ctrl_bottom_left_rc = bottom_left_rc;
+    SDL_FRect ctrl_bottom_middle_rc = bottom_middle_rc;
+    SDL_FRect ctrl_bottom_right_rc = bottom_right_rc;
+
+    if (m_State & CONTROL_STATE_DISABLED)
+    {
+        ctrl_top_left_rc = top_left_disabled_rc;
+        ctrl_top_middle_rc = top_middle_disabled_rc;
+        ctrl_top_right_rc = top_right_disabled_rc;
+        ctrl_inner_left_rc = inner_left_disabled_rc;
+        ctrl_inner_right_rc = inner_right_disabled_rc;
+        ctrl_bottom_left_rc = bottom_left_disabled_rc;
+        ctrl_bottom_middle_rc = bottom_middle_disabled_rc;
+        ctrl_bottom_right_rc = bottom_right_disabled_rc;
+    }
+    else if (m_State & CONTROL_STATE_FOCUSED)
+    {
+        ctrl_top_left_rc = top_left_focused_rc;
+        ctrl_top_middle_rc = top_middle_focused_rc;
+        ctrl_top_right_rc = top_right_focused_rc;
+        ctrl_inner_left_rc = inner_left_focused_rc;
+        ctrl_inner_right_rc = inner_right_focused_rc;
+        ctrl_bottom_left_rc = bottom_left_focused_rc;
+        ctrl_bottom_middle_rc = bottom_middle_focused_rc;
+        ctrl_bottom_right_rc = bottom_right_focused_rc;
+        if (m_State & CONTROL_STATE_HOVER)
+        {
+            ctrl_top_left_rc = top_left_hover_focused_rc;
+            ctrl_top_middle_rc = top_middle_hover_focused_rc;
+            ctrl_top_right_rc = top_right_hover_focused_rc;
+            ctrl_inner_left_rc = inner_left_hover_focused_rc;
+            ctrl_inner_right_rc = inner_right_hover_focused_rc;
+            ctrl_bottom_left_rc = bottom_left_hover_focused_rc;
+            ctrl_bottom_middle_rc = bottom_middle_hover_focused_rc;
+            ctrl_bottom_right_rc = bottom_right_hover_focused_rc;
+        }
+        else if (m_State & CONTROL_STATE_PUSHED)
+        {
+            ctrl_top_left_rc = top_left_pushed_focused_rc;
+            ctrl_top_middle_rc = top_middle_pushed_focused_rc;
+            ctrl_top_right_rc = top_right_pushed_focused_rc;
+            ctrl_inner_left_rc = inner_left_pushed_focused_rc;
+            ctrl_inner_right_rc = inner_right_pushed_focused_rc;
+            ctrl_bottom_left_rc = bottom_left_pushed_focused_rc;
+            ctrl_bottom_middle_rc = bottom_middle_pushed_focused_rc;
+            ctrl_bottom_right_rc = bottom_right_pushed_focused_rc;
+        }
+    }
+    else if (m_State & CONTROL_STATE_HOVER)
+    {
+        ctrl_top_left_rc = top_left_hover_rc;
+        ctrl_top_middle_rc = top_middle_hover_rc;
+        ctrl_top_right_rc = top_right_hover_rc;
+        ctrl_inner_left_rc = inner_left_hover_rc;
+        ctrl_inner_right_rc = inner_right_hover_rc;
+        ctrl_bottom_left_rc = bottom_left_hover_rc;
+        ctrl_bottom_middle_rc = bottom_middle_hover_rc;
+        ctrl_bottom_right_rc = bottom_right_hover_rc;
+    }
+    else if (m_State & CONTROL_STATE_PUSHED)
+    {
+        ctrl_top_left_rc = top_left_pushed_rc;
+        ctrl_top_middle_rc = top_middle_pushed_rc;
+        ctrl_top_right_rc = top_right_pushed_rc;
+        ctrl_inner_left_rc = inner_left_pushed_rc;
+        ctrl_inner_right_rc = inner_right_pushed_rc;
+        ctrl_bottom_left_rc = bottom_left_pushed_rc;
+        ctrl_bottom_middle_rc = bottom_middle_pushed_rc;
+        ctrl_bottom_right_rc = bottom_right_pushed_rc;
+    }
+    float middle_width = Position.w - ctrl_top_left_rc.w - ctrl_top_left_rc.w;
+    float middle_height = Position.h - ctrl_top_left_rc.h - ctrl_top_left_rc.h;
+
+    // ================================================================
+    // Rysujemy tło
+    // ================================================================
+    // TOP
+    // 
+    // top left
+    RenderTexture(TextureMap, &ctrl_top_left_rc, x, y);
+    x += ctrl_top_left_rc.w;
+    // top middle
+    rc = { Position.x + x, Position.y + y, middle_width, ctrl_top_middle_rc.h };
+    RenderTiledTexture(TextureMap, &ctrl_top_middle_rc, &rc);
+    x += middle_width;
+    // top right
+    RenderTexture(TextureMap, &ctrl_top_right_rc, x, y);
+
+    x = 0.0f;
+    y = ctrl_top_middle_rc.h;
+
+    // INNER
+    // inner left
+    rc = { Position.x + x, Position.y + y, ctrl_inner_left_rc.w, middle_height };
+    RenderTiledTexture(TextureMap, &ctrl_inner_left_rc, &rc);
+    // inner bg
+    rc = { Position.x + x + ctrl_inner_left_rc.w, Position.y + y, middle_width, middle_height };
+    SDL_SetRenderDrawColor(Renderer, t->multiline_textfield_inner_bg.r, t->multiline_textfield_inner_bg.g, t->multiline_textfield_inner_bg.b, t->multiline_textfield_inner_bg.a);
+    SDL_RenderFillRect(Renderer, &rc);
+    // inner right
+    rc = { Position.x + x + ctrl_inner_left_rc.w + middle_width, Position.y + y, ctrl_inner_right_rc.w, middle_height };
+    RenderTiledTexture(TextureMap, &ctrl_inner_right_rc, &rc);
+    y += rc.h;
+
+
+    // BOTTOM
+    // 
+    // bottom left
+    RenderTexture(TextureMap, &ctrl_bottom_left_rc, x, y);
+    x += ctrl_bottom_left_rc.w;
+    // bottom middle
+    rc = { Position.x + x, Position.y + y, middle_width, ctrl_bottom_middle_rc.h };
+    RenderTiledTexture(TextureMap, &ctrl_bottom_middle_rc, &rc);
+    x += middle_width;
+    // bottom right
+    RenderTexture(TextureMap, &ctrl_bottom_right_rc, x, y);
+    // ================================================================
+    // Koniec rysowania tła
+    // ================================================================
+}
+
 bool Tilc::Gui::TGuiControl::IsCaretMovingKey(unsigned int virtualCode)
 {
     return virtualCode == SDLK_LEFT || virtualCode == SDLK_RIGHT || virtualCode == SDLK_UP || virtualCode == SDLK_DOWN || virtualCode == SDLK_HOME || virtualCode == SDLK_END;

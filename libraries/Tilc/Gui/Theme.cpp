@@ -54,6 +54,7 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     this->LoadButtonSkinResources(name);
     this->LoadSliderSkinResources(name);
     this->LoadTextFieldSkinResources(name);
+    this->LoadMultilineTextFieldSkinResources(name);
 
     this->LoadPanelSkinResources(name);
     this->LoadMenuSkinResources(name);
@@ -492,6 +493,143 @@ void Tilc::Gui::TTheme::LoadTextFieldSkinResources(Tilc::TExtString themeName)
     }
 }
 
+void Tilc::Gui::TTheme::LoadMultilineTextFieldSkinResources(Tilc::TExtString themeName)
+{
+    if (GameObject)
+    {
+        Tilc::TExtString Line;
+
+        SDL_FRect textfield_left_rc;
+        SDL_FRect textfield_right_rc;
+        SDL_FRect textfield_middle_rc;
+
+        SDL_FRect textfield_left_focused_rc;
+        SDL_FRect textfield_right_focused_rc;
+        SDL_FRect textfield_middle_focused_rc;
+
+        SDL_FRect textfield_left_disabled_rc;
+        SDL_FRect textfield_right_disabled_rc;
+        SDL_FRect textfield_middle_disabled_rc;
+
+        SDL_FRect textfield_left_hover_rc;
+        SDL_FRect textfield_right_hover_rc;
+        SDL_FRect textfield_middle_hover_rc;
+
+        SDL_FRect textfield_left_hover_focused_rc;
+        SDL_FRect textfield_right_hover_focused_rc;
+        SDL_FRect textfield_middle_hover_focused_rc;
+
+
+        SDL_FRect textfield_left_pushed_rc;
+        SDL_FRect textfield_right_pushed_rc;
+        SDL_FRect textfield_middle_pushed_rc;
+
+        SDL_FRect textfield_left_pushed_focused_rc;
+        SDL_FRect textfield_right_pushed_focused_rc;
+        SDL_FRect textfield_middle_pushed_focused_rc;
+
+        while (std::getline(LayoutInputStream, Line))
+        {
+            std::stringstream Keystream(Line);
+            Tilc::TExtString Item, sx, sy, sw, sh;
+            Keystream >> Item >> sx >> sy >> sw >> sh;
+            Item = Item.substr(0, Item.length() - 1);
+            sx = sx.substr(0, sx.length() - 1);
+            sy = sy.substr(0, sy.length() - 1);
+            sw = sw.substr(0, sw.length() - 1);
+            //sh = sh.substr(0, sh.length() - 1);
+
+            if (Item == "multiline-textfield_left_rc")
+                textfield_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_right_rc")
+                textfield_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_middle_rc")
+                textfield_middle_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_left_focused_rc")
+                textfield_left_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_right_focused_rc")
+                textfield_right_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_middle_focused_rc")
+                textfield_middle_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_left_disabled_rc")
+                textfield_left_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_right_disabled_rc")
+                textfield_right_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_middle_disabled_rc")
+                textfield_middle_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_left_hover_rc")
+                textfield_left_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_right_hover_rc")
+                textfield_right_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_middle_hover_rc")
+                textfield_middle_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_left_hover_focused_rc")
+                textfield_left_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_right_hover_focused_rc")
+                textfield_right_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_middle_hover_focused_rc")
+                textfield_middle_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_left_pushed_rc")
+                textfield_left_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_right_pushed_rc")
+                textfield_right_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_middle_pushed_rc")
+                textfield_middle_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_left_pushed_focused_rc")
+                textfield_left_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_right_pushed_focused_rc")
+                textfield_right_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "multiline-textfield_middle_pushed_focused_rc")
+            {
+                textfield_middle_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                break;
+            }
+        }
+
+        CreateComplexRects(textfield_left_rc, textfield_middle_rc, textfield_right_rc,
+            multiline_textfield_top_left_rc, multiline_textfield_top_middle_rc, multiline_textfield_top_right_rc,
+            multiline_textfield_inner_left_rc, multiline_textfield_inner_right_rc,
+            multiline_textfield_bottom_left_rc, multiline_textfield_bottom_middle_rc, multiline_textfield_bottom_right_rc
+        );
+
+        CreateComplexRects(textfield_left_focused_rc, textfield_middle_focused_rc, textfield_right_focused_rc,
+            multiline_textfield_top_left_focused_rc, multiline_textfield_top_middle_focused_rc, multiline_textfield_top_right_focused_rc,
+            multiline_textfield_inner_left_focused_rc, multiline_textfield_inner_right_focused_rc,
+            multiline_textfield_bottom_left_focused_rc, multiline_textfield_bottom_middle_focused_rc, multiline_textfield_bottom_right_focused_rc
+        );
+
+        CreateComplexRects(textfield_left_disabled_rc, textfield_middle_disabled_rc, textfield_right_disabled_rc,
+            multiline_textfield_top_left_disabled_rc, multiline_textfield_top_middle_disabled_rc, multiline_textfield_top_right_disabled_rc,
+            multiline_textfield_inner_left_disabled_rc, multiline_textfield_inner_right_disabled_rc,
+            multiline_textfield_bottom_left_disabled_rc, multiline_textfield_bottom_middle_disabled_rc, multiline_textfield_bottom_right_disabled_rc
+        );
+
+        CreateComplexRects(textfield_left_hover_rc, textfield_middle_hover_rc, textfield_right_hover_rc,
+            multiline_textfield_top_left_hover_rc, multiline_textfield_top_middle_hover_rc, multiline_textfield_top_right_hover_rc,
+            multiline_textfield_inner_left_hover_rc, multiline_textfield_inner_right_hover_rc,
+            multiline_textfield_bottom_left_hover_rc, multiline_textfield_bottom_middle_hover_rc, multiline_textfield_bottom_right_hover_rc
+        );
+
+        CreateComplexRects(textfield_left_hover_focused_rc, textfield_middle_hover_focused_rc, textfield_right_hover_focused_rc,
+            multiline_textfield_top_left_hover_focused_rc, multiline_textfield_top_middle_hover_focused_rc, multiline_textfield_top_right_hover_focused_rc,
+            multiline_textfield_inner_left_hover_focused_rc, multiline_textfield_inner_right_hover_focused_rc,
+            multiline_textfield_bottom_left_hover_focused_rc, multiline_textfield_bottom_middle_hover_focused_rc, multiline_textfield_bottom_right_hover_focused_rc
+        );
+
+        CreateComplexRects(textfield_left_pushed_rc, textfield_middle_pushed_rc, textfield_right_pushed_rc,
+            multiline_textfield_top_left_pushed_rc, multiline_textfield_top_middle_pushed_rc, multiline_textfield_top_right_pushed_rc,
+            multiline_textfield_inner_left_pushed_rc, multiline_textfield_inner_right_pushed_rc,
+            multiline_textfield_bottom_left_pushed_rc, multiline_textfield_bottom_middle_pushed_rc, multiline_textfield_bottom_right_pushed_rc
+        );
+
+        CreateComplexRects(textfield_left_pushed_focused_rc, textfield_middle_pushed_focused_rc, textfield_right_pushed_focused_rc,
+            multiline_textfield_top_left_pushed_focused_rc, multiline_textfield_top_middle_pushed_focused_rc, multiline_textfield_top_right_pushed_focused_rc,
+            multiline_textfield_inner_left_pushed_focused_rc, multiline_textfield_inner_right_pushed_focused_rc,
+            multiline_textfield_bottom_left_pushed_focused_rc, multiline_textfield_bottom_middle_pushed_focused_rc, multiline_textfield_bottom_right_pushed_focused_rc
+        );
+    }
+}
+
 void Tilc::Gui::TTheme::LoadButtonSkinResources(Tilc::TExtString themeName)
 {
     if (GameObject)
@@ -624,6 +762,51 @@ void Tilc::Gui::TTheme::LoadGridSkinResources(Tilc::TExtString themeName)
     this->commonGridControlSelectionBorderColor = this->_getIniColorValue(settings_fname, L"border_color_selection");
     this->commonGridControlFocusedGridBorderColor = this->_getIniColorValue(settings_fname, L"border_color_focused_grid");
     */
+}
+
+void Tilc::Gui::TTheme::CreateComplexRects(const SDL_FRect& LeftRc, const SDL_FRect& MiddleRc, const SDL_FRect& RightRc,
+    SDL_FRect& TopLeftRc, SDL_FRect& TopMiddleRc, SDL_FRect& TopRightRc,
+    SDL_FRect& InnerLeftRc, SDL_FRect& InnerRightRc,
+    SDL_FRect& BottomLeftRc, SDL_FRect& BottomMiddleRc, SDL_FRect& BottomRightRc
+)
+{
+    float TopH = 5.0f;
+    float BottomH = 5.0f;
+
+    TopLeftRc = LeftRc;
+    TopLeftRc.h = TopH;
+
+    TopMiddleRc = MiddleRc;
+    TopMiddleRc.h = TopH;
+
+    TopRightRc = RightRc;
+    TopRightRc.h = TopH;
+
+
+
+    InnerLeftRc = LeftRc;
+    InnerLeftRc.y += TopH;
+    InnerLeftRc.w = LeftRc.w;
+    InnerLeftRc.h = 1.0f;
+
+    InnerRightRc = RightRc;
+    InnerRightRc.y += TopH;
+    InnerRightRc.w = RightRc.w;
+    InnerRightRc.h = 1.0f;
+
+
+
+    BottomLeftRc = LeftRc;
+    BottomLeftRc.y += LeftRc.h - BottomH;
+    BottomLeftRc.h = BottomH;
+
+    BottomMiddleRc = MiddleRc;
+    BottomMiddleRc.y += LeftRc.h - BottomH;
+    BottomMiddleRc.h = BottomH;
+
+    BottomRightRc = RightRc;
+    BottomRightRc.y += LeftRc.h - BottomH;
+    BottomRightRc.h = BottomH;
 }
 
 void Tilc::Gui::TTheme::Unload()

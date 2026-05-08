@@ -11,8 +11,7 @@
 #include <cmath>
 #include <windows.h>
 
-Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const TExtString& text, bool tabStop)
-    : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_TextField, true)
+void Tilc::Gui::TTextField::CommonInit(const Tilc::TExtString& text)
 {
     Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
     m_Caret = Tilc::GameObject->GetContext()->m_Caret;
@@ -27,8 +26,21 @@ Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& n
     if (m_Position.w < min_width)
     {
         m_Position.w = min_width;
+        m_Position.w = min_width;
     }
     SetText(text);
+}
+
+Tilc::Gui::TTextField::TTextField(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool tabStop)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_TextField, true)
+{
+    CommonInit(text);
+}
+
+Tilc::Gui::TTextField::TTextField(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, const TExtString& text, bool tabStop)
+    : Tilc::Gui::TGuiControl(parent, name, position, ControlType, true)
+{
+    CommonInit(text);
 }
 
 Tilc::Gui::TTextField::~TTextField()
