@@ -15,7 +15,7 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
 
     Tilc::GameObject->AddFont("Label", t->GetThemeDir() +  "/fonts/Aller_Bd.ttf", 36.0f);
     Tilc::GameObject->InitGuiMode();
-
+    
     Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow = new Tilc::Gui::TStyledWindow(
         nullptr,
         "MainWindow",
@@ -54,10 +54,12 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     Y += 30.0f;
     txt = new Tilc::Gui::TTextField(wnd, "Text Field 11", { X, Y, 220, 25 }, "Wartość 11");
     Y += 30.0f;
-
+    
     Tilc::Gui::TMultilineTextField* memo;
     memo = new Tilc::Gui::TMultilineTextField(wnd, "Multiline Text Field 1", { 260, 60, 480, 325 },
-        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ "
+        "Linijka 1\nWartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ "
+        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ"
+        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ"
         "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ"
     );
 
