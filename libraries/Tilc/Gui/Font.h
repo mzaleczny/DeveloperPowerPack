@@ -3,6 +3,7 @@
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/ExtString.h"
 #include "SDL3/SDL.h"
+#include <unordered_map>
 
 struct TTF_Font;
 struct SDL_Renderer;
@@ -16,6 +17,10 @@ namespace Tilc::Gui
     constexpr const int Align_Top = 8;
     constexpr const int Align_Bottom = 16;
     constexpr const int Align_CenterVertical = 32;
+
+    using TCachedSize = std::pair<int, int>;
+    using TCachedTextSize = std::unordered_map<std::string, TCachedSize>;
+    using TTextSizeCache = std::unordered_map<float, TCachedTextSize>;
 
 	class DECLSPEC TFont
 	{
@@ -44,6 +49,8 @@ namespace Tilc::Gui
 		bool m_ReleaseFont = true;
         // Size to which wrap text. If set to 0 or negative then no wrapping is performed.
         int m_WrapTo{};
+    private:
+        static TTextSizeCache TextSizesCache;
 	};
 
 }

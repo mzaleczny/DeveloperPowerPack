@@ -4,6 +4,8 @@
 #include "SDL3/SDL.h"
 #include "SDL3_ttf/SDL_ttf.h"
 
+Tilc::Gui::TTextSizeCache Tilc::Gui::TFont::TextSizesCache;
+
 Tilc::Gui::TFont::TFont(const char* FontResourceName, float size, bool FromFile)
 {
 	size_t BufferSize;
@@ -216,19 +218,27 @@ void Tilc::Gui::TFont::GetTextSize(const char* String, int& Width, int& Height)
 {
 	Width = 0;
 	Height = 0;
+    std::string s = String;
+
+    if (TextSizesCache.find(m_Size) != TextSizesCache.end())
+    {
+        if (TextSizesCache[m_Size].find(s) != TextSizesCache[m_Size].end())
+        {
+            auto [w, h] = TextSizesCache[m_Size][s];
+            Width = w;
+            Height = h;
+            return;
+        }
+    }
 
 	Tilc::TExtString Utf8String(String);
-	// Jeśli w tekscie nie ma zadnej litery UTF-8 PL, to zakladamy ze jest kodowany w ANSI i konwertujemy go na UTF-8
-	if (!Utf8String.IsUtf8PL())
-	{
-		//Utf8String.AnsiToUtf8(String);
-	}
 
 	if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
 	{
 		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, Utf8String.c_str(), 0))
 		{
 			TTF_GetTextSize(Text, &Width, &Height);
+            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
 			TTF_DestroyText(Text);
 		}
 		TTF_DestroySurfaceTextEngine(Engine);
@@ -249,11 +259,24 @@ void Tilc::Gui::TFont::GetXCoordForCenteredText(const char* String, float Contai
 	x = 0.0f;
 
 	int Width = 0, Height = 0;
-	if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
+    std::string s = String;
+
+    if (TextSizesCache.find(m_Size) != TextSizesCache.end())
+    {
+        if (TextSizesCache[m_Size].find(s) != TextSizesCache[m_Size].end())
+        {
+            auto [Width, Height] = TextSizesCache[m_Size][s];
+            x = (ContainerWidth - Width) / 2.0f;
+            return;
+        }
+    }
+
+    if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
 	{
 		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, String, 0))
 		{
 			TTF_GetTextSize(Text, &Width, &Height);
+            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
 			x = (ContainerWidth - Width) / 2.0f;
 			TTF_DestroyText(Text);
 		}
@@ -267,11 +290,27 @@ void Tilc::Gui::TFont::GetGetRectForCenteredText(const char* String, float Conta
 
 
 	int Width = 0, Height = 0;
-	if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
+    std::string s = String;
+
+    if (TextSizesCache.find(m_Size) != TextSizesCache.end())
+    {
+        if (TextSizesCache[m_Size].find(s) != TextSizesCache[m_Size].end())
+        {
+            auto [Width, Height] = TextSizesCache[m_Size][s];
+            r.x = (ContainerWidth - Width) / 2.0f;
+            r.y = 0;
+            r.w = static_cast<float>(Width);
+            r.h = static_cast<float>(Height);
+            return;
+        }
+    }
+
+    if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
 	{
 		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, String, 0))
 		{
 			TTF_GetTextSize(Text, &Width, &Height);
+            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
 
 			r.x = (ContainerWidth - Width) / 2.0f;
 			r.y = 0;
