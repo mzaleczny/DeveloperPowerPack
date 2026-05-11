@@ -1077,10 +1077,6 @@ int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
         return -1;
     }
 
-    // zakładamy, że znak ma średnio 4 piksele, żeby później móc ograniczyć długość kopiowanego
-    // podłańcucha
-    int char_width = 2; // literka jak np. i może być jednopikselowa (ale do tego dochodzi minimum
-                        // jeden piksel odstępu.
     int inner_width = CalculateInnerWidth();
     if (max_inner_width > 0 && inner_width > max_inner_width)
     {
@@ -1091,26 +1087,44 @@ int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
     SDL_Rect size{};
     SDL_FPoint pt{};
 
-    Tilc::TExtString s = m_Text.substr(m_StartChar, m_Text.GetUtf8CharLength(m_StartChar));
+    Tilc::TExtString s = m_Text.substr(m_StartChar);
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     Tilc::Gui::TFont* Font = t->DefaultFont;
     Font->GetTextSize(s.c_str(), size.w, size.h);
 
-    if (size.w > inner_width)
+    // Jeśli tekst począwszy od m_StartChar do końca jest mieści się w wyświetlanym obszarze, to zwracamy ostatnią mozliwą pozycję
+    if (size.w <= inner_width)
     {
-        return m_StartChar;
+        return m_StartChar + s.length();
     }
 
-    int CurrentChar = m_StartChar + s.length();
-    while (size.w <= inner_width)
+    // Wyszukujemy mieszczącą się w kontrolce długość tekstu połówkowo, bo robienie tego znak po znaku powodowało straszne lagi w rysowaniu kontrolek przy dużej ilości pól tekstowych
+    // zawierających jakiekolwiek teksty
+    int Left = m_StartChar;
+    int Right = StrLen;
+    int Middle = (Left + Right) / 2;
+    while (Left < Right)
     {
-        s += m_Text.substr(CurrentChar, m_Text.GetUtf8CharsLength(CurrentChar, 10));
-        Font->GetTextSize(s.c_str(), size.w, size.h);
-        ++CurrentChar;
-        if (CurrentChar >= m_Text.length())
+        while (IsUtf8ContinuationByte(m_Text[Middle]))
         {
+            --Middle;
+        }
+        s = m_Text.substr(m_StartChar, Middle - m_StartChar);
+        Font->GetTextSize(s.c_str(), size.w, size.h);
+        if (size.w < inner_width)
+        {
+            Left = Middle + m_Text.GetUtf8CharLength(Middle);
+        }
+        else
+        {
+            Right = Middle - m_Text.GetPrecedingUtf8CharsLength(Middle, 1);
+        }
+        if (Left >= Right)
+        {
+            s = m_Text.substr(m_StartChar, Middle - m_StartChar);
             break;
         }
+        Middle = (Left + Right) / 2;
     }
     while (size.w > inner_width)
     {
