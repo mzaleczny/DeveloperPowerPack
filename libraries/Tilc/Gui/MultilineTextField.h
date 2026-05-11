@@ -3,6 +3,7 @@
 #include "Tilc/DllGlobals.h"
 #include "SDL3/SDL.h"
 #include "Tilc/Gui/TextField.h"
+#include <vector>
 
 namespace Tilc
 {
@@ -17,8 +18,15 @@ namespace Tilc
             virtual ~TMultilineTextField();
 
             virtual void Draw();
+            void DrawTextAndCacheIt();
+
+            int GetLastVisibleCharPosInLine(int StartChar);
+            virtual void PositionCaretNearClickedPoint(float localX, float localY);
+            virtual SDL_FPoint CalculateCaretPos() override;
 
         protected:
+            std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
+            int m_CurrentLine = 0;
         };
     }
 }

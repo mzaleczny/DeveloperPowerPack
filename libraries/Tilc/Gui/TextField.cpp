@@ -29,6 +29,7 @@ void Tilc::Gui::TTextField::CommonInit(const Tilc::TExtString& text)
         m_Position.w = min_width;
     }
     SetText(text);
+    SetCaretRect();
 }
 
 Tilc::Gui::TTextField::TTextField(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool tabStop)
@@ -1054,8 +1055,14 @@ SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRectForText(const Tilc::TExtS
 
 int Tilc::Gui::TTextField::CalculateInnerWidth()
 {
-    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    //TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     return m_Position.w - m_PaddingLeft - m_PaddingRight;
+}
+
+int Tilc::Gui::TTextField::CalculateInnerHeight()
+{
+    //TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    return m_Position.h - m_PaddingTop - m_PaddingBottom;
 }
 
 int Tilc::Gui::TTextField::GetMaxXPosAllowedForContent()
@@ -1082,10 +1089,8 @@ int Tilc::Gui::TTextField::GetLastVisibleCharPos(int max_inner_width)
     {
         inner_width = max_inner_width;
     }
-    int maxCopyChars = StrLen;//inner_width / char_width;
 
     SDL_Rect size{};
-    SDL_FPoint pt{};
 
     Tilc::TExtString s = m_Text.substr(m_StartChar);
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;

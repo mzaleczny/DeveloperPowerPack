@@ -175,6 +175,7 @@ namespace Tilc
             virtual bool CommonKeyProcessing(const SDL_Event& event, bool& updateCaretPos, bool& redraw);
 
             virtual int CalculateInnerWidth();
+            virtual int CalculateInnerHeight();
             virtual int GetMaxXPosAllowedForContent();
 
             virtual void MoveCaretOneCharLeft();
