@@ -47,7 +47,7 @@
 #include "Tilc/Utils/FileUtils.h"
 #include "Tilc/Utils/Profiler.h"
 #include "Tilc/Utils/StdObject.h"
-#include "Tilc/Utils/SystemUtils.h"
+#include "Tilc/OS/SystemUtils.h"
 #include "Tilc/Utils/Timer.h"
 #include "Tilc/Utils/Tree.h"
 #include "Tilc/Utils/Types.h"
