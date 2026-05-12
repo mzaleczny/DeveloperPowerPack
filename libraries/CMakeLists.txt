@@ -86,6 +86,10 @@ function(AddPlatformSpecificSourcesRecurse DIR)
         message(FATAL_ERROR "CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME} not supported.")
     endif()
 
+    file(GLOB _EXTRA_C LIST_DIRECTORIES true "${DIR}/*.c*")
+    file(GLOB _EXTRA_H LIST_DIRECTORIES true "${DIR}/*.h")
+    list(APPEND _SOURCES_OS ${_EXTRA_C})
+    list(APPEND _HEADERS_OS ${_EXTRA_H})
 
     get_property(FileList GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property)
     foreach (f ${_HEADERS_OS})
