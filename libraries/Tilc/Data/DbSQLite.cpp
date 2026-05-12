@@ -1,6 +1,6 @@
 #include "Tilc/Data/DbSQLite.h"
 #include "Tilc/Utils/ExtString.h"
-#include "Tilc/Utils/SystemUtils.h"
+#include "Tilc/OS/SystemUtils.h"
 #include "SDL3/SDL.h"
 
 Tilc::Data::TDBSQLite::TDBSQLite(const char* Filename)

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "Tilc/Utils/ExtString.h"
-#include <Tilc/Utils/SystemUtils.h>
+#include <Tilc/OS/SystemUtils.h>
 #include <Tilc/Utils/FileUtils.h>
 #include <Tilc/Utils/Crypto.h>
 #include "Tilc/Data/DataDbResources.h"
