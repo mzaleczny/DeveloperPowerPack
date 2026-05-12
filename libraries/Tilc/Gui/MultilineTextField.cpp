@@ -2,6 +2,8 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Caret.h"
+#include "Tilc/Gui/Clipboard.h"
+#include "Tilc/OS/SystemUtils.h"
 #include "Tilc/Game.h"
 
 Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool tabStop)
@@ -56,21 +58,18 @@ void Tilc::Gui::TMultilineTextField::Draw()
     // ================================================================
     // Rysujemy tekst
     // ================================================================
-    if (m_DisplayedLines.size() > 0)
+    if (m_RefreshDisplayLinesCache)
     {
-        SDL_FRect rc = GetRealPosition();
-        rc.x += m_PaddingLeft;
-        rc.y += m_PaddingTop;
-        rc.w = GetMaxXPosAllowedForContent() - rc.x - m_PaddingRight;
-        for (size_t i = 0; i < m_DisplayedLines.size(); ++i)
-        {
-            DefaultFont->DrawString(GetRenderer(), m_DisplayedLines[i].second.c_str(), &rc, Align_Left | Align_Top);
-            rc.y += m_Caret->m_Position.h;
-        }
+        UpdateDisplayLinesCache();
     }
-    else
+    SDL_FRect rc = GetRealPosition();
+    rc.x += m_PaddingLeft;
+    rc.y += m_PaddingTop;
+    rc.w = GetMaxXPosAllowedForContent() - rc.x - m_PaddingRight;
+    for (size_t i = 0; i < m_DisplayedLines.size(); ++i)
     {
-        DrawTextAndCacheIt();
+        DefaultFont->DrawString(GetRenderer(), m_DisplayedLines[i].second.c_str(), &rc, Align_Left | Align_Top);
+        rc.y += m_Caret->m_Position.h;
     }
     // ================================================================
     // Koniec rysowania tekstu
@@ -80,6 +79,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
     if (Tilc::GameObject->GetContext()->m_Caret)
     {
         Tilc::GameObject->GetContext()->m_Caret->Draw();
+        SDL_Log("%f", Tilc::GameObject->GetContext()->m_Caret->m_Position.x);
     }
 
     if (m_Canvas)
@@ -89,35 +89,39 @@ void Tilc::Gui::TMultilineTextField::Draw()
     m_NeedUpdate = ENeedUpdate::ENU_None;
 }
 
-void Tilc::Gui::TMultilineTextField::DrawTextAndCacheIt()
+void Tilc::Gui::TMultilineTextField::UpdateDisplayLinesCache()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     int InnerHeight = CalculateInnerHeight();
     int DisplayedLinesHeight = 0;
-    TFont* Font = t->DefaultFont;
-    Font->SetColor({ 0, 0, 0, 0 });
-    SDL_FRect rc = GetRealPosition();
-    rc.x += m_PaddingLeft;
-    rc.y += m_PaddingTop;
-    rc.w = GetMaxXPosAllowedForContent() - rc.x - m_PaddingRight;
-    int StartChar = m_StartChar;
-    int LastCharPos = GetLastVisibleCharPosInLine(m_StartChar);
-    Tilc::TExtString s = m_Text.substr(m_StartChar, LastCharPos - m_StartChar);
-    Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_Top);
+    int StartChar{};
+    int LastCharPos{};
 
-    m_DisplayedLines.clear();
-    m_DisplayedLines.emplace_back(m_StartChar, s);
+    if (m_DisplayedLines.size() == 0)
+    {
+        StartChar = m_StartChar;
+    }
+    else
+    {
+        StartChar = m_DisplayedLines[m_DisplayedLines.size() - 1].first + m_DisplayedLines[m_DisplayedLines.size() - 1].second.length();
+        DisplayedLinesHeight += m_DisplayedLines.size() * m_Caret->m_Position.h;
+    }
+    LastCharPos = GetLastVisibleCharPosInLine(StartChar);
 
+    Tilc::TExtString s = m_Text.substr(StartChar, LastCharPos - StartChar);
+    m_DisplayedLines.emplace_back(StartChar, s);
     DisplayedLinesHeight += m_Caret->m_Position.h;
     while (LastCharPos < m_Text.length() && DisplayedLinesHeight + m_Caret->m_Position.h <= InnerHeight)
     {
         StartChar = LastCharPos;
-        rc.y += m_Caret->m_Position.h;
         LastCharPos = GetLastVisibleCharPosInLine(StartChar);
-        Tilc::TExtString s = m_Text.substr(StartChar, LastCharPos - StartChar);
-        Font->DrawString(GetRenderer(), s.c_str(), &rc, Align_Left | Align_Top);
+        s = m_Text.substr(StartChar, LastCharPos - StartChar);
         m_DisplayedLines.emplace_back(StartChar, s);
     }
+
+    CalculateCaretPos();
+    UpdateCaretPos();
+    m_RefreshDisplayLinesCache = false;
 }
 
 int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
@@ -208,7 +212,7 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
 
 void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX, float localY)
 {
-    if (!m_Text.empty())
+    if (!m_Text.empty() && m_DisplayedLines.size() > 0)
     {
         Tilc::TExtString tmp;
         Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
@@ -222,10 +226,10 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
         // dokładnie między nimi.
         float deltaX = localX - (si.w + m_PaddingLeft);
         float lastDeltaX = localX - (si.w + m_PaddingLeft);
-        m_CurrentLine = std::clamp(static_cast<int>((localY - m_PaddingTop) / m_Caret->m_Position.h), 0, static_cast<int>(m_Position.h));
+        m_CurrentLine = std::clamp(static_cast<int>((localY - m_PaddingTop) / m_Caret->m_Position.h), 0, static_cast<int>(m_DisplayedLines.size() - 1));
         tmp = "";
-        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
         int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
+        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
         size_t strLen = CurrentLine.length();
         while (count < strLen && si.w + m_PaddingLeft < localX)
         {
@@ -250,7 +254,7 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
         }
         if (count > 0 && (lastDeltaX < deltaX))
         {
-            count--;
+            --count;
         }
         m_CaretAtChar = CurrentLineStartChar + count;
         while (m_CaretAtChar > 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar]))
@@ -270,23 +274,276 @@ SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCaretPos()
     if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
     {
         // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
-        int lettersBeforeCaret = m_CaretAtChar - m_DisplayedLines[m_CurrentLine].first;
+        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
+        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
+        int lettersBeforeCaret = m_CaretAtChar - CurrentLineStartChar;
         if (lettersBeforeCaret > 0)
         {
-            Tilc::TExtString s = m_Text.substr(m_StartChar, lettersBeforeCaret);
+            Tilc::TExtString s = CurrentLine.substr(0, lettersBeforeCaret);
             // Replace "\r\n" chars with space because they disturb text size calculation: returned size will bound more then one line of text
             std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (c == '\r' || c == '\n') ? ' ' : c; });
             Tilc::Gui::TFont* Font = t->DefaultFont;
             Font->GetTextSize(s.c_str(), size.w, size.h);
+            SDL_Log("CurrentLineStartChar: %d,  m_CaretAtChar: %d,  lettersBeforeCaret: %d,  size.w: %d,  str: %s", CurrentLineStartChar, m_CaretAtChar, lettersBeforeCaret, size.w, s.c_str());
         }
 
         if (m_Caret)
         {
             SDL_FRect RealPosition = GetRealPosition();
             pt.x = RealPosition.x + m_PaddingLeft + size.w;
-            pt.y = RealPosition.y + m_PaddingTop + size.h * m_CurrentLine;
+            pt.y = RealPosition.y + m_PaddingTop + m_Caret->m_Position.h * m_CurrentLine;
         }
     }
     return pt;
 
+}
+
+void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw)
+{
+    updateCaretPos = false;
+    redraw = false;
+
+    size_t strLen = m_Text.length();
+    if (strLen < 1)
+    {
+        return;
+    }
+
+    SDL_FPoint pt;
+    int inner_width = CalculateInnerWidth();
+    // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
+    int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
+    Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
+
+
+    if (vkKey == SDLK_RIGHT || vkKey == SDLK_LEFT)
+    {
+        __super::UpdateCursorPosition(vkKey, updateCaretPos, redraw);
+        return;
+    }
+
+    else if (vkKey == SDLK_UP)
+    {
+        if (m_CurrentLine > 0)
+        {
+            --m_CurrentLine;
+            m_Caret->m_Position.y -= m_Caret->m_Position.h;
+            PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
+        }
+    }
+
+    else if (vkKey == SDLK_DOWN)
+    {
+        if (m_CurrentLine < m_DisplayedLines.size() - 1)
+        {
+            ++m_CurrentLine;
+            m_Caret->m_Position.y += m_Caret->m_Position.h;
+            PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
+        }
+    }
+
+    else if (vkKey == SDLK_HOME)
+    {
+        if (m_CaretAtChar > 0)
+        {
+            m_CaretAtChar = CurrentLineStartChar;
+            updateCaretPos = true;
+            redraw = true;
+        }
+        return;
+    }
+
+    else if (vkKey == SDLK_END) {
+        if (CurrentLine.length() > 0)
+        {
+            if (m_CurrentLine < m_DisplayedLines.size() - 1)
+            {
+                m_CaretAtChar = CurrentLineStartChar + CurrentLine.length() - 1;
+                while (m_CaretAtChar > CurrentLineStartChar && m_CaretAtChar >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar]))
+                {
+                    --m_CaretAtChar;
+                }
+            }
+            else
+            {
+                m_CaretAtChar = CurrentLineStartChar + CurrentLine.length();
+            }
+
+            updateCaretPos = true;
+            redraw = true;
+        }
+        return;
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
+{
+    size_t strLen = m_Text.length();
+    int count = -1;
+
+    if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
+    {
+        // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
+        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
+        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
+
+        while (m_CaretAtChar + count < strLen && m_CaretAtChar + count >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
+        {
+            count -= 1;
+        }
+        if (m_CurrentLine > 0)
+        {
+            if (m_CaretAtChar + count < CurrentLineStartChar)
+            {
+                --m_CurrentLine;
+            }
+        }
+        m_CaretAtChar += count;
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
+{
+    size_t strLen = m_Text.length();
+    int count = 1;
+
+    if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
+    {
+        // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
+        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
+        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
+
+        while (static_cast<size_t>(m_CaretAtChar + count) < strLen && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
+        {
+            count += 1;
+        }
+        if (m_CurrentLine + 1 < m_DisplayedLines.size())
+        {
+            if (m_CaretAtChar + count >= m_DisplayedLines[m_CurrentLine + 1].first)
+            {
+                ++m_CurrentLine;
+            }
+        }
+        m_CaretAtChar += count;
+    }
+}
+
+SDL_FRect Tilc::Gui::TMultilineTextField::CalculateSelectionRectForText(const Tilc::TExtString& s)
+{
+    SDL_FRect rc{};
+
+    if ((m_SelStart < m_SelEnd) && (m_SelStart >= m_StartChar || m_SelEnd > m_StartChar))
+    {
+        SDL_FPoint pt;
+        SDL_FPoint LastGoodPt;
+        // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
+        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
+        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
+
+        int CurrentChar = m_SelStart;
+        if (CurrentChar < m_StartChar)
+        {
+            CurrentChar = m_StartChar;
+        }
+
+        int Result;
+        TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        pt = CalculateCharPos(CurrentChar, Result);
+        // jeśli na starcie jesteśmy poza wyświetlanym obszarem, to powrót
+        if (Result == -2 || Result == -1)
+        {
+            return rc;
+        }
+
+        rc.x = pt.x;
+        rc.y = pt.y;
+        rc.w = 0;
+        rc.h = t->textfield_selection_rc.h;
+
+        CurrentChar += m_Text.GetUtf8CharLength(CurrentChar);
+        LastGoodPt = pt;
+        pt = CalculateCharPos(CurrentChar, Result);
+        int InnerWidth = CalculateInnerWidth();
+        int MaxXPosAllowedForText = GetMaxXPosAllowedForContent();
+        while (CurrentChar < m_SelEnd && pt.x > 0 && pt.x <= MaxXPosAllowedForText)
+        {
+            CurrentChar += m_Text.GetUtf8CharLength(CurrentChar);
+            LastGoodPt = pt;
+            pt = CalculateCharPos(CurrentChar, Result);
+        }
+        if (pt.x > 0 && pt.x <= MaxXPosAllowedForText)
+        {
+            rc.w = pt.x - rc.x;
+        }
+        else
+        {
+            // UWAGA!!!
+            // W tym miejscu celowo nie ustawiamy wartości maxXPosAllowedForText, bo obszar
+            // zaznaczenia nie powinien wchodzić na prawy margines. Wyjątkiem jest sytuacja
+            // w której ostatnia wyświetlana litera wymusza takie zaznaczenie.
+            int MaxXAllowedForSelection = GetMaxXPosAllowedForContent();
+            CurrentChar -= 1;
+            char ch = '\0';
+            if (CurrentChar >= 0 && static_cast<unsigned int>(CurrentChar) < m_Text.length())
+            {
+                ch = m_Text[CurrentChar];
+            }
+            if (ch != '\0')
+            {
+                SDL_Rect size;
+                Tilc::Gui::TFont* Font = Tilc::GameObject->GetFont(FontNameInUse);
+                Font->GetTextSize(s.c_str(), size.w, size.h);
+
+                if (LastGoodPt.x + size.w <= MaxXPosAllowedForText)
+                {
+                    rc.w = LastGoodPt.x + size.w - rc.x;
+                }
+                else
+                {
+                    rc.w = MaxXAllowedForSelection - rc.x;
+                }
+            }
+            else
+            {
+                rc.w = MaxXAllowedForSelection - rc.x;
+            }
+        }
+    }
+
+    return rc;
+}
+
+bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
+{
+    bool updateCaretPos = false;
+    bool redraw = false;
+
+    __super::OnKeyDown(event);
+
+    if (event.key.key == SDLK_DELETE)
+    {
+        DeleteCacheFromCurrentLine();
+    }
+    else if (event.key.key == SDLK_BACKSPACE)
+    {
+        DeleteCacheFromCurrentLine();
+    }
+    return true;
+}
+
+bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
+{
+    __super::OnTextInput(event);
+    DeleteCacheFromCurrentLine();
+    return true;
+}
+
+void Tilc::Gui::TMultilineTextField::DeleteCacheFromCurrentLine()
+{
+    int LinesToDelete = static_cast<int>(m_DisplayedLines.size()) - m_CurrentLine;
+    for (int i = 0; i < LinesToDelete; ++i)
+    {
+        m_DisplayedLines.pop_back();
+        m_RefreshDisplayLinesCache = true;
+    }
 }
