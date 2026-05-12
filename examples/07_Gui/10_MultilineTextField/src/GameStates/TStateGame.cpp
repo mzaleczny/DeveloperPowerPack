@@ -57,10 +57,10 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     
     Tilc::Gui::TMultilineTextField* memo;
     memo = new Tilc::Gui::TMultilineTextField(wnd, "Multiline Text Field 1", { 260, 60, 480, 325 },
-        "Linijka 1\nWartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ "
-        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ"
-        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ"
-        "Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ"
+        "Linijka 1\nWartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ."
+        " Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ."
+        " Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ."
+        " Wartość 1 zawierająca długaśny tekst mający nam ułatwić testowanie zaznaczenia w kontrolce tekstowej. I trochę polskich literek: ąćżęńćłó ĄĆĘŁÓŃŚŹŻ."
     );
 
     Tilc::Gui::TButton* btnSave = new Tilc::Gui::TButton(wnd, "SaveButton", { X, Y, 100, 25 }, "Zapisz");
