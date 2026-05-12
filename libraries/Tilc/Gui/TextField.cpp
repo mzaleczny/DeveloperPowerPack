@@ -6,10 +6,10 @@
 #include "Tilc/Gui/Caret.h"
 #include "Tilc/Gui/Cursor.h"
 #include "Tilc/Gui/Clipboard.h"
+#include "Tilc/OS/SystemUtils.h"
 #include "Tilc/Game.h"
 #include <ctype.h>
 #include <cmath>
-#include <windows.h>
 
 void Tilc::Gui::TTextField::CommonInit(const Tilc::TExtString& text)
 {
@@ -495,7 +495,7 @@ void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updat
         return;
     }
 
-    if (vkKey == SDLK_LEFT)
+    else if (vkKey == SDLK_LEFT)
     {
         // jeśli nie jesteśmy na początku tekstu, to przetwarzamy zdarzenie
         if (m_CaretAtChar > 0)
@@ -532,7 +532,7 @@ void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updat
         return;
     }
 
-    if (vkKey == SDLK_HOME)
+    else if (vkKey == SDLK_HOME)
     {
         if (m_CaretAtChar > 0)
         {
@@ -544,7 +544,7 @@ void Tilc::Gui::TTextField::UpdateCursorPosition(unsigned int vkKey, bool& updat
         return;
     }
 
-    if (vkKey == SDLK_END) {
+    else if (vkKey == SDLK_END) {
         // jeśli jesteśmy już na końcu pola tekstowego, to nie podejmujemy żadnej akcji
         if (m_CaretAtChar == strLen)
         {
@@ -599,7 +599,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
         //CKeyboard* kbd = this->getKbd();
         bool processed = false;
         bool isCaretMovingKey = IsCaretMovingKey(event.key.key);
-        void* WindowHandle = ::GetActiveWindow();
+        void* WindowHandle = Tilc::OS::GetActiveWindowSystemHandle();
 
         bool vkControl = (event.key.mod & SDL_KMOD_CTRL) != 0;
         bool vkAlt = (event.key.mod & SDL_KMOD_ALT) != 0;
