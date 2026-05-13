@@ -78,7 +78,7 @@ void Tilc::Gui::TTextField::Draw()
     SDL_FRect SelRect{};
     if (m_SelStart < m_SelEnd)
     {
-        SelRect = CalculateSelectionRectForText(m_Text);
+        SelRect = CalculateSelectionRect();
         if (SelRect.w > 0)
         {
             RenderTiledTexture(TextureMap, &t->textfield_selection_rc, &SelRect);
@@ -695,7 +695,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
                         // jeśli mamy zaznaczenie to w przypadku naciśnięcia klawisza VK_RIGHT
                         // gwarantujemy, że jeśli kończy ono pole tekstowe to nie będzie mniejsze
                         // niż 4 piksele
-                        SDL_FRect rc = CalculateSelectionRectForText(m_Text);
+                        SDL_FRect rc = CalculateSelectionRect();
                         if (rc.x + rc.w >= GetMaxXPosAllowedForContent() && rc.w < 4)
                         {
                             m_StartChar += 3;
@@ -971,7 +971,7 @@ void Tilc::Gui::TTextField::DrawCaret()
     m_Caret->Draw();
 }
 
-SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRectForText(const Tilc::TExtString& s)
+SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRect()
 {
     SDL_FRect rc{};
 
@@ -1032,7 +1032,7 @@ SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRectForText(const Tilc::TExtS
             {
                 SDL_Rect size;
                 Tilc::Gui::TFont* Font = Tilc::GameObject->GetFont(FontNameInUse);
-                Font->GetTextSize(s.c_str(), size.w, size.h);
+                Font->GetTextSize(m_Text.c_str(), size.w, size.h);
 
                 if (LastGoodPt.x + size.w <= MaxXPosAllowedForText)
                 {

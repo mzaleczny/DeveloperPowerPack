@@ -161,7 +161,7 @@ namespace Tilc
 
             // Zwraca prostokąt położenia selekcji. Współrzędne tego prostokąta są liczone względem
             // początku tej kontrolki.
-            virtual SDL_FRect CalculateSelectionRectForText(const Tilc::TExtString& s);
+            virtual SDL_FRect CalculateSelectionRect();
 
             // poniższa funkcja odpowiada za ustawienie karetki najbliżej miejsca kliknięcia, ale tak by
             // znajdowała się między literami.
