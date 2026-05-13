@@ -1015,7 +1015,7 @@ size_t Tilc::TExtString::RemoveCharsWithCodeLessThan(int CharCode)
     return count;
 }
 
-int Tilc::TExtString::GetUtf8CharLength(size_t pos)
+int Tilc::TExtString::GetUtf8CharLength(size_t pos) const
 {
     int Len = 0;
     size_t CurrentLength = length();
@@ -1032,7 +1032,7 @@ int Tilc::TExtString::GetUtf8CharLength(size_t pos)
     return Len;
 }
 
-int Tilc::TExtString::GetUtf8CharsLength(size_t pos, int NumChars)
+int Tilc::TExtString::GetUtf8CharsLength(size_t pos, int NumChars) const
 {
     int Len = 0;
     size_t CurrentLength = length();
@@ -1053,7 +1053,7 @@ int Tilc::TExtString::GetUtf8CharsLength(size_t pos, int NumChars)
     return Len;
 }
 
-int Tilc::TExtString::GetPrecedingUtf8CharsLength(size_t pos, int NumChars)
+int Tilc::TExtString::GetPrecedingUtf8CharsLength(size_t pos, int NumChars) const
 {
     int Len = 0;
     size_t CurrentLength = length();

@@ -200,11 +200,11 @@ namespace Tilc
         // Removes single Utf8 char at current pos and returns bytes removed
         int DeleteSingleUtf8CharAtPos(size_t pos);
         // zwraca długość w bajtach znaku utf8 na pozycji pos
-        int GetUtf8CharLength(size_t pos);
+        int GetUtf8CharLength(size_t pos) const;
         // zwraca długość w bajtach NumChars kolejnych liter utf8 począwszy pozycji pos
-        int GetUtf8CharsLength(size_t pos, int NumChars);
+        int GetUtf8CharsLength(size_t pos, int NumChars) const;
         // zwraca długość w bajtach NumChars kolejnych liter utf8 bezpośrednio poprzedzających pozycję pos
-        int GetPrecedingUtf8CharsLength(size_t pos, int NumChars);
+        int GetPrecedingUtf8CharsLength(size_t pos, int NumChars) const;
         int TruncateUtf8AtEnd(size_t NumChars);
 
 		// dokleja na początku tego łańcucha odpowiedni element i zwraca referencję do tego łańcucha.
