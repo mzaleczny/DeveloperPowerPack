@@ -23,22 +23,24 @@ namespace Tilc
             int GetLastVisibleCharPosInLine(int StartChar);
             virtual void PositionCaretNearClickedPoint(float localX, float localY) override;
             virtual SDL_FPoint CalculateCaretPos() override;
+            virtual SDL_FPoint CalculateCharPos(int CurrentChar, int& Result) override;
+            virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw) override;
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw) override;
 
             virtual void MoveCaretOneCharLeft() override;
             virtual void MoveCaretOneCharRight() override;
 
-            virtual SDL_FRect CalculateSelectionRectForText(const Tilc::TExtString& s) override;
-
             // Funkcje obsługi zdarzeń
             virtual bool OnKeyDown(const SDL_Event& event) override;
             virtual bool OnTextInput(const SDL_Event& event) override;
 
+            std::vector<SDL_FRect> CalculateSelectionRects();
         protected:
             std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
             int m_CurrentLine = 0;
             bool m_RefreshDisplayLinesCache{true};
             void DeleteCacheFromCurrentLine();
+            int GetLineForCurrentCaretPos();
         };
     }
 }
