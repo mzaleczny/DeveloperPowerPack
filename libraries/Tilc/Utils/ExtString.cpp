@@ -25,7 +25,15 @@ const constexpr wchar_t* WORD_BOUNDARY_CHARS = L" \t.,;?!";
 
 
 int Tilc::TExtString::TExtString::LettersArray[] = {
-	' ', 'A', L'Ą', 'B', 'C', L'Ć', 'D', 'E', L'Ę', 'F', 'G', 'H', 'I', 'J', 'K', 'L', L'Ł', 'M', 'N', L'Ń', 'O', L'Ó', 'P', 'Q', 'R', 'S', L'Ś', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', L'Ź', L'Ż'
+	' ', 'A', 0xc484, //'Ą',
+    'B', 'C', 0xc486, //'Ć',
+    'D', 'E', 0xc498, //'Ę',
+    'F', 'G', 'H', 'I', 'J', 'K', 'L', 0xc581, //'Ł',
+    'M', 'N', 0xc583, //'Ń',
+    'O', 0xc393, //'Ó',
+    'P', 'Q', 'R', 'S', 0xc59a, //'Ś',
+    'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 0xc5b9, //'Ź',
+    0xc5bb //'Ż'
 };
 
 Tilc::TExtString Tilc::TExtString::UnshiftLeft(char ToChar)
