@@ -131,15 +131,6 @@ list(REMOVE_DUPLICATES Tilc_HEADERS_OS)
 list(REMOVE_DUPLICATES Tilc_SOURCES_OS)
 
 
-add_library(Tilc_compiler_flags INTERFACE)
-target_compile_features(Tilc_compiler_flags INTERFACE cxx_std_23)
-
-set(SetSubsystem "/SUBSYSTEM:WINDOWS")
-#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-
-
-
 include(FetchContent)
 
 
@@ -372,16 +363,50 @@ endif()
 #]=]
 
 
+add_library(${PROJECT_NAME}_compiler_flags INTERFACE)
+target_compile_features(${PROJECT_NAME}_compiler_flags INTERFACE cxx_std_23)
+set_target_properties(${PROJECT_NAME}_compiler_flags PROPERTIES CXX_EXTENSIONS OFF)
+
+set(SetSubsystem "/SUBSYSTEM:WINDOWS")
+#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
-add_library(Tilc SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
 
-target_link_libraries(Tilc PUBLIC Tilc_compiler_flags)
-set_target_properties(Tilc PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(Tilc PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
+
+
+add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
+
+target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags)
+set_target_properties("${PROJECT_NAME}Shared" PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
 	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
 	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
 )
-target_link_options(Tilc PRIVATE "${SetSubsystem}")
+target_link_options("${PROJECT_NAME}Shared" PRIVATE "${SetSubsystem}")
 #target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp MariaDB::MariaDB MariaDB::mariadbcpp glm::glm ZLIB::ZLIB)
-target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB)
+target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB)
+set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
+    EXPORT_LINK_INTERFACE_LIBRARIES OFF
+)
+set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
+    EXPORT_NAME "${PROJECT_NAME}Shared"
+)
+set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ""
+    INTERFACE_LINK_LIBRARIES ""
+)
+
+
+add_library(${PROJECT_NAME} INTERFACE)
+target_include_directories(${PROJECT_NAME} INTERFACE
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+    "$<INSTALL_INTERFACE:include>"
+)
+
+
+set(CmakeFile "${CMAKE_BINARY_DIR}/cmake/${PROJECT_NAME}.cmake")
+export(TARGETS ${PROJECT_NAME}
+       CXX_MODULES_DIRECTORY "modules"
+       FILE "${CmakeFile}"
+       NAMESPACE ${PROJECT_NAME}::
+)
