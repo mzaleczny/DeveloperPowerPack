@@ -574,6 +574,10 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     bool redraw{};
     bool processed{};
 
+    bool vkControl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+    bool vkAlt = (event.key.mod & SDL_KMOD_ALT) != 0;
+    bool vkShift = (event.key.mod & SDL_KMOD_SHIFT) != 0;
+
     if (event.key.key == SDLK_BACKSPACE)
     {
         // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
@@ -624,7 +628,6 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     }
 
 
-    bool vkControl = (event.key.mod & SDL_KMOD_CTRL) != 0;
     // For delete key we must refresh lines cache
     if (event.key.key == SDLK_DELETE)
     {
@@ -635,6 +638,25 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         DeleteCacheFromCurrentLine();
         UpdateDisplayLinesCache();
         m_CurrentLine = GetLineForCurrentCaretPos();
+        CalculateCaretPos();
+        UpdateCaretPos();
+    }
+    else if (vkControl && event.key.key == SDLK_HOME)
+    {
+        m_CurrentLine = 0;
+        m_CaretAtChar = 0;
+        DeleteCacheFromCurrentLine();
+        UpdateDisplayLinesCache();
+        CalculateCaretPos();
+        UpdateCaretPos();
+    }
+    else if (vkControl && event.key.key == SDLK_END)
+    {
+        m_CurrentLine = 0;
+        DeleteCacheFromCurrentLine();
+        UpdateDisplayLinesCache();
+        m_CurrentLine = m_DisplayedLines.size() - 1;
+        m_CaretAtChar = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
         CalculateCaretPos();
         UpdateCaretPos();
     }
