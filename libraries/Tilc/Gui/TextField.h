@@ -171,8 +171,6 @@ namespace Tilc
             virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw);
 
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw);
-            // Poniższa funkcja zwraca TRUE, jeśli przetworzyła klawisz i FALSE jeśli go zignorowała.
-            virtual bool CommonKeyProcessing(const SDL_Event& event, bool& updateCaretPos, bool& redraw);
 
             virtual int CalculateInnerWidth();
             virtual int CalculateInnerHeight();

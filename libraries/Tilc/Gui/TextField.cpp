@@ -549,190 +549,177 @@ bool Tilc::Gui::TTextField::AdjustStartCharForCaretAtChar()
     return true;
 }
 
-bool Tilc::Gui::TTextField::CommonKeyProcessing(const SDL_Event& event, bool& updateCaretPos, bool& redraw)
-{
-    updateCaretPos = false;
-    redraw = false;
-    return true;
-}
-
 bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
 {
     bool updateCaretPos = false;
     bool redraw = false;
 
-    // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    bool process = CommonKeyProcessing(event, updateCaretPos, redraw);
+    //CKeyboard* kbd = this->getKbd();
+    bool processed = false;
+    bool isCaretMovingKey = IsCaretMovingKey(event.key.key);
+    void* WindowHandle = Tilc::OS::GetActiveWindowSystemHandle();
 
-    if (process)
+    bool vkControl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+    bool vkAlt = (event.key.mod & SDL_KMOD_ALT) != 0;
+    bool vkShift = (event.key.mod & SDL_KMOD_SHIFT) != 0;
+
+    // najpierw obsługujemy domyślne skróty
+    if (!processed && vkControl && !vkAlt && !vkShift)
     {
-        //CKeyboard* kbd = this->getKbd();
-        bool processed = false;
-        bool isCaretMovingKey = IsCaretMovingKey(event.key.key);
-        void* WindowHandle = Tilc::OS::GetActiveWindowSystemHandle();
+        // obsługa Ctrl+A - Zaznacz wszystko
+        if (event.key.key == SDLK_A)
+        { // 'A'
+            SelectAll(false);
 
-        bool vkControl = (event.key.mod & SDL_KMOD_CTRL) != 0;
-        bool vkAlt = (event.key.mod & SDL_KMOD_ALT) != 0;
-        bool vkShift = (event.key.mod & SDL_KMOD_SHIFT) != 0;
-
-        // najpierw obsługujemy domyślne skróty
-        if (!processed && vkControl && !vkAlt && !vkShift)
-        {
-            // obsługa Ctrl+A - Zaznacz wszystko
-            if (event.key.key == SDLK_A)
-            { // 'A'
-                SelectAll(false);
-
-                processed = true;
-                redraw = true;
-                Invalidate();
-            }
-            // obsługa Ctrl+C - Kopiuj do schowka
-            else if (event.key.key == SDLK_C)
-            { // 'C'
-                if (GetSelectionLength() > 0)
-                {
-                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(WindowHandle, GetSelectedText());
-                }
-
-                Invalidate();
-                return true;
-            }
-            // obsługa Ctrl+X - Wytnij do schowka
-            else if (event.key.key == SDLK_X)
-            { // 'X'
-                if (GetSelectionLength() > 0)
-                {
-                    Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(WindowHandle, GetSelectedText());
-                    RemoveSelectedText(false);
-                    redraw = true;
-                }
-
-                processed = true;
-                // jeśli nic nie wycięliśmy, to powrót z funkcji
-                if (!redraw)
-                {
-                    return true;
-                }
-            }
-            // obsługa Ctrl+V - Wklej ze schowka
-            else if (event.key.key == SDLK_V)
-            { // 'V'
-                Tilc::TExtString s = Tilc::GameObject->GetContext()->m_Clipboard->GetTextFromClipboard(WindowHandle);
-                if (s.length() > 0)
-                {
-                    InsertText(s, false);
-                    updateCaretPos = true;
-                    redraw = true;
-                }
-
-                processed = true;
-                // jeśli nic nie wkleiliśmy, to powrót z funkcji
-                if (!redraw)
-                {
-                    return true;
-                }
-            }
+            processed = true;
+            redraw = true;
+            Invalidate();
         }
+        // obsługa Ctrl+C - Kopiuj do schowka
+        else if (event.key.key == SDLK_C)
+        { // 'C'
+            if (GetSelectionLength() > 0)
+            {
+                Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(WindowHandle, GetSelectedText());
+            }
 
-        // teraz obsługa Tabulatora - nawigacja między sprite'ami
-        if (!processed && event.key.key == SDLK_TAB)
-        {
+            Invalidate();
             return true;
         }
-        if (!processed && isCaretMovingKey)
-        {
-            int oldCaretAtChar = m_CaretAtChar;
-            UpdateCursorPosition(event.key.key, updateCaretPos, redraw);
-            Invalidate();
-            // jeśli nie jest wciśnięty Shift, to czyścimy zaznaczenie
-            if (!vkShift)
+        // obsługa Ctrl+X - Wytnij do schowka
+        else if (event.key.key == SDLK_X)
+        { // 'X'
+            if (GetSelectionLength() > 0)
             {
-                if (IsSelection())
-                {
-                    ClearSelection(false);
-                    redraw = true;
-                }
+                Tilc::GameObject->GetContext()->m_Clipboard->CopyTextToClipboard(WindowHandle, GetSelectedText());
+                RemoveSelectedText(false);
+                redraw = true;
             }
-            else
+
+            processed = true;
+            // jeśli nic nie wycięliśmy, to powrót z funkcji
+            if (!redraw)
             {
-                // jeśli pozycja kursora się zmieniła, to aktualizujemy zaznaczenie
-                if (oldCaretAtChar != m_CaretAtChar)
+                return true;
+            }
+        }
+        // obsługa Ctrl+V - Wklej ze schowka
+        else if (event.key.key == SDLK_V)
+        { // 'V'
+            Tilc::TExtString s = Tilc::GameObject->GetContext()->m_Clipboard->GetTextFromClipboard(WindowHandle);
+            if (s.length() > 0)
+            {
+                InsertText(s, false);
+                updateCaretPos = true;
+                redraw = true;
+            }
+
+            processed = true;
+            // jeśli nic nie wkleiliśmy, to powrót z funkcji
+            if (!redraw)
+            {
+                return true;
+            }
+        }
+    }
+
+    // teraz obsługa Tabulatora - nawigacja między sprite'ami
+    if (!processed && event.key.key == SDLK_TAB)
+    {
+        return true;
+    }
+    if (!processed && isCaretMovingKey)
+    {
+        int oldCaretAtChar = m_CaretAtChar;
+        UpdateCursorPosition(event.key.key, updateCaretPos, redraw);
+        Invalidate();
+        // jeśli nie jest wciśnięty Shift, to czyścimy zaznaczenie
+        if (!vkShift)
+        {
+            if (IsSelection())
+            {
+                ClearSelection(false);
+                redraw = true;
+            }
+        }
+        else
+        {
+            // jeśli pozycja kursora się zmieniła, to aktualizujemy zaznaczenie
+            if (oldCaretAtChar != m_CaretAtChar)
+            {
+                UpdateSelection(event.key.key, oldCaretAtChar, updateCaretPos, redraw);
+                if (event.key.key == SDLK_RIGHT && IsSelection())
                 {
-                    UpdateSelection(event.key.key, oldCaretAtChar, updateCaretPos, redraw);
-                    if (event.key.key == SDLK_RIGHT && IsSelection())
+                    // jeśli mamy zaznaczenie to w przypadku naciśnięcia klawisza VK_RIGHT
+                    // gwarantujemy, że jeśli kończy ono pole tekstowe to nie będzie mniejsze
+                    // niż 4 piksele
+                    SDL_FRect rc = CalculateSelectionRect();
+                    if (rc.x + rc.w >= GetMaxXPosAllowedForContent() && rc.w < 4)
                     {
-                        // jeśli mamy zaznaczenie to w przypadku naciśnięcia klawisza VK_RIGHT
-                        // gwarantujemy, że jeśli kończy ono pole tekstowe to nie będzie mniejsze
-                        // niż 4 piksele
-                        SDL_FRect rc = CalculateSelectionRect();
-                        if (rc.x + rc.w >= GetMaxXPosAllowedForContent() && rc.w < 4)
+                        m_StartChar += 3;
+                        while (m_StartChar < m_Text.length() && IsUtf8ContinuationByte(m_Text[m_StartChar]))
                         {
-                            m_StartChar += 3;
-                            while (m_StartChar < m_Text.length() && IsUtf8ContinuationByte(m_Text[m_StartChar]))
-                            {
-                                ++m_StartChar;
-                            }
-                            redraw = true;
+                            ++m_StartChar;
                         }
+                        redraw = true;
                     }
                 }
             }
-            processed = true;
         }
-        if (!processed && event.key.key == SDLK_DELETE)
+        processed = true;
+    }
+    if (!processed && event.key.key == SDLK_DELETE)
+    {
+        if (IsSelection())
+        {
+            RemoveSelectedText(false);
+        }
+        else if (static_cast<size_t>(m_CaretAtChar) < m_Text.length())
+        {
+            m_Text.DeleteSingleUtf8CharAtPos(m_CaretAtChar);
+        }
+        redraw = true;
+        processed = true;
+    }
+    if (!processed && event.key.key == SDLK_BACKSPACE)
+    {
+        if (m_CaretAtChar > 0 || IsSelection())
         {
             if (IsSelection())
             {
                 RemoveSelectedText(false);
             }
-            else if (static_cast<size_t>(m_CaretAtChar) < m_Text.length())
+            else
             {
-                m_Text.DeleteSingleUtf8CharAtPos(m_CaretAtChar);
-            }
-            redraw = true;
-            processed = true;
-        }
-        if (!processed && event.key.key == SDLK_BACKSPACE)
-        {
-            if (m_CaretAtChar > 0 || IsSelection())
-            {
-                if (IsSelection())
-                {
-                    RemoveSelectedText(false);
-                }
-                else
-                {
-                    // usuwamy poprzedni znak
-                    int BytesRemoved = m_Text.DeleteSingleUtf8CharBeforePos(m_CaretAtChar);
-                    // przesuwamy karetkę o jeden ilość usuniętych znaków w lewo
-                    m_CaretAtChar -= BytesRemoved;
+                // usuwamy poprzedni znak
+                int BytesRemoved = m_Text.DeleteSingleUtf8CharBeforePos(m_CaretAtChar);
+                // przesuwamy karetkę o jeden ilość usuniętych znaków w lewo
+                m_CaretAtChar -= BytesRemoved;
 
-                    // jeśli usunęliśmy pierwszy wyświetlany w polu tekstowym znak, to zmniejszamy
-                    // wartość pola this->_startChar tak, żeby widać było trochę tekstu ( i nie
-                    // powstało wrażenie, że nie ma już żadnych znaków)
-                    if (m_CaretAtChar - m_StartChar < 2)
+                // jeśli usunęliśmy pierwszy wyświetlany w polu tekstowym znak, to zmniejszamy
+                // wartość pola this->_startChar tak, żeby widać było trochę tekstu ( i nie
+                // powstało wrażenie, że nie ma już żadnych znaków)
+                if (m_CaretAtChar - m_StartChar < 2)
+                {
+                    m_StartChar -= 4;
+                    while (m_StartChar > 0 && IsUtf8ContinuationByte(m_Text.c_str()[m_StartChar]))
                     {
-                        m_StartChar -= 4;
-                        while (m_StartChar > 0 && IsUtf8ContinuationByte(m_Text.c_str()[m_StartChar]))
-                        {
-                            --m_StartChar;
-                        }
-                        if (m_StartChar < 0)
-                        {
-                            m_StartChar = 0;
-                        }
+                        --m_StartChar;
+                    }
+                    if (m_StartChar < 0)
+                    {
+                        m_StartChar = 0;
                     }
                 }
-
-                updateCaretPos = true;
-                redraw = true;
             }
-            processed = true;
-        }
 
-        // Wpisywanie tekstu jest obsługiwane przez zddarzenie TextInput
+            updateCaretPos = true;
+            redraw = true;
+        }
+        processed = true;
     }
+
+    // Wpisywanie tekstu jest obsługiwane przez zddarzenie TextInput
 
     if (updateCaretPos)
     {
