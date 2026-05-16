@@ -823,109 +823,74 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
     // this->_startChar i this->_caretAtChar
     if (vkKey == SDLK_LEFT)
     {
-        int Diff = m_CaretAtChar - lastCaretAtChar;
-        if (Diff < 0) Diff = -Diff;
-        if (Diff == 1)
+        if (m_SelStart == m_SelEnd)
         {
-            if (m_SelStart == m_SelEnd)
-            {
-                if (static_cast<unsigned int>(m_CaretAtChar) < m_Text.length())
-                {
-                    m_SelStart = m_CaretAtChar;
-                    m_SelEnd = m_CaretAtChar + 1;
-                    m_SelBegin = m_SelEnd;
-                    redraw = true;
-                }
-            }
-            else if (m_CaretAtChar >= m_SelBegin)
-            {
-                m_SelEnd = m_CaretAtChar;
-                redraw = true;
-            }
-            else if (m_CaretAtChar < m_SelBegin)
-            {
-                m_SelStart = m_CaretAtChar;
-                redraw = true;
-            }
-        }
-        else
-        {
-            if (m_SelStart == m_SelEnd)
+            if (static_cast<unsigned int>(m_CaretAtChar) < m_Text.length())
             {
                 m_SelStart = m_CaretAtChar;
                 m_SelEnd = lastCaretAtChar;
-                m_SelBegin = m_SelEnd;
+                m_SelBegin = m_SelStart;
                 redraw = true;
             }
-            else if (m_CaretAtChar < m_SelBegin)
+        }
+        // jeśli zmniejszamy zaznaczenie od prawej strony do lewej, ale tak, że nie przeskoczyło ono początku po lewej, to ustawiamy m_SelEnd
+        else if (m_CaretAtChar >= m_SelStart)
+        {
+            m_SelEnd = m_CaretAtChar;
+            redraw = true;
+        }
+        else if (m_CaretAtChar < m_SelStart)
+        {
+            // jeśli przeskakujemy za pomocą klawiszy Ctrl+Left wokół początku zaznaczenia, to musimy zrobić, żeby dotychczasowy początek zaznaczenia stał się jego końcem
+            if (lastCaretAtChar > m_SelStart)
             {
-                m_SelStart = m_CaretAtChar;
-                m_SelEnd = m_SelBegin;
-                redraw = true;
+                m_SelEnd = m_SelStart;
+                m_SelBegin = m_SelStart = m_CaretAtChar;
             }
             else
             {
-                m_SelStart = m_SelBegin;
-                m_SelEnd = m_CaretAtChar;
-                redraw = true;
+                m_SelBegin = m_SelStart = m_CaretAtChar;
             }
+            redraw = true;
         }
         return;
     }
 
     if (vkKey == SDLK_RIGHT)
     {
-        int Diff = m_CaretAtChar - lastCaretAtChar;
-        if (Diff < 0) Diff = -Diff;
-        if (Diff == 1)
+        if (m_SelStart == m_SelEnd)
         {
-            if (m_SelStart == m_SelEnd)
-            {
-                if (m_CaretAtChar > 0)
-                {
-                    m_SelStart = m_CaretAtChar - 1;
-                    m_SelEnd = m_CaretAtChar;
-                    m_SelBegin = m_SelStart;
-                    redraw = true;
-                }
-            }
-            else if (m_CaretAtChar > m_SelBegin)
-            {
-                m_SelEnd = m_CaretAtChar;
-                redraw = true;
-            }
-            else if (m_CaretAtChar <= m_SelBegin)
-            {
-                m_SelStart = m_CaretAtChar;
-                redraw = true;
-            }
-        }
-        else
-        {
-            if (m_SelStart == m_SelEnd)
+            if (m_CaretAtChar > 0)
             {
                 m_SelStart = lastCaretAtChar;
                 m_SelEnd = m_CaretAtChar;
                 m_SelBegin = m_SelStart;
                 redraw = true;
             }
-            else if (m_CaretAtChar < m_SelBegin)
+        }
+        else if (m_CaretAtChar > m_SelStart)
+        {
+            // jeśli zmniejszamy zaznaczenie, czyli idziemy od początku zaznaczenia w kierunku jego końca
+            if (m_CaretAtChar <= m_SelEnd)
             {
                 m_SelStart = m_CaretAtChar;
-                m_SelEnd = m_SelBegin;
-                redraw = true;
             }
-            else if (m_CaretAtChar > m_SelBegin)
+            // jeśli przeskakujemy za pomocą klawiszy Ctrl+Right wokół końca zaznaczenia, to musimy zrobić, żeby dotychczasowy koniec zaznaczenia stał się jego początkiem
+            else if (lastCaretAtChar < m_SelEnd)
             {
-                m_SelStart = m_SelBegin;
+                m_SelBegin = m_SelStart = m_SelEnd;
                 m_SelEnd = m_CaretAtChar;
-                redraw = true;
             }
-            else if (m_CaretAtChar == m_SelBegin)
+            else
             {
-                ClearSelection(false);
-                redraw = true;
+                m_SelEnd = m_CaretAtChar;
             }
+            redraw = true;
+        }
+        else if (m_CaretAtChar < m_SelStart)
+        {
+            m_SelStart = m_CaretAtChar;
+            redraw = true;
         }
         return;
     }
