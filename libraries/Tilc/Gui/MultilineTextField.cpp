@@ -675,7 +675,6 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
                 rc.w = size.w;
                 rc.h = m_Caret->m_Position.h;
                 RectsResult.push_back(rc);
-                SDL_Log("Rect %d: %.2f  %.2f  %.2f  %.2f", i, rc.x, rc.y, rc.w, rc.h);
             }
             // jeśli którykolwiek ze znaczników zaznaczenia Start lub End wpada w bieżącą linijkę, to wyznaczamy prostokąt zaznaczenia w tej linijce
             else if (
@@ -696,7 +695,7 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
                 if (EndChar >= CurrentLineStartChar + CurrentLine.length())
                 {
                     EndChar = CurrentLineStartChar + CurrentLine.length();
-                    EndChar -= CurrentLine.GetPrecedingUtf8CharsLength(EndChar, 1);
+                    EndChar -= m_Text.GetPrecedingUtf8CharsLength(EndChar, 1);
                 }
 
                 int Result;
@@ -710,13 +709,11 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
                 {
                     return RectsResult;
                 }
-
                 rc.x = ptStart.x;
                 rc.y = RealPosition.y + m_PaddingTop + i * m_Caret->m_Position.h;
                 rc.w = ptEnd.x - ptStart.x;
                 rc.h = t->textfield_selection_rc.h;
                 RectsResult.push_back(rc);
-                SDL_Log("Rect %d: %.2f  %.2f  %.2f  %.2f", i, rc.x, rc.y, rc.w, rc.h);
             }
         }
     }

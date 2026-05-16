@@ -1209,7 +1209,7 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
             processed = true;
         }
 
-        if (!processed && localX > frame_left_width + inner_width && std::fabs((last_char_pos+1) - m_CaretAtChar) <= 2)
+        if (!processed && localX > frame_left_width + inner_width && std::fabs((last_char_pos + 1) - m_CaretAtChar) <= 2)
         {
             // przesuwamy karetkę o jeden znak w prawo
             UpdateCursorPosition(SDLK_RIGHT, updateCaretPos, redraw);
@@ -1412,7 +1412,6 @@ void Tilc::Gui::TTextField::SetSelection(size_t start, size_t length, bool redra
     }
 
     m_SelBegin = m_SelEnd;
-
     if (redraw)
     {
         Invalidate();
