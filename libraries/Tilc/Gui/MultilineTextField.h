@@ -43,7 +43,10 @@ namespace Tilc
             // W obu tych przypadkach zmienna m_CaretAtPos ma tę samą wartość, ale położeni karetki może być w dwóch różnych punkatch.
             bool m_CaretAtEndOfLine{};
             void DeleteCacheFromCurrentLine();
+            void DeleteAndRefreshAllCache();
             int GetLineForCurrentCaretPos();
+            bool IsAtEndOfLine();
+            bool IsAtLineBreak();
         };
     }
 }

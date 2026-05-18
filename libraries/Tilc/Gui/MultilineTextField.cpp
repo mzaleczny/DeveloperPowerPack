@@ -270,6 +270,20 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
         {
             --m_CaretAtChar;
         }
+        // Jeśli jesteśmy na pozycji miedzy dwiema liniami
+        if (IsAtLineBreak())
+        {
+            // to jeśli kliknęto dalej niż 5 pikseli od lewej krawędzi, to zakładamy, że jesteśmy na końcu linii
+            if (localX > 5)
+            {
+                m_CaretAtEndOfLine = true;
+            }
+            // w przeciwnym razie jesteśmy na początku linii
+            else
+            {
+                m_CaretAtEndOfLine = false;
+            }
+        }
         UpdateCaretPos();
     }
 }
@@ -658,6 +672,11 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             }
             else
             {
+                // jeśli jesteśmy na końcu linii i usuwany znak, to koniec linii, to musimy wyzerować flagę końca linii, bo tekst po usuniętym końcu linii wskoczy do tej linijki
+                if (m_CaretAtChar > 0 && m_Text[m_CaretAtChar - 1] == '\n')
+                {
+                    m_CaretAtEndOfLine = false;
+                }
                 // usuwamy poprzedni znak
                 int BytesRemoved = m_Text.DeleteSingleUtf8CharBeforePos(m_CaretAtChar);
                 // przesuwamy karetkę o jeden ilość usuniętych znaków w lewo
@@ -673,10 +692,15 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             }
 
             updateCaretPos = true;
+            DeleteAndRefreshAllCache();
+            GetLineForCurrentCaretPos();
             redraw = true;
         }
-        processed = true;
-        DeleteCacheFromCurrentLine();
+        else
+        {
+            processed = true;
+            DeleteCacheFromCurrentLine();
+        }
     }
     else if (event.key.key == SDLK_RETURN)
     {
@@ -687,6 +711,25 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         CalculateCaretPos();
         UpdateCaretPos();
         processed = true;
+    }
+    else if (event.key.key == SDLK_HOME)
+    {
+        processed = __super::OnKeyDown(event);
+        m_CaretAtEndOfLine = false;
+    }
+    else if (event.key.key == SDLK_END)
+    {
+        processed = __super::OnKeyDown(event);
+        if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
+        {
+            if (m_CaretAtChar < m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length())
+            {
+                m_CaretAtChar = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
+            }
+        }
+        m_CaretAtEndOfLine = true;
+        CalculateCaretPos();
+        UpdateCaretPos();
     }
     else
     {
@@ -733,6 +776,11 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 {
     __super::OnTextInput(event);
+    if (m_CaretAtEndOfLine)
+    {
+        ++m_CurrentLine;
+        m_CaretAtEndOfLine = false;
+    }
     DeleteCacheFromCurrentLine();
     return true;
 }
@@ -819,6 +867,13 @@ void Tilc::Gui::TMultilineTextField::DeleteCacheFromCurrentLine()
     UpdateDisplayLinesCache();
 }
 
+void Tilc::Gui::TMultilineTextField::DeleteAndRefreshAllCache()
+{
+    m_DisplayedLines.clear();
+    m_RefreshDisplayLinesCache = true;
+    UpdateDisplayLinesCache();
+}
+
 int Tilc::Gui::TMultilineTextField::GetLineForCurrentCaretPos()
 {
     int LineNumber = -1;
@@ -834,4 +889,33 @@ int Tilc::Gui::TMultilineTextField::GetLineForCurrentCaretPos()
     }
 
     return -1;
+}
+
+bool Tilc::Gui::TMultilineTextField::IsAtEndOfLine()
+{
+    for (int i = 0; i < m_DisplayedLines.size(); ++i)
+    {
+        if (m_CaretAtChar == m_DisplayedLines[i].first)
+        {
+            if (m_CaretAtEndOfLine)
+            {
+                return true;
+            }
+            break;
+        }
+    }
+
+    return false;
+}
+
+bool Tilc::Gui::TMultilineTextField::IsAtLineBreak()
+{
+    for (int i = 0; i < m_DisplayedLines.size(); ++i)
+    {
+        if (m_CaretAtChar == m_DisplayedLines[i].first)
+        {
+            return true;
+        }
+    }
+    return false;
 }
