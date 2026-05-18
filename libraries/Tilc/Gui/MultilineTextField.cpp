@@ -144,23 +144,35 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
     Font->GetTextSize(s.c_str(), size.w, size.h);
 
     // Jeśli tekst począwszy od m_StartChar do końca jest mieści się w wyświetlanym obszarze, to zwracamy ostatnią mozliwą pozycję
-    if (size.w <= inner_width)
+    if (size.w <= inner_width && s.find_first_of('\n') == std::string::npos)
     {
         return StartChar + s.length();
     }
 
+  
     // Wyszukujemy mieszczącą się w kontrolce długość tekstu połówkowo, bo robienie tego znak po znaku powodowało straszne lagi w rysowaniu kontrolek przy dużej ilości pól tekstowych
     // zawierających jakiekolwiek teksty
     int Left = StartChar;
     int Right = StrLen;
+    // najpierw szukamy ewentualnego znaku nowego wiersza
+    int NewLinePos = StartChar + 1;
+    const char* RawStr = m_Text.c_str();
+    while (NewLinePos < m_Text.length() && RawStr[NewLinePos] != '\n')
+    {
+        ++NewLinePos;
+    }
+    if (NewLinePos < m_Text.length() && RawStr[NewLinePos] == '\n')
+    {
+        Right = NewLinePos;
+    }
     int Middle = (Left + Right) / 2;
-    while (Left < Right)
+    while (Left <= Right)
     {
         while (IsUtf8ContinuationByte(m_Text[Middle]))
         {
             --Middle;
         }
-        s = m_Text.substr(StartChar, Middle - StartChar);
+        s = m_Text.substr(StartChar, Middle - StartChar + 1);
         Font->GetTextSize(s.c_str(), size.w, size.h);
         if (size.w < inner_width)
         {
@@ -170,31 +182,26 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
         {
             Right = Middle - m_Text.GetPrecedingUtf8CharsLength(Middle, 1);
         }
-        if (Left >= Right)
+        Middle = (Left + Right) / 2;
+        if (Left > Right)
         {
-            s = m_Text.substr(StartChar, Middle - StartChar);
+            s = m_Text.substr(StartChar, Middle - StartChar + 1);
             break;
         }
-        Middle = (Left + Right) / 2;
     }
 
-    // Now we have to if we are inside word, if so then trunc letters from end to first whitespace
+    // Now we have to if we are inside word (that said next char is not whitespace), if so then trunc letters from end to first whitespace
     int TruncCount = 0;
-    while (TruncCount < s.length() && !IsCharWhiteSpace(s[s.length() - TruncCount - 1]))
+    int NextChar = StartChar + s.length();
+    if (NextChar < m_Text.length() && !IsCharWhiteSpace(m_Text[NextChar]))
     {
-        ++TruncCount;
-    }
-    if (TruncCount > 0)
-    {
-        s = s.substr(0, s.length() - TruncCount);
-    }
-    // Now we have to check if there is a \n character inside found text
-    for (int i = 0; i < s.length(); ++i)
-    {
-        if (s[i] == '\n')
+        while (TruncCount < s.length() && !IsCharWhiteSpace(s[s.length() - TruncCount - 1]))
         {
-            s = s.substr(0, i);
-            return StartChar + s.length() + 1;
+            ++TruncCount;
+        }
+        if (TruncCount > 0)
+        {
+            s = s.substr(0, s.length() - TruncCount);
         }
     }
     Font->GetTextSize(s.c_str(), size.w, size.h);
@@ -270,7 +277,7 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
 SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCaretPos()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    SDL_Rect size{};
+    SDL_Rect size{}, TextSize{};
     SDL_FPoint pt{};
 
     if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
@@ -279,19 +286,39 @@ SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCaretPos()
         int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
         Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
         int lettersBeforeCaret = m_CaretAtChar - CurrentLineStartChar;
+        Tilc::TExtString s;
         if (lettersBeforeCaret > 0)
         {
-            Tilc::TExtString s = CurrentLine.substr(0, lettersBeforeCaret);
+            s = CurrentLine.substr(0, lettersBeforeCaret);
             // Replace "\r\n" chars with space because they disturb text size calculation: returned size will bound more then one line of text
             std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (c == '\r' || c == '\n') ? ' ' : c; });
             Tilc::Gui::TFont* Font = t->DefaultFont;
-            Font->GetTextSize(s.c_str(), size.w, size.h);
+            const char* p = s.c_str();
+            size_t BytesLeft = s.length();
+            while (BytesLeft > 0)
+            {
+                Uint32 ch = SDL_StepUTF8(&p, &BytesLeft);
+                int minx, maxx, miny, maxy, advance;
+                if (TTF_GetGlyphMetrics(Font->m_Font, ch, &minx, &maxx, &miny, &maxy, &advance))
+                {
+                    size.w += advance;
+                }
+            }
+            Font->GetTextSize(s.c_str(), TextSize.w, TextSize.h);
         }
 
         if (m_Caret)
         {
             SDL_FRect RealPosition = GetRealPosition();
-            pt.x = RealPosition.x + m_PaddingLeft + size.w;
+            pt.x = RealPosition.x + m_PaddingLeft;
+            if (TextSize.w < size.w - 1.0f)
+            {
+                pt.x += TextSize.w;
+            }
+            else
+            {
+                pt.x += size.w - 1.0f;
+            }
             pt.y = RealPosition.y + m_PaddingTop + m_Caret->m_Position.h * m_CurrentLine;
         }
     }
@@ -531,11 +558,29 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
         {
             count -= 1;
         }
+        int NewCaretPos = m_CaretAtChar + count;
         if (m_CurrentLine > 0)
         {
-            if (m_CaretAtChar + count < CurrentLineStartChar)
+            if (NewCaretPos < CurrentLineStartChar)
             {
                 --m_CurrentLine;
+                m_CaretAtEndOfLine = true;
+                return;
+            }
+            else
+            {
+                m_CaretAtEndOfLine = false;
+            }
+        }
+        else
+        {
+            if (NewCaretPos < CurrentLineStartChar + CurrentLine.length())
+            {
+                m_CaretAtEndOfLine = false;
+            }
+            else
+            {
+                m_CaretAtEndOfLine = true;
             }
         }
         m_CaretAtChar += count;
@@ -557,11 +602,32 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
         {
             count += 1;
         }
+        int NewCaretPos = m_CaretAtChar + count;
         if (m_CurrentLine + 1 < m_DisplayedLines.size())
         {
-            if (m_CaretAtChar + count >= m_DisplayedLines[m_CurrentLine + 1].first)
+            if (NewCaretPos == m_DisplayedLines[m_CurrentLine + 1].first || m_CaretAtChar == m_DisplayedLines[m_CurrentLine + 1].first)
             {
-                ++m_CurrentLine;
+                if (m_CaretAtEndOfLine)
+                {
+                    ++m_CurrentLine;
+                    m_CaretAtEndOfLine = false;
+                    return;
+                }
+                else
+                {
+                    m_CaretAtEndOfLine = true;
+                }
+            }
+        }
+        else
+        {
+            if (NewCaretPos < CurrentLineStartChar + CurrentLine.length())
+            {
+                m_CaretAtEndOfLine = false;
+            }
+            else
+            {
+                m_CaretAtEndOfLine = true;
             }
         }
         m_CaretAtChar += count;

@@ -39,6 +39,9 @@ namespace Tilc
             std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
             int m_CurrentLine = 0;
             bool m_RefreshDisplayLinesCache{true};
+            // Przechowuj true, jeśli karetka jest na końcu linii. Jest po to, by rozróżnić to samo połozenie karetki wewnątrz bufora dla pozycji na końcu jednej linii i na początku następnej.
+            // W obu tych przypadkach zmienna m_CaretAtPos ma tę samą wartość, ale położeni karetki może być w dwóch różnych punkatch.
+            bool m_CaretAtEndOfLine{};
             void DeleteCacheFromCurrentLine();
             int GetLineForCurrentCaretPos();
         };

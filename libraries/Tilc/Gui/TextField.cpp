@@ -334,20 +334,40 @@ SDL_FPoint Tilc::Gui::TTextField::CalculateCaretPos()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     int lettersBeforeCaret = m_CaretAtChar - m_StartChar;
-    SDL_Rect size{};
+    SDL_Rect size{}, TextSize{};
     SDL_FPoint pt{};
 
     if (lettersBeforeCaret > 0)
     {
         Tilc::TExtString s = m_Text.substr(m_StartChar, lettersBeforeCaret);
         Tilc::Gui::TFont* Font = t->DefaultFont;
-        Font->GetTextSize(s.c_str(), size.w, size.h);
+        const char* p = s.c_str();
+        size_t BytesLeft = s.length();
+        while (BytesLeft > 0)
+        {
+            Uint32 ch = SDL_StepUTF8(&p, &BytesLeft);
+            if (ch == 0) break;
+            int minx, maxx, miny, maxy, advance;
+            if (TTF_GetGlyphMetrics(Font->m_Font, ch, &minx, &maxx, &miny, &maxy, &advance))
+            {
+                size.w += advance;
+            }
+        }
+        Font->GetTextSize(s.c_str(), TextSize.w, TextSize.h);
     }
 
     if (m_Caret)
     {
         SDL_FRect RealPosition = GetRealPosition();
-        pt.x = RealPosition.x + m_PaddingLeft + size.w;
+        pt.x = RealPosition.x + m_PaddingLeft;
+        if (TextSize.w < size.w - 1.0f)
+        {
+            pt.x += TextSize.w;
+        }
+        else
+        {
+            pt.x += size.w - 1.0f;
+        }
         pt.y = RealPosition.y + (RealPosition.h - m_Caret->m_Position.h) / 2.0f;
     }
 
@@ -401,7 +421,7 @@ void Tilc::Gui::TTextField::UpdateCaretPos()
     m_Caret->m_ControlY = m_Position.y;
     m_Caret->Show();
 
-    while (m_Caret->m_Position.x >= m_Position.x + CalculateInnerWidth())
+    while (m_Caret->m_Position.x > m_Position.x + CalculateInnerWidth())
     {
         ++m_StartChar;
         while (m_StartChar < m_Text.length() && IsUtf8ContinuationByte(m_Text.c_str()[m_StartChar]))
