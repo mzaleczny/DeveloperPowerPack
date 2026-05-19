@@ -743,9 +743,16 @@ int Tilc::TExtString::DeleteSingleUtf8CharAtPos(size_t pos)
         {
             *this = substr(CurrentPos);
         }
-        else if (CurrentPos < str_len)
+        else if (pos < str_len)
         {
-            *this = substr(0, pos) + substr(CurrentPos);
+            if (CurrentPos < str_len)
+            {
+                *this = substr(0, pos) + substr(CurrentPos);
+            }
+            else
+            {
+                *this = substr(0, pos);
+            }
         }
         else
         {
