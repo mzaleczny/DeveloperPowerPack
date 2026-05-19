@@ -11,8 +11,8 @@
 #include "Game.h"
 
 constexpr const char* GameTitle = "01 - Simple Window";
-constexpr const unsigned int WindowWidth = 1200;
-constexpr const unsigned int WindowHeight = 800;
+constexpr const unsigned int WindowWidth = 1800;
+constexpr const unsigned int WindowHeight = 900;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
