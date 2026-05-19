@@ -56,7 +56,7 @@ namespace Tilc
             void SetCaretRect();
             // Aktualizuje położenie karetki i pokazuje ją (jeśli aktualnie była niewidoczna) w obrębie
             // tej kontrolki.
-            void UpdateCaretPos();
+            virtual void UpdateCaretPos();
             // zwraca położenie karetki dla bieżących wartości atrybutów: this->_startChar oraz
             // this->_caretAtChar. Współrzędne są liczone względem lewego górnego rogu tej kontrolki.
             virtual SDL_FPoint CalculateCaretPos();
@@ -168,7 +168,7 @@ namespace Tilc
             // localX i localY, to współrzędne kliknięcia względem początku tego pola tekstowego.
             virtual void PositionCaretNearClickedPoint(float localX, float localY);
 
-            virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw);
+            virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw);
 
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw);
 

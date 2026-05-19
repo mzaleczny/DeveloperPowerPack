@@ -667,7 +667,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
             // jeśli pozycja kursora się zmieniła, to aktualizujemy zaznaczenie
             if (oldCaretAtChar != m_CaretAtChar)
             {
-                UpdateSelection(event.key.key, oldCaretAtChar, updateCaretPos, redraw);
+                UpdateSelection(event.key.key, oldCaretAtChar, 0, m_Text.length(), updateCaretPos, redraw);
                 if (event.key.key == SDLK_RIGHT && IsSelection())
                 {
                     // jeśli mamy zaznaczenie to w przypadku naciśnięcia klawisza VK_RIGHT
@@ -794,13 +794,13 @@ bool Tilc::Gui::TTextField::OnTextInput(const SDL_Event& event)
     return true;
 }
 
-void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw)
+void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw)
 {
     // ta metoda jest wywołana po poprawnym zaktualizowaniu atrybutów:
     // this->_startChar i this->_caretAtChar
     if (vkKey == SDLK_LEFT)
     {
-        if (m_SelStart == m_SelEnd)
+        if (!IsSelection())
         {
             if (static_cast<unsigned int>(m_CaretAtChar) < m_Text.length())
             {
@@ -822,11 +822,11 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
             if (lastCaretAtChar > m_SelStart)
             {
                 m_SelEnd = m_SelStart;
-                m_SelBegin = m_SelStart = m_CaretAtChar;
+                m_SelStart = m_CaretAtChar;
             }
             else
             {
-                m_SelBegin = m_SelStart = m_CaretAtChar;
+                m_SelStart = m_CaretAtChar;
             }
             redraw = true;
         }
@@ -835,7 +835,7 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
 
     if (vkKey == SDLK_RIGHT)
     {
-        if (m_SelStart == m_SelEnd)
+        if (!IsSelection())
         {
             if (m_CaretAtChar > 0)
             {
@@ -855,7 +855,7 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
             // jeśli przeskakujemy za pomocą klawiszy Ctrl+Right wokół końca zaznaczenia, to musimy zrobić, żeby dotychczasowy koniec zaznaczenia stał się jego początkiem
             else if (lastCaretAtChar < m_SelEnd)
             {
-                m_SelBegin = m_SelStart = m_SelEnd;
+                m_SelStart = m_SelEnd;
                 m_SelEnd = m_CaretAtChar;
             }
             else
@@ -876,12 +876,12 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
     {
         if (IsSelection())
         {
-            m_SelStart = 0;
+            m_SelStart = LineStartPos;
             m_SelEnd = m_SelBegin;
         }
         else
         {
-            m_SelStart = 0;
+            m_SelStart = LineStartPos;
             m_SelEnd = lastCaretAtChar;
             m_SelBegin = m_SelEnd;
         }
@@ -894,12 +894,12 @@ void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtC
         if (IsSelection())
         {
             m_SelStart = m_SelBegin;
-            m_SelEnd = m_Text.length();
+            m_SelEnd = LineEndPos;
         }
         else
         {
             m_SelStart = lastCaretAtChar;
-            m_SelEnd = m_Text.length();
+            m_SelEnd = LineEndPos;
             m_SelBegin = m_SelStart;
         }
         redraw = true;
@@ -1144,7 +1144,7 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
             // i jeśli trzeba to aktualizujemy zaznaczenie
             if (oldCaretAtChar != m_CaretAtChar)
             {
-                UpdateSelection(SDLK_LEFT, oldCaretAtChar, updateCaretPos, redraw);
+                UpdateSelection(SDLK_LEFT, oldCaretAtChar, 0, m_Text.length(), updateCaretPos, redraw);
                 updateCaretPos = true;
                 redraw = true;
             }
@@ -1158,7 +1158,7 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
             // i jeśli trzeba to aktualizujemy zaznaczenie
             if (oldCaretAtChar != m_CaretAtChar)
             {
-                UpdateSelection(SDLK_RIGHT, oldCaretAtChar, updateCaretPos, redraw);
+                UpdateSelection(SDLK_RIGHT, oldCaretAtChar, 0, m_Text.length(), updateCaretPos, redraw);
             }
             processed = true;
         }
