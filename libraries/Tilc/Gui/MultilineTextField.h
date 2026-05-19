@@ -22,9 +22,12 @@ namespace Tilc
 
             int GetLastVisibleCharPosInLine(int StartChar);
             virtual void PositionCaretNearClickedPoint(float localX, float localY) override;
+            // Updates Caret position
+            void UpdateCaretPos() override;
             virtual SDL_FPoint CalculateCaretPos() override;
             virtual SDL_FPoint CalculateCharPos(int CurrentChar, int& Result) override;
-            virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw) override;
+            virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw) override;
+            // Updates position within text with use of m_CaretAtChar
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw) override;
 
             virtual void MoveCaretOneCharLeft() override;
@@ -35,6 +38,11 @@ namespace Tilc
             virtual bool OnTextInput(const SDL_Event& event) override;
 
             std::vector<SDL_FRect> CalculateSelectionRects();
+
+            bool IsCharPosWithinCurrentLine(int Pos)
+            {
+                return (Pos >= m_DisplayedLines[m_CurrentLine].first && Pos <= m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length());
+            }
         protected:
             std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
             int m_CurrentLine = 0;

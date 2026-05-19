@@ -107,6 +107,15 @@ void Tilc::Gui::TMultilineTextField::UpdateDisplayLinesCache()
         StartChar = m_DisplayedLines[m_DisplayedLines.size() - 1].first + m_DisplayedLines[m_DisplayedLines.size() - 1].second.length();
         DisplayedLinesHeight += m_DisplayedLines.size() * m_Caret->m_Position.h;
     }
+    if (StartChar >= m_Text.size())
+    {
+        StartChar = m_Text.size();
+    }
+    while (m_Text[StartChar] == '\n')
+    {
+        m_DisplayedLines.emplace_back(StartChar, "\n");
+        ++StartChar;
+    }
     LastCharPos = GetLastVisibleCharPosInLine(StartChar);
 
     Tilc::TExtString s = m_Text.substr(StartChar, LastCharPos - StartChar);
@@ -114,6 +123,11 @@ void Tilc::Gui::TMultilineTextField::UpdateDisplayLinesCache()
     DisplayedLinesHeight += m_Caret->m_Position.h;
     while (LastCharPos < m_Text.length() && DisplayedLinesHeight + m_Caret->m_Position.h <= InnerHeight)
     {
+        while (m_Text[LastCharPos] == '\n')
+        {
+            m_DisplayedLines.emplace_back(LastCharPos, "\n");
+            ++LastCharPos;
+        }
         StartChar = LastCharPos;
         LastCharPos = GetLastVisibleCharPosInLine(StartChar);
         s = m_Text.substr(StartChar, LastCharPos - StartChar);
@@ -288,6 +302,14 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
     }
 }
 
+void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
+{
+    SetCaretRect();
+    m_Caret->m_ControlX = m_Position.x;
+    m_Caret->m_ControlY = m_Position.y;
+    m_Caret->Show();
+}
+
 SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCaretPos()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
@@ -400,16 +422,16 @@ SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCharPos(int CurrentChar, int
     return pt;
 }
 
-void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, bool& updateCaretPos, bool& redraw)
+void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw)
 {
     if (vkKey == SDLK_UP)
     {
         // jeśli nie było zaznaczenia
-        if (m_SelBegin == m_SelEnd)
+        if (!IsSelection())
         {
-            m_SelBegin = m_CaretAtChar;
-            m_SelStart = m_SelBegin;
+            m_SelStart = m_CaretAtChar;
             m_SelEnd = lastCaretAtChar;
+            m_SelBegin = lastCaretAtChar;
             redraw = true;
         }
         // jeśli cofamy się z zaznaczeniem o jedną linijkę w górę, ale nadal początek zaznaczenia jest na lewo od bieżącej pozycji
@@ -418,7 +440,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             m_SelEnd = m_CaretAtChar;
             redraw = true;
         }
-        else if (m_CaretAtChar < m_SelBegin)
+        else if (m_CaretAtChar < m_SelStart)
         {
             // jeśli cofamy się z zaznaczeniem o jedną linijkę w górę, ale początek zaznaczenia jest na lewo od bieżącej pozycji,
             // czyli musimy zmienić kierunki początku i końca
@@ -426,13 +448,11 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             {
                 m_SelEnd = m_SelStart;
                 m_SelStart = m_CaretAtChar;
-                m_SelBegin = m_SelStart;
             }
             else
             {
                 // tutaj idziemy po prostu o jedną linijkę do góry z poczatkiem zaznaczenia
                 m_SelStart = m_CaretAtChar;
-                m_SelBegin = m_SelStart;
             }
             redraw = true;
         }
@@ -441,18 +461,17 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
     else if (vkKey == SDLK_DOWN)
     {
         // jeśli nie było zaznaczenia
-        if (m_SelStart == m_SelEnd)
+        if (!IsSelection())
         {
-            m_SelBegin = lastCaretAtChar;
-            m_SelStart = m_SelBegin;
+            m_SelStart = lastCaretAtChar;
             m_SelEnd = m_CaretAtChar;
+            m_SelBegin = lastCaretAtChar;
             redraw = true;
         }
         // jeśli cofamy się z zaznaczeniem o jedną linijkę w dół, ale nadal koniec zaznaczenia jest na prawo od bieżącej pozycji
         else if (m_CaretAtChar >= m_SelStart && m_CaretAtChar <= m_SelEnd)
         {
-            m_SelBegin = m_CaretAtChar;
-            m_SelStart = m_SelBegin;
+            m_SelStart = m_CaretAtChar;
             redraw = true;
         }
         else if (m_CaretAtChar >= m_SelStart && m_CaretAtChar > m_SelEnd)
@@ -461,8 +480,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             // czyli musimy zmienić kierunki początku i końca
             if (lastCaretAtChar < m_SelEnd)
             {
-                m_SelBegin = m_SelEnd;
-                m_SelStart = m_SelBegin;
+                m_SelStart = m_SelEnd;
                 m_SelEnd = m_CaretAtChar;
             }
             else
@@ -475,7 +493,73 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
     }
     else
     {
-        __super::UpdateSelection(vkKey, lastCaretAtChar, updateCaretPos, redraw);
+        const bool* Keys = SDL_GetKeyboardState(nullptr);
+
+        LineStartPos = m_DisplayedLines[m_CurrentLine].first;
+        LineEndPos = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
+        // jeśli trzymany jest dowolny klawisz Control, to zaznaczenie musi skoczyć do początku lub końca tekstu - tak jak karetka
+        if (vkKey == SDLK_HOME)
+        {
+            if (!IsSelection())
+            {
+                m_SelBegin = lastCaretAtChar;
+            }
+            if (Keys[SDL_SCANCODE_LCTRL])
+            {
+                LineStartPos = 0;
+            }
+            if (IsCharPosWithinCurrentLine(m_SelBegin) || Keys[SDL_SCANCODE_LCTRL])
+            {
+                m_SelStart = LineStartPos;
+                m_SelEnd = m_SelBegin;
+            }
+            else
+            {
+                int DestPos = m_DisplayedLines[m_CurrentLine].first;
+                if (DestPos > m_SelBegin)
+                {
+                    m_SelEnd = DestPos;
+                }
+                else
+                {
+                    m_SelStart = DestPos;
+                }
+            }
+            redraw = true;
+        }
+        else if (vkKey == SDLK_END)
+        {
+            if (!IsSelection())
+            {
+                m_SelBegin = lastCaretAtChar;
+            }
+            if (Keys[SDL_SCANCODE_LCTRL])
+            {
+                LineEndPos = m_Text.length();
+            }
+            if (IsCharPosWithinCurrentLine(m_SelBegin) || Keys[SDL_SCANCODE_LCTRL])
+            {
+                m_SelStart = m_SelBegin;
+                m_SelEnd = LineEndPos;
+            }
+            else
+            {
+                int DestPos = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
+                if (DestPos < m_SelEnd)
+                {
+                    m_SelStart = DestPos;
+                }
+                else
+                {
+                    m_SelEnd = DestPos;
+                }
+            }
+            redraw = true;
+        }
+        else
+        {
+            __super::UpdateSelection(vkKey, lastCaretAtChar, LineStartPos, LineEndPos, updateCaretPos, redraw);
+        }
     }
 }
 
@@ -497,9 +581,57 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
 
 
-    if (vkKey == SDLK_RIGHT || vkKey == SDLK_LEFT)
+    if (vkKey == SDLK_RIGHT)
     {
-        __super::UpdateCursorPosition(vkKey, updateCaretPos, redraw);
+        // przetwarzamy zdarzenie jeśli jeszcze nie jesteśmy na końcu tekstu
+        if (m_CaretAtChar < strLen)
+        {
+            const bool* Keys = SDL_GetKeyboardState(nullptr);
+
+            // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
+            // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
+            // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
+            if (Keys[SDL_SCANCODE_LCTRL])
+            {
+                MoveCaretOneCharRight();
+                while (m_CaretAtChar < strLen && !IsCharWhiteSpace(m_Text[m_CaretAtChar]))
+                {
+                    MoveCaretOneCharRight();
+                }
+            }
+            else
+            {
+                MoveCaretOneCharRight();
+            }
+            updateCaretPos = true;
+        }
+        return;
+    }
+    else if (vkKey == SDLK_LEFT)
+    {
+        // jeśli nie jesteśmy na początku tekstu, to przetwarzamy zdarzenie
+        if (m_CaretAtChar > 0)
+        {
+            const bool* Keys = SDL_GetKeyboardState(nullptr);
+
+            // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
+            // alfanumerycznego, przed którym znajduje się znak nie-alfanumeryczny lub na początek
+            // tekstu jeśli przed bieżącą pozycją są wyłącznie znaki alfanumeryczne
+            if (Keys[SDL_SCANCODE_LCTRL])
+            {
+                MoveCaretOneCharLeft();
+                while (m_CaretAtChar > 0 && !IsCharWhiteSpace(m_Text[m_CaretAtChar - 1]))
+                {
+                    MoveCaretOneCharLeft();
+                }
+            }
+            else
+            {
+                MoveCaretOneCharLeft();
+            }
+
+            updateCaretPos = true;
+        }
         return;
     }
 
@@ -527,7 +659,19 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     {
         if (m_CaretAtChar > 0)
         {
-            m_CaretAtChar = CurrentLineStartChar;
+            const bool* Keys = SDL_GetKeyboardState(nullptr);
+
+            // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
+            // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
+            // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
+            if (Keys[SDL_SCANCODE_LCTRL])
+            {
+                m_CaretAtChar = 0;
+            }
+            else
+            {
+                m_CaretAtChar = CurrentLineStartChar;
+            }
             updateCaretPos = true;
             redraw = true;
         }
@@ -537,19 +681,30 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     else if (vkKey == SDLK_END) {
         if (CurrentLine.length() > 0)
         {
-            if (m_CurrentLine < m_DisplayedLines.size() - 1)
+            const bool* Keys = SDL_GetKeyboardState(nullptr);
+
+            // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
+            // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
+            // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
+            if (Keys[SDL_SCANCODE_LCTRL])
             {
-                m_CaretAtChar = CurrentLineStartChar + CurrentLine.length() - 1;
-                while (m_CaretAtChar > CurrentLineStartChar && m_CaretAtChar >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar]))
-                {
-                    --m_CaretAtChar;
-                }
+                m_CaretAtChar = m_Text.length();
             }
             else
             {
-                m_CaretAtChar = CurrentLineStartChar + CurrentLine.length();
+                if (m_CurrentLine < m_DisplayedLines.size() - 1)
+                {
+                    m_CaretAtChar = CurrentLineStartChar + CurrentLine.length() - 1;
+                    while (m_CaretAtChar > CurrentLineStartChar && m_CaretAtChar >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar]))
+                    {
+                        --m_CaretAtChar;
+                    }
+                }
+                else
+                {
+                    m_CaretAtChar = CurrentLineStartChar + CurrentLine.length();
+                }
             }
-
             updateCaretPos = true;
             redraw = true;
         }
@@ -692,9 +847,9 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             }
 
             updateCaretPos = true;
-            DeleteAndRefreshAllCache();
-            GetLineForCurrentCaretPos();
             redraw = true;
+            DeleteAndRefreshAllCache();
+            m_CurrentLine = GetLineForCurrentCaretPos();
         }
         else
         {
@@ -708,8 +863,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         ++m_CaretAtChar;
         DeleteCacheFromCurrentLine();
         ++m_CurrentLine;
-        CalculateCaretPos();
-        UpdateCaretPos();
+        updateCaretPos = true;
         processed = true;
     }
     else if (event.key.key == SDLK_HOME)
@@ -728,8 +882,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             }
         }
         m_CaretAtEndOfLine = true;
-        CalculateCaretPos();
-        UpdateCaretPos();
+        updateCaretPos = true;
     }
     else
     {
@@ -738,17 +891,18 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 
 
     // For delete key we must refresh lines cache
-    if (event.key.key == SDLK_DELETE)
+    if (event.key.key == SDLK_DELETE || event.key.key == SDLK_BACKSLASH)
     {
-        DeleteCacheFromCurrentLine();
+        DeleteAndRefreshAllCache();
+        m_CurrentLine = GetLineForCurrentCaretPos();
+        updateCaretPos = true;
     }
     else if (vkControl && event.key.key == SDLK_V)
     {
         DeleteCacheFromCurrentLine();
         UpdateDisplayLinesCache();
         m_CurrentLine = GetLineForCurrentCaretPos();
-        CalculateCaretPos();
-        UpdateCaretPos();
+        updateCaretPos = true;
     }
     else if (vkControl && event.key.key == SDLK_HOME)
     {
@@ -756,8 +910,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         m_CaretAtChar = 0;
         DeleteCacheFromCurrentLine();
         UpdateDisplayLinesCache();
-        CalculateCaretPos();
-        UpdateCaretPos();
+        updateCaretPos = true;
     }
     else if (vkControl && event.key.key == SDLK_END)
     {
@@ -766,6 +919,11 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         UpdateDisplayLinesCache();
         m_CurrentLine = m_DisplayedLines.size() - 1;
         m_CaretAtChar = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
+        updateCaretPos = true;
+    }
+
+    if (updateCaretPos)
+    {
         CalculateCaretPos();
         UpdateCaretPos();
     }
@@ -888,7 +1046,7 @@ int Tilc::Gui::TMultilineTextField::GetLineForCurrentCaretPos()
         ++i;
     }
 
-    return -1;
+    return m_DisplayedLines.size() - 1;
 }
 
 bool Tilc::Gui::TMultilineTextField::IsAtEndOfLine()
