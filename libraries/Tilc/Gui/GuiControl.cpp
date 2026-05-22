@@ -1564,14 +1564,13 @@ void Tilc::Gui::TGuiControl::LoadBackground(const Tilc::TExtString& Filename)
     }
 }
 
-void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& left_rc, const SDL_FRect& middle_rc, const SDL_FRect& right_rc, const SDL_FRect& left_disabled_rc, const SDL_FRect& middle_disabled_rc, const SDL_FRect& right_disabled_rc, const SDL_FRect& left_focused_rc, const SDL_FRect& middle_focused_rc, const SDL_FRect& right_focused_rc, const SDL_FRect& left_hover_focused_rc, const SDL_FRect& middle_hover_focused_rc, const SDL_FRect& right_hover_focused_rc, const SDL_FRect& left_pushed_focused_rc, const SDL_FRect& middle_pushed_focused_rc, const SDL_FRect& right_pushed_focused_rc, const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc, const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc)
+void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRect& left_rc, const SDL_FRect& middle_rc, const SDL_FRect& right_rc, const SDL_FRect& left_disabled_rc, const SDL_FRect& middle_disabled_rc, const SDL_FRect& right_disabled_rc, const SDL_FRect& left_focused_rc, const SDL_FRect& middle_focused_rc, const SDL_FRect& right_focused_rc, const SDL_FRect& left_hover_focused_rc, const SDL_FRect& middle_hover_focused_rc, const SDL_FRect& right_hover_focused_rc, const SDL_FRect& left_pushed_focused_rc, const SDL_FRect& middle_pushed_focused_rc, const SDL_FRect& right_pushed_focused_rc, const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc, const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc)
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;
     Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
     SDL_FRect rc, DestRect;
-    SDL_FRect Position{ GetRealPosition() };
     float x{}, y{};
 
     SDL_FRect ctrl_left = left_rc;
@@ -1635,6 +1634,7 @@ void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& left_rc, const SDL_FRec
 }
 
 void Tilc::Gui::TGuiControl::DrawCommonComplex(
+    const SDL_FRect& Position,
     const SDL_FRect& top_left_rc, const SDL_FRect& top_middle_rc, const SDL_FRect& top_right_rc, const SDL_FRect& inner_left_rc, const SDL_FRect& inner_right_rc, const SDL_FRect& bottom_left_rc, const SDL_FRect& bottom_middle_rc, const SDL_FRect& bottom_right_rc,
     const SDL_FRect& top_left_disabled_rc, const SDL_FRect& top_middle_disabled_rc, const SDL_FRect& top_right_disabled_rc, const SDL_FRect& inner_left_disabled_rc, const SDL_FRect& inner_right_disabled_rc, const SDL_FRect& bottom_left_disabled_rc, const SDL_FRect& bottom_middle_disabled_rc, const SDL_FRect& bottom_right_disabled_rc,
     const SDL_FRect& top_left_focused_rc, const SDL_FRect& top_middle_focused_rc, const SDL_FRect& top_right_focused_rc, const SDL_FRect& inner_left_focused_rc, const SDL_FRect& inner_right_focused_rc, const SDL_FRect& bottom_left_focused_rc, const SDL_FRect& bottom_middle_focused_rc, const SDL_FRect& bottom_right_focused_rc,
@@ -1649,7 +1649,6 @@ void Tilc::Gui::TGuiControl::DrawCommonComplex(
     SDL_Texture* TextureMap = t->GuiTextureMap1;
     Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
     SDL_FRect rc, DestRect;
-    SDL_FRect Position{ GetRealPosition() };
     float x{}, y{};
 
     SDL_FRect ctrl_top_left_rc = top_left_rc;

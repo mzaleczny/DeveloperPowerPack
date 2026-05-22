@@ -521,6 +521,7 @@ namespace Tilc {
             }
 
             void DrawCommon(
+                const SDL_FRect& Position,
                 const SDL_FRect& left_rc, const SDL_FRect& middle_rc, const SDL_FRect& right_rc,
                 const SDL_FRect& left_disabled_rc, const SDL_FRect& middle_disabled_rc, const SDL_FRect& right_disabled_rc,
                 const SDL_FRect& left_focused_rc, const SDL_FRect& middle_focused_rc, const SDL_FRect& right_focused_rc,
@@ -531,6 +532,7 @@ namespace Tilc {
             );
 
             void DrawCommonComplex(
+                const SDL_FRect& Position,
                 const SDL_FRect& top_left_rc, const SDL_FRect& top_middle_rc, const SDL_FRect& top_right_rc, const SDL_FRect& inner_left_rc, const SDL_FRect& inner_right_rc, const SDL_FRect& bottom_left_rc, const SDL_FRect& bottom_middle_rc, const SDL_FRect& bottom_right_rc,
                 const SDL_FRect& top_left_disabled_rc, const SDL_FRect& top_middle_disabled_rc, const SDL_FRect& top_right_disabled_rc, const SDL_FRect& inner_left_disabled_rc, const SDL_FRect& inner_right_disabled_rc, const SDL_FRect& bottom_left_disabled_rc, const SDL_FRect& bottom_middle_disabled_rc, const SDL_FRect& bottom_right_disabled_rc,
                 const SDL_FRect& top_left_focused_rc, const SDL_FRect& top_middle_focused_rc, const SDL_FRect& top_right_focused_rc, const SDL_FRect& inner_left_focused_rc, const SDL_FRect& inner_right_focused_rc, const SDL_FRect& bottom_left_focused_rc, const SDL_FRect& bottom_middle_focused_rc, const SDL_FRect& bottom_right_focused_rc,
