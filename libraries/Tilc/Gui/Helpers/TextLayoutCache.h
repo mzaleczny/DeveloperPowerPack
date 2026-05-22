@@ -9,10 +9,10 @@
 
 namespace Tilc::Gui::Helpers {
 
-    class TTextLayoutCache
+    class DECLSPEC TTextLayoutCache
     {
     public:
-        struct TLineMetrics
+        struct DECLSPEC TLineMetrics
         {
             std::vector<int> m_CaretX;   // caretX[i] = pozycja X po znaku i
             int m_TotalWidth{ 0 };
@@ -44,15 +44,13 @@ namespace Tilc::Gui::Helpers {
         }
 
         // Liczba linii
-        inline int GetLineCount() const { return (int)m_Utf32Lines.size(); }
+        inline int GetLinesCount() const { return (int)m_Utf32Lines.size(); }
 
 
-    private:
         TTF_Font* m_Font;
-
+        std::vector<Tilc::TExtString> m_LinesContent;
         std::vector<std::vector<uint32_t>> m_Utf32Lines;
         std::vector<TLineMetrics> m_Lines;
-
         // Cache metryk glifów
         std::unordered_map<uint32_t, int> m_AdvanceCache;
         std::unordered_map<uint64_t, int> m_KerningCache;

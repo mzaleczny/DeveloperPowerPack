@@ -28,18 +28,23 @@ void Tilc::Gui::Helpers::TTextLayoutCache::ConvertToUTF32Lines(const Tilc::TExtS
 {
     m_Utf32Lines.clear();
     m_Utf32Lines.emplace_back();
+    m_LinesContent.emplace_back();
 
     const char* s = Text.c_str();
     while (*s)
     {
-        uint32_t cp;
-        int consumed = SDL_utf8strlcpy(reinterpret_cast<char*>(&cp), s, 5); // SDL3 ma dekoder UTF-8
-        if (cp == '\n')
+        uint64_t cp{};
+        int consumed = SDL_utf8strlcpy(reinterpret_cast<char*>(&cp), s, 5);
+        if (s[0] == '\n')
         {
             m_Utf32Lines.emplace_back();
+            m_LinesContent.emplace_back();
+            consumed = 1;
         }
-        else {
-            m_Utf32Lines.back().push_back(cp);
+        else
+        {
+            m_Utf32Lines.back().push_back(static_cast<uint32_t>(cp));
+            m_LinesContent.back().append(reinterpret_cast<char*>(&cp));
         }
         s += consumed;
     }
@@ -76,7 +81,8 @@ int Tilc::Gui::Helpers::TTextLayoutCache::GetKerning(uint32_t Prev, uint32_t Cur
     auto it = m_KerningCache.find(key);
     if (it != m_KerningCache.end()) return it->second;
 
-    int k = TTF_GetGlyphKerning(m_Font, Prev, Curr);
+    int k{ 0 };
+    TTF_GetGlyphKerning(m_Font, Prev, Curr, &k);
     m_KerningCache[key] = k;
     return k;
 }
