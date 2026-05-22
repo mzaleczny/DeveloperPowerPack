@@ -3,16 +3,28 @@
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Caret.h"
 #include "Tilc/Gui/Clipboard.h"
+#include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/OS/SystemUtils.h"
 #include "Tilc/Game.h"
 
 Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool tabStop)
     : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_MultilineTextField, text, tabStop)
 {
+    // create our own canvas to speed up redrawing process
+    m_Canvas = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_Position.w, m_Position.h);
+    m_DestroyCanvas = true;
+    m_RealPosition = m_Position;
+    m_RealPosition.x = 0;
+    m_RealPosition.y = 0;
 }
 
 Tilc::Gui::TMultilineTextField::~TMultilineTextField()
 {
+    if (m_DestroyCanvas && m_Canvas)
+    {
+        SDL_DestroyTexture(m_Canvas);
+        m_Canvas = nullptr;
+    }
 }
 
 void Tilc::Gui::TMultilineTextField::Draw()
@@ -22,14 +34,22 @@ void Tilc::Gui::TMultilineTextField::Draw()
     SDL_Texture* TextureMap = t->GuiTextureMap1;
     Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
     SDL_Texture* OldRenderTarget{ nullptr };
+    SDL_FRect RealPosition = GetRealPosition();
 
-    if (m_Canvas)
+    if (m_NeedUpdate == ENeedUpdate::ENU_None)
     {
-        OldRenderTarget = SDL_GetRenderTarget(Renderer);
-        SDL_SetRenderTarget(Renderer, m_Canvas);
+        SDL_RenderTexture(Renderer, m_Canvas, nullptr, &RealPosition);
+        return;
     }
 
+    OldRenderTarget = SDL_GetRenderTarget(Renderer);
+    SDL_SetRenderTarget(Renderer, m_Canvas);
+
+    SDL_FRect rc = RealPosition;
+    rc.x = 0;
+    rc.y = 0;
     DrawCommonComplex(
+        rc,
         t->multiline_textfield_top_left_rc, t->multiline_textfield_top_middle_rc, t->multiline_textfield_top_right_rc, t->multiline_textfield_inner_left_rc, t->multiline_textfield_inner_right_rc, t->multiline_textfield_bottom_left_rc, t->multiline_textfield_bottom_middle_rc, t->multiline_textfield_bottom_right_rc,
         t->multiline_textfield_top_left_disabled_rc, t->multiline_textfield_top_middle_disabled_rc, t->multiline_textfield_top_right_disabled_rc, t->multiline_textfield_inner_left_disabled_rc, t->multiline_textfield_inner_right_disabled_rc, t->multiline_textfield_bottom_left_disabled_rc, t->multiline_textfield_bottom_middle_disabled_rc, t->multiline_textfield_bottom_right_disabled_rc,
         t->multiline_textfield_top_left_focused_rc, t->multiline_textfield_top_middle_focused_rc, t->multiline_textfield_top_right_focused_rc, t->multiline_textfield_inner_left_focused_rc, t->multiline_textfield_inner_right_focused_rc, t->multiline_textfield_bottom_left_focused_rc, t->multiline_textfield_bottom_middle_focused_rc, t->multiline_textfield_bottom_right_focused_rc,
@@ -64,9 +84,8 @@ void Tilc::Gui::TMultilineTextField::Draw()
     {
         UpdateDisplayLinesCache();
     }
-    SDL_FRect rc = GetRealPosition();
-    rc.x += m_PaddingLeft;
-    rc.y += m_PaddingTop;
+    rc.x = m_PaddingLeft;
+    rc.y = m_PaddingTop;
     rc.w = GetMaxXPosAllowedForContent() - rc.x - m_PaddingRight;
     for (size_t i = 0; i < m_DisplayedLines.size(); ++i)
     {
@@ -78,15 +97,14 @@ void Tilc::Gui::TMultilineTextField::Draw()
     // ================================================================
 
     // I na koniec karetka
-    if (Tilc::GameObject->GetContext()->m_Caret)
+    if (Tilc::GameObject->GetContext()->m_Caret && GetParentWindow()->GetActiveControl() == this)
     {
         Tilc::GameObject->GetContext()->m_Caret->Draw();
     }
 
-    if (m_Canvas)
-    {
-        SDL_SetRenderTarget(Renderer, OldRenderTarget);
-    }
+    SDL_SetRenderTarget(Renderer, OldRenderTarget);
+    SDL_RenderTexture(Renderer, m_Canvas, nullptr, &RealPosition);
+
     m_NeedUpdate = ENeedUpdate::ENU_None;
 }
 
@@ -151,14 +169,25 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
     int inner_width = CalculateInnerWidth();
 
     SDL_Rect size{};
+    // zakładamy średnio 2 piksele na lietere i na tej podstawie wyzanczamy pierwszy string do zbadania
+    size_t CopyCharsCount = m_Position.w / 2;
 
-    Tilc::TExtString s = m_Text.substr(StartChar);
+    size_t EndLinePos = m_Text.find_first_of('\n', StartChar);
+    Tilc::TExtString s;
+    if (EndLinePos == std::string::npos)
+    {
+        s = m_Text.substr(StartChar);
+    }
+    else
+    {
+        s = m_Text.substr(StartChar, EndLinePos - StartChar + 1);
+    }
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     Tilc::Gui::TFont* Font = t->DefaultFont;
     Font->GetTextSize(s.c_str(), size.w, size.h);
 
-    // Jeśli tekst począwszy od m_StartChar do końca jest mieści się w wyświetlanym obszarze, to zwracamy ostatnią mozliwą pozycję
-    if (size.w <= inner_width && s.find_first_of('\n') == std::string::npos)
+    // Jeśli tekst począwszy od m_StartChar do końca jest mieści się w wyświetlanym obszarze, to zwracamy ostatnią możliwą pozycję
+    if (CopyCharsCount >= m_Text.length() && size.w <= inner_width && s.find_first_of('\n') == std::string::npos)
     {
         return StartChar + s.length();
     }
@@ -167,7 +196,7 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
     // Wyszukujemy mieszczącą się w kontrolce długość tekstu połówkowo, bo robienie tego znak po znaku powodowało straszne lagi w rysowaniu kontrolek przy dużej ilości pól tekstowych
     // zawierających jakiekolwiek teksty
     int Left = StartChar;
-    int Right = StrLen;
+    int Right = CopyCharsCount;
     // najpierw szukamy ewentualnego znaku nowego wiersza
     int NewLinePos = StartChar + 1;
     const char* RawStr = m_Text.c_str();
@@ -345,7 +374,7 @@ SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCaretPos()
 
         if (m_Caret)
         {
-            SDL_FRect RealPosition = GetRealPosition();
+            SDL_FRect RealPosition = m_RealPosition;
             pt.x = RealPosition.x + m_PaddingLeft;
             if (TextSize.w < size.w - 1.0f)
             {
@@ -949,11 +978,11 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
     SDL_Rect size;
     SDL_FRect rc{};
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    SDL_FRect RealPosition = GetRealPosition();
+    SDL_FRect RealPosition = m_RealPosition;
 
     if (m_SelStart < m_SelEnd)
     {
-        RectsResult.reserve(16);
+        RectsResult.reserve(64);
         for (int i = 0; i < m_DisplayedLines.size(); ++i)
         {
             // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
@@ -1003,8 +1032,10 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
                 {
                     return RectsResult;
                 }
-                rc.x = ptStart.x;
-                rc.y = RealPosition.y + m_PaddingTop + i * m_Caret->m_Position.h;
+
+                SDL_FRect RealPos = GetRealPosition();
+                rc.x = ptStart.x - RealPos.x;
+                rc.y = m_RealPosition.y + m_PaddingTop + i * m_Caret->m_Position.h;
                 rc.w = ptEnd.x - ptStart.x;
                 rc.h = t->textfield_selection_rc.h;
                 RectsResult.push_back(rc);

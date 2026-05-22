@@ -47,6 +47,7 @@ void Tilc::Gui::TButton::Draw()
     }
 
     DrawCommon(
+        GetRealPosition(),
         t->button_left_rc, t->button_middle_rc, t->button_right_rc,
         t->button_left_disabled_rc, t->button_middle_disabled_rc, t->button_right_disabled_rc,
         t->button_left_focused_rc, t->button_middle_focused_rc, t->button_right_focused_rc,

@@ -231,14 +231,12 @@ void Tilc::Gui::TFont::GetTextSize(const char* String, int& Width, int& Height)
         }
     }
 
-	Tilc::TExtString Utf8String(String);
-
 	if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
 	{
-		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, Utf8String.c_str(), 0))
+		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, String, 0))
 		{
 			TTF_GetTextSize(Text, &Width, &Height);
-            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+            //TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
 			TTF_DestroyText(Text);
 		}
 		TTF_DestroySurfaceTextEngine(Engine);

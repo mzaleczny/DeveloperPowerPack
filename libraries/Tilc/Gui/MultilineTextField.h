@@ -34,6 +34,18 @@ namespace Tilc
             virtual void MoveCaretOneCharRight() override;
 
             // Funkcje obsługi zdarzeń
+            virtual bool OnMouseMove(const SDL_Event& event) override
+            {
+                return __super::OnMouseMove(event);
+            };
+            virtual bool OnMouseButtonDown(const SDL_Event& event) override
+            {
+                return __super::OnMouseButtonDown(event);
+            };
+            virtual bool OnMouseButtonUp(const SDL_Event& event) override
+            {
+                return __super::OnMouseButtonUp(event);
+            };
             virtual bool OnKeyDown(const SDL_Event& event) override;
             virtual bool OnTextInput(const SDL_Event& event) override;
 
@@ -44,6 +56,8 @@ namespace Tilc
                 return (Pos >= m_DisplayedLines[m_CurrentLine].first && Pos <= m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length());
             }
         protected:
+            // This controls uses its own texture for rendering where there is x = 0, y = 0 and not relative to parent
+            SDL_FRect m_RealPosition;
             std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
             int m_CurrentLine = 0;
             bool m_RefreshDisplayLinesCache{true};

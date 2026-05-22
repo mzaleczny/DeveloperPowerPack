@@ -5,7 +5,7 @@
 
 Tilc::Gui::TCaret::TCaret(float x, float y, float width, float height)
     : m_BlinkingDelay(500.0f), m_BlinkingElapsedTime(0.0f), m_Visible(false), m_Active(false),
-      m_Position({x, y, width, height}), m_Color({0x00, 0x00, 0x00, 0x00})
+      m_Position({x, y, width, height}), m_Color({0x00, 0x00, 0x00, 0xff})
 {
     m_Renderer = Tilc::GameObject->GetContext()->m_Window->GetRenderer();
 }
