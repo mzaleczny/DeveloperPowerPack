@@ -61,7 +61,7 @@ add_library(${LibName}_compiler_flags INTERFACE)
 target_compile_features(${LibName}_compiler_flags INTERFACE cxx_std_23)
 set_target_properties(${LibName}_compiler_flags PROPERTIES CXX_EXTENSIONS OFF)
 
-target_link_libraries(${LibName} INTERFACE ${LibName}_compiler_flags ${TILC_LIBRARY} SDL3${LibSuffix} SDL3_image${LibSuffix} SDL3_ttf${LibSuffix} SDL3_mixer${LibSuffix} assimp-vc145-mtd)
+target_link_libraries(${LibName} INTERFACE ${LibName}_compiler_flags ${TILC_LIBRARY} SDL3${LibSuffix} SDL3_image${LibSuffix} SDL3_ttf${LibSuffix} SDL3_mixer${LibSuffix} assimp-vc145-mt${LibSuffix})
 
 add_library(Tilc::Tilc ALIAS Tilc)
 
@@ -75,4 +75,13 @@ function(TilcCopyRuntimeDlls TARGET_NAME)
 	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/SDL3_ttf${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_ttf${LibSuffix}.dll"
 	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/SDL3${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3${LibSuffix}.dll"
     )
+    # jeśli mamy debug, to musimy jeszcze skopiwać biblioteki bez d na końcu
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/SDL3_image.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_image.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/SDL3_mixer.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_mixer.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/SDL3_ttf.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_ttf.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/SDL3.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3.dll"
+        )
+    endif()
 endfunction()
