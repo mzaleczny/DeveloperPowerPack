@@ -236,7 +236,7 @@ void Tilc::Gui::TFont::GetTextSize(const char* String, int& Width, int& Height)
 		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, String, 0))
 		{
 			TTF_GetTextSize(Text, &Width, &Height);
-            //TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
 			TTF_DestroyText(Text);
 		}
 		TTF_DestroySurfaceTextEngine(Engine);
