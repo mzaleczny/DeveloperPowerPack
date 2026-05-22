@@ -6,14 +6,6 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../../../libraries/cmake")
 find_package(Tilc REQUIRED)
 
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(TilcBinDir "x64-Debug")
-    set(LibSuffix "d")
-else()
-    set(TilcBinDir "x64-Release")
-    set(LibSuffix "")
-endif()
-
 add_library(${PROJECT_NAME}_compiler_flags INTERFACE)
 target_compile_features(${PROJECT_NAME}_compiler_flags INTERFACE cxx_std_23)
 
