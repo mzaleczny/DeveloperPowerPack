@@ -63,6 +63,7 @@ void Tilc::Gui::TTextField::Draw()
     }
 
     DrawCommon(
+        GetRealPosition(),
         t->textfield_left_rc, t->textfield_middle_rc, t->textfield_right_rc,
         t->textfield_left_disabled_rc, t->textfield_middle_disabled_rc, t->textfield_right_disabled_rc,
         t->textfield_left_focused_rc, t->textfield_middle_focused_rc, t->textfield_right_focused_rc,
@@ -104,7 +105,7 @@ void Tilc::Gui::TTextField::Draw()
     // ================================================================
 
     // I na koniec karetka
-    if (Tilc::GameObject->GetContext()->m_Caret)
+    if (Tilc::GameObject->GetContext()->m_Caret && GetParentWindow()->GetActiveControl() == this)
     {
         Tilc::GameObject->GetContext()->m_Caret->Draw();
     }
