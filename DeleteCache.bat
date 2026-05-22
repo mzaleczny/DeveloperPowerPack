@@ -1,5 +1,5 @@
 rmdir /S /Q libraries\.vs
-rmdir /S /Q libraries\out
+REM rmdir /S /Q libraries\out
 
 rmdir /S /Q SDL3\01_Renderer\.vs\01_Renderer
 del SDL3\01_Renderer\.vs\cmake.db
