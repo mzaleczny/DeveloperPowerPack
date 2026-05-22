@@ -136,7 +136,10 @@ DECLSPEC void Tilc::Audio::Play(const Tilc::TExtString& Filename, float Volume, 
                 }
                 MIX_SetTrackAudio(MixTrack, MixAudio);
                 MIX_SetMixerGain(Mixer, Volume / 100.0f);
-                MIX_PlayTrack(MixTrack, Loops);
+                SDL_PropertiesID props = SDL_CreateProperties();
+                SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, Loops);
+                MIX_PlayTrack(MixTrack, props);
+                SDL_DestroyProperties(props);
                 while (MIX_TrackPlaying(MixTrack))
                 {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
