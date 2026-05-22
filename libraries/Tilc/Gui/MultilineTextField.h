@@ -11,6 +11,11 @@ namespace Tilc
     {
         class TStyledWindow;
 
+        namespace Helpers {
+            class TTextLayoutCache;
+        }
+
+
         class DECLSPEC TMultilineTextField : public TTextField
         {
         public:
@@ -55,10 +60,12 @@ namespace Tilc
             {
                 return (Pos >= m_DisplayedLines[m_CurrentLine].first && Pos <= m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length());
             }
+
         protected:
+            Tilc::Gui::Helpers::TTextLayoutCache* m_TextLayoutCache;
+            std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
             // This controls uses its own texture for rendering where there is x = 0, y = 0 and not relative to parent
             SDL_FRect m_RealPosition;
-            std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
             int m_CurrentLine = 0;
             bool m_RefreshDisplayLinesCache{true};
             // Przechowuj true, jeśli karetka jest na końcu linii. Jest po to, by rozróżnić to samo połozenie karetki wewnątrz bufora dla pozycji na końcu jednej linii i na początku następnej.

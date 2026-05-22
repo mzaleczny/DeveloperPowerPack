@@ -5,10 +5,11 @@
 #include "Tilc/Gui/Clipboard.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/OS/SystemUtils.h"
+#include "Tilc/Gui/Helpers/TextLayoutCache.h"
 #include "Tilc/Game.h"
 
 Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool tabStop)
-    : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_MultilineTextField, text, tabStop)
+    : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_MultilineTextField, "", tabStop)
 {
     // create our own canvas to speed up redrawing process
     m_Canvas = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_Position.w, m_Position.h);
@@ -16,10 +17,22 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     m_RealPosition = m_Position;
     m_RealPosition.x = 0;
     m_RealPosition.y = 0;
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    m_TextLayoutCache = new Tilc::Gui::Helpers::TTextLayoutCache(t->DefaultFont->m_Font);
+    if (m_TextLayoutCache)
+    {
+        m_TextLayoutCache->SetText(text);
+    }
 }
 
 Tilc::Gui::TMultilineTextField::~TMultilineTextField()
 {
+    if (m_TextLayoutCache)
+    {
+        delete m_TextLayoutCache;
+        m_TextLayoutCache = nullptr;
+    }
+
     if (m_DestroyCanvas && m_Canvas)
     {
         SDL_DestroyTexture(m_Canvas);
@@ -80,16 +93,13 @@ void Tilc::Gui::TMultilineTextField::Draw()
     // ================================================================
     // Rysujemy tekst
     // ================================================================
-    if (m_RefreshDisplayLinesCache)
-    {
-        UpdateDisplayLinesCache();
-    }
     rc.x = m_PaddingLeft;
     rc.y = m_PaddingTop;
     rc.w = GetMaxXPosAllowedForContent() - rc.x - m_PaddingRight;
-    for (size_t i = 0; i < m_DisplayedLines.size(); ++i)
+    rc.h = m_Caret->m_Position.h;
+    for (size_t i = 0; i < m_TextLayoutCache->GetLinesCount(); ++i)
     {
-        DefaultFont->DrawString(GetRenderer(), m_DisplayedLines[i].second.c_str(), &rc, Align_Left | Align_Top);
+        DefaultFont->DrawString(GetRenderer(), m_TextLayoutCache->m_LinesContent[i].c_str(), &rc, Align_Left | Align_Top);
         rc.y += m_Caret->m_Position.h;
     }
     // ================================================================
