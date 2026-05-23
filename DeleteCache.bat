@@ -1,5 +1,15 @@
 rmdir /S /Q libraries\.vs
-REM rmdir /S /Q libraries\out
+rmdir /S /Q libraries\out\build\x64-Debug\.cmake
+rmdir /S /Q libraries\out\build\x64-Debug\cmake
+rmdir /S /Q libraries\out\build\x64-Debug\CMakeFiles
+rmdir /S /Q libraries\out\build\x64-Debug\external_assimp-build
+rmdir /S /Q libraries\out\build\x64-Debug\external_glm-build
+rmdir /S /Q libraries\out\build\x64-Debug\external_sdl3_image-build
+rmdir /S /Q libraries\out\build\x64-Debug\external_sdl3_mixer-build
+rmdir /S /Q libraries\out\build\x64-Debug\external_sdl3_ttf-build
+rmdir /S /Q libraries\out\build\x64-Debug\external_sdl3-build
+rmdir /S /Q libraries\out\build\x64-Debug\Testing
+del /q libraries\out\build\x64-Debug\*
 
 rmdir /S /Q SDL3\01_Renderer\.vs\01_Renderer
 del SDL3\01_Renderer\.vs\cmake.db
