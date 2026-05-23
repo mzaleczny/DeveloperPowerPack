@@ -377,14 +377,18 @@ add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
 
 target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags)
+target_link_directories("${PROJECT_NAME}Shared" PRIVATE
+	"$<BUILD_INTERFACE:${external_sdl3_ttf_BINARY_DIR}/external/harfbuzz>"
+)
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
 	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
+	"$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/harfbuzz/src>"
 	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
 )
 target_link_options("${PROJECT_NAME}Shared" PRIVATE "${SetSubsystem}")
 #target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp MariaDB::MariaDB MariaDB::mariadbcpp glm::glm ZLIB::ZLIB)
-target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB)
+target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB harfbuzz)
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
     EXPORT_LINK_INTERFACE_LIBRARIES OFF
 )
