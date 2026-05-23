@@ -23,7 +23,7 @@ namespace Tilc
             virtual ~TMultilineTextField();
 
             virtual void Draw() override;
-            void UpdateDisplayLinesCache();
+            void UpdateCache();
 
             int GetLastVisibleCharPosInLine(int StartChar);
             virtual void PositionCaretNearClickedPoint(float localX, float localY) override;
@@ -67,7 +67,7 @@ namespace Tilc
             // This controls uses its own texture for rendering where there is x = 0, y = 0 and not relative to parent
             SDL_FRect m_RealPosition;
             int m_CurrentLine = 0;
-            bool m_RefreshDisplayLinesCache{true};
+            bool m_DoUpdateCache{true};
             // Przechowuj true, jeśli karetka jest na końcu linii. Jest po to, by rozróżnić to samo połozenie karetki wewnątrz bufora dla pozycji na końcu jednej linii i na początku następnej.
             // W obu tych przypadkach zmienna m_CaretAtPos ma tę samą wartość, ale położeni karetki może być w dwóch różnych punkatch.
             bool m_CaretAtEndOfLine{};

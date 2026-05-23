@@ -75,7 +75,7 @@ Od początku transformacji ustrojowej w gospodarkę rynkową, Polska utrzymuje b
 Polska należy m.in. do UE, ONZ, NATO, OBWE, WTO, OECD i Rady Europy, zaś Warszawa stanowi siedzibę Frontexu. 
 )##"
     );
-
+    
     Tilc::Gui::TButton* btnSave = new Tilc::Gui::TButton(wnd, "SaveButton", { X, Y, 100, 25 }, "Zapisz");
     Tilc::Gui::TButton* btnCancel = new Tilc::Gui::TButton(wnd, "CancelButton", { X + 120.0f, Y, 100, 25 }, "Anuluj");
 }

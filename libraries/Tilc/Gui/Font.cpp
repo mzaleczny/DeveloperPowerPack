@@ -14,8 +14,10 @@ Tilc::Gui::TFont::TFont(const char* FontResourceName, float size, bool FromFile)
 	m_Size = size;
 	m_ReleaseFont = true;
     m_FontName = FontResourceName;
+    m_FromFile = FromFile;
     if (FromFile)
 	{
+        m_FontFilePath = FontResourceName;
 		m_Font = TTF_OpenFont(FontResourceName, size);
         if (!m_Font)
         {

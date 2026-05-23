@@ -141,7 +141,6 @@ void Tilc::Gui::TTextField::Focus()
 
     if (m_Caret)
     {
-        SetCaretRect();
         UpdateCaretPos();
         m_Caret->Update(0);
         m_Caret->Show();
@@ -175,10 +174,6 @@ void Tilc::Gui::TTextField::SetCaretRect()
     Font->GetTextSize("Testy qjY", w, h);
     m_Caret->m_Position.w = 2.0f;
     m_Caret->m_Position.h = h;
-
-    SDL_FPoint pt = CalculateCaretPos();
-    m_Caret->m_Position.x = pt.x;
-    m_Caret->m_Position.y = pt.y;
 }
 
 bool Tilc::Gui::TTextField::OnMouseMove(const SDL_Event& event)
@@ -417,7 +412,10 @@ SDL_FPoint Tilc::Gui::TTextField::CalculateCharPos(int CurrentChar, int& Result)
 
 void Tilc::Gui::TTextField::UpdateCaretPos()
 {
-    SetCaretRect();
+    SDL_FPoint pt = CalculateCaretPos();
+    m_Caret->m_Position.x = pt.x;
+    m_Caret->m_Position.y = pt.y;
+
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
     m_Caret->Show();
@@ -429,7 +427,9 @@ void Tilc::Gui::TTextField::UpdateCaretPos()
         {
             ++m_StartChar;
         }
-        SetCaretRect();
+        pt = CalculateCaretPos();
+        m_Caret->m_Position.x = pt.x;
+        m_Caret->m_Position.y = pt.y;
         if (m_StartChar >= m_Text.length())
         {
             break;

@@ -18,10 +18,11 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     m_RealPosition.x = 0;
     m_RealPosition.y = 0;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    m_TextLayoutCache = new Tilc::Gui::Helpers::TTextLayoutCache(t->DefaultFont->m_Font);
+    m_TextLayoutCache = new Tilc::Gui::Helpers::TTextLayoutCache(t->DefaultFont);
     if (m_TextLayoutCache)
     {
         m_TextLayoutCache->SetText(text);
+        UpdateCache();
     }
 }
 
@@ -118,53 +119,13 @@ void Tilc::Gui::TMultilineTextField::Draw()
     m_NeedUpdate = ENeedUpdate::ENU_None;
 }
 
-void Tilc::Gui::TMultilineTextField::UpdateDisplayLinesCache()
+void Tilc::Gui::TMultilineTextField::UpdateCache()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     int InnerHeight = CalculateInnerHeight();
-    int DisplayedLinesHeight = 0;
-    int StartChar{};
-    int LastCharPos{};
 
-    if (m_DisplayedLines.size() == 0)
-    {
-        StartChar = m_StartChar;
-    }
-    else
-    {
-        StartChar = m_DisplayedLines[m_DisplayedLines.size() - 1].first + m_DisplayedLines[m_DisplayedLines.size() - 1].second.length();
-        DisplayedLinesHeight += m_DisplayedLines.size() * m_Caret->m_Position.h;
-    }
-    if (StartChar >= m_Text.size())
-    {
-        StartChar = m_Text.size();
-    }
-    while (m_Text[StartChar] == '\n')
-    {
-        m_DisplayedLines.emplace_back(StartChar, "\n");
-        ++StartChar;
-    }
-    LastCharPos = GetLastVisibleCharPosInLine(StartChar);
-
-    Tilc::TExtString s = m_Text.substr(StartChar, LastCharPos - StartChar);
-    m_DisplayedLines.emplace_back(StartChar, s);
-    DisplayedLinesHeight += m_Caret->m_Position.h;
-    while (LastCharPos < m_Text.length() && DisplayedLinesHeight + m_Caret->m_Position.h <= InnerHeight)
-    {
-        while (m_Text[LastCharPos] == '\n')
-        {
-            m_DisplayedLines.emplace_back(LastCharPos, "\n");
-            ++LastCharPos;
-        }
-        StartChar = LastCharPos;
-        LastCharPos = GetLastVisibleCharPosInLine(StartChar);
-        s = m_Text.substr(StartChar, LastCharPos - StartChar);
-        m_DisplayedLines.emplace_back(StartChar, s);
-    }
-
-    CalculateCaretPos();
     UpdateCaretPos();
-    m_RefreshDisplayLinesCache = false;
+    m_DoUpdateCache = false;
     Invalidate();
 }
 
@@ -274,76 +235,41 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
 
 void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX, float localY)
 {
-    if (!m_Text.empty() && m_DisplayedLines.size() > 0)
+    Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    float deltaX = localX - m_PaddingLeft;
+    float lastDeltaX = localX - m_PaddingLeft;
+    m_CurrentLine = std::clamp(static_cast<int>((localY - m_PaddingTop) / m_Caret->m_Position.h), 0, static_cast<int>(m_TextLayoutCache->GetLinesCount() - 1));
+    m_TextLayoutCache->EnsureLineComputed(m_CurrentLine);
+    size_t CurrentLineCoordsSize = m_TextLayoutCache->m_Lines[m_CurrentLine].m_CaretX.size();
+    Tilc::TExtString& CurrentLineContent = m_TextLayoutCache->m_LinesContent[m_CurrentLine];
+    std::u32string& CurrentLineContent32 = m_TextLayoutCache->m_Utf32Lines[m_CurrentLine];
+    size_t Pos = 0;
+    float Size = 0;
+    float LastSize = 0;
+    int Advance = m_TextLayoutCache->m_AdvanceCache[CurrentLineContent32[Pos]];
+    while (Pos < CurrentLineCoordsSize && Size + m_PaddingLeft + Advance / 2 < localX)
     {
-        Tilc::TExtString tmp;
-        Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-        Tilc::Gui::TFont* Font = t->DefaultFont;
-        SDL_Rect si;
-        si.w = 0;
-        size_t count = 0;
-        // poniższe dwie zmienne służą do określenia czy kursor powinien się znajdować
-        // przed czy po klikniętej literze (w zależności czy kliknięto bliżej jej
-        // początku czy końca). Jeśli kliknięto między literami, to kursor jest lokowany
-        // dokładnie między nimi.
-        float deltaX = localX - (si.w + m_PaddingLeft);
-        float lastDeltaX = localX - (si.w + m_PaddingLeft);
-        m_CurrentLine = std::clamp(static_cast<int>((localY - m_PaddingTop) / m_Caret->m_Position.h), 0, static_cast<int>(m_DisplayedLines.size() - 1));
-        tmp = "";
-        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
-        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
-        size_t strLen = CurrentLine.length();
-        while (count < strLen && si.w + m_PaddingLeft < localX)
+        LastSize = Size;
+        ++Pos;
+        if (Pos < CurrentLineCoordsSize)
         {
-            count += 1;
-            // traversujemy opcjonalnie przez kolejne znaki litery UTF8 jeśli taka jest
-            while (static_cast<size_t>(count) < strLen && IsUtf8ContinuationByte(CurrentLine[count]))
-            {
-                count += 1;
-            }
-            tmp = CurrentLine.substr(0, count);
-            Font->GetTextSize(tmp.c_str(), si.w, si.h);
-            lastDeltaX = deltaX;
-            deltaX = localX - (si.w + m_PaddingLeft);
+            Size = m_TextLayoutCache->GetCaretX(m_CurrentLine, Pos);
+            Advance = m_TextLayoutCache->GetAdvance(CurrentLineContent32[Pos]);
         }
-        if (lastDeltaX < 0)
+        else
         {
-            lastDeltaX = -lastDeltaX;
+            Size = m_TextLayoutCache->GetLineWidth(m_CurrentLine);
+            Advance = 0;
         }
-        if (deltaX < 0)
-        {
-            deltaX = -deltaX;
-        }
-        if (count > 0 && (lastDeltaX < deltaX))
-        {
-            --count;
-        }
-        m_CaretAtChar = CurrentLineStartChar + count;
-        while (m_CaretAtChar > 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar]))
-        {
-            --m_CaretAtChar;
-        }
-        // Jeśli jesteśmy na pozycji miedzy dwiema liniami
-        if (IsAtLineBreak())
-        {
-            // to jeśli kliknęto dalej niż 5 pikseli od lewej krawędzi, to zakładamy, że jesteśmy na końcu linii
-            if (localX > 5)
-            {
-                m_CaretAtEndOfLine = true;
-            }
-            // w przeciwnym razie jesteśmy na początku linii
-            else
-            {
-                m_CaretAtEndOfLine = false;
-            }
-        }
-        UpdateCaretPos();
     }
+    m_CaretAtChar = Pos;
+    UpdateCaretPos();
 }
 
 void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
 {
-    SetCaretRect();
+    m_Caret->m_Position.x = m_PaddingLeft + m_TextLayoutCache->GetCaretX(m_CurrentLine, m_CaretAtChar);
+    m_Caret->m_Position.y = m_PaddingTop + m_CurrentLine * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
     m_Caret->Show();
@@ -352,53 +278,19 @@ void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
 SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCaretPos()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    SDL_Rect size{}, TextSize{};
     SDL_FPoint pt{};
 
-    if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
+    if (m_CurrentLine >= 0 && m_CurrentLine < m_TextLayoutCache->GetLinesCount())
     {
-        // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
-        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
-        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
-        int lettersBeforeCaret = m_CaretAtChar - CurrentLineStartChar;
-        Tilc::TExtString s;
-        if (lettersBeforeCaret > 0)
-        {
-            s = CurrentLine.substr(0, lettersBeforeCaret);
-            // Replace "\r\n" chars with space because they disturb text size calculation: returned size will bound more then one line of text
-            std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (c == '\r' || c == '\n') ? ' ' : c; });
-            Tilc::Gui::TFont* Font = t->DefaultFont;
-            const char* p = s.c_str();
-            size_t BytesLeft = s.length();
-            while (BytesLeft > 0)
-            {
-                Uint32 ch = SDL_StepUTF8(&p, &BytesLeft);
-                int minx, maxx, miny, maxy, advance;
-                if (TTF_GetGlyphMetrics(Font->m_Font, ch, &minx, &maxx, &miny, &maxy, &advance))
-                {
-                    size.w += advance;
-                }
-            }
-            Font->GetTextSize(s.c_str(), TextSize.w, TextSize.h);
-        }
-
+        float CaretX = m_TextLayoutCache->GetCaretX(m_CurrentLine, m_CaretAtChar);
         if (m_Caret)
         {
             SDL_FRect RealPosition = m_RealPosition;
-            pt.x = RealPosition.x + m_PaddingLeft;
-            if (TextSize.w < size.w - 1.0f)
-            {
-                pt.x += TextSize.w;
-            }
-            else
-            {
-                pt.x += size.w - 1.0f;
-            }
+            pt.x = RealPosition.x + m_PaddingLeft + CaretX;
             pt.y = RealPosition.y + m_PaddingTop + m_Caret->m_Position.h * m_CurrentLine;
         }
     }
     return pt;
-
 }
 
 SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCharPos(int CurrentChar, int& Result)
@@ -939,7 +831,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     else if (vkControl && event.key.key == SDLK_V)
     {
         DeleteCacheFromCurrentLine();
-        UpdateDisplayLinesCache();
+        UpdateCache();
         m_CurrentLine = GetLineForCurrentCaretPos();
         updateCaretPos = true;
     }
@@ -948,14 +840,14 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         m_CurrentLine = 0;
         m_CaretAtChar = 0;
         DeleteCacheFromCurrentLine();
-        UpdateDisplayLinesCache();
+        UpdateCache();
         updateCaretPos = true;
     }
     else if (vkControl && event.key.key == SDLK_END)
     {
         m_CurrentLine = 0;
         DeleteCacheFromCurrentLine();
-        UpdateDisplayLinesCache();
+        UpdateCache();
         m_CurrentLine = m_DisplayedLines.size() - 1;
         m_CaretAtChar = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
         updateCaretPos = true;
@@ -1061,16 +953,16 @@ void Tilc::Gui::TMultilineTextField::DeleteCacheFromCurrentLine()
     for (int i = 0; i < LinesToDelete; ++i)
     {
         m_DisplayedLines.pop_back();
-        m_RefreshDisplayLinesCache = true;
+        m_DoUpdateCache = true;
     }
-    UpdateDisplayLinesCache();
+    UpdateCache();
 }
 
 void Tilc::Gui::TMultilineTextField::DeleteAndRefreshAllCache()
 {
     m_DisplayedLines.clear();
-    m_RefreshDisplayLinesCache = true;
-    UpdateDisplayLinesCache();
+    m_DoUpdateCache = true;
+    UpdateCache();
 }
 
 int Tilc::Gui::TMultilineTextField::GetLineForCurrentCaretPos()
