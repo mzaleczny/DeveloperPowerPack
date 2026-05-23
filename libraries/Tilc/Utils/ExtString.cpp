@@ -1055,9 +1055,16 @@ int Tilc::TExtString::GetUtf8CharsLength(size_t pos, int NumChars) const
     {
         ++Len;
         ++pos;
-        while (NumChars > 0)
+        while (pos < CurrentLength && IsUtf8ContinuationByte(c_str()[pos]))
+        {
+            ++Len;
+            ++pos;
+        }
+        while (NumChars > 1)
         {
             --NumChars;
+            ++Len;
+            ++pos;
             while (pos < CurrentLength && IsUtf8ContinuationByte(c_str()[pos]))
             {
                 ++Len;
