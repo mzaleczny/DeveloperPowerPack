@@ -17,6 +17,7 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     m_RealPosition = m_Position;
     m_RealPosition.x = 0;
     m_RealPosition.y = 0;
+    UpdateTypeOnCaretMove = ENeedUpdate::ENU_Caret;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     m_TextLayoutCache = new Tilc::Gui::Helpers::TTextLayoutCache(t->DefaultFont, CalculateInnerWidth(), CalculateInnerHeight());
     if (m_TextLayoutCache)
@@ -53,6 +54,17 @@ void Tilc::Gui::TMultilineTextField::Draw()
     if (m_NeedUpdate == ENeedUpdate::ENU_None)
     {
         SDL_RenderTexture(Renderer, m_Canvas, nullptr, &RealPosition);
+        return;
+    }
+    else if (m_NeedUpdate == ENeedUpdate::ENU_Caret)
+    {
+        SDL_RenderTexture(Renderer, m_Canvas, nullptr, &RealPosition);
+        // I na koniec karetka
+        if (Tilc::GameObject->GetContext()->m_Caret && GetParentWindow()->GetActiveControl() == this)
+        {
+            Tilc::GameObject->GetContext()->m_Caret->Draw();
+        }
+        m_NeedUpdate = ENeedUpdate::ENU_None;
         return;
     }
 
@@ -107,14 +119,14 @@ void Tilc::Gui::TMultilineTextField::Draw()
     // Koniec rysowania tekstu
     // ================================================================
 
+    SDL_SetRenderTarget(Renderer, OldRenderTarget);
+    SDL_RenderTexture(Renderer, m_Canvas, nullptr, &RealPosition);
+
     // I na koniec karetka
     if (Tilc::GameObject->GetContext()->m_Caret && GetParentWindow()->GetActiveControl() == this)
     {
         Tilc::GameObject->GetContext()->m_Caret->Draw();
     }
-
-    SDL_SetRenderTarget(Renderer, OldRenderTarget);
-    SDL_RenderTexture(Renderer, m_Canvas, nullptr, &RealPosition);
 
     m_NeedUpdate = ENeedUpdate::ENU_None;
 }
@@ -282,9 +294,10 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
 void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
 {
     int w, h;
+    SDL_FRect RealPosition = GetRealPosition();
 
-    m_Caret->m_Position.x = m_PaddingLeft + m_TextLayoutCache->GetCaretX(m_CurrentLine, m_CaretAtChar);
-    m_Caret->m_Position.y = m_PaddingTop + m_CurrentLine * m_Caret->m_Position.h;
+    m_Caret->m_Position.x = RealPosition.x + m_PaddingLeft + m_TextLayoutCache->GetCaretX(m_CurrentLine, m_CaretAtChar);
+    m_Caret->m_Position.y = RealPosition.y + m_PaddingTop + m_CurrentLine * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
     m_Caret->Show();
@@ -531,7 +544,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 MoveCaretOneCharRight();
-                while (m_CaretAtChar < m_TextLayoutCache->m_Utf32Lines.size() && !IsCharWhiteSpace(m_Text[m_CaretAtChar]))
+                while (m_CaretAtChar < m_TextLayoutCache->m_Utf32Lines[m_CurrentLine].size() && !IsWideCharWhiteSpace(m_TextLayoutCache->m_Utf32Lines[m_CurrentLine][m_CaretAtChar]))
                 {
                     MoveCaretOneCharRight();
                 }
@@ -540,6 +553,12 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             {
                 MoveCaretOneCharRight();
             }
+            updateCaretPos = true;
+        }
+        else if (m_CurrentLine < m_TextLayoutCache->m_Utf32Lines.size())
+        {
+            ++m_CurrentLine;
+            m_CaretAtChar = 0;
             updateCaretPos = true;
         }
         return;
@@ -557,7 +576,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 MoveCaretOneCharLeft();
-                while (m_CaretAtChar > 0 && !IsCharWhiteSpace(m_Text[m_CaretAtChar - 1]))
+                while (m_CaretAtChar > 0 && !IsWideCharWhiteSpace(m_TextLayoutCache->m_Utf32Lines[m_CurrentLine][m_CaretAtChar - 1]))
                 {
                     MoveCaretOneCharLeft();
                 }
@@ -567,6 +586,12 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
                 MoveCaretOneCharLeft();
             }
 
+            updateCaretPos = true;
+        }
+        else if (m_CurrentLine > 0)
+        {
+            --m_CurrentLine;
+            m_CaretAtChar = m_TextLayoutCache->m_Utf32Lines[m_CurrentLine].size();
             updateCaretPos = true;
         }
         return;
