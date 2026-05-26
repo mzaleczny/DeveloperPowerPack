@@ -203,6 +203,7 @@ namespace Tilc
         int GetUtf8CharLength(size_t pos) const;
         // zwraca długość w bajtach NumChars kolejnych liter utf8 począwszy pozycji pos
         int GetUtf8CharsLength(size_t pos, int NumChars) const;
+        TExtString GetUtf8Substring(size_t pos, int NumChars) const;
         // zwraca długość w bajtach NumChars kolejnych liter utf8 bezpośrednio poprzedzających pozycję pos
         int GetPrecedingUtf8CharsLength(size_t pos, int NumChars) const;
         int TruncateUtf8AtEnd(size_t NumChars);
@@ -299,6 +300,7 @@ namespace Tilc
     DECLSPEC std::u32string Utf8ToUtf32(const TExtString& s);
     DECLSPEC std::u16string Utf32ToUtf16(const std::u32string& s);
     DECLSPEC TExtString Utf16ToUtf8(const std::u16string& s);
+    DECLSPEC TExtString Utf32ToUtf8(const std::u32string& s);
 
     /*
     struct TConcatProxy

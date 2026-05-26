@@ -1075,6 +1075,39 @@ int Tilc::TExtString::GetUtf8CharsLength(size_t pos, int NumChars) const
     return Len;
 }
 
+Tilc::TExtString Tilc::TExtString::GetUtf8Substring(size_t pos, int NumChars) const
+{
+    Tilc::TExtString Result;
+    int Len = 0;
+    size_t CurrentLength = length();
+    if (IsUtf8StartByte(c_str()[pos]))
+    {
+        Result.push_back(c_str()[pos]);
+        ++Len;
+        ++pos;
+        while (pos < CurrentLength && IsUtf8ContinuationByte(c_str()[pos]))
+        {
+            Result.push_back(c_str()[pos]);
+            ++Len;
+            ++pos;
+        }
+        while (NumChars > 1)
+        {
+            Result.push_back(c_str()[pos]);
+            --NumChars;
+            ++Len;
+            ++pos;
+            while (pos < CurrentLength && IsUtf8ContinuationByte(c_str()[pos]))
+            {
+                Result.push_back(c_str()[pos]);
+                ++Len;
+                ++pos;
+            }
+        }
+    }
+    return Result;
+}
+
 int Tilc::TExtString::GetPrecedingUtf8CharsLength(size_t pos, int NumChars) const
 {
     int Len = 0;
@@ -1711,4 +1744,9 @@ DECLSPEC Tilc::TExtString Tilc::Utf16ToUtf8(const std::u16string& s)
     }
 
     return out;
+}
+
+DECLSPEC Tilc::TExtString Tilc::Utf32ToUtf8(const std::u32string& s)
+{
+    return Utf16ToUtf8(Utf32ToUtf16(s));
 }
