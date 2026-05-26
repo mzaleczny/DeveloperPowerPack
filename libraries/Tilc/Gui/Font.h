@@ -3,6 +3,7 @@
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/ExtString.h"
 #include "SDL3/SDL.h"
+#include "SDL3_ttf/SDL_ttf.h"
 #include <unordered_map>
 
 struct TTF_Font;
@@ -40,6 +41,7 @@ namespace Tilc::Gui
 		TTF_Font* GetTTFFont() { return m_Font; }
         SDL_Color GetColor() const { return m_Color; }
 
+        TTF_TextEngine* m_Engine{};
         TTF_Font* m_Font = nullptr;
         Tilc::TExtString m_FontName;
         Tilc::TExtString m_FontFilePath;

@@ -36,6 +36,7 @@ Tilc::Gui::TFont::TFont(const char* FontResourceName, float size, bool FromFile)
 
     if (m_Font)
     {
+        m_Engine = TTF_CreateSurfaceTextEngine();
         TTF_SetFontStyle(m_Font, TTF_STYLE_NORMAL);
         TTF_SetFontOutline(m_Font, 0);
         TTF_SetFontHinting(m_Font, TTF_HINTING_NORMAL);
@@ -48,13 +49,18 @@ Tilc::Gui::TFont::TFont(TTF_Font* ExistingFont)
 	m_ReleaseFont = false;
 	if (m_Font)
 	{
-		m_Size = TTF_GetFontSize(m_Font);
+        m_Engine = TTF_CreateSurfaceTextEngine();
+        m_Size = TTF_GetFontSize(m_Font);
 	}
 	m_FontResourceData = nullptr;
 }
 
 Tilc::Gui::TFont::~TFont()
 {
+    if (m_Engine)
+    {
+        TTF_DestroySurfaceTextEngine(m_Engine);
+    }
 	if (m_FontResourceData)
 	{
 		delete[] m_FontResourceData;
@@ -233,25 +239,12 @@ void Tilc::Gui::TFont::GetTextSize(const char* String, int& Width, int& Height)
         }
     }
 
-	if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
+	if (TTF_Text* Text = TTF_CreateText(m_Engine, m_Font, String, 0))
 	{
-		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, String, 0))
-		{
-			TTF_GetTextSize(Text, &Width, &Height);
-            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
-			TTF_DestroyText(Text);
-		}
-		TTF_DestroySurfaceTextEngine(Engine);
+		TTF_GetTextSize(Text, &Width, &Height);
+        TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+		TTF_DestroyText(Text);
 	}
-	/*
-	SDL_Surface* TextSurface = TTF_RenderUTF8_Solid(Font, String, Color);
-	if (TextSurface)
-	{
-		Width = TextSurface->w;
-		Height = TextSurface->h;
-		SDL_DestroySurface(TextSurface);
-	}
-	*/
 }
 
 void Tilc::Gui::TFont::GetXCoordForCenteredText(const char* String, float ContainerWidth, float& x)
@@ -271,16 +264,12 @@ void Tilc::Gui::TFont::GetXCoordForCenteredText(const char* String, float Contai
         }
     }
 
-    if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
+	if (TTF_Text* Text = TTF_CreateText(m_Engine, m_Font, String, 0))
 	{
-		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, String, 0))
-		{
-			TTF_GetTextSize(Text, &Width, &Height);
-            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
-			x = (ContainerWidth - Width) / 2.0f;
-			TTF_DestroyText(Text);
-		}
-		TTF_DestroySurfaceTextEngine(Engine);
+		TTF_GetTextSize(Text, &Width, &Height);
+        TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+		x = (ContainerWidth - Width) / 2.0f;
+		TTF_DestroyText(Text);
 	}
 }
 
@@ -305,20 +294,16 @@ void Tilc::Gui::TFont::GetGetRectForCenteredText(const char* String, float Conta
         }
     }
 
-    if (TTF_TextEngine* Engine = TTF_CreateSurfaceTextEngine())
+	if (TTF_Text* Text = TTF_CreateText(m_Engine, m_Font, String, 0))
 	{
-		if (TTF_Text* Text = TTF_CreateText(Engine, m_Font, String, 0))
-		{
-			TTF_GetTextSize(Text, &Width, &Height);
-            TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+		TTF_GetTextSize(Text, &Width, &Height);
+        TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
 
-			r.x = (ContainerWidth - Width) / 2.0f;
-			r.y = 0;
-			r.w = static_cast<float>(Width);
-			r.h = static_cast<float>(Height);
+		r.x = (ContainerWidth - Width) / 2.0f;
+		r.y = 0;
+		r.w = static_cast<float>(Width);
+		r.h = static_cast<float>(Height);
 
-			TTF_DestroyText(Text);
-		}
-		TTF_DestroySurfaceTextEngine(Engine);
+		TTF_DestroyText(Text);
 	}
 }
