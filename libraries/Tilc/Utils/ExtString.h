@@ -262,6 +262,10 @@ namespace Tilc
     {
         return (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r');
     }
+    DECLSPEC inline bool IsWideCharWhiteSpace(char32_t c)
+    {
+        return (c == L' ') || (c == L'\t') || (c == L'\n') || (c == L'\r');
+    }
 
     DECLSPEC inline bool IsUtf8StartByte(unsigned char c)
     {
