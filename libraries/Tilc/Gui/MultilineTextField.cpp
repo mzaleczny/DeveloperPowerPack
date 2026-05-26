@@ -553,12 +553,16 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             {
                 MoveCaretOneCharRight();
             }
+            // ładujemy jeśli trzeba pozycje karetki
+            EnsureLineCompute();
             updateCaretPos = true;
         }
         else if (m_CurrentLine < m_TextLayoutCache->m_Utf32Lines.size())
         {
             ++m_CurrentLine;
             m_CaretAtChar = 0;
+            // ładujemy jeśli trzeba pozycje karetki
+            EnsureLineCompute();
             updateCaretPos = true;
         }
         return;
@@ -586,12 +590,16 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
                 MoveCaretOneCharLeft();
             }
 
+            // ładujemy jeśli trzeba pozycje karetki
+            EnsureLineCompute();
             updateCaretPos = true;
         }
         else if (m_CurrentLine > 0)
         {
             --m_CurrentLine;
             m_CaretAtChar = m_TextLayoutCache->m_Utf32Lines[m_CurrentLine].size();
+            // ładujemy jeśli trzeba pozycje karetki
+            EnsureLineCompute();
             updateCaretPos = true;
         }
         return;
@@ -923,6 +931,25 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
         }
     }
     return RectsResult;
+}
+
+void Tilc::Gui::TMultilineTextField::EnsureLineCompute()
+{
+    if (m_TextLayoutCache->m_Lines[m_CurrentLine].m_Dirty)
+    {
+        // od tego indeksu
+        int LastComputedChar = m_TextLayoutCache->m_Lines[m_CurrentLine].m_ComputedCarets;
+        if (m_TextLayoutCache->m_Lines[m_CurrentLine].m_CaretX.size() > LastComputedChar)
+        {
+            // w tym przypadku uwzględniamy ostatnipo obliczoną pozycję karetki i wyliczamy kolejne dla maksymalne długości 300 od ostatiniej pozycji
+            m_TextLayoutCache->EnsureLineComputed(m_CurrentLine, m_TextLayoutCache->m_Lines[m_CurrentLine].m_CaretX[LastComputedChar] + 100);
+        }
+        else
+        {
+            // w przeciwnym razie wyliczamy pozycje na początku liniii
+            m_TextLayoutCache->EnsureLineComputed(m_CurrentLine, 300);
+        }
+    }
 }
 
 void Tilc::Gui::TMultilineTextField::DeleteCacheFromCurrentLine()

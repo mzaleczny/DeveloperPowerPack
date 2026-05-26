@@ -152,10 +152,19 @@ void Tilc::Gui::Helpers::TTextLayoutCache::EnsureLineComputed(int LineIndex, flo
     {
         prev = line[lm.m_ComputedCarets - 1];
         PrevAdvance = GetAdvance(prev);
+        x = lm.m_CaretX[lm.m_ComputedCarets - 1];
     }
     for (size_t i = lm.m_ComputedCarets; i < line.size(); ++i)
     {
         ++lm.m_ComputedCarets;
+        if (lm.m_CaretX[i + 1] > 0)
+        {
+            prev = line[i];
+            PrevAdvance = GetAdvance(prev);
+            x = lm.m_CaretX[i];
+            continue;
+        }
+
         if (UpdateNextCaretX)
         {
             TestedSubstring = Utf32ToUtf8(line.substr(0, i));

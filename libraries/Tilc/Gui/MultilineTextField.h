@@ -60,7 +60,7 @@ namespace Tilc
             {
                 return (Pos >= m_DisplayedLines[m_CurrentLine].first && Pos <= m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length());
             }
-
+            void EnsureLineCompute();
         protected:
             Tilc::Gui::Helpers::TTextLayoutCache* m_TextLayoutCache;
             std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
