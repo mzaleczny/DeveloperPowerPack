@@ -40,7 +40,8 @@ namespace Tilc {
             ENU_Everything,
             ENU_Caption,
             ENU_CaptionButtons,
-            ENU_Children
+            ENU_Children,
+            ENU_Caret
         };
 
         enum class EControlType

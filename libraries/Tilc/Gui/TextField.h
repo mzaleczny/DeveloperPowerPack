@@ -149,6 +149,8 @@ namespace Tilc
             // Wskaźnik na schowek przechowywany w TGameObject - nie trzeba go zwalniać bo robi to
             // TGameObject.
             TClipboard* m_Clipboard;
+            // For multiline text edit we need to update only caret as text is backbuffered
+            ENeedUpdate UpdateTypeOnCaretMove{ ENeedUpdate::ENU_Everything };
 
             // Poniższe dwa atrybuty określają znaki przed którymi zaczyna się i kończy zaznaczenie.
             int m_SelStart;

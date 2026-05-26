@@ -653,7 +653,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
     {
         int oldCaretAtChar = m_CaretAtChar;
         UpdateCursorPosition(event.key.key, updateCaretPos, redraw);
-        Invalidate();
+        Invalidate(UpdateTypeOnCaretMove);
         // jeśli nie jest wciśnięty Shift, to czyścimy zaznaczenie
         if (!vkShift)
         {
