@@ -6,8 +6,6 @@
 #include <cstdint>
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <hb.h>
-#include <hb-ft.h>
 
 namespace Tilc::Gui {
     class TFont;
@@ -21,13 +19,12 @@ namespace Tilc::Gui::Helpers {
         struct DECLSPEC TLineMetrics
         {
             std::vector<int> m_CaretX;   // caretX[i] = pozycja X po znaku i
+            int m_ComputedCarets{ 0 }; // jeśli ta zmienna jest mniejsza od m_CaretX.size(), to należy kontynuować obliczanie pozycji karetki od tej wartości
             int m_TotalWidth{ 0 };
             bool m_Dirty{ true };
         };
 
-        TTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth = -1)
-            : m_Font(Font), m_MaxLineWidthInPixels(MaxWidth)
-        {}
+        TTextLayoutCache(TFont* Font, int MaxWidth, int MaxHeight);
         virtual ~TTextLayoutCache();
 
         // Ustaw cały tekst (UTF-8)
@@ -54,13 +51,13 @@ namespace Tilc::Gui::Helpers {
         inline int GetLinesCount() const { return (int)m_Utf32Lines.size(); }
 
         // Przelicz jedną linię (tylko jeśli dirty)
-        void EnsureLineComputed(int LineIndex);
+        void EnsureLineComputed(int LineIndex, float ComputeToMaxWidth = -1);
 
         // Pobierz advance glifu z cache
         int GetAdvance(uint32_t cp);
 
         // Pobierz kerning pary glifów z cache
-        int GetKerning(uint32_t Prev, uint32_t Curr);
+        int GetKerning(uint32_t Prev, uint32_t Curr, int PrevAdvance = -1, int CurrAdvance = -1);
 
 
         Tilc::Gui::TFont* m_Font;
@@ -70,19 +67,12 @@ namespace Tilc::Gui::Helpers {
         // Cache metryk glifów
         std::unordered_map<uint32_t, int> m_AdvanceCache;
         std::unordered_map<uint64_t, int> m_KerningCache;
-        // jeśli m_MaxLineWidthInPixels == -1, to nie zawijamy wierszy, w przeciwnym razie rozbijamy tekst na linie nie tylko w miejscu wystąpienia znaku '\n', ale też po przekroczeniu
-        // przez bieżący tekst maksymalnej szerokości linii
-        int m_MaxLineWidthInPixels;
+        bool SourceLinesWrap{};
+        int m_MaxWidthInPixels;
+        int m_MaxHeightInPixels;
 
 
     private:
-        size_t BufferSize{};
-        char* m_FontResourceData{};
-        FT_Library ft{};
-        FT_Face face{};
-        // HarfBuzz
-        hb_font_t* hb_font{};
-
         // Konwersja całego tekstu na UTF-32
         void ConvertToUTF32Lines(const Tilc::TExtString& Text);
     };

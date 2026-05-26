@@ -18,7 +18,7 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     m_RealPosition.x = 0;
     m_RealPosition.y = 0;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    m_TextLayoutCache = new Tilc::Gui::Helpers::TTextLayoutCache(t->DefaultFont);
+    m_TextLayoutCache = new Tilc::Gui::Helpers::TTextLayoutCache(t->DefaultFont, CalculateInnerWidth(), CalculateInnerHeight());
     if (m_TextLayoutCache)
     {
         m_TextLayoutCache->SetText(text);
@@ -236,30 +236,43 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
 void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX, float localY)
 {
     Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    float deltaX = localX - m_PaddingLeft;
-    float lastDeltaX = localX - m_PaddingLeft;
     m_CurrentLine = std::clamp(static_cast<int>((localY - m_PaddingTop) / m_Caret->m_Position.h), 0, static_cast<int>(m_TextLayoutCache->GetLinesCount() - 1));
-    m_TextLayoutCache->EnsureLineComputed(m_CurrentLine);
+    m_TextLayoutCache->EnsureLineComputed(m_CurrentLine, localX - m_PaddingLeft);
     size_t CurrentLineCoordsSize = m_TextLayoutCache->m_Lines[m_CurrentLine].m_CaretX.size();
-    Tilc::TExtString& CurrentLineContent = m_TextLayoutCache->m_LinesContent[m_CurrentLine];
-    std::u32string& CurrentLineContent32 = m_TextLayoutCache->m_Utf32Lines[m_CurrentLine];
     size_t Pos = 0;
-    float Size = 0;
     float LastSize = 0;
-    int Advance = m_TextLayoutCache->m_AdvanceCache[CurrentLineContent32[Pos]];
-    while (Pos < CurrentLineCoordsSize && Size + m_PaddingLeft + Advance / 2 < localX)
+    float CaretPosX = 0;
+    float PrevCaretPosX = 0;
+    float NextCaretPosX = 0;
+    if (Pos + 1 < CurrentLineCoordsSize)
     {
-        LastSize = Size;
+        NextCaretPosX = m_TextLayoutCache->GetCaretX(m_CurrentLine, Pos + 1);
+    }
+    else
+    {
+        NextCaretPosX = m_TextLayoutCache->GetLineWidth(m_CurrentLine);
+    }
+    float x = localX - m_PaddingLeft;
+    while (Pos < CurrentLineCoordsSize && abs(x - CaretPosX) > abs(NextCaretPosX - x))
+    {
+        PrevCaretPosX = CaretPosX;
         ++Pos;
         if (Pos < CurrentLineCoordsSize)
         {
-            Size = m_TextLayoutCache->GetCaretX(m_CurrentLine, Pos);
-            Advance = m_TextLayoutCache->GetAdvance(CurrentLineContent32[Pos]);
+            CaretPosX = m_TextLayoutCache->GetCaretX(m_CurrentLine, Pos);
+            if (Pos + 1 < CurrentLineCoordsSize)
+            {
+                NextCaretPosX = m_TextLayoutCache->GetCaretX(m_CurrentLine, Pos + 1);
+            }
+            else
+            {
+                NextCaretPosX = m_TextLayoutCache->GetLineWidth(m_CurrentLine);
+            }
         }
         else
         {
-            Size = m_TextLayoutCache->GetLineWidth(m_CurrentLine);
-            Advance = 0;
+            CaretPosX = m_TextLayoutCache->GetLineWidth(m_CurrentLine);
+            NextCaretPosX = m_TextLayoutCache->GetLineWidth(m_CurrentLine);
         }
     }
     m_CaretAtChar = Pos;
@@ -268,6 +281,8 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
 
 void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
 {
+    int w, h;
+
     m_Caret->m_Position.x = m_PaddingLeft + m_TextLayoutCache->GetCaretX(m_CurrentLine, m_CaretAtChar);
     m_Caret->m_Position.y = m_PaddingTop + m_CurrentLine * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
@@ -499,23 +514,14 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     updateCaretPos = false;
     redraw = false;
 
-    size_t strLen = m_Text.length();
-    if (strLen < 1)
-    {
-        return;
-    }
-
     SDL_FPoint pt;
     int inner_width = CalculateInnerWidth();
-    // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
-    int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
-    Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
 
 
     if (vkKey == SDLK_RIGHT)
     {
         // przetwarzamy zdarzenie jeśli jeszcze nie jesteśmy na końcu tekstu
-        if (m_CaretAtChar < strLen)
+        if (m_CaretAtChar < m_TextLayoutCache->m_Utf32Lines[m_CurrentLine].size())
         {
             const bool* Keys = SDL_GetKeyboardState(nullptr);
 
@@ -525,7 +531,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 MoveCaretOneCharRight();
-                while (m_CaretAtChar < strLen && !IsCharWhiteSpace(m_Text[m_CaretAtChar]))
+                while (m_CaretAtChar < m_TextLayoutCache->m_Utf32Lines.size() && !IsCharWhiteSpace(m_Text[m_CaretAtChar]))
                 {
                     MoveCaretOneCharRight();
                 }
@@ -598,10 +604,11 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 m_CaretAtChar = 0;
+                m_CurrentLine = 0;
             }
             else
             {
-                m_CaretAtChar = CurrentLineStartChar;
+                m_CaretAtChar = 0;
             }
             updateCaretPos = true;
             redraw = true;
@@ -610,7 +617,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     }
 
     else if (vkKey == SDLK_END) {
-        if (CurrentLine.length() > 0)
+        if (m_TextLayoutCache->m_Utf32Lines.size() > 0)
         {
             const bool* Keys = SDL_GetKeyboardState(nullptr);
 
@@ -619,22 +626,11 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
             if (Keys[SDL_SCANCODE_LCTRL])
             {
-                m_CaretAtChar = m_Text.length();
+                m_CaretAtChar = m_TextLayoutCache->m_Utf32Lines[m_TextLayoutCache->m_Utf32Lines.size()-1].size();
             }
             else
             {
-                if (m_CurrentLine < m_DisplayedLines.size() - 1)
-                {
-                    m_CaretAtChar = CurrentLineStartChar + CurrentLine.length() - 1;
-                    while (m_CaretAtChar > CurrentLineStartChar && m_CaretAtChar >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar]))
-                    {
-                        --m_CaretAtChar;
-                    }
-                }
-                else
-                {
-                    m_CaretAtChar = CurrentLineStartChar + CurrentLine.length();
-                }
+                m_CaretAtChar = m_TextLayoutCache->m_Utf32Lines[m_CurrentLine].size();
             }
             updateCaretPos = true;
             redraw = true;
@@ -648,11 +644,11 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
     size_t strLen = m_Text.length();
     int count = -1;
 
-    if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
+    if (m_CurrentLine >= 0 && m_CurrentLine < m_TextLayoutCache->m_Utf32Lines.size())
     {
         // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
-        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
-        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
+        int CurrentLineStartChar = 0;
+        Tilc::TExtString CurrentLine = m_TextLayoutCache->m_LinesContent[m_CurrentLine];
 
         while (m_CaretAtChar + count < strLen && m_CaretAtChar + count >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
         {
@@ -664,23 +660,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
             if (NewCaretPos < CurrentLineStartChar)
             {
                 --m_CurrentLine;
-                m_CaretAtEndOfLine = true;
                 return;
-            }
-            else
-            {
-                m_CaretAtEndOfLine = false;
-            }
-        }
-        else
-        {
-            if (NewCaretPos < CurrentLineStartChar + CurrentLine.length())
-            {
-                m_CaretAtEndOfLine = false;
-            }
-            else
-            {
-                m_CaretAtEndOfLine = true;
             }
         }
         m_CaretAtChar += count;
@@ -692,44 +672,17 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
     size_t strLen = m_Text.length();
     int count = 1;
 
-    if (m_CurrentLine >= 0 && m_CurrentLine < m_DisplayedLines.size())
+    if (m_CurrentLine >= 0 && m_CurrentLine < m_TextLayoutCache->m_Utf32Lines.size())
     {
         // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
-        int CurrentLineStartChar = m_DisplayedLines[m_CurrentLine].first;
-        Tilc::TExtString CurrentLine = m_DisplayedLines[m_CurrentLine].second;
+        int CurrentLineStartChar = 0;
+        Tilc::TExtString CurrentLine = m_TextLayoutCache->m_LinesContent[m_CurrentLine];
 
         while (static_cast<size_t>(m_CaretAtChar + count) < strLen && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
         {
             count += 1;
         }
         int NewCaretPos = m_CaretAtChar + count;
-        if (m_CurrentLine + 1 < m_DisplayedLines.size())
-        {
-            if (NewCaretPos == m_DisplayedLines[m_CurrentLine + 1].first || m_CaretAtChar == m_DisplayedLines[m_CurrentLine + 1].first)
-            {
-                if (m_CaretAtEndOfLine)
-                {
-                    ++m_CurrentLine;
-                    m_CaretAtEndOfLine = false;
-                    return;
-                }
-                else
-                {
-                    m_CaretAtEndOfLine = true;
-                }
-            }
-        }
-        else
-        {
-            if (NewCaretPos < CurrentLineStartChar + CurrentLine.length())
-            {
-                m_CaretAtEndOfLine = false;
-            }
-            else
-            {
-                m_CaretAtEndOfLine = true;
-            }
-        }
         m_CaretAtChar += count;
     }
 }
