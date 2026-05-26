@@ -47,6 +47,12 @@ namespace Tilc::Gui::Helpers {
             return m_Lines[LineIndex].m_TotalWidth;
         }
 
+        // Pobierz szerokość linii
+        inline int GetLinePositionsNum(int LineIndex)
+        {
+            return m_Utf32Lines[LineIndex].size() + 1;
+        }
+
         // Liczba linii
         inline int GetLinesCount() const { return (int)m_Utf32Lines.size(); }
 

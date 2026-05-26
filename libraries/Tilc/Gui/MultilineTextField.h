@@ -30,7 +30,6 @@ namespace Tilc
             // Updates Caret position
             void UpdateCaretPos() override;
             virtual SDL_FPoint CalculateCaretPos() override;
-            virtual SDL_FPoint CalculateCharPos(int CurrentChar, int& Result) override;
             virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw) override;
             // Updates position within text with use of m_CaretAtChar
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw) override;

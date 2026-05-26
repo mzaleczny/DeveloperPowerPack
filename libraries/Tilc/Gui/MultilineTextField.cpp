@@ -321,66 +321,6 @@ SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCaretPos()
     return pt;
 }
 
-SDL_FPoint Tilc::Gui::TMultilineTextField::CalculateCharPos(int CurrentChar, int& Result)
-{
-    SDL_Rect size{};
-    SDL_FPoint pt{};
-
-    Result = 0;
-
-    if (CurrentChar < m_StartChar)
-    {
-        Result = -1;
-        return pt;
-    }
-
-    int LineForChar = -1;
-    int StartChar = 0;
-    int i = 0;
-    while (i < m_DisplayedLines.size())
-    {
-        if (CurrentChar >= m_DisplayedLines[i].first && CurrentChar < m_DisplayedLines[i].first + m_DisplayedLines[i].second.length())
-        {
-            LineForChar = i;
-            StartChar = m_DisplayedLines[i].first;
-            break;
-        }
-        ++i;
-    }
-
-    if (LineForChar == -1)
-    {
-        Result = -1;
-        return pt;
-    }
-
-    int LettersBefore = CurrentChar - StartChar;
-    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-
-    if (LettersBefore > 0)
-    {
-        Tilc::TExtString s = m_Text.substr(StartChar, LettersBefore);
-        Tilc::Gui::TFont* Font = Tilc::GameObject->GetFont(FontNameInUse);
-        Font->GetTextSize(s.c_str(), size.w, size.h);
-    }
-
-    SDL_FRect RealPos = GetRealPosition();
-    pt.x = RealPos.x + m_PaddingLeft + size.w;
-    pt.y = RealPos.y + (m_Position.h - t->textfield_selection_rc.h) / 2.0f;
-
-    if (pt.x < RealPos.x + m_PaddingLeft)
-    {
-        Result = -1;
-    }
-
-    if (pt.x > GetMaxXPosAllowedForContent())
-    {
-        Result = -2;
-    }
-
-    return pt;
-}
-
 void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw)
 {
     if (vkKey == SDLK_UP)
@@ -454,8 +394,8 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
     {
         const bool* Keys = SDL_GetKeyboardState(nullptr);
 
-        LineStartPos = m_DisplayedLines[m_CurrentLine].first;
-        LineEndPos = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
+        LineStartPos = 0;
+        LineEndPos = m_TextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
         // jeśli trzymany jest dowolny klawisz Control, to zaznaczenie musi skoczyć do początku lub końca tekstu - tak jak karetka
         if (vkKey == SDLK_HOME)
         {
@@ -474,7 +414,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             }
             else
             {
-                int DestPos = m_DisplayedLines[m_CurrentLine].first;
+                int DestPos = LineStartPos;
                 if (DestPos > m_SelBegin)
                 {
                     m_SelEnd = DestPos;
@@ -503,7 +443,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             }
             else
             {
-                int DestPos = m_DisplayedLines[m_CurrentLine].first + m_DisplayedLines[m_CurrentLine].second.length();
+                int DestPos = LineEndPos;
                 if (DestPos < m_SelEnd)
                 {
                     m_SelStart = DestPos;
@@ -515,9 +455,80 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             }
             redraw = true;
         }
-        else
+        // ta metoda jest wywołana po poprawnym zaktualizowaniu atrybutów:
+        // this->_startChar i this->_caretAtChar
+        else if (vkKey == SDLK_LEFT)
         {
-            __super::UpdateSelection(vkKey, lastCaretAtChar, LineStartPos, LineEndPos, updateCaretPos, redraw);
+            if (!IsSelection())
+            {
+                if (static_cast<unsigned int>(m_CaretAtChar) >= 0)
+                {
+                    m_SelStart = m_CaretAtChar;
+                    m_SelEnd = lastCaretAtChar;
+                    m_SelBegin = m_SelStart;
+                    redraw = true;
+                }
+            }
+            // jeśli zmniejszamy zaznaczenie od prawej strony do lewej, ale tak, że nie przeskoczyło ono początku po lewej, to ustawiamy m_SelEnd
+            else if (m_CaretAtChar >= m_SelStart)
+            {
+                m_SelEnd = m_CaretAtChar;
+                redraw = true;
+            }
+            else if (m_CaretAtChar < m_SelStart)
+            {
+                // jeśli przeskakujemy za pomocą klawiszy Ctrl+Left wokół początku zaznaczenia, to musimy zrobić, żeby dotychczasowy początek zaznaczenia stał się jego końcem
+                if (lastCaretAtChar > m_SelStart)
+                {
+                    m_SelEnd = m_SelStart;
+                    m_SelStart = m_CaretAtChar;
+                }
+                else
+                {
+                    m_SelStart = m_CaretAtChar;
+                }
+                redraw = true;
+            }
+            return;
+        }
+
+        if (vkKey == SDLK_RIGHT)
+        {
+            if (!IsSelection())
+            {
+                if (m_CaretAtChar < LineEndPos)
+                {
+                    m_SelStart = lastCaretAtChar;
+                    m_SelEnd = m_CaretAtChar;
+                    m_SelBegin = m_SelStart;
+                    redraw = true;
+                }
+            }
+            else if (m_CaretAtChar > m_SelStart)
+            {
+                // jeśli zmniejszamy zaznaczenie, czyli idziemy od początku zaznaczenia w kierunku jego końca
+                if (m_CaretAtChar <= m_SelEnd)
+                {
+                    m_SelStart = m_CaretAtChar;
+                }
+                // jeśli przeskakujemy za pomocą klawiszy Ctrl+Right wokół końca zaznaczenia, to musimy zrobić, żeby dotychczasowy koniec zaznaczenia stał się jego początkiem
+                else if (lastCaretAtChar < m_SelEnd)
+                {
+                    m_SelStart = m_SelEnd;
+                    m_SelEnd = m_CaretAtChar;
+                }
+                else
+                {
+                    m_SelEnd = m_CaretAtChar;
+                }
+                redraw = true;
+            }
+            else if (m_CaretAtChar < m_SelStart)
+            {
+                m_SelStart = m_CaretAtChar;
+                redraw = true;
+            }
+            return;
         }
     }
 }
@@ -871,11 +882,12 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
     if (m_SelStart < m_SelEnd)
     {
         RectsResult.reserve(64);
-        for (int i = 0; i < m_DisplayedLines.size(); ++i)
+        for (int i = 0; i < m_TextLayoutCache->m_Utf32Lines.size(); ++i)
         {
+            if (i != m_CurrentLine) continue;
             // m_DisplayedLines[m_CurrentLine].first - zawiera StartCharPosition dla danej linijki
-            int CurrentLineStartChar = m_DisplayedLines[i].first;
-            Tilc::TExtString CurrentLine = m_DisplayedLines[i].second;
+            int CurrentLineStartChar = 0;
+            Tilc::TExtString CurrentLine = m_TextLayoutCache->m_LinesContent[m_CurrentLine];
 
             // jesli w zaznaczeniu jest cały bieżący wiersz, to ustawiamy prostokąt na cały tekst
             if ((m_SelStart <= CurrentLineStartChar) && (m_SelEnd >= CurrentLineStartChar + CurrentLine.length()))
@@ -910,19 +922,13 @@ std::vector<SDL_FRect> Tilc::Gui::TMultilineTextField::CalculateSelectionRects()
                 }
 
                 int Result;
-                ptStart = CalculateCharPos(StartChar, Result);
-                if (Result == -2 || Result == -1)
-                {
-                    return RectsResult;
-                }
-                ptEnd = CalculateCharPos(EndChar, Result);
-                if (Result == -2 || Result == -1)
-                {
-                    return RectsResult;
-                }
+                ptStart.x = m_TextLayoutCache->m_Lines[m_CurrentLine].m_CaretX[StartChar];
+                ptStart.y = m_CurrentLine * m_Caret->m_Position.h;
+                ptEnd.x = m_TextLayoutCache->m_Lines[m_CurrentLine].m_CaretX[EndChar];
+                ptEnd.y = m_CurrentLine * m_Caret->m_Position.h;
 
                 SDL_FRect RealPos = GetRealPosition();
-                rc.x = ptStart.x - RealPos.x;
+                rc.x = m_RealPosition.x + m_PaddingLeft + ptStart.x;
                 rc.y = m_RealPosition.y + m_PaddingTop + i * m_Caret->m_Position.h;
                 rc.w = ptEnd.x - ptStart.x;
                 rc.h = t->textfield_selection_rc.h;
