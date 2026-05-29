@@ -13,6 +13,7 @@ namespace Tilc
 
         namespace Helpers {
             class TTextLayoutCache;
+            class THbTextLayoutCache;
         }
 
 
@@ -61,7 +62,8 @@ namespace Tilc
             }
             void EnsureLineCompute();
         protected:
-            Tilc::Gui::Helpers::TTextLayoutCache* m_TextLayoutCache;
+            //Tilc::Gui::Helpers::TTextLayoutCache* m_TextLayoutCache;
+            Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;
             std::vector<std::pair<int, Tilc::TExtString>> m_DisplayedLines;
             // This controls uses its own texture for rendering where there is x = 0, y = 0 and not relative to parent
             SDL_FRect m_RealPosition;
