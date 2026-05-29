@@ -52,7 +52,7 @@ namespace Tilc::Data
 		Tilc::TExtString LastError;
 
 		// Ponizsze dwie zmienne wskazuja na wartosci podane w funkcji Select
-		TStringVector* FieldNames;
-		std::vector<TStringVector>* DataRows;
+        TStringVector* FieldNames{};
+        std::vector<TStringVector>* DataRows{};
 	};
 }
