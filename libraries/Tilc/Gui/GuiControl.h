@@ -155,13 +155,13 @@ namespace Tilc {
             inline void RenderTexture(SDL_Texture* Src, float x, float y, float destW, float destH, bool RoundCoords = true)
             {
                 SDL_FRect r{ m_Position.x + x, m_Position.y + y, destW, destH };
+                // If canvas is specified then we draw within the canvas without offsetting
+                if (m_Canvas)
+                {
+                    r.x -= m_Position.x;
+                    r.y -= m_Position.y;
+                }
                 if (RoundCoords)
-                    // If canvas is specified then we draw within the canvas without offsetting
-                    if (m_Canvas)
-                    {
-                        r.x -= m_Position.x;
-                        r.y -= m_Position.y;
-                    }
                 {
                     SDL_Rect ir = FloorFRect(&r);
                     SDL_RectToFRect(&ir, &r);
