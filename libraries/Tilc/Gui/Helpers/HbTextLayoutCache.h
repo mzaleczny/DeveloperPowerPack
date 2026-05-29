@@ -61,7 +61,7 @@ namespace Tilc::Gui::Helpers
                                int LineEnd, int CharEnd,
                                std::vector<SDL_FRect>& OutRects,
                                int LineHeight, int BaseY);
-        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int MaxLineWidthInPixels);
+        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color);
 
     private:
         Tilc::Gui::TFont* m_Font;

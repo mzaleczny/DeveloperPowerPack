@@ -276,7 +276,7 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
     }
 }
 
-SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int MaxLineWidthInPixels)
+SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color)
 {
     Tilc::Gui::Helpers::THbTextLayoutCache::TLine& line = m_Lines[LineNumber];
     if (line.Glyphs.empty())
@@ -288,7 +288,7 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
         }
     }
 
-    int width = std::min(line.TotalWidth, MaxLineWidthInPixels);
+    int width = std::min(line.TotalWidth, m_MaxWidth);
     int height = m_Face->size->metrics.height >> 6;
     SDL_Texture* tex{};
 
