@@ -29,7 +29,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
                       LINKER_LANGUAGE CXX
                       )
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>")
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/build/x64-Debug/external_sdl3_ttf-src/external/freetype/include>"
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/build/x64-Debug/external_sdl3_ttf-src/external/harfbuzz/src>"
+)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_compiler_flags Tilc::Tilc)
 target_link_options(${PROJECT_NAME} PRIVATE "${SetSubsystem}")
