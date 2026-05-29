@@ -652,6 +652,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
     if (!processed && isCaretMovingKey)
     {
         int oldCaretAtChar = m_CaretAtChar;
+        int oldLineNumber = m_CurrentLine;
         UpdateCursorPosition(event.key.key, updateCaretPos, redraw);
         Invalidate(UpdateTypeOnCaretMove);
         // jeśli nie jest wciśnięty Shift, to czyścimy zaznaczenie
@@ -666,9 +667,9 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
         else
         {
             // jeśli pozycja kursora się zmieniła, to aktualizujemy zaznaczenie
-            if (oldCaretAtChar != m_CaretAtChar)
+            if (oldCaretAtChar != m_CaretAtChar || oldLineNumber != m_CurrentLine)
             {
-                UpdateSelection(event.key.key, oldCaretAtChar, 0, m_Text.length(), updateCaretPos, redraw);
+                UpdateSelection(event.key.key, oldCaretAtChar, oldLineNumber, 0, m_Text.length(), updateCaretPos, redraw);
                 if (event.key.key == SDLK_RIGHT && IsSelection())
                 {
                     // jeśli mamy zaznaczenie to w przypadku naciśnięcia klawisza VK_RIGHT
@@ -795,7 +796,7 @@ bool Tilc::Gui::TTextField::OnTextInput(const SDL_Event& event)
     return true;
 }
 
-void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw)
+void Tilc::Gui::TTextField::UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int PrevLineNumber, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw)
 {
     // ta metoda jest wywołana po poprawnym zaktualizowaniu atrybutów:
     // this->_startChar i this->_caretAtChar
@@ -1124,6 +1125,7 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
     if (localX >= 0 && localY >= 0)
     {
         int oldCaretAtChar = m_CaretAtChar;
+        int oldLineNumber = m_CurrentLine;
         bool processed = false;
         int frame_left_width = m_PaddingLeft;
         int inner_width = CalculateInnerWidth();
@@ -1143,9 +1145,9 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
             // przesuwamy karetkę o jeden znak w lewo
             UpdateCursorPosition(SDLK_LEFT, updateCaretPos, redraw);
             // i jeśli trzeba to aktualizujemy zaznaczenie
-            if (oldCaretAtChar != m_CaretAtChar)
+            if (oldCaretAtChar != m_CaretAtChar || oldLineNumber != m_CurrentLine)
             {
-                UpdateSelection(SDLK_LEFT, oldCaretAtChar, 0, m_Text.length(), updateCaretPos, redraw);
+                UpdateSelection(SDLK_LEFT, oldCaretAtChar, oldLineNumber, 0, m_Text.length(), updateCaretPos, redraw);
                 updateCaretPos = true;
                 redraw = true;
             }
@@ -1157,9 +1159,9 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
             // przesuwamy karetkę o jeden znak w prawo
             UpdateCursorPosition(SDLK_RIGHT, updateCaretPos, redraw);
             // i jeśli trzeba to aktualizujemy zaznaczenie
-            if (oldCaretAtChar != m_CaretAtChar)
+            if (oldCaretAtChar != m_CaretAtChar || oldLineNumber != m_CurrentLine)
             {
-                UpdateSelection(SDLK_RIGHT, oldCaretAtChar, 0, m_Text.length(), updateCaretPos, redraw);
+                UpdateSelection(SDLK_RIGHT, oldCaretAtChar, oldLineNumber, 0, m_Text.length(), updateCaretPos, redraw);
             }
             processed = true;
         }

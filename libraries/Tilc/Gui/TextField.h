@@ -74,9 +74,9 @@ namespace Tilc
 
             // Usuwa zaznaczenie (bez usunięcia tekstu, który ono wskazywało) i ewentualnie odrysowuje
             // kontrolkę
-            void ClearSelection(bool redraw = true);
+            virtual void ClearSelection(bool redraw = true);
             // Zwraca TRUE, jeśli w kontrolce jest ustawion zaznaczenie.
-            inline bool IsSelection()
+            virtual bool IsSelection()
             {
                 return m_SelStart != m_SelEnd;
             }
@@ -139,6 +139,8 @@ namespace Tilc
             int m_PaddingTop{ 5 };
             int m_PaddingBottom{ 5 };
             int m_LineHeight;
+            // For this control always 0, but for multiline control may be greater than 0
+            int m_CurrentLine = 0;
             // numer znaku licząc od 0, od którego jest wyświetlany tekst w polu tekstowym
             int m_StartChar;
             // numer znaku licząc od 0, przed którym znajduje się karetka
@@ -170,7 +172,7 @@ namespace Tilc
             // localX i localY, to współrzędne kliknięcia względem początku tego pola tekstowego.
             virtual void PositionCaretNearClickedPoint(float localX, float localY);
 
-            virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw);
+            virtual void UpdateSelection(unsigned int vkKey, int lastCaretAtChar, int PrevLineNumber, int LineStartPos, int LineEndPos, bool& updateCaretPos, bool& redraw);
 
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw);
 
