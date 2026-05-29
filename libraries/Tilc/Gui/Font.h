@@ -4,6 +4,8 @@
 #include "Tilc/Utils/ExtString.h"
 #include "SDL3/SDL.h"
 #include "SDL3_ttf/SDL_ttf.h"
+#include <hb.h>
+#include <hb-ft.h>
 #include <unordered_map>
 
 struct TTF_Font;
@@ -40,20 +42,27 @@ namespace Tilc::Gui
 		void GetGetRectForCenteredText(const char* String, float ContainerWidth, SDL_FRect& r);
 		TTF_Font* GetTTFFont() { return m_Font; }
         SDL_Color GetColor() const { return m_Color; }
+        FT_Face& GetFreeTypeFace();
+        hb_font_t* GetHBFont() { return m_HBFont; }
 
         TTF_TextEngine* m_Engine{};
         TTF_Font* m_Font = nullptr;
         Tilc::TExtString m_FontName;
         Tilc::TExtString m_FontFilePath;
-		char* m_FontResourceData = nullptr;
+        size_t m_FontResourceDataBufferSize{};
+        char* m_FontResourceData = nullptr;
 		SDL_Color m_Color = { 255, 255, 255, 0 };
 		SDL_Color m_BgColor = { 80, 80, 80, 255 };
-		float m_Size;
+        float m_Size{};
 		bool m_ReleaseFont = true;
-        bool m_FromFile;
+        bool m_FromFile{};
         // Size to which wrap text. If set to 0 or negative then no wrapping is performed.
         int m_WrapTo{};
     private:
+        FT_Library m_FT{};
+        FT_Face m_Face{};
+        // HarfBuzz
+        hb_font_t* m_HBFont{};
         static TTextSizeCache TextSizesCache;
 	};
 

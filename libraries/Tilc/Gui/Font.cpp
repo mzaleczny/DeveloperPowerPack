@@ -30,6 +30,7 @@ Tilc::Gui::TFont::TFont(const char* FontResourceName, float size, bool FromFile)
 		Tilc::Data::Data->GetResourceByName(Tilc::Data::Data->GetDbFname(), FontResourceName, ResOrigPath, &m_FontResourceData, &BufferSize, 0);
 		if (m_FontResourceData)
 		{
+            m_FontResourceDataBufferSize = BufferSize;
 			m_Font = TTF_OpenFontIO(SDL_IOFromConstMem(m_FontResourceData, BufferSize), true, size);
 		}
 	}
@@ -57,6 +58,20 @@ Tilc::Gui::TFont::TFont(TTF_Font* ExistingFont)
 
 Tilc::Gui::TFont::~TFont()
 {
+    if (m_FT)
+    {
+        if (m_HBFont)
+        {
+            hb_font_destroy(m_HBFont);
+            m_HBFont = nullptr;
+        }
+        if (m_Face)
+        {
+            FT_Done_Face(m_Face);
+        }
+        FT_Done_FreeType(m_FT);
+    }
+
     if (m_Engine)
     {
         TTF_DestroySurfaceTextEngine(m_Engine);
@@ -306,4 +321,28 @@ void Tilc::Gui::TFont::GetGetRectForCenteredText(const char* String, float Conta
 
 		TTF_DestroyText(Text);
 	}
+}
+
+FT_Face& Tilc::Gui::TFont::GetFreeTypeFace()
+{
+    if (!m_FT && !m_Face)
+    {
+        FT_Init_FreeType(&m_FT);
+        if (m_FromFile)
+        {
+            FT_New_Face(m_FT, m_FontFilePath.c_str(), 0, &m_Face);
+        }
+        else
+        {
+            FT_New_Memory_Face(m_FT, reinterpret_cast<FT_Byte*>(m_FontResourceData), m_FontResourceDataBufferSize, 0, &m_Face);
+        }
+
+        if (m_Face)
+        {
+            m_HBFont = hb_ft_font_create(m_Face, nullptr);
+            FT_Set_Pixel_Sizes(m_Face, m_Size, m_Size);
+            hb_ft_font_set_funcs(m_HBFont);
+        }
+    }
+    return m_Face;
 }
