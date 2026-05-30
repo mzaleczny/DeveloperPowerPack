@@ -153,6 +153,14 @@ endif()
 message("***********************************************************************")
 message("Checking for **SDL3_image** and downloading it when no found")
 message("***********************************************************************")
+# Jeśli to Linux, to wymuszamy systemową zlib przed pobraniem sdl3_image, bo z tą sdl_image-src/external są problemy
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(ZLIB_ROOT "/usr" CACHE PATH "" FORCE)
+    set(ZLIB_INCLUDE_DIR "/usr/include" CACHE PATH "" FORCE)
+    set(ZLIB_LIBRARY "/usr/lib/x86_64-linux-gnu/libz.so" CACHE FILEPATH "" FORCE)
+    find_package(ZLIB REQUIRED)
+endif()
+
 find_package(sdl3_image CONFIG QUIET)
 if(NOT TARGET SDL3_image::SDL3_image)
     set(SDLIMAGE_PNG_LIBPNG ON CACHE BOOL "" FORCE)
@@ -161,10 +169,20 @@ if(NOT TARGET SDL3_image::SDL3_image)
     # Uncomment line below if you does not have nasm installed and do not want to install it. It required to compile avif image format support
     set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
 
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(SDLIMAGE_AVOID_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
+        set(SDLIMAGE_ZLIB_VENDORED OFF CACHE BOOL "" FORCE)
+        set(SDLIMAGE_BACKEND_ZLIB OFF CACHE BOOL "" FORCE)
+    endif()
+
     FetchContent_Populate(external_sdl3_image
         GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
         GIT_TAG release-3.4.4
     )
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        file(WRITE ${external_sdl3_image_SOURCE_DIR}/external/zlib/CMakeLists.txt "")
+    endif()
 
     # Teraz dopiero konfiguruj SDL_image
     add_subdirectory(
@@ -174,12 +192,15 @@ if(NOT TARGET SDL3_image::SDL3_image)
     # SDL_image buduje vendored zlib i libpng.
     # Wystawiamy je jako globalne targety, żeby cały projekt mógł ich używać.
 
-    if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
-        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    # Jeśli to Windows, to konfigurujemy ZLIB
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
+            add_library(ZLIB::ZLIB ALIAS zlibstatic)
+        endif()
+        # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
+        set(ZLIB_INCLUDE_DIR "${external_sdl3_image_BINARY_DIR}/external/zlib" CACHE PATH "" FORCE)
+        set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
     endif()
-    # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
-    set(ZLIB_INCLUDE_DIR "${external_sdl3_image_BINARY_DIR}/external/zlib" CACHE PATH "" FORCE)
-    set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
 else()
     # Our own zlib we add/download only if SDL_image was not donloaded because it requires its inner zlib
     message("***********************************************************************")
