@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cstring>
 #include <initializer_list>
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/Vector.h"

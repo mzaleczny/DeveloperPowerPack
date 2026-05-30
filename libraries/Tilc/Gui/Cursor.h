@@ -28,22 +28,22 @@ namespace Tilc {
             TCursor();
             virtual ~TCursor();
 
-            inline void SetNormalCursor();
-            inline void SetIBeamCursor();
-            inline void SetWaitCursor();
-            inline void SetCrossCursor();
-            inline void SetArrowUpCursor();
-            inline void SetSizeCursor();
-            inline void SetSizeAllCursor();
-            inline void SetSizeNWSECursor();
-            inline void SetSizeNESWCursor();
-            inline void SetSizeWECursor();
-            inline void SetSizeNSCursor();
-            inline void SetWinLogoCursor();
-            inline void SetNoCursor();
-            inline void SetHandCursor();
-            inline void SetAppStartingCursor();
-            inline void SetHelpCursor();
+            void SetNormalCursor();
+            void SetIBeamCursor();
+            void SetWaitCursor();
+            void SetCrossCursor();
+            void SetArrowUpCursor();
+            void SetSizeCursor();
+            void SetSizeAllCursor();
+            void SetSizeNWSECursor();
+            void SetSizeNESWCursor();
+            void SetSizeWECursor();
+            void SetSizeNSCursor();
+            void SetWinLogoCursor();
+            void SetNoCursor();
+            void SetHandCursor();
+            void SetAppStartingCursor();
+            void SetHelpCursor();
 
             void Destroy();
             SDL_Cursor* LoadCursorFromResource(const char* image[]);

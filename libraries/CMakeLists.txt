@@ -388,7 +388,12 @@ add_library(${PROJECT_NAME}_compiler_flags INTERFACE)
 target_compile_features(${PROJECT_NAME}_compiler_flags INTERFACE cxx_std_23)
 set_target_properties(${PROJECT_NAME}_compiler_flags PROPERTIES CXX_EXTENSIONS OFF)
 
-set(SetSubsystem "/SUBSYSTEM:WINDOWS")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(SetSubsystem "")
+else()
+    set(SetSubsystem "/SUBSYSTEM:WINDOWS")
+endif()
+
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
@@ -404,6 +409,7 @@ target_link_directories("${PROJECT_NAME}Shared" PRIVATE
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
 	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
+	"$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/freetype/include>"
 	"$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/harfbuzz/src>"
 	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
 )

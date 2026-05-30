@@ -1,5 +1,6 @@
 #include "Tilc/Utils/Crypto.h"
 #include "Tilc/Utils/ExtString.h"
+#include <cstring>
 
 #define SIZE        4096
 

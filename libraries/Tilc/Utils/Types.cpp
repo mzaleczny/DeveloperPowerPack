@@ -1,6 +1,7 @@
 #include "Tilc/Utils/Types.h"
 #include <string>
 #include <math.h>
+#include <cstring>
 
 Tilc::float16 Tilc::f32tof16(float f32)
 {

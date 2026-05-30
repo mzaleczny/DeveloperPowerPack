@@ -823,11 +823,11 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     }
     else if (event.key.key == SDLK_HOME)
     {
-        processed = __super::OnKeyDown(event);
+        processed = TTextField::OnKeyDown(event);
     }
     else if (event.key.key == SDLK_END)
     {
-        processed = __super::OnKeyDown(event);
+        processed = TTextField::OnKeyDown(event);
         if (m_CurrentLine >= 0 && m_CurrentLine < m_HbTextLayoutCache->GetLinesCount())
         {
             m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine);
@@ -836,7 +836,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     }
     else
     {
-        processed = __super::OnKeyDown(event);
+        processed = TTextField::OnKeyDown(event);
     }
 
 
@@ -874,7 +874,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 
 bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 {
-    __super::OnTextInput(event);
+    TTextField::OnTextInput(event);
     return true;
 }
 

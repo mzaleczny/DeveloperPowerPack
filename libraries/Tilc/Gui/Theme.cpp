@@ -29,6 +29,10 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     {
         ThemeDir = "../assets/themes/" + name;
     }
+    if (!FileExists(ThemeDir + "/" + Filename))
+    {
+        ThemeDir = "../../assets/themes/" + name;
+    }
     Filename = ThemeDir + "/GUI.png";
     if (!FileExists(Filename))
     {

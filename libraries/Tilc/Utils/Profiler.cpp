@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+#include <cstring>
 #include <assert.h>
 #include "Tilc/Utils/Profiler.h"
 

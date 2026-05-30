@@ -190,7 +190,7 @@ void Tilc::Game2D::TEntityManager::EntityCollisionCheck()
 			if (EntityType1 == EEntityType::Player || EntityType1 == EEntityType::Enemy)
 			{
 				Tilc::Game2D::Sprite::TCharacter* Character1 = (Tilc::Game2D::Sprite::TCharacter*)Iter->second;
-				if (SDL_HasRectIntersectionFloat(&Character1->m_AttackBoundingBox, &Iter2->second->m_BoundingBox))
+				if (SDL_HasRectIntersectionFloat(&Character1->GetAttackBoundingBox(), &Iter2->second->m_BoundingBox))
 				{
 					// boolean in the second arguments means if it is regular (false) collision or attack (true) collision
 					Character1->OnEntityCollision(Iter2->second, true);
@@ -199,7 +199,7 @@ void Tilc::Game2D::TEntityManager::EntityCollisionCheck()
 			if (EntityType2 == EEntityType::Player || EntityType2 == EEntityType::Enemy)
 			{
 				Tilc::Game2D::Sprite::TCharacter* Character2 = (Tilc::Game2D::Sprite::TCharacter*)Iter2->second;
-				if (SDL_HasRectIntersectionFloat(&Character2->m_AttackBoundingBox, &Iter->second->m_BoundingBox))
+				if (SDL_HasRectIntersectionFloat(&Character2->GetAttackBoundingBox(), &Iter->second->m_BoundingBox))
 				{
 					// boolean in the second arguments means if it is regular (false) collision or attack (true) collision
 					Character2->OnEntityCollision(Iter->second, true);

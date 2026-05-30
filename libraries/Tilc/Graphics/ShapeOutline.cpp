@@ -1,5 +1,6 @@
 #include "ShapeOutline.h"
 #include <algorithm>
+#include <cmath>
 
 void Tilc::Graphics::TShape::ConvertTileMapToPolyMap(int sx, int sy, int w, int h, float BlockSize, int Pitch)
 {

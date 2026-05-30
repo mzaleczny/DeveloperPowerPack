@@ -184,7 +184,7 @@ bool Tilc::Gui::TTextField::OnMouseMove(const SDL_Event& event)
         return false;
     }
 
-    __super::OnMouseMove(event);
+    TGuiControl::OnMouseMove(event);
 
     if (event.button.button == SDL_BUTTON_LEFT)
     {
@@ -237,7 +237,7 @@ bool Tilc::Gui::TTextField::OnMouseButtonDown(const SDL_Event& event)
         return false;
     }
 
-    __super::OnMouseButtonDown(event);
+    TGuiControl::OnMouseButtonDown(event);
 
     if (PointIn(event.button.x, event.button.y))
     {
@@ -262,7 +262,7 @@ bool Tilc::Gui::TTextField::OnMouseButtonUp(const SDL_Event& event)
         return false;
     }
 
-    __super::OnMouseButtonUp(event);
+    TGuiControl::OnMouseButtonUp(event);
 
     if (PointIn(event.button.x, event.button.y))
     {
@@ -1428,7 +1428,7 @@ void Tilc::Gui::TTextField::Hide()
         m_Caret->m_Active = false;
         m_Caret->Hide();
     }
-    __super::Hide();
+    TGuiControl::Hide();
 }
 
 void Tilc::Gui::TTextField::MoveCaretOneCharLeft()

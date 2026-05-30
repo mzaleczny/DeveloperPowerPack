@@ -1,5 +1,6 @@
 #include "Tilc/Utils/Archives.h"
 //#include "Tilc/Utils/File.h"
+#include <cstring>
 #include <zlib.h>
 
 int Tilc::TArchive::GzUncompress(const char* GzFilePath, Tilc::TExtString& Output)

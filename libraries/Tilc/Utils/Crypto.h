@@ -1,5 +1,6 @@
 #pragma once
 #include "Tilc/DllGlobals.h"
+#include <cstddef>
 
 namespace Tilc
 {

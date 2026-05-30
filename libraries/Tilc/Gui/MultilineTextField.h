@@ -54,15 +54,15 @@ namespace Tilc
             // Funkcje obsługi zdarzeń
             virtual bool OnMouseMove(const SDL_Event& event) override
             {
-                return __super::OnMouseMove(event);
+                return TTextField::OnMouseMove(event);
             };
             virtual bool OnMouseButtonDown(const SDL_Event& event) override
             {
-                return __super::OnMouseButtonDown(event);
+                return TTextField::OnMouseButtonDown(event);
             };
             virtual bool OnMouseButtonUp(const SDL_Event& event) override
             {
-                return __super::OnMouseButtonUp(event);
+                return TTextField::OnMouseButtonUp(event);
             };
             virtual bool OnKeyDown(const SDL_Event& event) override;
             virtual bool OnTextInput(const SDL_Event& event) override;
