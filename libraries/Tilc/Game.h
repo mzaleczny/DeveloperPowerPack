@@ -110,7 +110,7 @@ namespace Tilc
 		{
 			m_Context.m_CurrentCamera = i;
 		}
-		inline Tilc::Graphics::TCamera* GetCurrentCamera();
+		Tilc::Graphics::TCamera* GetCurrentCamera();
 
 		void LateUpdate();
 		EStateType GetCurrentState();

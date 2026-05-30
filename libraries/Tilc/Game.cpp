@@ -2,6 +2,7 @@
 #include "Tilc/Window.h"
 #include "Tilc/Localization.h"
 #include "Tilc/Resources/ResourceManager.h"
+#include "Tilc/Resources/TextureManager.h"
 #include "Tilc/Game2D/EntityManager.h"
 #include "Tilc/Game2D/Entity.h"
 #include "Tilc/Game2D/World/World.h"
@@ -13,6 +14,7 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Cursor.h"
 #include "Tilc/Gui/Caret.h"
+#include "Tilc/Gui/Clipboard.h"
 #include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
 #ifdef WIN32
@@ -46,19 +48,19 @@ Tilc::TGame::TGame(EGameType GameType)
 
 Tilc::TGame::~TGame()
 {
-    if (!m_Context.m_Clipboard)
+    if (m_Context.m_Clipboard)
     {
         delete m_Context.m_Clipboard;
         m_Context.m_Clipboard = nullptr;
     }
 
-    if (!m_Context.m_Caret)
+    if (m_Context.m_Caret)
     {
         delete m_Context.m_Caret;
         m_Context.m_Caret = nullptr;
     }
 
-    if (!m_Context.m_Cursor)
+    if (m_Context.m_Cursor)
     {
         delete m_Context.m_Cursor;
         m_Context.m_Cursor = nullptr;
@@ -253,7 +255,7 @@ Tilc::Graphics::TCamera* Tilc::TGame::AddCamera(const Tilc::TVector3D<float>& Po
 	return Camera;
 }
 
-inline Tilc::Graphics::TCamera* Tilc::TGame::GetCurrentCamera()
+Tilc::Graphics::TCamera* Tilc::TGame::GetCurrentCamera()
 {
 	if (m_Context.m_CurrentCamera >= 0 && m_Context.m_CurrentCamera < m_Context.m_World3D->m_Cameras.size())
 		return m_Context.m_World3D->m_Cameras[m_Context.m_CurrentCamera];
