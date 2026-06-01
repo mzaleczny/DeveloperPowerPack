@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <list>
 #include <string>
 #include <cstdint>
 #include <hb.h>
@@ -47,6 +48,13 @@ namespace Tilc::Gui::Helpers
         void UpdateLine(int LineIndex, const Tilc::TExtString& NewTextUtf8);
         void DeleteCharAtLine(int LineIndex, int CharIndex);
 
+        TLine& GetLine(int LineNumber)
+        {
+            if (LineNumber >= m_Lines.size()) LineNumber = m_Lines.size() - 1;
+            auto it = m_Lines.begin();
+            std::advance(it, LineNumber);
+            return *it;
+        }
         int GetLinesCount() const { return (int)m_Lines.size(); }
         int GetLineWidth(int LineIndex);
         int GetCaretX(int LineIndex, int CharIndex);
@@ -65,6 +73,7 @@ namespace Tilc::Gui::Helpers
         SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color);
         void EnsureLineLayout(int LineIndex);
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
+        void BreakLineAtCharIndex(int LineNumber, int CharIndex);
     private:
         Tilc::Gui::TFont* m_Font;
         FT_Face m_Face{};
@@ -72,7 +81,7 @@ namespace Tilc::Gui::Helpers
         int m_MaxWidth{};
         int m_MaxHeight{};
 
-        std::vector<TLine> m_Lines;
+        std::list<TLine> m_Lines;
 
         void InitHbFont();
         void ClearLines();

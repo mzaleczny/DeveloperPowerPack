@@ -33,16 +33,18 @@ void THbTextLayoutCache::SetText(const Tilc::TExtString& TextUtf8)
 void THbTextLayoutCache::UpdateLine(int LineIndex, const Tilc::TExtString& NewTextUtf8)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
-    m_Lines[LineIndex].Text32 = Utf8ToUtf32(NewTextUtf8);
-    m_Lines[LineIndex].Dirty = true;
+    TLine& Line = GetLine(LineIndex);
+    Line.Text32 = Utf8ToUtf32(NewTextUtf8);
+    Line.Dirty = true;
 }
 
 void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteCharAtLine(int LineIndex, int CharIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
-    std::u32string& Line = m_Lines[LineIndex].Text32;
-    Line.erase(CharIndex, 1);
-    m_Lines[LineIndex].Dirty = true;
+    TLine& Line = GetLine(LineIndex);
+    std::u32string& Text32 = Line.Text32;
+    Text32.erase(CharIndex, 1);
+    Line.Dirty = true;
 }
 
 void THbTextLayoutCache::BuildLinesFromUtf8(const Tilc::TExtString& TextUtf8)
@@ -72,30 +74,32 @@ int THbTextLayoutCache::GetLineWidth(int LineIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
     EnsureLineLayout(LineIndex);
-    return m_Lines[LineIndex].TotalWidth;
+    TLine& Line = GetLine(LineIndex);
+    return Line.TotalWidth;
 }
 
 int THbTextLayoutCache::GetLinePositionsNum(int LineIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
-    return (int)m_Lines[LineIndex].Text32.size() + 1;
+    TLine& Line = GetLine(LineIndex);
+    return (int)Line.Text32.size() + 1;
 }
 
 Tilc::TExtString Tilc::Gui::Helpers::THbTextLayoutCache::GetLineUtf8(int LineIndex)
 {
-    return Utf32ToUtf8(m_Lines[LineIndex].Text32);
+    return Utf32ToUtf8(GetLine(LineIndex).Text32);
 }
 
 std::u32string& Tilc::Gui::Helpers::THbTextLayoutCache::GetLineText(int LineIndex)
 {
-    return m_Lines[LineIndex].Text32;
+    return GetLine(LineIndex).Text32;
 }
 
 int THbTextLayoutCache::GetCaretX(int LineIndex, int CharIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
     EnsureLineLayout(LineIndex);
-    TLine& line = m_Lines[LineIndex];
+    TLine& line = GetLine(LineIndex);
     if (CharIndex <= 0) return 0;
     if (CharIndex >= (int)line.CaretX.size()) return line.TotalWidth;
     return line.CaretX[CharIndex];
@@ -104,7 +108,7 @@ int THbTextLayoutCache::GetCaretX(int LineIndex, int CharIndex)
 void THbTextLayoutCache::EnsureLineLayout(int LineIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
-    TLine& line = m_Lines[LineIndex];
+    TLine& line = GetLine(LineIndex);
     if (!line.Dirty) return;
 
     ShapeLine(line);
@@ -116,12 +120,46 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::JoinLines(int FirstLineNumber, int 
 {
     if (FirstLineNumber < 0 || FirstLineNumber >= (int)m_Lines.size()) return;
     if (SecondLineNumber < 0 || SecondLineNumber >= (int)m_Lines.size()) return;
-    TLine& FirstLine = m_Lines[FirstLineNumber];
-    TLine& SecondLine = m_Lines[SecondLineNumber];
+    auto it1 = m_Lines.begin();
+    auto it2 = m_Lines.begin();
+    std::advance(it1, FirstLineNumber);
+    TLine& FirstLine = *it1;
+    std::advance(it2, FirstLineNumber + 1);
+    TLine& SecondLine = *it2;
     FirstLine.Text32.append(SecondLine.Text32);
-    m_Lines.erase(m_Lines.begin() + SecondLineNumber, m_Lines.begin() + SecondLineNumber + 1);
+    std::advance(it1, 1);
+    std::advance(it2, 1);
+    m_Lines.erase(it1, it2);
     FirstLine.Dirty = true;
     EnsureLineLayout(FirstLineNumber);
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::BreakLineAtCharIndex(int LineNumber, int CharIndex)
+{
+    if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
+    TLine& Line = GetLine(LineNumber);
+    TLine NewLine;
+    auto it = m_Lines.begin();
+    if (LineNumber + 1 < m_Lines.size())
+    {
+        std::advance(it, LineNumber + 1);
+        m_Lines.insert(it, 1, NewLine);
+    }
+    else
+    {
+        m_Lines.emplace_back(NewLine);
+    }
+    it = m_Lines.begin();
+    std::advance(it, LineNumber + 1);
+    if (CharIndex < Line.Glyphs.size() - 1)
+    {
+        it->Text32.append(Line.Text32.substr(CharIndex));
+    }
+    it->Dirty = true;
+    Line.Text32.erase(Line.Text32.begin() + CharIndex, Line.Text32.end());
+    Line.Dirty = true;
+    EnsureLineLayout(LineNumber);
+    EnsureLineLayout(LineNumber+1);
 }
 
 void THbTextLayoutCache::ShapeLine(TLine& Line)
@@ -234,7 +272,7 @@ int THbTextLayoutCache::HitTestCharIndex(int LineIndex, int X)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
     EnsureLineLayout(LineIndex);
-    TLine& line = m_Lines[LineIndex];
+    TLine& line = GetLine(LineIndex);
 
     if (line.CaretX.empty()) return 0;
 
@@ -275,7 +313,7 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
     for (int line = LineStart; line <= LineEnd; ++line)
     {
         EnsureLineLayout(line);
-        TLine& ln = m_Lines[line];
+        TLine& ln = GetLine(line);
 
         int startChar = (line == LineStart) ? CharStart : 0;
         int endChar   = (line == LineEnd)   ? CharEnd   : (int)ln.Text32.size();
@@ -298,7 +336,7 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
 
 SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color)
 {
-    Tilc::Gui::Helpers::THbTextLayoutCache::TLine& line = m_Lines[LineNumber];
+    Tilc::Gui::Helpers::THbTextLayoutCache::TLine& line = GetLine(LineNumber);
     if (line.Glyphs.empty())
     {
         EnsureLineLayout(LineNumber);
