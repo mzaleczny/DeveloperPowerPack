@@ -265,7 +265,7 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
         if (startChar >= endChar) continue;
 
         int x1 = ln.CaretX[startChar];
-        int x2 = ln.CaretX[endChar];
+        int x2 = std::min(ln.CaretX[endChar], m_MaxWidth);
 
         SDL_FRect r;
         r.x = (float)x1;

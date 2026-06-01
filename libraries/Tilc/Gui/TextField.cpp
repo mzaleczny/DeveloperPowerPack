@@ -212,17 +212,22 @@ bool Tilc::Gui::TTextField::OnMouseMove(const SDL_Event& event)
             }
         }
 
-        // i jesteśmy po prawej stronie punktu, w którym zainicjowano zaznaczenie myszką
-        if (m_CaretAtChar >= m_SelBegin)
+        // Aktualizację zaznaczenia tutaj robimy tylko dla jednolinijkowego pola tekstowego, bo dla wielolinijkowego kod odpowiedzialny jest w jego funkcji obsługi tego zdarzenia.
+        // W szczególności poniższy kod źle działa dla pola wieloliijkowego
+        if (m_ControlType == EControlType::ECT_TextField)
         {
-            m_SelStart = m_SelBegin;
-            m_SelEnd = m_CaretAtChar;
-        }
-        // jeśli jesteśmy po lewej stronie punktu, w którym zainicjowano zaznaczenie myszką
-        else if (m_CaretAtChar < m_SelBegin)
-        {
-            m_SelStart = m_CaretAtChar;
-            m_SelEnd = m_SelBegin;
+            // i jesteśmy po prawej stronie punktu, w którym zainicjowano zaznaczenie myszką
+            if (m_CaretAtChar >= m_SelBegin)
+            {
+                m_SelStart = m_SelBegin;
+                m_SelEnd = m_CaretAtChar;
+            }
+            // jeśli jesteśmy po lewej stronie punktu, w którym zainicjowano zaznaczenie myszką
+            else if (m_CaretAtChar < m_SelBegin)
+            {
+                m_SelStart = m_CaretAtChar;
+                m_SelEnd = m_SelBegin;
+            }
         }
         Invalidate();
     }
@@ -246,6 +251,8 @@ bool Tilc::Gui::TTextField::OnMouseButtonDown(const SDL_Event& event)
 
         // pozycjonujemy karetkę na odpowiednim znaku
         PositionCaretNearClickedPoint(event.button.x - m_Position.x, event.button.y - m_Position.y);
+        // Line below is required for proper starting new selection bu multiline text field
+        ClearSelection();
         m_SelBegin = m_SelStart = m_SelEnd = m_CaretAtChar;
         Invalidate();
         return true;
@@ -263,7 +270,7 @@ bool Tilc::Gui::TTextField::OnMouseButtonUp(const SDL_Event& event)
     }
 
     TGuiControl::OnMouseButtonUp(event);
-
+    
     if (PointIn(event.button.x, event.button.y))
     {
         Tilc::GameObject->GetContext()->m_Cursor->SetIBeamCursor();
@@ -1286,6 +1293,7 @@ void Tilc::Gui::TTextField::ClearSelection(bool redraw)
     m_SelStart = 0;
     m_SelEnd = 0;
     m_SelBegin = 0;
+    m_SelBeginLineNumber = 0;
 
     if (redraw)
     {

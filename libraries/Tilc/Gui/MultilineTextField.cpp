@@ -768,6 +768,52 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
     }
 }
 
+bool Tilc::Gui::TMultilineTextField::OnMouseMove(const SDL_Event& event)
+{
+    TTextField::OnMouseMove(event);
+    if (event.button.button == SDL_BUTTON_LEFT)
+    {
+        if (m_CurrentLine < m_SelBeginLineNumber)
+        {
+            m_SelEnd = m_SelBegin;
+            m_SelStart = m_CaretAtChar;
+            m_SelectionLineStart = m_CurrentLine;
+        }
+        else if (m_CurrentLine > m_SelBeginLineNumber)
+        {
+            m_SelStart = m_SelBegin;
+            m_SelEnd = m_CaretAtChar;
+            m_SelectionLineEnd = m_CurrentLine;
+        }
+        else
+        {
+            if (m_CaretAtChar < m_SelBegin)
+            {
+                m_SelStart = m_CaretAtChar;
+                m_SelEnd = m_SelBegin;
+                m_SelectionLineStart = m_CurrentLine;
+                m_SelectionLineEnd = m_CurrentLine;
+            }
+            else if (m_CaretAtChar > m_SelBegin)
+            {
+                m_SelStart = m_SelBegin;
+                m_SelEnd = m_CaretAtChar;
+                m_SelectionLineStart = m_CurrentLine;
+                m_SelectionLineEnd = m_CurrentLine;
+            }
+            else
+            {
+                m_SelStart = m_CaretAtChar;
+                m_SelEnd = m_CaretAtChar;
+                m_SelectionLineStart = m_CurrentLine;
+                m_SelectionLineEnd = m_CurrentLine;
+
+            }
+        }
+    }
+    return true;
+};
+
 bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 {
     bool updateCaretPos{};

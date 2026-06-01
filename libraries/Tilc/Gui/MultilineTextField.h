@@ -52,13 +52,12 @@ namespace Tilc
             virtual void MoveCaretOneCharRight() override;
 
             // Funkcje obsługi zdarzeń
-            virtual bool OnMouseMove(const SDL_Event& event) override
-            {
-                return TTextField::OnMouseMove(event);
-            };
+            virtual bool OnMouseMove(const SDL_Event& event) override;
             virtual bool OnMouseButtonDown(const SDL_Event& event) override
             {
-                return TTextField::OnMouseButtonDown(event);
+                TTextField::OnMouseButtonDown(event);
+                m_SelectionLineStart = m_SelectionLineEnd = m_SelBeginLineNumber = m_CurrentLine;
+                return true;
             };
             virtual bool OnMouseButtonUp(const SDL_Event& event) override
             {

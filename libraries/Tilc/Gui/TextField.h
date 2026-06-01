@@ -159,6 +159,8 @@ namespace Tilc
             int m_SelEnd;
             // Numer znaku przed którym znajdował się kursor w momencie pojawienia się zaznaczenia
             int m_SelBegin;
+            // Numer linii, w której był kursor w momencie zaczęcia zaznaczania tekstu
+            int m_SelBeginLineNumber{};
 
             // USed font name
             TExtString FontNameInUse{ "Default" };
