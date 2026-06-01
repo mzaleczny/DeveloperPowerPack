@@ -165,8 +165,9 @@ namespace Tilc
             // USed font name
             TExtString FontNameInUse{ "Default" };
 
-            // Kolor tekstu
+            // Kolor tekstu i tła
             SDL_Color m_TextColor{ 0, 0, 0, 255 };
+            SDL_Color m_BgColor{ 255, 255, 255, 255 };
 
             // Zwraca prostokąt położenia selekcji. Współrzędne tego prostokąta są liczone względem
             // początku tej kontrolki.
