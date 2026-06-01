@@ -45,6 +45,7 @@ namespace Tilc::Gui::Helpers
 
         void SetText(const Tilc::TExtString& TextUtf8);
         void UpdateLine(int LineIndex, const Tilc::TExtString& NewTextUtf8);
+        void DeleteCharAtLine(int LineIndex, int CharIndex);
 
         int GetLinesCount() const { return (int)m_Lines.size(); }
         int GetLineWidth(int LineIndex);
@@ -62,7 +63,8 @@ namespace Tilc::Gui::Helpers
                                std::vector<SDL_FRect>& OutRects,
                                int LineHeight, int BaseY);
         SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color);
-
+        void EnsureLineLayout(int LineIndex);
+        void JoinLines(int FirstLineNumber, int SecondLineNumber);
     private:
         Tilc::Gui::TFont* m_Font;
         FT_Face m_Face{};
@@ -76,7 +78,6 @@ namespace Tilc::Gui::Helpers
         void ClearLines();
         void BuildLinesFromUtf8(const Tilc::TExtString& TextUtf8);
 
-        void EnsureLineLayout(int LineIndex);
         void ShapeLine(TLine& Line);
         void ComputeCarets(TLine& Line);
     };

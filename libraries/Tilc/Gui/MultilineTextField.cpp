@@ -95,6 +95,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
 
         OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_TextTexture);
+        // Fill with transparent color
         SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
         SDL_RenderFillRect(Renderer, nullptr);
 
@@ -105,7 +106,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
         rc.h = m_Caret->m_Position.h;
         for (size_t i = 0; i < m_HbTextLayoutCache->GetLinesCount(); ++i)
         {
-            SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, i, { 0, 0, 0, 255 });
+            SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, i, m_TextColor);
             if (TextLineTexture)
             {
                 rc.w = TextLineTexture->w;
@@ -115,7 +116,6 @@ void Tilc::Gui::TMultilineTextField::Draw()
             }
             rc.y += m_Caret->m_Position.h;
         }
-
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
     rc = RealPosition;
@@ -586,7 +586,6 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
                 MoveCaretOneCharRight();
             }
             // ładujemy jeśli trzeba pozycje karetki
-            EnsureLineCompute();
             updateCaretPos = true;
         }
         else if (m_CurrentLine < m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine))
@@ -594,7 +593,6 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             ++m_CurrentLine;
             m_CaretAtChar = 0;
             // ładujemy jeśli trzeba pozycje karetki
-            EnsureLineCompute();
             updateCaretPos = true;
         }
         return;
@@ -623,7 +621,6 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             }
 
             // ładujemy jeśli trzeba pozycje karetki
-            EnsureLineCompute();
             updateCaretPos = true;
         }
         else if (m_CurrentLine > 0)
@@ -631,7 +628,6 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             --m_CurrentLine;
             m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine);
             // ładujemy jeśli trzeba pozycje karetki
-            EnsureLineCompute();
             updateCaretPos = true;
         }
         return;
@@ -829,35 +825,32 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         int CurrentLineStartChar = 0;
         Tilc::TExtString CurrentLine = m_HbTextLayoutCache->GetLineUtf8(m_CurrentLine);
 
-        if (m_CaretAtChar > 0 || IsSelection())
+        if (IsSelection())
         {
-            if (IsSelection())
-            {
-                RemoveSelectedText(false);
-            }
-            else
-            {
-                // usuwamy poprzedni znak
-                int BytesRemoved = m_Text.DeleteSingleUtf8CharBeforePos(m_CaretAtChar);
-                // przesuwamy karetkę o jeden ilość usuniętych znaków w lewo
-                m_CaretAtChar -= BytesRemoved;
-
-                // jeśli usunęliśmy pierwszy wyświetlany w polu tekstowym znak, to zmniejszamy
-                // wartość pola this->_startChar tak, żeby widać było trochę tekstu ( i nie
-                // powstało wrażenie, że nie ma już żadnych znaków)
-                if (m_CaretAtChar < CurrentLineStartChar)
-                {
-                    --m_CurrentLine;
-                }
-            }
-
-            updateCaretPos = true;
-            redraw = true;
+            RemoveSelectedText(false);
         }
         else
         {
-            processed = true;
+            // Jeśli usuwamy znak w bieżącej linii
+            if (m_CaretAtChar > 0)
+            {
+                --m_CaretAtChar;
+                m_HbTextLayoutCache->DeleteCharAtLine(m_CurrentLine, m_CaretAtChar);
+                m_HbTextLayoutCache->EnsureLineLayout(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+            }
+            else if (m_CurrentLine > 0)
+            {
+                // Tutaj usuwamy znak łamania linii, czyli bieżącą linię dopisujemy do poprzedniej lini w cache
+                --m_CurrentLine;
+                m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
+                m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+            }
         }
+
+        updateCaretPos = true;
+        redraw = true;
     }
     else if (event.key.key == SDLK_RETURN)
     {
@@ -914,6 +907,10 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         CalculateCaretPos();
         UpdateCaretPos();
     }
+    if (redraw)
+    {
+        Invalidate();
+    }
 
     return true;
 }
@@ -924,6 +921,25 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
     return true;
 }
 
-void Tilc::Gui::TMultilineTextField::EnsureLineCompute()
+void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumber)
 {
+    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, LineNumber, m_TextColor);
+    if (TextLineTexture)
+    {
+        SDL_FRect rc{};
+        rc.y = LineNumber * m_Caret->m_Position.h;
+        rc.h = TextLineTexture->h;
+
+        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, m_TextTexture);
+
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        rc.w = m_TextTexture->w;
+        SDL_RenderFillRect(Renderer, &rc);
+        rc.w = TextLineTexture->w;
+        SDL_RenderTexture(Renderer, TextLineTexture, nullptr, &rc);
+        SDL_DestroyTexture(TextLineTexture);
+
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+    }
 }

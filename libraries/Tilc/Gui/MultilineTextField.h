@@ -65,7 +65,7 @@ namespace Tilc
             };
             virtual bool OnKeyDown(const SDL_Event& event) override;
             virtual bool OnTextInput(const SDL_Event& event) override;
-            void EnsureLineCompute();
+            void RedrawLineInTextTextureBuffer(int LineNumber);
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;

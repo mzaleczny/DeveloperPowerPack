@@ -37,6 +37,14 @@ void THbTextLayoutCache::UpdateLine(int LineIndex, const Tilc::TExtString& NewTe
     m_Lines[LineIndex].Dirty = true;
 }
 
+void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteCharAtLine(int LineIndex, int CharIndex)
+{
+    if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
+    std::u32string& Line = m_Lines[LineIndex].Text32;
+    Line.erase(CharIndex, 1);
+    m_Lines[LineIndex].Dirty = true;
+}
+
 void THbTextLayoutCache::BuildLinesFromUtf8(const Tilc::TExtString& TextUtf8)
 {
     std::u32string full = Utf8ToUtf32(TextUtf8);
@@ -102,6 +110,18 @@ void THbTextLayoutCache::EnsureLineLayout(int LineIndex)
     ShapeLine(line);
     ComputeCarets(line);
     line.Dirty = false;
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::JoinLines(int FirstLineNumber, int SecondLineNumber)
+{
+    if (FirstLineNumber < 0 || FirstLineNumber >= (int)m_Lines.size()) return;
+    if (SecondLineNumber < 0 || SecondLineNumber >= (int)m_Lines.size()) return;
+    TLine& FirstLine = m_Lines[FirstLineNumber];
+    TLine& SecondLine = m_Lines[SecondLineNumber];
+    FirstLine.Text32.append(SecondLine.Text32);
+    m_Lines.erase(m_Lines.begin() + SecondLineNumber, m_Lines.begin() + SecondLineNumber + 1);
+    FirstLine.Dirty = true;
+    EnsureLineLayout(FirstLineNumber);
 }
 
 void THbTextLayoutCache::ShapeLine(TLine& Line)
