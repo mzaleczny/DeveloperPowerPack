@@ -1004,13 +1004,13 @@ SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRect()
     return rc;
 }
 
-int Tilc::Gui::TTextField::CalculateInnerWidth()
+int Tilc::Gui::TTextField::CalculateInnerWidth() const
 {
     //TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     return m_Position.w - m_PaddingLeft - m_PaddingRight;
 }
 
-int Tilc::Gui::TTextField::CalculateInnerHeight()
+int Tilc::Gui::TTextField::CalculateInnerHeight() const
 {
     //TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     return m_Position.h - m_PaddingTop - m_PaddingBottom;

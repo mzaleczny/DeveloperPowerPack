@@ -182,8 +182,8 @@ namespace Tilc
 
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw);
 
-            virtual int CalculateInnerWidth();
-            virtual int CalculateInnerHeight();
+            virtual int CalculateInnerWidth() const;
+            virtual int CalculateInnerHeight() const;
             virtual int GetMaxXPosAllowedForContent();
 
             virtual void MoveCaretOneCharLeft();

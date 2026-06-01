@@ -68,6 +68,7 @@ namespace Tilc
             void RedrawLineInTextTextureBuffer(int LineNumber);
             void RedrawTextTextureBufferWithoutLine(int WithoutLineNumber);
             void RedrawTextTextureBufferStartingAtLine(int StartLineNumber);
+            int GetNumberOfVisibleLines() const;
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;

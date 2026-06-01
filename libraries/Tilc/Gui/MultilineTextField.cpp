@@ -850,6 +850,11 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             }
         }
 
+        // Get number of lines per control
+        int NumberOfLines = GetNumberOfVisibleLines();
+        RedrawLineInTextTextureBuffer(NumberOfLines-1);
+        RedrawLineInTextTextureBuffer(NumberOfLines);
+
         updateCaretPos = true;
         redraw = true;
         processed = true;
@@ -1065,4 +1070,9 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferStartingAtLine(int S
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
         SDL_DestroyTexture(NewTextTexture);
     }
+}
+
+int Tilc::Gui::TMultilineTextField::GetNumberOfVisibleLines() const
+{
+    return CalculateInnerHeight() / m_Caret->m_Position.h;
 }
