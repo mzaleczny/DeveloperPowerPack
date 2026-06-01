@@ -822,9 +822,6 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 
     if (event.key.key == SDLK_BACKSPACE)
     {
-        int CurrentLineStartChar = 0;
-        Tilc::TExtString CurrentLine = m_HbTextLayoutCache->GetLineUtf8(m_CurrentLine);
-
         if (IsSelection())
         {
             RemoveSelectedText(false);
@@ -844,6 +841,39 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 // Tutaj usuwamy znak łamania linii, czyli bieżącą linię dopisujemy do poprzedniej lini w cache
                 --m_CurrentLine;
                 m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
+                m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
+                RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+            }
+        }
+
+        // Get number of lines per control
+        int NumberOfLines = GetNumberOfVisibleLines();
+        RedrawLineInTextTextureBuffer(NumberOfLines-1);
+        RedrawLineInTextTextureBuffer(NumberOfLines);
+
+        updateCaretPos = true;
+        redraw = true;
+        processed = true;
+    }
+    else if (event.key.key == SDLK_DELETE)
+    {
+        if (IsSelection())
+        {
+            RemoveSelectedText(false);
+        }
+        else
+        {
+            // Jeśli usuwamy znak w bieżącej linii
+            if (m_CaretAtChar < m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1)
+            {
+                m_HbTextLayoutCache->DeleteCharAtLine(m_CurrentLine, m_CaretAtChar);
+                m_HbTextLayoutCache->EnsureLineLayout(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+            }
+            else if (m_CurrentLine > 0)
+            {
+                // Tutaj usuwamy znak łamania linii, czyli bieżącą linię dopisujemy do poprzedniej lini w cache
                 m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
                 RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
                 RedrawLineInTextTextureBuffer(m_CurrentLine);
@@ -956,7 +986,7 @@ void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumbe
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_TextTexture);
 
-        SDL_SetRenderDrawColor(Renderer, m_BgColor.r, m_BgColor.g, m_BgColor.b, m_BgColor.a);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
         rc.w = m_TextTexture->w;
         SDL_RenderFillRect(Renderer, &rc);
         rc.w = TextLineTexture->w;
@@ -975,7 +1005,7 @@ void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumbe
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_TextTexture);
 
-        SDL_SetRenderDrawColor(Renderer, m_BgColor.r, m_BgColor.g, m_BgColor.b, m_BgColor.a);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0 , 0);
         rc.w = m_TextTexture->w;
         SDL_RenderFillRect(Renderer, &rc);
 
@@ -993,7 +1023,7 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
 
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, NewTextTexture);
-        SDL_SetRenderDrawColor(Renderer, m_BgColor.r, m_BgColor.g, m_BgColor.b, m_BgColor.a);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
         rc.w = NewTextTexture->w;
         rc.h = NewTextTexture->h;
         SDL_RenderFillRect(Renderer, &rc);
@@ -1024,6 +1054,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
         DestRect.y = 0;
         DestRect.w = NewTextTexture->w;
         DestRect.h = NewTextTexture->h;
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        SDL_RenderFillRect(Renderer, &DestRect);
         SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
 
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
@@ -1041,7 +1073,7 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferStartingAtLine(int S
 
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, NewTextTexture);
-        SDL_SetRenderDrawColor(Renderer, m_BgColor.r, m_BgColor.g, m_BgColor.b, m_BgColor.a);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
         rc.w = NewTextTexture->w;
         rc.h = NewTextTexture->h;
         SDL_RenderFillRect(Renderer, &rc);
@@ -1065,6 +1097,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferStartingAtLine(int S
         DestRect.y = 0;
         DestRect.w = NewTextTexture->w;
         DestRect.h = NewTextTexture->h;
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        SDL_RenderFillRect(Renderer, &DestRect);
         SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
 
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
