@@ -857,9 +857,22 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     else if (event.key.key == SDLK_RETURN)
     {
         m_HbTextLayoutCache->BreakLineAtCharIndex(m_CurrentLine, m_CaretAtChar);
-        m_CaretAtChar = 0;
-        ++m_CurrentLine;
-        m_RenderedTextToUpdate = true;
+        if (m_CaretAtChar > 0)
+        {
+            RedrawLineInTextTextureBuffer(m_CurrentLine);
+            m_CaretAtChar = 0;
+            ++m_CurrentLine;
+            RedrawTextTextureBufferStartingAtLine(m_CurrentLine);
+            RedrawLineInTextTextureBuffer(m_CurrentLine);
+        }
+        else
+        {
+            RedrawLineInTextTextureBuffer(m_CurrentLine);
+            m_CaretAtChar = 0;
+            ++m_CurrentLine;
+            RedrawTextTextureBufferStartingAtLine(m_CurrentLine);
+            RedrawLineInTextTextureBuffer(m_CurrentLine);
+        }
         updateCaretPos = true;
         redraw = true;
         processed = true;
@@ -930,6 +943,7 @@ void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumbe
     SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, LineNumber, m_TextColor);
     if (TextLineTexture)
     {
+        // Rysujemy tło i tekst
         SDL_FRect rc{};
         rc.y = LineNumber * m_Caret->m_Position.h;
         rc.h = TextLineTexture->h;
@@ -937,12 +951,28 @@ void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumbe
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_TextTexture);
 
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        SDL_SetRenderDrawColor(Renderer, m_BgColor.r, m_BgColor.g, m_BgColor.b, m_BgColor.a);
         rc.w = m_TextTexture->w;
         SDL_RenderFillRect(Renderer, &rc);
         rc.w = TextLineTexture->w;
         SDL_RenderTexture(Renderer, TextLineTexture, nullptr, &rc);
         SDL_DestroyTexture(TextLineTexture);
+
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+    }
+    else
+    {
+        // Rysujemy tylko tło
+        SDL_FRect rc{};
+        rc.y = LineNumber * m_Caret->m_Position.h;
+        rc.h = m_Caret->m_Position.h;
+
+        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, m_TextTexture);
+
+        SDL_SetRenderDrawColor(Renderer, m_BgColor.r, m_BgColor.g, m_BgColor.b, m_BgColor.a);
+        rc.w = m_TextTexture->w;
+        SDL_RenderFillRect(Renderer, &rc);
 
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
@@ -983,6 +1013,47 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
             DestRect.h = rc.h;
             SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
         }
+
+        SDL_SetRenderTarget(Renderer, m_TextTexture);
+        DestRect.x = 0;
+        DestRect.y = 0;
+        DestRect.w = NewTextTexture->w;
+        DestRect.h = NewTextTexture->h;
+        SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
+
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        SDL_DestroyTexture(NewTextTexture);
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferStartingAtLine(int StartLineNumber)
+{
+    SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
+    if (NewTextTexture)
+    {
+        SDL_FRect rc{};
+        SDL_FRect DestRect{};
+
+        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, NewTextTexture);
+        SDL_SetRenderDrawColor(Renderer, m_BgColor.r, m_BgColor.g, m_BgColor.b, m_BgColor.a);
+        rc.w = NewTextTexture->w;
+        rc.h = NewTextTexture->h;
+        SDL_RenderFillRect(Renderer, &rc);
+
+        rc.y = 0;
+        rc.h = StartLineNumber * m_Caret->m_Position.h;
+        DestRect.w = rc.w;
+        DestRect.h = rc.h;
+        SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
+
+        rc.y = StartLineNumber * m_Caret->m_Position.h;
+        rc.h = m_TextTexture->h - rc.y - m_Caret->m_Position.h;
+        DestRect.y += DestRect.h + m_Caret->m_Position.h;
+        DestRect.w = rc.w;
+        DestRect.h = NewTextTexture->h - DestRect.y;
+        SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
+
 
         SDL_SetRenderTarget(Renderer, m_TextTexture);
         DestRect.x = 0;

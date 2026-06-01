@@ -67,6 +67,7 @@ namespace Tilc
             virtual bool OnTextInput(const SDL_Event& event) override;
             void RedrawLineInTextTextureBuffer(int LineNumber);
             void RedrawTextTextureBufferWithoutLine(int WithoutLineNumber);
+            void RedrawTextTextureBufferStartingAtLine(int StartLineNumber);
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;

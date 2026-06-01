@@ -151,7 +151,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::BreakLineAtCharIndex(int LineNumber
     }
     it = m_Lines.begin();
     std::advance(it, LineNumber + 1);
-    if (CharIndex < Line.Glyphs.size() - 1)
+    if (CharIndex < Line.CaretX.size() - 1)
     {
         it->Text32.append(Line.Text32.substr(CharIndex));
     }
