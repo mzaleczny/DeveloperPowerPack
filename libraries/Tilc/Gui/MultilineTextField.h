@@ -65,7 +65,11 @@ namespace Tilc
             };
             virtual bool OnKeyDown(const SDL_Event& event) override;
             virtual bool OnTextInput(const SDL_Event& event) override;
+            // Odrysowuje linię o podanym indeksie w buforze przechowującym cały tekst widoczny w kontrolce. Przed wypisaniem tekstu tej linii, jest ona czyszczona kolorem przezrozystym.
             void RedrawLineInTextTextureBuffer(int LineNumber);
+            // Odświeża bufor przechowujący cały tekst widoczny w kontrolce tak, że zawiera on wszystkie linie jedna pod drugą, ale bez linii o podanym numerze. Przed odpowiednim skopiowaniem
+            // tekstu bufor jest czyszczony kolorem przezroczystym. W wyniku tej operacji na dole bufora zostaje więcwolne miejsce na kolejną linię. Któą należy wyrysować po wywołaniu tej
+            // funkcji.
             void RedrawTextTextureBufferWithoutLine(int WithoutLineNumber);
             void RedrawTextTextureBufferStartingAtLine(int StartLineNumber);
             int GetNumberOfVisibleLines() const;

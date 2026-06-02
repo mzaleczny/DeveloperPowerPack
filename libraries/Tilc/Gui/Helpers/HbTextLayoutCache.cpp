@@ -162,6 +162,26 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::BreakLineAtCharIndex(int LineNumber
     EnsureLineLayout(LineNumber+1);
 }
 
+void Tilc::Gui::Helpers::THbTextLayoutCache::InsertText(int LineNumber, int InsertPos, std::u32string& InsertString)
+{
+    if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
+    TLine& Line = GetLine(LineNumber);
+    if (InsertPos == 0)
+    {
+        Line.Text32 = InsertString + Line.Text32;
+    }
+    else if (InsertPos < Line.Text32.length())
+    {
+        Line.Text32 = Line.Text32.substr(0, InsertPos) + InsertString + Line.Text32.substr(InsertPos);
+    }
+    else
+    {
+        Line.Text32 += InsertString;
+    }
+    Line.Dirty = true;
+    EnsureLineLayout(LineNumber);
+}
+
 void THbTextLayoutCache::ShapeLine(TLine& Line)
 {
     Line.Glyphs.clear();

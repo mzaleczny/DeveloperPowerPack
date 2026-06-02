@@ -969,7 +969,41 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 
 bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 {
-    TTextField::OnTextInput(event);
+    bool updateCaretPos = false;
+    bool redraw = false;
+
+    if (event.text.text && SDL_strlen(event.text.text) > 0)
+    {
+        if (IsSelection())
+        {
+            //int SelUtf8Len = GetSelectionLength();
+            //int Utf8Len = SDL_utf8strlen(event.text.text);
+            ReplaceSelectionWith(event.text.text, false);
+            updateCaretPos = true;
+            redraw = true;
+        }
+        else
+        {
+            std::u32string InsertString32 = Utf8ToUtf32(event.text.text);
+            m_HbTextLayoutCache->InsertText(m_CurrentLine, m_CaretAtChar, InsertString32);
+            // i przesuwamy karetkę w prawo
+            m_CaretAtChar += InsertString32.length();
+            RedrawLineInTextTextureBuffer(m_CurrentLine);
+            updateCaretPos = true;
+            redraw = true;
+        }
+    }
+
+    if (updateCaretPos)
+    {
+        DrawCaret();
+    }
+
+    if (redraw)
+    {
+        Invalidate();
+    }
+
     return true;
 }
 

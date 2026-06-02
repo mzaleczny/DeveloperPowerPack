@@ -74,6 +74,7 @@ namespace Tilc::Gui::Helpers
         void EnsureLineLayout(int LineIndex);
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
         void BreakLineAtCharIndex(int LineNumber, int CharIndex);
+        void InsertText(int LineNumber, int InsertPos, std::u32string& InsertString);
     private:
         Tilc::Gui::TFont* m_Font;
         FT_Face m_Face{};
