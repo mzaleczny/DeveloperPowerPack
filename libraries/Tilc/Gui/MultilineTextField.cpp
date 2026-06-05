@@ -897,7 +897,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             RedrawLineInTextTextureBuffer(m_CurrentLine);
             m_CaretAtChar = 0;
             ++m_CurrentLine;
-            RedrawTextTextureBufferStartingAtLine(m_CurrentLine);
+            RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
             RedrawLineInTextTextureBuffer(m_CurrentLine);
         }
         else
@@ -905,7 +905,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             RedrawLineInTextTextureBuffer(m_CurrentLine);
             m_CaretAtChar = 0;
             ++m_CurrentLine;
-            RedrawTextTextureBufferStartingAtLine(m_CurrentLine);
+            RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
             RedrawLineInTextTextureBuffer(m_CurrentLine);
         }
         updateCaretPos = true;
@@ -1097,7 +1097,7 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
     }
 }
 
-void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferStartingAtLine(int StartLineNumber)
+void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(int StartLineNumber)
 {
     SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
     if (NewTextTexture)

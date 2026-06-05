@@ -71,7 +71,9 @@ namespace Tilc
             // tekstu bufor jest czyszczony kolorem przezroczystym. W wyniku tej operacji na dole bufora zostaje więcwolne miejsce na kolejną linię. Któą należy wyrysować po wywołaniu tej
             // funkcji.
             void RedrawTextTextureBufferWithoutLine(int WithoutLineNumber);
-            void RedrawTextTextureBufferStartingAtLine(int StartLineNumber);
+            // Odświeża bufor przechowujący cały tekst widoczny w kontrolce tak, że kopiowana jest z niego zawartość tekstu do podanej linii, następnie zostawiana jest linia przerwy
+            // i po niej kopiowana jest zawartość tekstu od podanej linii do końca minus ostatni linia. Bo po wstawieniu pustej linii tekstu ostatni linia wyjdzie poza granice kontrolki.
+            void RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(int StartLineNumber);
             int GetNumberOfVisibleLines() const;
         protected:
             SDL_Texture* m_TextTexture{};
