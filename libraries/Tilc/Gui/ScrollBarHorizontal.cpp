@@ -136,6 +136,7 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
 
     TTheme* m_Theme = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{};
+    SDL_FRect RealPosition = GetRealPosition();
     float x = 0;
     float y = 0;
     SDL_Texture* TextureMap = m_Theme->GuiTextureMap1;
@@ -192,7 +193,7 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     SDL_FRect DestRect;
     if (x_thumb > x)
     {
-        DestRect = { m_Position.x + x, m_Position.y + y, x_thumb - x, m_Position.h };
+        DestRect = { RealPosition.x + x, RealPosition.y + y, x_thumb - x, m_Position.h };
         RenderTiledTexture(TextureMap, &rcLeft, &DestRect);
     }
     x = x_thumb;
@@ -204,7 +205,7 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     float thumb_size_bg = thumb_size - scrollbar_horizontal_thumb_left_rc.w - scrollbar_horizontal_thumb_right_rc.w;
     if (thumb_size_bg > 0)
     {
-        DestRect = { m_Position.x + x, m_Position.y + y, thumb_size_bg, m_Position.h };
+        DestRect = { RealPosition.x + x, RealPosition.y + y, thumb_size_bg, m_Position.h };
         RenderTiledTexture(TextureMap, &scrollbar_horizontal_thumb_middle_rc, &DestRect);
         // teraz na tle suwaka centrujemy w poziomie część środkową
         RenderTexture(TextureMap, &scrollbar_horizontal_thumb_bg_rc, x + (thumb_size_bg - scrollbar_horizontal_thumb_bg_rc.w) / 2.0f, y);
@@ -213,11 +214,11 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     RenderTexture(TextureMap, &scrollbar_horizontal_thumb_right_rc, x, y);
     x += scrollbar_horizontal_thumb_right_rc.w;
     // na koniec tło po prawej stronie suwaka
-    if (x < m_Position.w - scrollbar_horizontal_arrow_right_rc.w)
+    if (x < RealPosition.w - scrollbar_horizontal_arrow_right_rc.w)
     {
-        DestRect = { m_Position.x + x, m_Position.y + y, m_Position.w - scrollbar_horizontal_arrow_right_rc.w - x, m_Position.h };
+        DestRect = { RealPosition.x + x, RealPosition.y + y, RealPosition.w - scrollbar_horizontal_arrow_right_rc.w - x, RealPosition.h };
         RenderTiledTexture(TextureMap, &rcRight, &DestRect);
-        x += m_Position.w - scrollbar_horizontal_arrow_right_rc.w - x;
+        x += RealPosition.w - scrollbar_horizontal_arrow_right_rc.w - x;
     }
     // ================================================================
     // Koniec rysowania wnętrza scrollbara

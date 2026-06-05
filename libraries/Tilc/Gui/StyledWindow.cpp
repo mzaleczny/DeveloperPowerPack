@@ -114,6 +114,7 @@ void Tilc::Gui::TStyledWindow::Draw()
         float x = 0.0f;
         float y = 0.0f;
         SDL_FRect rc, DestRect;
+        SDL_FRect RealPosition = GetRealPosition();
 
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_Canvas);

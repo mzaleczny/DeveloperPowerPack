@@ -30,6 +30,7 @@ Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString&
     m_Name = name;
     //SDL_Log("Added control: %s", m_Name.c_str());
     m_Position = position;
+    GetRealPosition();
     m_OriginalPosition = position;
     m_Parent = parent;
     CommonInit(editable);
@@ -828,7 +829,7 @@ void Tilc::Gui::TGuiControl::AddVerticalScrollbar(int min, int max, int size, bo
             DesiredHeight -= top + theme->wnd_frame_bottom_rc.h;
         }
         SDL_FRect RealPosition = GetRealPosition();
-        SDL_FRect ChildPosition{ RealPosition.x + static_cast<float>(RealPosition.w - vscr_w), RealPosition.y + top, static_cast<float>(vscr_w), DesiredHeight };
+        SDL_FRect ChildPosition{ static_cast<float>(RealPosition.w - vscr_w), top, static_cast<float>(vscr_w), DesiredHeight };
         Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarVertical(this, m_Name + "_VSB", ChildPosition, Tilc::Gui::EControlType::ECT_ScrollBar, min, max, min, true, IsStandardSizedScrollBar);
         if (scrbar)
         {
@@ -872,7 +873,7 @@ void Tilc::Gui::TGuiControl::AddHorizontalScrollbar(int min, int max, int size, 
             DesiredWidth -= theme->wnd_frame_left_rc.w + theme->wnd_frame_right_rc.w;
         }
         SDL_FRect RealPosition = GetRealPosition();
-        SDL_FRect ChildPosition{ RealPosition.x + left, RealPosition.y + RealPosition.h - hscr_h, DesiredWidth, static_cast<float>(hscr_h) };
+        SDL_FRect ChildPosition{ left, RealPosition.h - hscr_h, DesiredWidth, static_cast<float>(hscr_h) };
         Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarHorizontal(this, m_Name + "_HSB", ChildPosition, Tilc::Gui::EControlType::ECT_ScrollBar, min, max, min, true, IsStandardSizedScrollBar);
         if (scrbar)
         {
@@ -1512,7 +1513,7 @@ SDL_FRect Tilc::Gui::TGuiControl::GetRealPosition()
     SDL_FRect Position = m_Position;
     if (!m_Parent)
     {
-        //std::cout << m_Name + ": (" << Position.x << ", " << Position.y << std::endl;
+        m_RealPosition = Position;
         return Position;
     }
 
@@ -1520,7 +1521,8 @@ SDL_FRect Tilc::Gui::TGuiControl::GetRealPosition()
 
     Position.x += ParentPosition.x;
     Position.y += ParentPosition.y;
-    //std::cout << m_Name + ": (" << Position.x << ", " << Position.y << std::endl;
+
+    m_RealPosition = Position;
     return Position;
 }
 

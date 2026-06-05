@@ -84,6 +84,8 @@ namespace Tilc {
 
             // Current position of control inside window
             SDL_FRect m_Position;
+            // Current real position of control inside window. It is calculated by adding all parents positions
+            SDL_FRect m_RealPosition;
             // Original position of control inside window. This variable is used for calculating m_Position for children during scrolling vertical or horizontal scrollbar of parent
             SDL_FRect m_OriginalPosition;
             // m_PrevPosition is for the sake of handling window maximization and restore
@@ -115,12 +117,12 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, float x, float y, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_Position.x + x, m_Position.y + y, static_cast<float>(Src->w), static_cast<float>(Src->h) };
+                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, static_cast<float>(Src->w), static_cast<float>(Src->h) };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {
-                    r.x -= m_Position.x;
-                    r.y -= m_Position.y;
+                    r.x -= m_RealPosition.x;
+                    r.y -= m_RealPosition.y;
                 }
                 if (RoundCoords)
                 {
@@ -131,12 +133,12 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, SDL_FRect* SrcRect, float x, float y, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_Position.x + x, m_Position.y + y, static_cast<float>(SrcRect->w), static_cast<float>(SrcRect->h) };
+                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, static_cast<float>(SrcRect->w), static_cast<float>(SrcRect->h) };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {
-                    r.x -= m_Position.x;
-                    r.y -= m_Position.y;
+                    r.x -= m_RealPosition.x;
+                    r.y -= m_RealPosition.y;
                 }
                 if (RoundCoords)
                 {
@@ -154,12 +156,12 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, float x, float y, float destW, float destH, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_Position.x + x, m_Position.y + y, destW, destH };
+                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, destW, destH };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {
-                    r.x -= m_Position.x;
-                    r.y -= m_Position.y;
+                    r.x -= m_RealPosition.x;
+                    r.y -= m_RealPosition.y;
                 }
                 if (RoundCoords)
                 {
@@ -170,12 +172,12 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, SDL_FRect* SrcRect, float x, float y, float destW, float destH, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_Position.x + x, m_Position.y + y, destW, destH };
+                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, destW, destH };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {
-                    r.x -= m_Position.x;
-                    r.y -= m_Position.y;
+                    r.x -= m_RealPosition.x;
+                    r.y -= m_RealPosition.y;
                 }
                 if (RoundCoords)
                 {
