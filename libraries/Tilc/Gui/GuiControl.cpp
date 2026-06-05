@@ -817,19 +817,24 @@ void Tilc::Gui::TGuiControl::AddVerticalScrollbar(int min, int max, int size, bo
         int hscr_h = theme->scrollbar_horizontal_arrow_right_rc.h;
         float top = 0;
         float DesiredHeight = m_Position.h;
+        if (!IsStandardSizedScrollBar)
+        {
+            vscr_w = theme->small_scrollbar_vertical_arrow_up_rc.w;
+            hscr_h = theme->small_scrollbar_horizontal_arrow_right_rc.h;
+        }
         if (const Tilc::Gui::TStyledWindow* wnd = dynamic_cast<Tilc::Gui::TStyledWindow*>(this))
         {
             top = theme->wnd_caption_inactive_middle_rc.h;
             DesiredHeight -= top + theme->wnd_frame_bottom_rc.h;
         }
         SDL_FRect RealPosition = GetRealPosition();
-        SDL_FRect ChildPosition{ static_cast<float>(RealPosition.w - vscr_w), top, static_cast<float>(vscr_w), DesiredHeight };
+        SDL_FRect ChildPosition{ RealPosition.x + static_cast<float>(RealPosition.w - vscr_w), RealPosition.y + top, static_cast<float>(vscr_w), DesiredHeight };
         Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarVertical(this, m_Name + "_VSB", ChildPosition, Tilc::Gui::EControlType::ECT_ScrollBar, min, max, min, true, IsStandardSizedScrollBar);
         if (scrbar)
         {
             if (!size)
             {
-                size = m_Position.h - hscr_h;
+                size = RealPosition.h - hscr_h;
             }
             scrbar->SetSizeRelativeToParent(RealPosition.w, size);
             scrbar->RegisterPositionNotificationForControl(this);
@@ -856,7 +861,7 @@ void Tilc::Gui::TGuiControl::AddHorizontalScrollbar(int min, int max, int size, 
         int hscr_h = theme->scrollbar_horizontal_arrow_right_rc.h;
         float left = 0;
         float DesiredWidth = m_Position.w;
-        if (IsStandardSizedScrollBar)
+        if (!IsStandardSizedScrollBar)
         {
             vscr_w = theme->small_scrollbar_vertical_arrow_up_rc.w;
             hscr_h = theme->small_scrollbar_horizontal_arrow_right_rc.h;
@@ -866,15 +871,16 @@ void Tilc::Gui::TGuiControl::AddHorizontalScrollbar(int min, int max, int size, 
             left = theme->wnd_frame_left_rc.w;
             DesiredWidth -= theme->wnd_frame_left_rc.w + theme->wnd_frame_right_rc.w;
         }
-        SDL_FRect ChildPosition{ left, m_Position.h - hscr_h, DesiredWidth, static_cast<float>(hscr_h) };
+        SDL_FRect RealPosition = GetRealPosition();
+        SDL_FRect ChildPosition{ RealPosition.x + left, RealPosition.y + RealPosition.h - hscr_h, DesiredWidth, static_cast<float>(hscr_h) };
         Tilc::Gui::TScrollBar* scrbar = new Tilc::Gui::TScrollBarHorizontal(this, m_Name + "_HSB", ChildPosition, Tilc::Gui::EControlType::ECT_ScrollBar, min, max, min, true, IsStandardSizedScrollBar);
         if (scrbar)
         {
             if (!size)
             {
-                size = m_Position.w - vscr_w;
+                size = RealPosition.w - vscr_w;
             }
-            scrbar->SetSizeRelativeToParent(size, m_Position.h);
+            scrbar->SetSizeRelativeToParent(size, RealPosition.h);
             scrbar->RegisterPositionNotificationForControl(this);
             m_HScrollBar = scrbar;
         }
