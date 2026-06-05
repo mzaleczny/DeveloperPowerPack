@@ -408,9 +408,9 @@ namespace Tilc {
             void SetEditable(bool value);
 
             virtual void AddScrollbars(bool vertical, bool horizontal, int vmin, int vmax, int hmin, int hmax);
-            virtual void AddVerticalScrollbar(int min, int max, int size = 0);
+            virtual void AddVerticalScrollbar(int min, int max, int size = 0, bool IsStandardSizedScrollBar = true);
             virtual bool RemoveVerticalScrollbar();
-            virtual void AddHorizontalScrollbar(int min, int max, int size = 0);
+            virtual void AddHorizontalScrollbar(int min, int max, int size = 0, bool IsStandardSizedScrollBar = true);
             virtual bool RemoveHorizontalScrollbar();
             virtual void AddEditor();
             virtual bool RemoveEditor();
