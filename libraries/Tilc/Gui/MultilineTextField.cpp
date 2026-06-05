@@ -2,6 +2,8 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Caret.h"
+#include "Tilc/Gui/ScrollBarVertical.h"
+#include "Tilc/Gui/ScrollBarHorizontal.h"
 #include "Tilc/Gui/Clipboard.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/OS/SystemUtils.h"
@@ -25,6 +27,11 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     if (m_HbTextLayoutCache)
     {
         m_HbTextLayoutCache->SetText(text);
+        if (m_HbTextLayoutCache->GetLinesCount() > GetNumberOfVisibleLines())
+        {
+            AddVerticalScrollbar(0, 100, 0, false);
+        }
+        AddHorizontalScrollbar(0, 100, 0, false);
     }
 }
 
@@ -133,6 +140,8 @@ void Tilc::Gui::TMultilineTextField::Draw()
     {
         Tilc::GameObject->GetContext()->m_Caret->Draw();
     }
+
+    DrawVerticalAndHorizontalScrollBars();
 
     m_NeedUpdate = ENeedUpdate::ENU_None;
 }
