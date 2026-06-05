@@ -239,7 +239,10 @@ void THbTextLayoutCache::ShapeLine(TLine& Line)
     }
 
     Line.TotalWidth = x;
-
+    if (x > m_LongestLineWidth)
+    {
+        m_LongestLineWidth = x;
+    }
     hb_buffer_destroy(buf);
 }
 

@@ -75,12 +75,17 @@ namespace Tilc::Gui::Helpers
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
         void BreakLineAtCharIndex(int LineNumber, int CharIndex);
         void InsertText(int LineNumber, int InsertPos, std::u32string& InsertString);
+        int GetLongestLineWidth() const
+        {
+            return m_LongestLineWidth;
+        }
     private:
         Tilc::Gui::TFont* m_Font;
         FT_Face m_Face{};
         hb_font_t* m_HbFont{};
         int m_MaxWidth{};
         int m_MaxHeight{};
+        int m_LongestLineWidth{};
 
         std::list<TLine> m_Lines;
 
