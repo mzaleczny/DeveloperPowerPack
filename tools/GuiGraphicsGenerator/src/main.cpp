@@ -35,10 +35,10 @@ SDL_Texture* LoadSVG(const char* Filename, int Width, int Height);
 void RenderWindow();
 void RenderFullNonScaledTexture(std::string FileName, float x, float y, int& TexWidth, int& TexHeight);
 void RenderStretchedTexture(std::string FileName, float x, float y, float w, float h, int& TexWidth, int& TexHeight);
-void RenderScrollBars();
+void RenderScrollBars(const int size, std::string postfix = "");
 void RenderSliders();
-void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputTileToDescriptionFile = true);
-void RenderButtons(std::string Name, int width, int height, bool Split = true);
+void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputTileToDescriptionFile = true, std::string OutputPostfix = "");
+void RenderButtons(std::string Name, int width, int height, bool Split = true, std::string OutputPostfix = "");
 void AddX(int Value, int NextItemWidth);
 void AddY(int Value, int NextItemHeight);
 std::ofstream& operator<<(std::ofstream& out, const SDL_Rect& rc);
@@ -105,7 +105,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     SDL_RenderClear(renderer);
 
     RenderWindow();
-    RenderScrollBars();
+    RenderScrollBars(16);
+    RenderScrollBars(10, "small");
     RenderButtons("button", 75, 25);
     AddY(7 * 25, 0);
     X = CurrentColumnX;
@@ -311,55 +312,72 @@ void RenderStretchedTexture(std::string FileName, float x, float y, float w, flo
     }
 }
 
-void RenderScrollBars()
+void RenderScrollBars(const int size, std::string postfix)
 {
-    constexpr const int size = 16;
     SDL_Rect LeftRC, MiddleRC, RightRC;
     SDL_FRect frc;
     SDL_Texture* Texture;
 
     X = 0;
-    RenderButtons("scrollbar-vertical-arrow-down", size, size, false);
+    std::string name = "scrollbar-vertical-arrow-down";
+    RenderButtons(name, size, size, false, postfix);
     AddX(size, size);
-    RenderButtons("scrollbar-vertical-arrow-up", size, size, false);
+    name = "scrollbar-vertical-arrow-up";
+    RenderButtons(name, size, size, false, postfix);
     AddX(size, size);
-    RenderButtons("scrollbar-horizontal-arrow-left", size, size, false);
+    name = "scrollbar-horizontal-arrow-left";
+    RenderButtons(name, size, size, false, postfix);
     AddX(size, size);
-    RenderButtons("scrollbar-horizontal-arrow-right", size, size, false);
+    name = "scrollbar-horizontal-arrow-right";
+    RenderButtons(name, size, size, false, postfix);
 
     X = 0;
     AddY(4*size, 0);
-    RenderSvgTile("scrollbar-horizontal-bg", {X, Y, 1, 16}, false);
+    name = "scrollbar-horizontal-bg";
+    RenderSvgTile(name, {X, Y, 1, 16}, false, true, postfix);
     AddX(1, 1);
-    RenderSvgTile("scrollbar-horizontal-bg_disabled", { X, Y, 1, 16 }, false);
+    name = "scrollbar-horizontal-bg_disabled";
+    RenderSvgTile(name, { X, Y, 1, 16 }, false, true, postfix);
     AddX(1, 1);
-    RenderSvgTile("scrollbar-horizontal-bg_pushed", { X, Y, 1, 16 }, false);
+    name = "scrollbar-horizontal-bg_pushed";
+    RenderSvgTile(name, { X, Y, 1, 16 }, false, true, postfix);
     AddX(1, 3);
-    RenderSvgTile("scrollbar-horizontal-thumb-left", { X, Y, 3, 16 }, false);
+    name = "scrollbar-horizontal-thumb-left";
+    RenderSvgTile(name, { X, Y, 3, 16 }, false, true, postfix);
     AddX(3, size - 2 * 3);
-    RenderSvgTile("scrollbar-horizontal-thumb-middle", { X, Y, size - 2 * 3, 16 }, false);
+    name = "scrollbar-horizontal-thumb-middle";
+    RenderSvgTile(name, { X, Y, size - 2 * 3, 16 }, false, true, postfix);
     AddX(size - 2 * 3, 3);
-    RenderSvgTile("scrollbar-horizontal-thumb-right", { X, Y, 3, 16 }, false);
+    name = "scrollbar-horizontal-thumb-right";
+    RenderSvgTile(name, { X, Y, 3, 16 }, false, true, postfix);
     AddX(3, size);
-    RenderSvgTile("scrollbar-horizontal-thumb-bg", { X, Y, size, size }, false);
+    name = "scrollbar-horizontal-thumb-bg";
+    RenderSvgTile(name, { X, Y, size, size }, false, true, postfix);
 
     AddX(size, 0);
-    RenderSvgTile("scrollbar-vertical-bg", { X, Y, size, 1 }, false);
+    name = "scrollbar-vertical-bg";
+    RenderSvgTile(name, { X, Y, size, 1 }, false, true, postfix);
     AddY(1, 1);
-    RenderSvgTile("scrollbar-vertical-bg_disabled", { X, Y, size, 1 }, false);
+    name = "scrollbar-vertical-bg_disabled";
+    RenderSvgTile(name, { X, Y, size, 1 }, false, true, postfix);
     AddY(1, 1);
-    RenderSvgTile("scrollbar-vertical-bg_pushed", { X, Y, size, 1 }, false);
+    name = "scrollbar-vertical-bg_pushed";
+    RenderSvgTile(name, { X, Y, size, 1 }, false, true, postfix);
     AddY(1, 3);
     AddX(size, 0);
     Y -= 3;
-    RenderSvgTile("scrollbar-vertical-thumb-top", { X, Y, size, 3 }, false);
+    name = "scrollbar-vertical-thumb-top";
+    RenderSvgTile(name, { X, Y, size, 3 }, false, true, postfix);
     AddY(3, size - 2 * 3);
-    RenderSvgTile("scrollbar-vertical-thumb-middle", { X, Y, size, size - 2 * 3 }, false);
+    name = "scrollbar-vertical-thumb-middle";
+    RenderSvgTile(name, { X, Y, size, size - 2 * 3 }, false, true, postfix);
     AddY(size - 2 * 3, 3);
-    RenderSvgTile("scrollbar-vertical-thumb-bottom", { X, Y, size, 3 }, false);
+    name = "scrollbar-vertical-thumb-bottom";
+    RenderSvgTile(name, { X, Y, size, 3 }, false, true, postfix);
     AddX(size, size);
     Y -= size - 2 * 3 + 3;
-    RenderSvgTile("scrollbar-vertical-thumb-bg", { X, Y, size, size }, false);
+    name = "scrollbar-vertical-thumb-bg";
+    RenderSvgTile(name, { X, Y, size, size }, false, true, postfix);
     X = 0;
     AddY(size, 0);
 }
@@ -387,7 +405,7 @@ void RenderSliders()
     X = 0;
 }
 
-void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputTileToDescriptionFile)
+void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputTileToDescriptionFile, std::string OutputPostfix)
 {
     SDL_Rect rc = DestRect, LeftRC, MiddleRC, RightRC;
     SDL_FRect frc;
@@ -404,22 +422,50 @@ void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputT
             {
                 LeftRC = rc;
                 LeftRC.w = static_cast<int>(rc.w / 3.0f);
-                of << Name + "_left_rc: ";
+                if (OutputPostfix.empty())
+                {
+                    of << Name + "_left_rc: ";
+                }
+                else
+                {
+                    of << Name + "_left_rc_" << OutputPostfix << ": ";
+                }
                 of << LeftRC << std::endl;
 
                 RightRC = rc;
                 RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
                 RightRC.w = static_cast<int>(rc.w / 3.0f);
-                of << Name + "_right_rc: ";
+                if (OutputPostfix.empty())
+                {
+                    of << Name + "_right_rc: ";
+                }
+                else
+                {
+                    of << Name + "_right_rc_" << OutputPostfix << ": ";
+                }
                 of << RightRC << std::endl;
 
                 MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-                of << Name + "_middle_rc: ";
+                if (OutputPostfix.empty())
+                {
+                    of << Name + "_middle_rc: ";
+                }
+                else
+                {
+                    of << Name + "_middle_rc_" << OutputPostfix << ": ";
+                }
                 of << MiddleRC << std::endl;
             }
             else
             {
-                of << Name + "_rc: ";
+                if (OutputPostfix.empty())
+                {
+                    of << Name + "_rc: ";
+                }
+                else
+                {
+                    of << Name + "_rc_" << OutputPostfix << ": ";
+                }
                 of << rc << std::endl;
             }
         }
@@ -428,7 +474,7 @@ void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputT
     }
 }
 
-void RenderButtons(std::string Name, int width, int height, bool Split)
+void RenderButtons(std::string Name, int width, int height, bool Split, std::string OutputPostfix)
 {
     if (X + width > CurrentColumnX + CurrentColumnWidth)
     {
@@ -447,22 +493,50 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_left_rc: ";
+            }
+            else
+            {
+                of << Name + "_left_rc_" << OutputPostfix << ": ";
+            }
             of << LeftRC << std::endl;
 
             RightRC = rc;
             RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
             RightRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_right_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_right_rc: ";
+            }
+            else
+            {
+                of << Name + "_right_rc_" << OutputPostfix << ": ";
+            }
             of << RightRC << std::endl;
 
             MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-            of << Name + "_middle_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_middle_rc: ";
+            }
+            else
+            {
+                of << Name + "_middle_rc_" << OutputPostfix << ": ";
+            }
             of << MiddleRC << std::endl;
         }
         else
         {
-            of << Name + "_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_rc: ";
+            }
+            else
+            {
+                of << Name + "_rc_" << OutputPostfix << ": ";
+            }
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
@@ -479,22 +553,50 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_left_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_left_focused_rc_" << OutputPostfix << ": ";
+            }
             of << LeftRC << std::endl;
 
             RightRC = rc;
             RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
             RightRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_right_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_right_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_right_focused_rc_" << OutputPostfix << ": ";
+            }
             of << RightRC << std::endl;
 
             MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-            of << Name + "_middle_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_middle_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_middle_focused_rc_" << OutputPostfix << ": ";
+            }
             of << MiddleRC << std::endl;
         }
         else
         {
-            of << Name + "_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_focused_rc_" << OutputPostfix << ": ";
+            }
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
@@ -511,22 +613,50 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_disabled_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_left_disabled_rc: ";
+            }
+            else
+            {
+                of << Name + "_left_disabled_rc_" << OutputPostfix << ": ";
+            }
             of << LeftRC << std::endl;
 
             RightRC = rc;
             RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
             RightRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_right_disabled_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_right_disabled_rc: ";
+            }
+            else
+            {
+                of << Name + "_right_disabled_rc_" << OutputPostfix << ": ";
+            }
             of << RightRC << std::endl;
 
             MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-            of << Name + "_middle_disabled_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_middle_disabled_rc: ";
+            }
+            else
+            {
+                of << Name + "_middle_disabled_rc_" << OutputPostfix << ": ";
+            }
             of << MiddleRC << std::endl;
         }
         else
         {
-            of << Name + "_disabled_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_disabled_rc: ";
+            }
+            else
+            {
+                of << Name + "_disabled_rc_" << OutputPostfix << ": ";
+            }
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
@@ -543,22 +673,50 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_hover_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_left_hover_rc: ";
+            }
+            else
+            {
+                of << Name + "_left_hover_rc_" << OutputPostfix << ": ";
+            }
             of << LeftRC << std::endl;
 
             RightRC = rc;
             RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
             RightRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_right_hover_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_right_hover_rc: ";
+            }
+            else
+            {
+                of << Name + "_right_hover_rc_" << OutputPostfix << ": ";
+            }
             of << RightRC << std::endl;
 
             MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-            of << Name + "_middle_hover_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_middle_hover_rc: ";
+            }
+            else
+            {
+                of << Name + "_middle_hover_rc_" << OutputPostfix << ": ";
+            }
             of << MiddleRC << std::endl;
         }
         else
         {
-            of << Name + "_hover_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_hover_rc: ";
+            }
+            else
+            {
+                of << Name + "_hover_rc_" << OutputPostfix << ": ";
+            }
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
@@ -575,22 +733,50 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_hover_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_left_hover_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_left_hover_focused_rc_" << OutputPostfix << ": ";
+            }
             of << LeftRC << std::endl;
 
             RightRC = rc;
             RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
             RightRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_right_hover_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_right_hover_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_right_hover_focused_rc_" << OutputPostfix << ": ";
+            }
             of << RightRC << std::endl;
 
             MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-            of << Name + "_middle_hover_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_middle_hover_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_middle_hover_focused_rc_" << OutputPostfix << ": ";
+            }
             of << MiddleRC << std::endl;
         }
         else
         {
-            of << Name + "_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_focused_rc_" << OutputPostfix << ": ";
+            }
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
@@ -607,22 +793,50 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_pushed_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_left_pushed_rc: ";
+            }
+            else
+            {
+                of << Name + "_left_pushed_rc_" << OutputPostfix << ": ";
+            }
             of << LeftRC << std::endl;
 
             RightRC = rc;
             RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
             RightRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_right_pushed_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_right_pushed_rc: ";
+            }
+            else
+            {
+                of << Name + "_right_pushed_rc_" << OutputPostfix << ": ";
+            }
             of << RightRC << std::endl;
 
             MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-            of << Name + "_middle_pushed_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_middle_pushed_rc: ";
+            }
+            else
+            {
+                of << Name + "_middle_pushed_rc_" << OutputPostfix << ": ";
+            }
             of << MiddleRC << std::endl;
         }
         else
         {
-            of << Name + "_pushed_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_pushed_rc: ";
+            }
+            else
+            {
+                of << Name + "_pushed_rc_" << OutputPostfix << ": ";
+            }
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
@@ -639,22 +853,50 @@ void RenderButtons(std::string Name, int width, int height, bool Split)
         {
             LeftRC = rc;
             LeftRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_left_pushed_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_left_pushed_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_left_pushed_focused_rc_" << OutputPostfix << ": ";
+            }
             of << LeftRC << std::endl;
 
             RightRC = rc;
             RightRC.x = static_cast<int>(rc.x + rc.w - LeftRC.w);
             RightRC.w = static_cast<int>(rc.w / 3.0f);
-            of << Name + "_right_pushed_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_right_pushed_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_right_pushed_focused_rc_" << OutputPostfix << ": ";
+            }
             of << RightRC << std::endl;
 
             MiddleRC = { rc.x + LeftRC.w + 1, rc.y, 1, rc.h };
-            of << Name + "_middle_pushed_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_middle_pushed_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_middle_pushed_focused_rc_" << OutputPostfix << ": ";
+            }
             of << MiddleRC << std::endl;
         }
         else
         {
-            of << Name + "_pushed_focused_rc: ";
+            if (OutputPostfix.empty())
+            {
+                of << Name + "_pushed_focused_rc: ";
+            }
+            else
+            {
+                of << Name + "_pushed_focused_rc_" << OutputPostfix << ": ";
+            }
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
