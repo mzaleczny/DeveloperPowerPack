@@ -55,6 +55,7 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     //this->globalStandardFont = new CFont(NULL, RGB(0, 0, 0), "Verdana", 8);
     this->LoadWindowSkinResources(name);
     this->LoadScrollBarSkinResources(name);
+    this->LoadScrollBarSkinResources(name, "small");
     this->LoadButtonSkinResources(name);
     this->LoadSliderSkinResources(name);
     this->LoadTextFieldSkinResources(name);
@@ -287,11 +288,15 @@ void Tilc::Gui::TTheme::LoadLabelSkinResources(Tilc::TExtString themeName)
     //this->commonLabelFont = this->globalStandardFont;
 }
 
-void Tilc::Gui::TTheme::LoadScrollBarSkinResources(Tilc::TExtString themeName)
+void Tilc::Gui::TTheme::LoadScrollBarSkinResources(Tilc::TExtString themeName, Tilc::TExtString Postfix)
 {
     if (GameObject)
     {
         Tilc::TExtString Line;
+        if (!Postfix.empty())
+        {
+            Postfix = Tilc::TExtString("_") + Postfix;
+        }
         while (std::getline(LayoutInputStream, Line))
         {
             std::stringstream Keystream(Line);
@@ -303,70 +308,70 @@ void Tilc::Gui::TTheme::LoadScrollBarSkinResources(Tilc::TExtString themeName)
             sw = sw.substr(0, sw.length() - 1);
             //sh = sh.substr(0, sh.length() - 1);
 
-            if (Item == "scrollbar-vertical-arrow-down_rc")
+            if (Item == "scrollbar-vertical-arrow-down_rc" + Postfix)
                 scrollbar_vertical_arrow_down_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-arrow-down_disabled_rc")
+            else if (Item == "scrollbar-vertical-arrow-down_disabled_rc" + Postfix)
                 scrollbar_vertical_arrow_down_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-arrow-down_hover_rc")
+            else if (Item == "scrollbar-vertical-arrow-down_hover_rc" + Postfix)
                 scrollbar_vertical_arrow_down_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-arrow-down_pushed_rc")
+            else if (Item == "scrollbar-vertical-arrow-down_pushed_rc" + Postfix)
                 scrollbar_vertical_arrow_down_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
 
-            else if (Item == "scrollbar-vertical-arrow-up_rc")
+            else if (Item == "scrollbar-vertical-arrow-up_rc" + Postfix)
                 scrollbar_vertical_arrow_up_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-arrow-up_disabled_rc")
+            else if (Item == "scrollbar-vertical-arrow-up_disabled_rc" + Postfix)
                 scrollbar_vertical_arrow_up_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-arrow-up_hover_rc")
+            else if (Item == "scrollbar-vertical-arrow-up_hover_rc" + Postfix)
                 scrollbar_vertical_arrow_up_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-arrow-up_pushed_rc")
+            else if (Item == "scrollbar-vertical-arrow-up_pushed_rc" + Postfix)
                 scrollbar_vertical_arrow_up_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
 
-            else if (Item == "scrollbar-horizontal-arrow-left_rc")
+            else if (Item == "scrollbar-horizontal-arrow-left_rc" + Postfix)
                 scrollbar_horizontal_arrow_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-arrow-left_disabled_rc")
+            else if (Item == "scrollbar-horizontal-arrow-left_disabled_rc" + Postfix)
                 scrollbar_horizontal_arrow_left_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-arrow-left_hover_rc")
+            else if (Item == "scrollbar-horizontal-arrow-left_hover_rc" + Postfix)
                 scrollbar_horizontal_arrow_left_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-arrow-left_pushed_rc")
+            else if (Item == "scrollbar-horizontal-arrow-left_pushed_rc" + Postfix)
                 scrollbar_horizontal_arrow_left_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
 
-            else if (Item == "scrollbar-horizontal-arrow-right_rc")
+            else if (Item == "scrollbar-horizontal-arrow-right_rc" + Postfix)
                 scrollbar_horizontal_arrow_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-arrow-right_disabled_rc")
+            else if (Item == "scrollbar-horizontal-arrow-right_disabled_rc" + Postfix)
                 scrollbar_horizontal_arrow_right_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-arrow-right_hover_rc")
+            else if (Item == "scrollbar-horizontal-arrow-right_hover_rc" + Postfix)
                 scrollbar_horizontal_arrow_right_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-arrow-right_pushed_rc")
+            else if (Item == "scrollbar-horizontal-arrow-right_pushed_rc" + Postfix)
                 scrollbar_horizontal_arrow_right_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
 
-            else if (Item == "scrollbar-horizontal-bg_rc")
+            else if (Item == "scrollbar-horizontal-bg_rc" + Postfix)
                 scrollbar_horizontal_bg_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-bg_disabled_rc")
+            else if (Item == "scrollbar-horizontal-bg_disabled_rc" + Postfix)
                 scrollbar_horizontal_bg_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-bg_pushed_rc")
+            else if (Item == "scrollbar-horizontal-bg_pushed_rc" + Postfix)
                 scrollbar_horizontal_bg_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-thumb-left_rc")
+            else if (Item == "scrollbar-horizontal-thumb-left_rc" + Postfix)
                 scrollbar_horizontal_thumb_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-thumb-middle_rc")
+            else if (Item == "scrollbar-horizontal-thumb-middle_rc" + Postfix)
                 scrollbar_horizontal_thumb_middle_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-thumb-right_rc")
+            else if (Item == "scrollbar-horizontal-thumb-right_rc" + Postfix)
                 scrollbar_horizontal_thumb_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-horizontal-thumb-bg_rc")
+            else if (Item == "scrollbar-horizontal-thumb-bg_rc" + Postfix)
                 scrollbar_horizontal_thumb_bg_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
 
-            else if (Item == "scrollbar-vertical-bg_rc")
+            else if (Item == "scrollbar-vertical-bg_rc" + Postfix)
                 scrollbar_vertical_bg_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-bg_disabled_rc")
+            else if (Item == "scrollbar-vertical-bg_disabled_rc" + Postfix)
                 scrollbar_vertical_bg_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-bg_pushed_rc")
+            else if (Item == "scrollbar-vertical-bg_pushed_rc" + Postfix)
                 scrollbar_vertical_bg_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-thumb-top_rc")
+            else if (Item == "scrollbar-vertical-thumb-top_rc" + Postfix)
                 scrollbar_vertical_thumb_top_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-thumb-middle_rc")
+            else if (Item == "scrollbar-vertical-thumb-middle_rc" + Postfix)
                 scrollbar_vertical_thumb_middle_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-thumb-bottom_rc")
+            else if (Item == "scrollbar-vertical-thumb-bottom_rc" + Postfix)
                 scrollbar_vertical_thumb_bottom_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "scrollbar-vertical-thumb-bg_rc")
+            else if (Item == "scrollbar-vertical-thumb-bg_rc" + Postfix)
             {
                 scrollbar_vertical_thumb_bg_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 break;

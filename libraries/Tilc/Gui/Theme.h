@@ -120,7 +120,7 @@ namespace Tilc {
             SDL_FRect toolbar16_separator_rc;
             */
 
-            // Bitmapy scrollbara
+            // Bitmapy scrollbara standardowego 16px
             SDL_FRect scrollbar_horizontal_arrow_left_rc;
             SDL_FRect scrollbar_horizontal_arrow_left_disabled_rc;
             SDL_FRect scrollbar_horizontal_arrow_left_hover_rc;
@@ -158,6 +158,45 @@ namespace Tilc {
             SDL_FRect scrollbar_vertical_bg_rc;
             SDL_FRect scrollbar_vertical_bg_disabled_rc;
             SDL_FRect scrollbar_vertical_bg_pushed_rc;
+
+            // Bitmapy scrollbara małego 10px - ten jest używany w kontrolkach różnych od okna, dla odróżnienia i nie przytłaczania kontrolki swoim rozmiarem
+            SDL_FRect small_scrollbar_horizontal_arrow_left_rc;
+            SDL_FRect small_scrollbar_horizontal_arrow_left_disabled_rc;
+            SDL_FRect small_scrollbar_horizontal_arrow_left_hover_rc;
+            SDL_FRect small_scrollbar_horizontal_arrow_left_pushed_rc;
+
+            SDL_FRect small_scrollbar_horizontal_arrow_right_rc;
+            SDL_FRect small_scrollbar_horizontal_arrow_right_disabled_rc;
+            SDL_FRect small_scrollbar_horizontal_arrow_right_hover_rc;
+            SDL_FRect small_scrollbar_horizontal_arrow_right_pushed_rc;
+
+            SDL_FRect small_scrollbar_horizontal_thumb_left_rc;
+            SDL_FRect small_scrollbar_horizontal_thumb_middle_rc;
+            SDL_FRect small_scrollbar_horizontal_thumb_right_rc;
+            SDL_FRect small_scrollbar_horizontal_thumb_bg_rc;
+
+            SDL_FRect small_scrollbar_horizontal_bg_rc;
+            SDL_FRect small_scrollbar_horizontal_bg_disabled_rc;
+            SDL_FRect small_scrollbar_horizontal_bg_pushed_rc;
+
+            SDL_FRect small_scrollbar_vertical_arrow_up_rc;
+            SDL_FRect small_scrollbar_vertical_arrow_up_disabled_rc;
+            SDL_FRect small_scrollbar_vertical_arrow_up_hover_rc;
+            SDL_FRect small_scrollbar_vertical_arrow_up_pushed_rc;
+
+            SDL_FRect small_scrollbar_vertical_arrow_down_rc;
+            SDL_FRect small_scrollbar_vertical_arrow_down_disabled_rc;
+            SDL_FRect small_scrollbar_vertical_arrow_down_hover_rc;
+            SDL_FRect small_scrollbar_vertical_arrow_down_pushed_rc;
+
+            SDL_FRect small_scrollbar_vertical_thumb_top_rc;
+            SDL_FRect small_scrollbar_vertical_thumb_middle_rc;
+            SDL_FRect small_scrollbar_vertical_thumb_bottom_rc;
+            SDL_FRect small_scrollbar_vertical_thumb_bg_rc;
+
+            SDL_FRect small_scrollbar_vertical_bg_rc;
+            SDL_FRect small_scrollbar_vertical_bg_disabled_rc;
+            SDL_FRect small_scrollbar_vertical_bg_pushed_rc;
 
 
             // Bitmapy sliderów
@@ -376,7 +415,7 @@ namespace Tilc {
             void LoadPopupmenuSkinResources(Tilc::TExtString themeName);
             void LoadToolbar16SkinResources(Tilc::TExtString themeName);
             void LoadLabelSkinResources(Tilc::TExtString themeName);
-            void LoadScrollBarSkinResources(Tilc::TExtString themeName);
+            void LoadScrollBarSkinResources(Tilc::TExtString themeName, Tilc::TExtString Postfix = "");
             void LoadSliderSkinResources(Tilc::TExtString themeName);
             void LoadTextFieldSkinResources(Tilc::TExtString themeName);
             void LoadMultilineTextFieldSkinResources(Tilc::TExtString themeName);
