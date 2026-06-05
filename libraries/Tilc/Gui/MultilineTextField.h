@@ -86,9 +86,6 @@ namespace Tilc
             int m_SelectionLineEnd{};
             // Number of top line in current text content
             int m_TopLine{ 0 };
-            // Bieżąca linia w całym tekście. Zmienna potrzebna bo m_CurrentLine wskazuje linię tylko w obszarze wyświetlanym przez
-            // kontrolkę, czyli 0 <= m_CurrentLine < MaxVisibleLines
-            int m_TotalCurrentLine{ 0 };
         };
     }
 }

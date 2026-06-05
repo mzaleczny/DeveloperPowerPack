@@ -243,7 +243,7 @@ int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
 
 void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX, float localY)
 {
-    m_CurrentLine = std::clamp(static_cast<int>((localY - m_PaddingTop) / m_Caret->m_Position.h), 0, static_cast<int>(m_HbTextLayoutCache->GetLinesCount() - 1));
+    m_CurrentLine = m_TopLine + std::clamp(static_cast<int>((localY - m_PaddingTop) / m_Caret->m_Position.h), 0, static_cast<int>(m_HbTextLayoutCache->GetLinesCount() - 1));
     m_CaretAtChar = m_HbTextLayoutCache->HitTestCharIndex(m_CurrentLine, localX - m_PaddingLeft);
 
     UpdateCaretPos();
@@ -255,7 +255,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
     SDL_FRect RealPosition = GetRealPosition();
 
     m_Caret->m_Position.x = RealPosition.x + m_PaddingLeft + m_HbTextLayoutCache->GetCaretX(m_CurrentLine, m_CaretAtChar);
-    m_Caret->m_Position.y = RealPosition.y + m_PaddingTop + m_CurrentLine * m_Caret->m_Position.h;
+    m_Caret->m_Position.y = RealPosition.y + m_PaddingTop + (m_CurrentLine - m_TopLine) * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
     m_Caret->Show();
@@ -635,25 +635,26 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
 
     else if (vkKey == SDLK_UP)
     {
-        if (m_TotalCurrentLine > 0)
+        int LineInView = m_CurrentLine - m_TopLine;
+        if (LineInView >= 0)
         {
             // jeśli jesteśmy w środku tekstu kontrolki (poniżej pierwszej widocznej od góry linijki), to przesuwamy karetkę do góry
-            if (m_CurrentLine > 0)
+            if (LineInView > 0)
             {
+                --m_CurrentLine;
                 m_Caret->m_Position.y -= m_Caret->m_Position.h;
             }
             // jeśli zaś jesteśmy w pierwszej widocznej linijce, to karetki nie przesuwamy do góy tylko scrollujemy tekst na dół
-            else
+            else if (m_CurrentLine > 0)
             {
                 int NumberOfVisibleLines = GetNumberOfVisibleLines();
                 // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
                 RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(0);
+                --m_CurrentLine;
                 --m_TopLine;
                 RedrawLineInTextTextureBuffer(0);
 
             }
-            --m_CurrentLine;
-            --m_TotalCurrentLine;
             PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
         }
     }
@@ -661,22 +662,22 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     else if (vkKey == SDLK_DOWN)
     {
         int NumberOfVisibleLines = std::min(GetNumberOfVisibleLines(), m_HbTextLayoutCache->GetLinesCount());
-        if (m_CurrentLine < NumberOfVisibleLines)
+        int LineInView = m_CurrentLine - m_TopLine;
+        if (LineInView < NumberOfVisibleLines)
         {
             // jeśli nie wyszliśmy poza dolny brzeg tekstu kontrolki, to po prostu przesuwamy karetkę
-            if (m_CurrentLine < NumberOfVisibleLines - 1)
+            if (LineInView < NumberOfVisibleLines - 1)
             {
                 ++m_CurrentLine;
-                ++m_TotalCurrentLine;
                 m_Caret->m_Position.y += m_Caret->m_Position.h;
             }
             // jeśli jednak wyszliśmy, to przesuwamy tekst do góry (o ile nie zeszliśmy na sam jego dół)
-            else if (m_TopLine + NumberOfVisibleLines < m_HbTextLayoutCache->GetLinesCount() - 1)
+            else if (m_CurrentLine < m_HbTextLayoutCache->GetLinesCount() - 1)
             {
                 // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
                 RedrawTextTextureBufferWithoutLine(0);
+                ++m_CurrentLine;
                 ++m_TopLine;
-                ++m_TotalCurrentLine;
                 RedrawLineInTextTextureBuffer(NumberOfVisibleLines - 1);
             }
             PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
