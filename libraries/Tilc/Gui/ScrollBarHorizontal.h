@@ -8,7 +8,7 @@ namespace Tilc {
 
         class DECLSPEC TScrollBarHorizontal : public TScrollBar {
         public:
-            TScrollBarHorizontal(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType = EControlType::ECT_ScrollBar, int thumbPosition = 1, int maxValue = 100, int minValue = 1, bool autosize = false);
+            TScrollBarHorizontal(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType = EControlType::ECT_ScrollBar, int thumbPosition = 1, int maxValue = 100, int minValue = 1, bool autosize = false, bool IsStandardSizedScrollBar = true);
 
             virtual void Draw() override;
             //virtual bool Update(float DeltaTime) override;
@@ -30,6 +30,25 @@ namespace Tilc {
             virtual bool MouseOnArrowRight(int localX, int localY);
             virtual bool MouseOnBgLeft(int localX, int localY);
             virtual bool MouseOnBgRight(int localX, int localY);
+        protected:
+            SDL_FRect scrollbar_horizontal_arrow_left_rc;
+            SDL_FRect scrollbar_horizontal_arrow_left_disabled_rc;
+            SDL_FRect scrollbar_horizontal_arrow_left_hover_rc;
+            SDL_FRect scrollbar_horizontal_arrow_left_pushed_rc;
+
+            SDL_FRect scrollbar_horizontal_arrow_right_rc;
+            SDL_FRect scrollbar_horizontal_arrow_right_disabled_rc;
+            SDL_FRect scrollbar_horizontal_arrow_right_hover_rc;
+            SDL_FRect scrollbar_horizontal_arrow_right_pushed_rc;
+
+            SDL_FRect scrollbar_horizontal_thumb_left_rc;
+            SDL_FRect scrollbar_horizontal_thumb_middle_rc;
+            SDL_FRect scrollbar_horizontal_thumb_right_rc;
+            SDL_FRect scrollbar_horizontal_thumb_bg_rc;
+
+            SDL_FRect scrollbar_horizontal_bg_rc;
+            SDL_FRect scrollbar_horizontal_bg_disabled_rc;
+            SDL_FRect scrollbar_horizontal_bg_pushed_rc;
         };
     }
 }

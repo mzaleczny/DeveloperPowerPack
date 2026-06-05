@@ -2,9 +2,52 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/StyledWindow.h"
 
-Tilc::Gui::TScrollBarHorizontal::TScrollBarHorizontal(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, int thumbPosition, int maxValue, int minValue, bool autosize)
+Tilc::Gui::TScrollBarHorizontal::TScrollBarHorizontal(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, int thumbPosition, int maxValue, int minValue, bool autosize, bool IsStandardSizedScrollBar)
     : Tilc::Gui::TScrollBar(parent, name, position, ControlType, thumbPosition, maxValue, minValue, autosize)
 {
+    Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    if (IsStandardSizedScrollBar)
+    {
+        scrollbar_horizontal_arrow_left_rc = t->scrollbar_horizontal_arrow_left_rc;
+        scrollbar_horizontal_arrow_left_disabled_rc = t->scrollbar_horizontal_arrow_left_disabled_rc;
+        scrollbar_horizontal_arrow_left_hover_rc = t->scrollbar_horizontal_arrow_left_hover_rc;
+        scrollbar_horizontal_arrow_left_pushed_rc = t->scrollbar_horizontal_arrow_left_pushed_rc;
+
+        scrollbar_horizontal_arrow_right_rc = t->scrollbar_horizontal_arrow_right_rc;
+        scrollbar_horizontal_arrow_right_disabled_rc = t->scrollbar_horizontal_arrow_right_disabled_rc;
+        scrollbar_horizontal_arrow_right_hover_rc = t->scrollbar_horizontal_arrow_right_hover_rc;
+        scrollbar_horizontal_arrow_right_pushed_rc = t->scrollbar_horizontal_arrow_right_pushed_rc;
+
+        scrollbar_horizontal_thumb_left_rc = t->scrollbar_horizontal_thumb_left_rc;
+        scrollbar_horizontal_thumb_middle_rc = t->scrollbar_horizontal_thumb_middle_rc;
+        scrollbar_horizontal_thumb_right_rc = t->scrollbar_horizontal_thumb_right_rc;
+        scrollbar_horizontal_thumb_bg_rc = t->scrollbar_horizontal_thumb_bg_rc;
+
+        scrollbar_horizontal_bg_rc = t->scrollbar_horizontal_bg_rc;
+        scrollbar_horizontal_bg_disabled_rc = t->scrollbar_horizontal_bg_disabled_rc;
+        scrollbar_horizontal_bg_pushed_rc = t->scrollbar_horizontal_bg_pushed_rc;
+    }
+    else
+    {
+        scrollbar_horizontal_arrow_left_rc = t->small_scrollbar_horizontal_arrow_left_rc;
+        scrollbar_horizontal_arrow_left_disabled_rc = t->small_scrollbar_horizontal_arrow_left_disabled_rc;
+        scrollbar_horizontal_arrow_left_hover_rc = t->small_scrollbar_horizontal_arrow_left_hover_rc;
+        scrollbar_horizontal_arrow_left_pushed_rc = t->small_scrollbar_horizontal_arrow_left_pushed_rc;
+
+        scrollbar_horizontal_arrow_right_rc = t->small_scrollbar_horizontal_arrow_right_rc;
+        scrollbar_horizontal_arrow_right_disabled_rc = t->small_scrollbar_horizontal_arrow_right_disabled_rc;
+        scrollbar_horizontal_arrow_right_hover_rc = t->small_scrollbar_horizontal_arrow_right_hover_rc;
+        scrollbar_horizontal_arrow_right_pushed_rc = t->small_scrollbar_horizontal_arrow_right_pushed_rc;
+
+        scrollbar_horizontal_thumb_left_rc = t->small_scrollbar_horizontal_thumb_left_rc;
+        scrollbar_horizontal_thumb_middle_rc = t->small_scrollbar_horizontal_thumb_middle_rc;
+        scrollbar_horizontal_thumb_right_rc = t->small_scrollbar_horizontal_thumb_right_rc;
+        scrollbar_horizontal_thumb_bg_rc = t->small_scrollbar_horizontal_thumb_bg_rc;
+
+        scrollbar_horizontal_bg_rc = t->small_scrollbar_horizontal_bg_rc;
+        scrollbar_horizontal_bg_disabled_rc = t->small_scrollbar_horizontal_bg_disabled_rc;
+        scrollbar_horizontal_bg_pushed_rc = t->small_scrollbar_horizontal_bg_pushed_rc;
+    }
     // w konstruktorze ustawiamy minimalną wielkość rozmiaru suwaka
     SetThumbSize();
 }
@@ -13,7 +56,7 @@ void Tilc::Gui::TScrollBarHorizontal::SetSize(float width, float height)
 {
     if (!m_Autosize)
     {
-        Tilc::Gui::TGuiControl::SetSize(width, Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_middle_rc.h);
+        Tilc::Gui::TGuiControl::SetSize(width, scrollbar_horizontal_thumb_middle_rc.h);
         SetThumbSize();
     }
 }
@@ -22,7 +65,7 @@ void Tilc::Gui::TScrollBarHorizontal::SetSizeRelativeToParent(float parentWidth,
 {
     if (m_Autosize)
     {
-        Tilc::Gui::TGuiControl::SetSize(parentWidth, Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.h);
+        Tilc::Gui::TGuiControl::SetSize(parentWidth, scrollbar_horizontal_arrow_left_rc.h);
         SetThumbSize();
     }
 }
@@ -36,13 +79,13 @@ void Tilc::Gui::TScrollBarHorizontal::SetThumbSize()
     {
         thumb_size = m_Position.w / 5;
     }
-    if (thumb_size > m_Position.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.w)
+    if (thumb_size > m_Position.w - scrollbar_horizontal_arrow_left_rc.w - scrollbar_horizontal_arrow_right_rc.w)
     {
-        thumb_size = m_Position.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.w;
+        thumb_size = m_Position.w - scrollbar_horizontal_arrow_left_rc.w - scrollbar_horizontal_arrow_right_rc.w;
     }
-    if (thumb_size < Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_left_rc.w + Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_middle_rc.w + Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_right_rc.w)
+    if (thumb_size < scrollbar_horizontal_thumb_left_rc.w + scrollbar_horizontal_thumb_middle_rc.w + scrollbar_horizontal_thumb_right_rc.w)
     {
-        thumb_size = Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_left_rc.w + Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_middle_rc.w + Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_right_rc.w;
+        thumb_size = scrollbar_horizontal_thumb_left_rc.w + scrollbar_horizontal_thumb_middle_rc.w + scrollbar_horizontal_thumb_right_rc.w;
     }
 
     m_ThumbSize = thumb_size;
@@ -55,9 +98,9 @@ void Tilc::Gui::TScrollBarHorizontal::CalculateThumbLeftTopCorner(float& x, floa
         position = m_ThumbPosition;
     }
 
-    float middle_width = m_Position.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.w;
+    float middle_width = m_Position.w - scrollbar_horizontal_arrow_left_rc.w - scrollbar_horizontal_arrow_right_rc.w;
     // musimy obliczyć położenie suwaka
-    float x_thumb = Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.w + (static_cast<float>(position - m_MinValue) / (m_MaxValue - m_MinValue)) * (middle_width - m_ThumbSize);
+    float x_thumb = scrollbar_horizontal_arrow_left_rc.w + (static_cast<float>(position - m_MinValue) / (m_MaxValue - m_MinValue)) * (middle_width - m_ThumbSize);
 
     x = x_thumb;
     y = 0;
@@ -70,8 +113,8 @@ int Tilc::Gui::TScrollBarHorizontal::CalculatePositionForThumbCoords(float x, fl
         CalculateThumbLeftTopCorner(x, y);
     }
 
-    float middle_width = m_Position.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.w;
-    x -= Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.w;
+    float middle_width = m_Position.w - scrollbar_horizontal_arrow_left_rc.w - scrollbar_horizontal_arrow_right_rc.w;
+    x -= scrollbar_horizontal_arrow_right_rc.w;
 
     float scale = x / (middle_width - m_ThumbSize);
     long position = m_MinValue + scale * (m_MaxValue - m_MinValue);
@@ -96,17 +139,17 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     float x = 0;
     float y = 0;
     SDL_Texture* TextureMap = m_Theme->GuiTextureMap1;
-    SDL_FRect rcLeft = m_Theme->scrollbar_horizontal_bg_rc;
-    SDL_FRect rcRight = m_Theme->scrollbar_horizontal_bg_rc;
+    SDL_FRect rcLeft = scrollbar_horizontal_bg_rc;
+    SDL_FRect rcRight = scrollbar_horizontal_bg_rc;
     if (m_DetailedState == CSCROLLBAR_STATE_LARGE_SCROLLING_LEFT)
     {
-        rcLeft = m_Theme->scrollbar_horizontal_bg_pushed_rc;
-        rcRight = m_Theme->scrollbar_horizontal_bg_rc;
+        rcLeft = scrollbar_horizontal_bg_pushed_rc;
+        rcRight = scrollbar_horizontal_bg_rc;
     }
     if (m_DetailedState == CSCROLLBAR_STATE_LARGE_SCROLLING_RIGHT)
     {
-        rcLeft = m_Theme->scrollbar_horizontal_bg_rc;
-        rcRight = m_Theme->scrollbar_horizontal_bg_pushed_rc;
+        rcLeft = scrollbar_horizontal_bg_rc;
+        rcRight = scrollbar_horizontal_bg_pushed_rc;
     }
 
     if (m_Canvas)
@@ -117,24 +160,24 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     // ================================================================
     // Rysujemy lewą strzałkę scrollbara
     // ================================================================
-    SDL_FRect scrollbar_horizontal_arrow_left_rc = m_Theme->scrollbar_horizontal_arrow_left_rc;
+    SDL_FRect scrollbar_horizontal_arrow_left_rc_local = scrollbar_horizontal_arrow_left_rc;
     if (m_DetailedState == CSCROLLBAR_STATE_SMALL_SCROLLING_LEFT)
     {
-        scrollbar_horizontal_arrow_left_rc = m_Theme->scrollbar_horizontal_arrow_left_pushed_rc;
+        scrollbar_horizontal_arrow_left_rc_local = scrollbar_horizontal_arrow_left_pushed_rc;
     }
     else if (m_DetailedState == CSCROLLBAR_STATE_HOVER_LEFT_BUTTON)
     {
-        scrollbar_horizontal_arrow_left_rc = m_Theme->scrollbar_horizontal_arrow_left_hover_rc;
+        scrollbar_horizontal_arrow_left_rc_local = scrollbar_horizontal_arrow_left_hover_rc;
     }
-    RenderTexture(TextureMap, &scrollbar_horizontal_arrow_left_rc, x, y);
-    x += scrollbar_horizontal_arrow_left_rc.w;
+    RenderTexture(TextureMap, &scrollbar_horizontal_arrow_left_rc_local, x, y);
+    x += scrollbar_horizontal_arrow_left_rc_local.w;
 
     // ================================================================
     // Koniec rysowania lewej strzałki scrollbara
     // ================================================================
 
 
-    float middle_width = m_Position.w - m_Theme->scrollbar_horizontal_arrow_left_rc.w - m_Theme->scrollbar_horizontal_arrow_right_rc.w;
+    float middle_width = m_Position.w - scrollbar_horizontal_arrow_left_rc.w - scrollbar_horizontal_arrow_right_rc.w;
     // musimy obliczyć położenie suwaka
     float x_thumb = x + (static_cast<float>(m_ThumbPosition - m_MinValue) / (m_MaxValue - m_MinValue)) * (middle_width - m_ThumbSize);
     long thumb_size = m_ThumbSize;
@@ -155,26 +198,26 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     x = x_thumb;
 
     // teraz suwak
-    RenderTexture(TextureMap, &m_Theme->scrollbar_horizontal_thumb_left_rc, x, y);
-    x += m_Theme->scrollbar_horizontal_thumb_left_rc.w;
+    RenderTexture(TextureMap, &scrollbar_horizontal_thumb_left_rc, x, y);
+    x += scrollbar_horizontal_thumb_left_rc.w;
     // tło suwaka
-    float thumb_size_bg = thumb_size - m_Theme->scrollbar_horizontal_thumb_left_rc.w - m_Theme->scrollbar_horizontal_thumb_right_rc.w;
+    float thumb_size_bg = thumb_size - scrollbar_horizontal_thumb_left_rc.w - scrollbar_horizontal_thumb_right_rc.w;
     if (thumb_size_bg > 0)
     {
         DestRect = { m_Position.x + x, m_Position.y + y, thumb_size_bg, m_Position.h };
-        RenderTiledTexture(TextureMap, &m_Theme->scrollbar_horizontal_thumb_middle_rc, &DestRect);
+        RenderTiledTexture(TextureMap, &scrollbar_horizontal_thumb_middle_rc, &DestRect);
         // teraz na tle suwaka centrujemy w poziomie część środkową
-        RenderTexture(TextureMap, &m_Theme->scrollbar_horizontal_thumb_bg_rc, x + (thumb_size_bg - m_Theme->scrollbar_horizontal_thumb_bg_rc.w) / 2.0f, y);
+        RenderTexture(TextureMap, &scrollbar_horizontal_thumb_bg_rc, x + (thumb_size_bg - scrollbar_horizontal_thumb_bg_rc.w) / 2.0f, y);
         x += thumb_size_bg;
     }
-    RenderTexture(TextureMap, &m_Theme->scrollbar_horizontal_thumb_right_rc, x, y);
-    x += m_Theme->scrollbar_horizontal_thumb_right_rc.w;
+    RenderTexture(TextureMap, &scrollbar_horizontal_thumb_right_rc, x, y);
+    x += scrollbar_horizontal_thumb_right_rc.w;
     // na koniec tło po prawej stronie suwaka
-    if (x < m_Position.w - m_Theme->scrollbar_horizontal_arrow_right_rc.w)
+    if (x < m_Position.w - scrollbar_horizontal_arrow_right_rc.w)
     {
-        DestRect = { m_Position.x + x, m_Position.y + y, m_Position.w - m_Theme->scrollbar_horizontal_arrow_right_rc.w - x, m_Position.h };
+        DestRect = { m_Position.x + x, m_Position.y + y, m_Position.w - scrollbar_horizontal_arrow_right_rc.w - x, m_Position.h };
         RenderTiledTexture(TextureMap, &rcRight, &DestRect);
-        x += m_Position.w - m_Theme->scrollbar_horizontal_arrow_right_rc.w - x;
+        x += m_Position.w - scrollbar_horizontal_arrow_right_rc.w - x;
     }
     // ================================================================
     // Koniec rysowania wnętrza scrollbara
@@ -184,21 +227,21 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     // ================================================================
     // Rysujemy prawą strzałkę scrollbara
     // ================================================================
-    SDL_FRect scrollbar_horizontal_arrow_right_rc = m_Theme->scrollbar_horizontal_arrow_right_rc;
+    SDL_FRect scrollbar_horizontal_arrow_right_rc_local = scrollbar_horizontal_arrow_right_rc;
     if (m_DetailedState == CSCROLLBAR_STATE_SMALL_SCROLLING_RIGHT)
     {
-        scrollbar_horizontal_arrow_right_rc = m_Theme->scrollbar_horizontal_arrow_right_pushed_rc;
+        scrollbar_horizontal_arrow_right_rc_local = scrollbar_horizontal_arrow_right_pushed_rc;
     }
     else if (m_DetailedState == CSCROLLBAR_STATE_HOVER_RIGHT_BUTTON)
     {
-        scrollbar_horizontal_arrow_right_rc = m_Theme->scrollbar_horizontal_arrow_right_hover_rc;
+        scrollbar_horizontal_arrow_right_rc_local = scrollbar_horizontal_arrow_right_hover_rc;
     }
 
-    if (x + m_Theme->scrollbar_horizontal_arrow_right_pushed_rc.w >= m_Position.w)
+    if (x + scrollbar_horizontal_arrow_right_rc_local.w >= m_Position.w)
     {
-        x = m_Position.w - m_Theme->scrollbar_horizontal_arrow_right_pushed_rc.w;
+        x = m_Position.w - scrollbar_horizontal_arrow_right_rc_local.w;
     }
-    RenderTexture(TextureMap, &scrollbar_horizontal_arrow_right_rc, x, y);
+    RenderTexture(TextureMap, &scrollbar_horizontal_arrow_right_rc_local, x, y);
     // ================================================================
     // Koniec rysowania prawej strzałki scrollbara
     // ================================================================
@@ -209,97 +252,6 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     }
 }
 
-/*
-bool Tilc::Gui::TScrollBarHorizontal::Update(float DeltaTime)
-{
-    bool retval = false;
-
-    if (!m_Visible) return false;
-
-    TGuiControl::Update(DeltaTime);
-
-    long step = INT_MIN;
-    float localX = INT_MIN, thumbX = INT_MIN;
-    float localY = INT_MIN, thumbY = INT_MIN;
-    long calculatedPosition;
-    long thumbMargin = 4;
-
-    switch (m_DetailedState)
-    {
-    case CSCROLLBAR_STATE_SMALL_SCROLLING_LEFT:
-        step = -m_SmallStep;
-        retval = true;
-        break;
-    case CSCROLLBAR_STATE_SMALL_SCROLLING_RIGHT:
-        step = m_SmallStep;
-        retval = true;
-        break;
-    case CSCROLLBAR_STATE_LARGE_SCROLLING_LEFT:
-        step = -m_LargeStep;
-        if (localX != INT_MIN && localY != INT_MIN)
-        {
-            calculatedPosition = CalculatePositionForStep(step);
-            CalculateThumbLeftTopCorner(thumbX, thumbY, calculatedPosition);
-            while (thumbX + m_ThumbSize < localX || thumbX + m_ThumbSize - localX < thumbMargin)
-            {
-                step /= 2;
-                calculatedPosition = CalculatePositionForStep(step);
-                CalculateThumbLeftTopCorner(thumbX, thumbY, calculatedPosition);
-                if (step == 0)
-                {
-                    break;
-                }
-            }
-            if (step != -m_LargeStep)
-            {
-                if (thumbX + m_ThumbSize < localX || thumbX + m_ThumbSize - localX < thumbMargin)
-                {
-                    step = 0;
-                }
-                SetDetailedState(CSCROLLBAR_STATE_NORMAL);
-            }
-        }
-        retval = true;
-        break;
-    case CSCROLLBAR_STATE_LARGE_SCROLLING_RIGHT:
-        step = m_LargeStep;
-        if (localX != INT_MIN && localY != INT_MIN)
-        {
-            calculatedPosition = CalculatePositionForStep(step);
-            CalculateThumbLeftTopCorner(thumbX, thumbY, calculatedPosition);
-            while (thumbX > localX || localX - thumbX < thumbMargin)
-            {
-                step /= 2;
-                calculatedPosition = CalculatePositionForStep(step);
-                CalculateThumbLeftTopCorner(thumbX, thumbY, calculatedPosition);
-                if (step == 0)
-                {
-                    break;
-                }
-            }
-            if (step != m_LargeStep)
-            {
-                if (thumbX > localX || localX - thumbX < thumbMargin)
-                {
-                    step = 0;
-                }
-                SetDetailedState(CSCROLLBAR_STATE_NORMAL);
-            }
-        }
-        retval = true;
-        break;
-    }
-
-
-    if (step != INT_MIN)
-    {
-        StepBy(step, true);
-    }
-
-    return retval;
-}
-*/
-
 bool Tilc::Gui::TScrollBarHorizontal::MouseOnThumb(int localX, int localY)
 {
     float CurrentThumbX, CurrentThumbY;
@@ -307,7 +259,7 @@ bool Tilc::Gui::TScrollBarHorizontal::MouseOnThumb(int localX, int localY)
 
     if (localX >= CurrentThumbX && localX <= CurrentThumbX + m_ThumbSize &&
         localY >= CurrentThumbY &&
-        localY <= CurrentThumbY + Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_thumb_middle_rc.h)
+        localY <= CurrentThumbY + scrollbar_horizontal_thumb_middle_rc.h)
     {
         return true;
     }
@@ -316,8 +268,8 @@ bool Tilc::Gui::TScrollBarHorizontal::MouseOnThumb(int localX, int localY)
 
 bool Tilc::Gui::TScrollBarHorizontal::MouseOnArrowLeft(int localX, int localY)
 {
-    if (localX >= 0 && localX <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.w &&
-        localY >= 0 && localY <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.h)
+    if (localX >= 0 && localX <= scrollbar_horizontal_arrow_left_rc.w &&
+        localY >= 0 && localY <= scrollbar_horizontal_arrow_left_rc.h)
     {
         return true;
     }
@@ -327,8 +279,8 @@ bool Tilc::Gui::TScrollBarHorizontal::MouseOnArrowLeft(int localX, int localY)
 
 bool Tilc::Gui::TScrollBarHorizontal::MouseOnArrowRight(int localX, int localY)
 {
-    if (localX >= m_Position.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.w  && localX <= m_Position.w &&
-        localY >= 0 && localY <= Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.h)
+    if (localX >= m_Position.w - scrollbar_horizontal_arrow_right_rc.w  && localX <= m_Position.w &&
+        localY >= 0 && localY <= scrollbar_horizontal_arrow_right_rc.h)
     {
         return true;
     }
@@ -341,9 +293,9 @@ bool Tilc::Gui::TScrollBarHorizontal::MouseOnBgLeft(int localX, int localY)
     float CurrentThumbX, CurrentThumbY;
     CalculateThumbLeftTopCorner(CurrentThumbX, CurrentThumbY);
 
-    if (localX >= Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_left_rc.w &&
+    if (localX >= scrollbar_horizontal_arrow_left_rc.w &&
         localX <= CurrentThumbX &&
-        localY >= 0 && localY < Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_bg_rc.h)
+        localY >= 0 && localY < scrollbar_horizontal_bg_rc.h)
     {
         return true;
     }
@@ -356,9 +308,9 @@ bool Tilc::Gui::TScrollBarHorizontal::MouseOnBgRight(int localX, int localY)
     CalculateThumbLeftTopCorner(CurrentThumbX, CurrentThumbY);
 
     if (localX >= CurrentThumbX + m_ThumbSize &&
-        localX <= m_Position.w - Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_arrow_right_rc.w &&
+        localX <= m_Position.w - scrollbar_horizontal_arrow_right_rc.w &&
         localY >= 0 &&
-        localY < Tilc::GameObject->GetContext()->m_Theme->scrollbar_horizontal_bg_rc.h)
+        localY < scrollbar_horizontal_bg_rc.h)
     {
         return true;
     }
