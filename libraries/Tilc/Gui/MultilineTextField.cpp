@@ -635,20 +635,50 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
 
     else if (vkKey == SDLK_UP)
     {
-        if (m_CurrentLine > 0)
+        if (m_TotalCurrentLine > 0)
         {
+            // jeśli jesteśmy w środku tekstu kontrolki (poniżej pierwszej widocznej od góry linijki), to przesuwamy karetkę do góry
+            if (m_CurrentLine > 0)
+            {
+                m_Caret->m_Position.y -= m_Caret->m_Position.h;
+            }
+            // jeśli zaś jesteśmy w pierwszej widocznej linijce, to karetki nie przesuwamy do góy tylko scrollujemy tekst na dół
+            else
+            {
+                int NumberOfVisibleLines = GetNumberOfVisibleLines();
+                // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
+                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(0);
+                --m_TopLine;
+                RedrawLineInTextTextureBuffer(0);
+
+            }
             --m_CurrentLine;
-            m_Caret->m_Position.y -= m_Caret->m_Position.h;
+            --m_TotalCurrentLine;
             PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
         }
     }
 
     else if (vkKey == SDLK_DOWN)
     {
-        if (m_CurrentLine < m_HbTextLayoutCache->GetLinesCount() - 1)
+        int NumberOfVisibleLines = std::min(GetNumberOfVisibleLines(), m_HbTextLayoutCache->GetLinesCount());
+        if (m_CurrentLine < NumberOfVisibleLines)
         {
-            ++m_CurrentLine;
-            m_Caret->m_Position.y += m_Caret->m_Position.h;
+            // jeśli nie wyszliśmy poza dolny brzeg tekstu kontrolki, to po prostu przesuwamy karetkę
+            if (m_CurrentLine < NumberOfVisibleLines - 1)
+            {
+                ++m_CurrentLine;
+                ++m_TotalCurrentLine;
+                m_Caret->m_Position.y += m_Caret->m_Position.h;
+            }
+            // jeśli jednak wyszliśmy, to przesuwamy tekst do góry (o ile nie zeszliśmy na sam jego dół)
+            else if (m_TopLine + NumberOfVisibleLines < m_HbTextLayoutCache->GetLinesCount() - 1)
+            {
+                // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
+                RedrawTextTextureBufferWithoutLine(0);
+                ++m_TopLine;
+                ++m_TotalCurrentLine;
+                RedrawLineInTextTextureBuffer(NumberOfVisibleLines - 1);
+            }
             PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
         }
     }
@@ -1009,7 +1039,8 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 
 void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumber)
 {
-    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, LineNumber, m_TextColor);
+    // Przy określaniu linii uwzględniamy zmienną TopLine, żeby móc wskazywać linie nie mieszczące się w widoku kontrolki
+    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, m_TopLine + LineNumber, m_TextColor);
     if (TextLineTexture)
     {
         // Rysujemy tło i tekst
@@ -1066,7 +1097,9 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
         {
             rc.y = (WithoutLineNumber+1) * m_Caret->m_Position.h;
             rc.h = NewTextTexture->h - m_Caret->m_Position.h;
-            SDL_RenderTexture(Renderer, m_TextTexture, &rc, nullptr);
+            DestRect.w = rc.w;
+            DestRect.h = rc.h;
+            SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
         }
         else
         {
