@@ -19,6 +19,8 @@ public:
 TStaticMesh* Mesh = nullptr;
 Tilc::Graphics::OpenGL::TPipeline* Pipeline;
 
+void PrintGLVersionInfo();
+
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
 	std::string WindowTitle("OpenGL Basic Rectangle");
@@ -35,6 +37,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
 	// Load OpenGL entry points using glad. Must be here alse because dll have its own pointers to gl functions that are not visible to exe file
 	gladLoadGL();
+
+    PrintGLVersionInfo();
 
 	//Get vertex attribute location
 	Pipeline = new Tilc::Graphics::OpenGL::TPipeline(
@@ -148,4 +152,22 @@ TStaticMesh::TStaticMesh(Tilc::Graphics::OpenGL::TPipeline* Pipeline)
 	m_VertexComponents.push_back({ Tilc::Graphics::EVertexComponent::EVC_Position, 2, glGetAttribLocation(Pipeline->m_VertexShader, "VertexPos"), 0 });
 	SetStrideElemsCount(2);
 	CreateVAOAndBuffers<float, GLuint>(4);
+}
+
+void PrintGLVersionInfo()
+{
+    const GLubyte* Renderer = glGetString(GL_RENDERER);
+    const GLubyte* Vendor = glGetString(GL_VENDOR);
+    const GLubyte* Version = glGetString(GL_VERSION);
+    const GLubyte* GLSL_Version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    const GLubyte* Extensions = glGetString(GL_EXTENSIONS);
+    GLint Major, Minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &Major);
+    glGetIntegerv(GL_MINOR_VERSION, &Minor);
+    SDL_Log("GL Vendor: %s", Vendor);
+    SDL_Log("GL Renderer: %s", Renderer);
+    SDL_Log("GL Version (string): %s", Version);
+    SDL_Log("GL Version (integer): %d.%d", Major, Minor);
+    SDL_Log("GLSL Version: %s", GLSL_Version);
+    SDL_Log("GL Extensions: %s", Extensions);
 }
