@@ -25,7 +25,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	SDL_SetAppMetadata(WindowTitle.c_str(), "1.0", "pl.net.progmar.simple-rectangle");
 
 	Tilc::GameObject = new Tilc::TGame(Tilc::EGameType::Game3D);
-	SDL_AppResult Result = Tilc::InitTilc(WindowTitle, SCR_WIDTH, SCR_HEIGHT, false, true);
+	SDL_AppResult Result = Tilc::InitTilc(WindowTitle, SCR_WIDTH, SCR_HEIGHT, 0, true);
 	if (Result != SDL_APP_CONTINUE)
 	{
 		return Result;
