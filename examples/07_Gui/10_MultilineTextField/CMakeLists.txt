@@ -36,16 +36,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/external_glm-src>"
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/external_sdl3_ttf-src/external/freetype/include>"
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/external_sdl3_ttf-src/external/harfbuzz/src>"
     )
 else()
     target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/build/x64-Debug/external_glm-src>"
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/build/x64-Debug/external_sdl3_ttf-src/external/freetype/include>"
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../../libraries/out/build/x64-Debug/external_sdl3_ttf-src/external/harfbuzz/src>"
     )
 endif()
 
