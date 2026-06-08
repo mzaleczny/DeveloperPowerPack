@@ -108,12 +108,19 @@ int THbTextLayoutCache::GetCaretX(int LineIndex, int CharIndex)
 void THbTextLayoutCache::EnsureLineLayout(int LineIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
-    TLine& line = GetLine(LineIndex);
-    if (!line.Dirty) return;
+    TLine& Line = GetLine(LineIndex);
+    if (!Line.Dirty) return;
 
-    ShapeLine(line);
-    ComputeCarets(line);
-    line.Dirty = false;
+    EnsureLineLayout(Line);
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::EnsureLineLayout(TLine& Line)
+{
+    if (!Line.Dirty) return;
+
+    ShapeLine(Line);
+    ComputeCarets(Line);
+    Line.Dirty = false;
 }
 
 void Tilc::Gui::Helpers::THbTextLayoutCache::JoinLines(int FirstLineNumber, int SecondLineNumber)
@@ -295,18 +302,22 @@ int THbTextLayoutCache::HitTestCharIndex(int LineIndex, int X)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
     EnsureLineLayout(LineIndex);
-    TLine& line = GetLine(LineIndex);
+    TLine& Line = GetLine(LineIndex);
+    return HitTestCharIndex(Line, X);
+}
 
-    if (line.CaretX.empty()) return 0;
+int Tilc::Gui::Helpers::THbTextLayoutCache::HitTestCharIndex(TLine& Line, int X)
+{
+    if (Line.CaretX.empty()) return 0;
 
     // binary search po CaretX
     int lo = 0;
-    int hi = (int)line.CaretX.size() - 1;
+    int hi = (int)Line.CaretX.size() - 1;
 
     while (lo < hi)
     {
         int mid = (lo + hi) / 2;
-        if (line.CaretX[mid] < X)
+        if (Line.CaretX[mid] < X)
             lo = mid + 1;
         else
             hi = mid;
@@ -314,10 +325,10 @@ int THbTextLayoutCache::HitTestCharIndex(int LineIndex, int X)
 
     // decyzja: bliżej lewego czy prawego caret
     int idx = lo;
-    if (idx > 0 && idx < (int)line.CaretX.size())
+    if (idx > 0 && idx < (int)Line.CaretX.size())
     {
-        int left  = line.CaretX[idx - 1];
-        int right = line.CaretX[idx];
+        int left = Line.CaretX[idx - 1];
+        int right = Line.CaretX[idx];
         if (X - left < right - X)
             return idx - 1;
     }
@@ -357,19 +368,24 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
     }
 }
 
-SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color)
+SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX, int StartCharIndex)
 {
     Tilc::Gui::Helpers::THbTextLayoutCache::TLine& line = GetLine(LineNumber);
-    if (line.Glyphs.empty())
+    return RenderHbLineToTexture(renderer, line, color, OffsetX, StartCharIndex);
+}
+
+SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX, int StartCharIndex)
+{
+    if (Line.Glyphs.empty())
     {
-        EnsureLineLayout(LineNumber);
-        if (line.Glyphs.empty())
+        EnsureLineLayout(Line);
+        if (Line.Glyphs.empty())
         {
             return nullptr;
         }
     }
 
-    int width = std::min(line.TotalWidth, m_MaxWidth);
+    int width = std::min(Line.TotalWidth, m_MaxWidth);
     int height = m_Face->size->metrics.height >> 6;
     SDL_Texture* tex{};
 
@@ -379,8 +395,10 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
         Uint32 RGBAColor = SDL_MapSurfaceRGBA(surface, 0, 0, 0, 0);
         SDL_FillSurfaceRect(surface, nullptr, RGBAColor);
 
-        for (const auto& g : line.Glyphs)
+        for (int i = StartCharIndex; i < Line.Glyphs.size(); ++i)
         {
+            const auto& g = Line.Glyphs[i];
+
             // Rasteryzacja glifu
             if (FT_Load_Glyph(m_Face, g.Codepoint, FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL))
                 continue;
@@ -400,7 +418,8 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
 
                 for (int x = 0; x < bmp.width; ++x)
                 {
-                    int dstX = glyphX + x;
+                    int dstX = glyphX + x - OffsetX;
+
                     if (dstX < 0 || dstX >= width)
                         continue;
 

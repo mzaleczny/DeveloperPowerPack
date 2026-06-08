@@ -41,6 +41,9 @@ namespace Tilc::Gui::Helpers
             bool Dirty{true};
         };
 
+        using TLines = std::list<TLine>;
+        using TLinesIter = std::list<TLine>::iterator;
+
         THbTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth, int MaxHeight);
         ~THbTextLayoutCache();
 
@@ -55,6 +58,14 @@ namespace Tilc::Gui::Helpers
             std::advance(it, LineNumber);
             return *it;
         }
+        TLinesIter GetLineIterator(int LineNumber)
+        {
+            if (LineNumber >= m_Lines.size()) LineNumber = m_Lines.size() - 1;
+            auto it = m_Lines.begin();
+            std::advance(it, LineNumber);
+            return it;
+        }
+        TLines& GetLines() { return m_Lines; }
         int GetLinesCount() const { return (int)m_Lines.size(); }
         int GetLineWidth(int LineIndex);
         int GetCaretX(int LineIndex, int CharIndex);
@@ -64,14 +75,17 @@ namespace Tilc::Gui::Helpers
 
         // hit-test: z pozycji X → indeks znaku
         int HitTestCharIndex(int LineIndex, int X);
+        int HitTestCharIndex(TLine& Line, int X);
 
         // selection helpers
         void GetSelectionRects(int LineStart, int CharStart,
                                int LineEnd, int CharEnd,
                                std::vector<SDL_FRect>& OutRects,
                                int LineHeight, int BaseY);
-        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color);
+        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX = 0, int StartCharIndex = 0);
+        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX = 0, int StartCharIndex = 0);
         void EnsureLineLayout(int LineIndex);
+        void EnsureLineLayout(TLine& Line);
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
         void BreakLineAtCharIndex(int LineNumber, int CharIndex);
         void InsertText(int LineNumber, int InsertPos, std::u32string& InsertString);
@@ -79,6 +93,8 @@ namespace Tilc::Gui::Helpers
         {
             return m_LongestLineWidth;
         }
+        int GetMaxWidth() const { return m_MaxWidth; }
+        void SetMaxWidth(int Value) { m_MaxWidth = Value; }
     private:
         Tilc::Gui::TFont* m_Font;
         FT_Face m_Face{};
@@ -87,7 +103,7 @@ namespace Tilc::Gui::Helpers
         int m_MaxHeight{};
         int m_LongestLineWidth{};
 
-        std::list<TLine> m_Lines;
+        TLines m_Lines;
 
         void InitHbFont();
         void ClearLines();
