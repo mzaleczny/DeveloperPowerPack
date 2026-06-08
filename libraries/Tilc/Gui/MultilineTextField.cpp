@@ -15,7 +15,7 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_MultilineTextField, "", tabStop)
 {
     // create our own canvas to speed up redrawing process
-    m_TextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_Position.w - m_PaddingLeft - m_PaddingRight, m_Position.h - m_PaddingTop - m_PaddingBottom);
+    m_TextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_Position.w - m_PaddingLeft - m_PaddingRight - 10, m_Position.h - m_PaddingTop - m_PaddingBottom);
     m_DestroyCanvas = true;
     m_RealPosition = m_Position;
     m_RealPosition.x = 0;
@@ -30,8 +30,16 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
         if (m_HbTextLayoutCache->GetLinesCount() > GetNumberOfVisibleLines())
         {
             AddVerticalScrollbar(0, 100, 0, false);
+            if (m_VScrollBar)
+            {
+                m_VScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnVerticalSliderPositionChanged, this);
+            }
         }
         AddHorizontalScrollbar(0, 100, 0, false);
+        if (m_HScrollBar)
+        {
+            m_HScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnHorizontalSliderPositionChanged, this);
+        }
     }
 }
 
@@ -113,7 +121,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
         rc.h = m_Caret->m_Position.h;
         for (size_t i = 0; i < m_HbTextLayoutCache->GetLinesCount(); ++i)
         {
-            SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, i, m_TextColor);
+            SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, i, m_TextColor, m_ScrollOffsetX);
             if (TextLineTexture)
             {
                 rc.w = TextLineTexture->w;
@@ -122,6 +130,14 @@ void Tilc::Gui::TMultilineTextField::Draw()
                 SDL_DestroyTexture(TextLineTexture);
             }
             rc.y += m_Caret->m_Position.h;
+            if (m_HbTextLayoutCache->GetLongestLineWidth() < CalculateInnerWidth())
+            {
+                m_HScrollBar->Hide();
+            }
+            else
+            {
+                m_HScrollBar->Show();
+            }
         }
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
@@ -806,6 +822,13 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
 
 bool Tilc::Gui::TMultilineTextField::OnMouseMove(const SDL_Event& event)
 {
+    if (!m_Visible) return false;
+
+    if (m_ControlThatCapturedMouse && m_ControlThatCapturedMouse != this)
+    {
+        return m_ControlThatCapturedMouse->OnMouseMove(event);
+    }
+
     TTextField::OnMouseMove(event);
     if (event.button.button == SDL_BUTTON_LEFT)
     {
@@ -1186,4 +1209,88 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAt
 int Tilc::Gui::TMultilineTextField::GetNumberOfVisibleLines() const
 {
     return CalculateInnerHeight() / m_Caret->m_Position.h;
+}
+
+void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
+{
+    TScrollBarHorizontal* ScrollBar = static_cast<TScrollBarHorizontal*>(Data);
+    int Delta = CurrentPosition - PrevPosition;
+    int PositionLength = ScrollBar->GetMaxValue() - ScrollBar->GetMinValue();
+    m_ScrollOffsetX = static_cast<float>(CurrentPosition) / PositionLength * (m_HbTextLayoutCache->GetLongestLineWidth() - m_TextTexture->w) + 20;
+    if (m_ScrollOffsetX < 0)
+    {
+        m_ScrollOffsetX = 0;
+    }
+    int PrevScrollOffsetX = static_cast<float>(PrevPosition) / PositionLength * m_HbTextLayoutCache->GetLongestLineWidth();
+    int AdditionalTextToRedrawWidth;
+    SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
+    if (NewTextTexture)
+    {
+        SDL_FRect rc{};
+        SDL_FRect DestRect{};
+
+        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, NewTextTexture);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        rc.w = NewTextTexture->w;
+        rc.h = NewTextTexture->h;
+        SDL_RenderFillRect(Renderer, &rc);
+
+        // if scrolling to the right
+        if (Delta > 0)
+        {
+            AdditionalTextToRedrawWidth = m_ScrollOffsetX - PrevScrollOffsetX;
+            // Scroll original texture by specified amount pixels to scroll, effectively moving text to the left
+            rc.x = m_ScrollOffsetX;
+            rc.w = rc.w - rc.x;
+            DestRect.w = rc.w;
+            DestRect.h = rc.h;
+            SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
+
+            Tilc::Gui::Helpers::THbTextLayoutCache::TLinesIter LineIter = m_HbTextLayoutCache->GetLineIterator(m_TopLine);
+            int CountLine = 0;
+            int PrevMaxWidth = m_HbTextLayoutCache->GetMaxWidth();
+            int StartX = PrevScrollOffsetX + m_TextTexture->w;
+            m_HbTextLayoutCache->SetMaxWidth(AdditionalTextToRedrawWidth);
+            while (LineIter != m_HbTextLayoutCache->GetLines().end() && CountLine < GetNumberOfVisibleLines())
+            {
+                int CharIndex = m_HbTextLayoutCache->HitTestCharIndex(*LineIter, StartX);
+                if (LineIter->CaretX[CharIndex] >= StartX)
+                {
+                    if (LineIter->CaretX[CharIndex] > StartX)
+                    {
+                        CharIndex = std::clamp(CharIndex - 1, 0, CharIndex);
+                    }
+                    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, *LineIter, m_TextColor, m_ScrollOffsetX, CharIndex);
+                    if (TextLineTexture)
+                    {
+                        rc.x = m_TextTexture->w - AdditionalTextToRedrawWidth;
+                        rc.w = AdditionalTextToRedrawWidth;
+                        rc.h = TextLineTexture->h;
+                        SDL_RenderTexture(Renderer, TextLineTexture, nullptr, &rc);
+                        SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+                        SDL_RenderFillRect(Renderer, &rc);
+                        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+                        SDL_DestroyTexture(TextLineTexture);
+                    }
+                }
+                rc.y += m_Caret->m_Position.h;
+
+                ++CountLine;
+                ++LineIter;
+            }
+            m_HbTextLayoutCache->SetMaxWidth(PrevMaxWidth);
+        }
+
+        SDL_SetRenderTarget(Renderer, m_TextTexture);
+        SDL_RenderFillRect(Renderer, nullptr);
+        SDL_RenderTexture(Renderer, NewTextTexture, nullptr, nullptr);
+
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        SDL_DestroyTexture(NewTextTexture);
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
+{
 }

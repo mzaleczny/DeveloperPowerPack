@@ -86,6 +86,13 @@ namespace Tilc
             int m_SelectionLineEnd{};
             // Number of top line in current text content
             int m_TopLine{ 0 };
+
+            // Offsety w poziomie (X) i pionie (Y) używane podczas scrollowania zawartości tekstu przy pomocy ScrollBarów
+            int m_ScrollOffsetX{};
+            int m_ScrollOffsetY{};
+            void OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
+            void OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
+
         };
     }
 }
