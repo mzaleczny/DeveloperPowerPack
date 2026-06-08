@@ -87,7 +87,7 @@ void Tilc::Gui::TScrollBar::OnPositionChanged(int oldPosition)
 
     if (OnPositionChangeCallback)
     {
-        OnPositionChangeCallback(this);
+        OnPositionChangeCallback(this, oldPosition, m_ThumbPosition);
     }
 }
 

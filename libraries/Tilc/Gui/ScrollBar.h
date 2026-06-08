@@ -82,13 +82,13 @@ namespace Tilc::Gui {
         virtual inline int GetThumbPosition() const { return m_ThumbPosition; }
 
         template<typename T>
-        void SetOnPositionChangeCallback(void(T::* Func)(void*), T* Instance)
+        void SetOnPositionChangeCallback(void(T::* Func)(void*, int, int), T* Instance)
         {
-            OnPositionChangeCallback = std::bind(Func, Instance, std::placeholders::_1);
+            OnPositionChangeCallback = std::bind(Func, Instance, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
         }
-        void SetOnPositionChangeCallback(void(*Func)(void*))
+        void SetOnPositionChangeCallback(void(*Func)(void*, int, int))
         {
-            OnPositionChangeCallback = std::bind(Func, std::placeholders::_1);
+            OnPositionChangeCallback = std::bind(Func, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
         }
         virtual bool ResetControlState(int StatesToClear = CONTROL_STATE_HOVER) override
         {
@@ -103,6 +103,7 @@ namespace Tilc::Gui {
         };
 
     protected:
+        // Current position of scrollbar
         int m_ThumbPosition;
         int m_MinValue;
         int m_MaxValue;
@@ -122,7 +123,10 @@ namespace Tilc::Gui {
         // przeciągania suwaka (kliknięcia lewym przyciskiem myszki na suwaku)
         float m_ThumbOffsetY;
 
-        std::function<void(void*)> OnPositionChangeCallback;
+        // 1 argument: pointer to scrollbar that generated event
+        // 2 argument: previos scrollbar value (before change)
+        // 3 argument: current scrollbar value (after change)
+        std::function<void(void*, int, int)> OnPositionChangeCallback;
 
         // Listy wskaźniki na obiekty dziedziczące po klasie CSprite lub CStyledWindow, do których
         // należy wysyłać powiadomienia o zmianie pozycji suwaka. Przechowywanych tu wskaźników
