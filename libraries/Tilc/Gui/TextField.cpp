@@ -1007,7 +1007,8 @@ SDL_FRect Tilc::Gui::TTextField::CalculateSelectionRect()
 int Tilc::Gui::TTextField::CalculateInnerWidth() const
 {
     //TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    return m_Position.w - m_PaddingLeft - m_PaddingRight;
+    int scrw = m_VScrollBar ? 10 : 0;
+    return m_Position.w - m_PaddingLeft - m_PaddingRight - scrw;
 }
 
 int Tilc::Gui::TTextField::CalculateInnerHeight() const
