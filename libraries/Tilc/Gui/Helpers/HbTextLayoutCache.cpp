@@ -272,16 +272,27 @@ void THbTextLayoutCache::ComputeCarets(TLine& Line)
     charX[0] = 0;
 
     // dla każdego glifu: przypisz jego X do wszystkich znaków w jego clusterze
-    for (const TGlyph& g : Line.Glyphs)
+    for (size_t i = 0; i < Line.Glyphs.size(); ++i)
     {
+        const TGlyph& g = Line.Glyphs[i];
         uint32_t cluster = g.Cluster;
+        uint32_t NextCluster = (i + 1 < Line.Glyphs.size() ? Line.Glyphs[i+1].Cluster : text.size());
         if (cluster >= text.size())
             continue;
 
         int x = g.X;
         // przypisz X do tego znaku, jeśli jeszcze nie ustawiony
         if (charX[cluster] == 0 && cluster != 0)
-            charX[cluster] = x;
+        {
+            for (int ci = cluster; ci < NextCluster; ++ci)
+            {
+                charX[ci] = x;
+                if (ci > cluster)
+                {
+                    charX[ci] += 3;
+                }
+            }
+        }
     }
 
     // wypełnij luki: jeśli jakiś znak nie ma przypisanego X,
