@@ -286,10 +286,16 @@ void THbTextLayoutCache::ComputeCarets(TLine& Line)
         {
             for (int ci = cluster; ci < NextCluster; ++ci)
             {
-                charX[ci] = x;
-                if (ci > cluster)
+                if (ci == cluster)
                 {
-                    charX[ci] += 3;
+                    charX[ci] = x;
+                }
+                else
+                {
+                    int x2 = Line.Glyphs[i + 1].X;
+                    // interpolacj pozycji karetki w obrębie ligatur
+                    float t = static_cast<float>(ci - cluster) / (NextCluster - cluster);
+                    charX[ci] = x + t * (x2 - x);
                 }
             }
         }
