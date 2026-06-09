@@ -94,7 +94,7 @@ namespace Tilc {
             void SetVerticalScrollRange(int min, int max);
             void SetHorizontalScrollRange(int min, int max);
 
-            virtual void SetActiveControl(TGuiControl* Control) override;
+            virtual bool SetActiveControl(TGuiControl* Control) override;
 
             // Ads this window on top of Render Window's modal stack
             void SetModal();

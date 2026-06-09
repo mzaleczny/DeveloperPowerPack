@@ -651,9 +651,9 @@ void Tilc::Gui::TGuiControl::MoveTabStopBackward()
     }
 }
 
-void Tilc::Gui::TGuiControl::SetActiveControl(TGuiControl* Control)
+bool Tilc::Gui::TGuiControl::SetActiveControl(TGuiControl* Control)
 {
-    if (Control && (!Control->CanTabStop() || m_ActiveControl == Control)) return;
+    if (Control && (!Control->CanTabStop() || m_ActiveControl == Control)) return false;
 
     if (m_ActiveControl)
     {
@@ -665,6 +665,7 @@ void Tilc::Gui::TGuiControl::SetActiveControl(TGuiControl* Control)
         m_ActiveControl = Control;
         Control->Focus();
     }
+    return true;
 }
 
 void Tilc::Gui::TGuiControl::Focus()

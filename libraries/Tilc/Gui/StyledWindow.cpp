@@ -892,16 +892,13 @@ void Tilc::Gui::TStyledWindow::createGuiLayout() {
 }
 */
 
-void Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
+bool Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
 {
-    TGuiControl::SetActiveControl(Control);
-
-    // domyślnie ukrywamy karetkę
-    Tilc::Gui::TCaret* Caret = Tilc::GameObject->GetContext()->m_Caret;
-    Caret->m_Active = false;
- 
-    if (m_ActiveControl == Control)
+    if (TGuiControl::SetActiveControl(Control))
     {
+        Tilc::Gui::TCaret* Caret = Tilc::GameObject->GetContext()->m_Caret;
+
+        // jeśli zmieniliśmy aktywną kontrolkę, to domyślnie ukrywamy karetkę
         // jeśli mamy pole tekstowe, to pokazujemy karetkę
         Tilc::Gui::TTextField* tf = dynamic_cast<Tilc::Gui::TTextField*>(Control);
         if (tf)
@@ -909,7 +906,14 @@ void Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
             Caret->m_Active = true;
             Caret->Show();
         }
+        else
+        {
+            Caret->m_Active = false;
+            Caret->Hide();
+        }
+        return true;
     }
+    return false;
 }
 
 void Tilc::Gui::TStyledWindow::OnGetEditedValues(std::unordered_map<TExtString, TExtString>& map)

@@ -474,7 +474,7 @@ namespace Tilc {
 
             virtual void MoveTabStopForward();
             virtual void MoveTabStopBackward();
-            virtual void SetActiveControl(TGuiControl* Control);
+            virtual bool SetActiveControl(TGuiControl* Control);
             inline TGuiControl* GetActiveControl() { return m_ActiveControl; }
             inline void SetOnlyActiveControlPointer(Tilc::Gui::TGuiControl* Control) { m_ActiveControl = Control; }
 
