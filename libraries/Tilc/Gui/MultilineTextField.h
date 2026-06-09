@@ -79,7 +79,7 @@ namespace Tilc
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;
             // This controls uses its own texture for rendering where there is x = 0, y = 0 and not relative to parent
-            SDL_FRect m_RealPosition;
+            SDL_FRect m_PositionInTextBuffer;
             bool m_RenderedTextToUpdate{ true };
             // Indeksy linijek początku i końca zaznaczenia
             int m_SelectionLineStart{};
