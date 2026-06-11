@@ -1,5 +1,7 @@
 #include "Tilc/Gui/Helpers/HbTextLayoutCache.h"
 #include "Tilc/Gui/Font.h"
+#include "Tilc/Graphics/GraphicsUtils.h"
+#include "Tilc/Game.h"
 
 using namespace Tilc::Gui::Helpers;
 
@@ -120,6 +122,8 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::EnsureLineLayout(TLine& Line)
 
     ShapeLine(Line);
     ComputeCarets(Line);
+    RenderFullLineToSegments(Line, GameObject->GetContext()->m_Window->GetRenderer(), m_Font->GetColor());
+
     Line.Dirty = false;
 }
 
@@ -385,13 +389,13 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
     }
 }
 
-SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX, int StartCharIndex)
+SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX)
 {
     Tilc::Gui::Helpers::THbTextLayoutCache::TLine& line = GetLine(LineNumber);
-    return RenderHbLineToTexture(renderer, line, color, OffsetX, StartCharIndex);
+    return RenderHbLineToTexture(renderer, line, color, OffsetX);
 }
 
-SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX, int StartCharIndex)
+SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX)
 {
     if (Line.Glyphs.empty())
     {
@@ -412,7 +416,7 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
         Uint32 RGBAColor = SDL_MapSurfaceRGBA(surface, 0, 0, 0, 0);
         SDL_FillSurfaceRect(surface, nullptr, RGBAColor);
 
-        for (int i = StartCharIndex; i < Line.Glyphs.size(); ++i)
+        for (int i = 0; i < Line.Glyphs.size(); ++i)
         {
             const auto& g = Line.Glyphs[i];
 
@@ -464,4 +468,173 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
         SDL_DestroySurface(surface);
     }
     return tex;
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, const TLine& line, SDL_Color color, int startX, int startY)
+{
+    SDL_Surface* Surface = nullptr;
+
+    if (!SDL_LockTextureToSurface(target, nullptr, &Surface))
+    {
+        SDL_Log("LockTexture failed: %s", SDL_GetError());
+        return;
+    }
+
+    uint8_t* pixels = (uint8_t*)Surface->pixels;
+    int pitch = Surface->pitch;
+    int w = Surface->w;
+    int h = Surface->h;
+
+    const int ascender = m_Face->size->metrics.ascender >> 6;
+
+    for (const auto& g : line.Glyphs)
+    {
+        if (FT_Load_Glyph(m_Face, g.Codepoint, FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL))
+            continue;
+
+        FT_GlyphSlot slot = m_Face->glyph;
+        FT_Bitmap& bmp = slot->bitmap;
+
+        if (bmp.width == 0 || bmp.rows == 0)
+            continue;
+
+        const int glyphX = startX + g.X + slot->bitmap_left;
+        const int glyphY = startY + (ascender - slot->bitmap_top);
+
+        for (int y = 0; y < bmp.rows; ++y)
+        {
+            int dstY = glyphY + y;
+            if (dstY < 0 || dstY >= h)
+                continue;
+
+            uint8_t* srcRow = bmp.buffer + y * bmp.pitch;
+            uint8_t* dstRow = pixels + dstY * pitch;
+
+            for (int x = 0; x < bmp.width; ++x)
+            {
+                int dstX = glyphX + x;
+                if (dstX < 0 || dstX >= w)
+                    continue;
+
+                uint8_t alpha = srcRow[x];
+                if (alpha == 0)
+                    continue;
+
+                uint8_t* p = dstRow + dstX * 4;
+
+                float a = alpha / 255.0f;
+
+                p[0] = (uint8_t)(color.b * a + p[0] * (1 - a));
+                p[1] = (uint8_t)(color.g * a + p[1] * (1 - a));
+                p[2] = (uint8_t)(color.r * a + p[2] * (1 - a));
+                p[3] = 255;
+            }
+        }
+    }
+
+    SDL_UnlockTexture(target);
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Renderer* renderer, const TLine& line, int visibleX0, int visibleX1, int dstX, int dstY, SDL_Texture* target)
+{
+    if (visibleX0 >= visibleX1)
+        return;
+    if (line.Segments.empty())
+        return;
+
+    SDL_Texture* oldTarget = SDL_GetRenderTarget(renderer);
+    SDL_SetRenderTarget(renderer, target);
+
+    const int lineHeight = m_Face->size->metrics.height >> 6;
+
+    int remainingWidth = visibleX1 - visibleX0;
+    int currentSrcX = visibleX0;
+    int currentDstX = dstX;
+
+    while (remainingWidth > 0)
+    {
+        const int segmentIndex = currentSrcX / LINE_TILE_WIDTH;
+        const int segmentOffsetX = currentSrcX % LINE_TILE_WIDTH;
+
+        if (segmentIndex < 0 || segmentIndex >= static_cast<int>(line.Segments.size()))
+        {
+            break;
+        }
+
+        SDL_Texture* segTex = line.Segments[segmentIndex];
+        if (!segTex)
+        {
+            break;
+        }
+
+        int segTexW = segTex->w, segTexH = segTex->h;
+
+        const int maxFromSegment = segTexW - segmentOffsetX;
+        if (maxFromSegment <= 0)
+        {
+            break;
+        }
+
+        const int drawWidth = std::min(remainingWidth, maxFromSegment);
+
+        SDL_FRect src{};
+        src.x = static_cast<float>(segmentOffsetX);
+        src.y = 0.0f;
+        src.w = static_cast<float>(drawWidth);
+        src.h = static_cast<float>(segTexH);
+
+        SDL_FRect dst{};
+        dst.x = static_cast<float>(currentDstX);
+        dst.y = static_cast<float>(dstY);
+        dst.w = static_cast<float>(drawWidth);
+        dst.h = static_cast<float>(segTexH);
+
+        SDL_RenderTexture(renderer, segTex, &src, &dst);
+
+        remainingWidth -= drawWidth;
+        currentSrcX += drawWidth;
+        currentDstX += drawWidth;
+    }
+
+    SDL_SetRenderTarget(renderer, oldTarget);
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer, const SDL_Color& color)
+{
+    SDL_Log("RENDER SEGMENTS for line %p\n", &line);
+    for (SDL_Texture* tex : line.Segments)
+    {
+        if (tex)
+        {
+            SDL_DestroyTexture(tex);
+        }
+    }
+    line.Segments.clear();
+
+    if (line.TotalWidth <= 0)
+    {
+        return;
+    }
+    int lineHeight = m_Face->size->metrics.height >> 6;
+    const int numSegments = (line.TotalWidth + LINE_TILE_WIDTH - 1) / LINE_TILE_WIDTH;
+    line.Segments.resize(numSegments, nullptr);
+
+    for (int i = 0; i < numSegments; ++i)
+    {
+        const int segmentStartX = i * LINE_TILE_WIDTH;
+        const int segmentWidth = std::min(LINE_TILE_WIDTH, line.TotalWidth - segmentStartX);
+
+        SDL_Texture* segTex = SDL_CreateTexture(renderer,
+            SDL_PIXELFORMAT_RGBA32,
+            SDL_TEXTUREACCESS_STREAMING,
+            segmentWidth,
+            lineHeight);
+        if (!segTex)
+        {
+            continue;
+        }
+        Tilc::Graphics::ClearStreamingTexture(segTex);
+        RenderHbLineGlyphsToCurrentTarget(renderer, segTex, line, color, -segmentStartX, 0);
+        line.Segments[i] = segTex;
+    }
 }

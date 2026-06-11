@@ -21,6 +21,8 @@ namespace Tilc::Gui
 namespace Tilc::Gui::Helpers
 {
 
+    constexpr const int LINE_TILE_WIDTH = 1024;
+
     class DECLSPEC THbTextLayoutCache
     {
     public:
@@ -39,6 +41,7 @@ namespace Tilc::Gui::Helpers
             std::vector<int> CaretX;      // CaretX[i] = pozycja X przed znakiem i (UTF-32)
             int TotalWidth{0};
             bool Dirty{true};
+            std::vector<SDL_Texture*> Segments;
         };
 
         using TLines = std::list<TLine>;
@@ -82,8 +85,17 @@ namespace Tilc::Gui::Helpers
                                int LineEnd, int CharEnd,
                                std::vector<SDL_FRect>& OutRects,
                                int LineHeight, int BaseY);
-        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX = 0, int StartCharIndex = 0);
-        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX = 0, int StartCharIndex = 0);
+        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX = 0);
+        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX = 0);
+        void RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, const TLine& line, SDL_Color color, int startX, int startY);
+        void RenderVisibleLineFragment(SDL_Renderer* renderer, const TLine& line,
+            int visibleX0,      // w przestrzeni linii
+            int visibleX1,      // w przestrzeni linii
+            int dstX,           // w przestrzeni kontrolki
+            int dstY,           // w przestrzeni kontrolki
+            SDL_Texture* target // m_TextTexture
+        );
+        void RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer, const SDL_Color& color);
         void EnsureLineLayout(int LineIndex);
         void EnsureLineLayout(TLine& Line);
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
