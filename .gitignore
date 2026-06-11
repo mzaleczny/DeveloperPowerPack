@@ -12,6 +12,9 @@
 *.env
 CMakeUserPresets.json
 
+# Cache directory
+libraries/.cache/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
