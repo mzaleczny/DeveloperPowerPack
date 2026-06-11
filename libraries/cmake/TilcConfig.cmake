@@ -47,14 +47,14 @@ endif()
 
 add_library(${LibName} INTERFACE)
 target_include_directories(${LibName} INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-    "$<BUILD_INTERFACE:${TilcBuildDir}/external_sdl3_image-src/include>"
-    "$<BUILD_INTERFACE:${TilcBuildDir}/external_sdl3_mixer-src/include>"
-    "$<BUILD_INTERFACE:${TilcBuildDir}/external_sdl3_ttf-src/include>"
-    "$<BUILD_INTERFACE:${TilcBuildDir}/external_sdl3-src/include>"
+    "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/SDL3/include>"
+    "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/SDL3_image/include>"
+    "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/SDL3_mixer/include>"
+    "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/SDL3_ttf/include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../Glad/include>"
-    "$<BUILD_INTERFACE:${TilcBuildDir}/external_glm-src>"
-    "$<BUILD_INTERFACE:${TilcBuildDir}/external_sdl3_ttf-src/external/freetype/include>"
-    "$<BUILD_INTERFACE:${TilcBuildDir}/external_sdl3_ttf-src/external/harfbuzz/src>"
+    "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/glm>"
+    "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/SDL3_ttf/external/freetype/include>"
+    "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/SDL3_ttf/external/harfbuzz/src>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>"
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>")
 
