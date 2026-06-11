@@ -279,6 +279,23 @@ DECLSPEC SDL_Texture* Tilc::Graphics::ConvertToGrayscale(SDL_Renderer* Renderer,
     return nullptr;
 }
 
+DECLSPEC void Tilc::Graphics::ClearStreamingTexture(SDL_Texture* tex)
+{
+    SDL_Surface* Surface = nullptr;
+    uint8_t* pixels = nullptr;
+    int pitch = 0;
+
+    if (!SDL_LockTextureToSurface(tex, nullptr, &Surface))
+    {
+        SDL_Log("Error: ClearStreamingTexture: SDL_LockTexture: %s", SDL_GetError());
+        return;
+    }
+
+    SDL_ClearSurface(Surface, 0, 0, 0, 0);
+
+    SDL_UnlockTexture(tex);
+}
+
 DECLSPEC void Tilc::Graphics::DrawLine(SDL_Surface* Surface, const SDL_Point& p1, const SDL_Point& p2, int color)
 {
     int dx = fabs(p2.x - p1.x);

@@ -16,6 +16,7 @@ namespace Tilc::Graphics {
     DECLSPEC void SaveTextureToFile(SDL_Renderer* Renderer, SDL_Texture* Texture, const char* fname);
 
     DECLSPEC SDL_Texture* ConvertToGrayscale(SDL_Renderer* Renderer, SDL_Texture* Texture);
+    DECLSPEC void ClearStreamingTexture(SDL_Texture* tex);
 
     //DECLSPEC void SaveBitmapToFile(const char* fname, HBITMAP hBitmap);
     //DECLSPEC void GetBitmapSize(HBITMAP hBitmap, SIZE& size);
