@@ -3,6 +3,152 @@ cmake_minimum_required(VERSION 3.28.0)
 # set the project name and version
 project(Tilc VERSION 1.0)
 
+set(LOCAL_CACHE_DIR "${CMAKE_SOURCE_DIR}/.cache")
+set(LOCAL_CACHE_DIR_SDL3 "${LOCAL_CACHE_DIR}/SDL3")
+set(LOCAL_CACHE_DIR_SDL3_image "${LOCAL_CACHE_DIR}/SDL3_image")
+set(LOCAL_CACHE_DIR_SDL3_ttf "${LOCAL_CACHE_DIR}/SDL3_ttf")
+set(LOCAL_CACHE_DIR_SDL3_mixer "${LOCAL_CACHE_DIR}/SDL3_mixer")
+set(LOCAL_CACHE_DIR_zlib "${LOCAL_CACHE_DIR}/zlib")
+set(LOCAL_CACHE_DIR_glm "${LOCAL_CACHE_DIR}/glm")
+set(LOCAL_CACHE_DIR_assimp "${LOCAL_CACHE_DIR}/assimp")
+
+set(TAG_SDL3 "release-3.4.10")
+set(TAG_SDL3_image "release-3.4.4")
+set(TAG_SDL3_ttf "release-3.2.2")
+set(TAG_SDL3_mixer "release-3.2.4")
+set(TAG_zlib "v1.3.2")
+set(TAG_glm "1.0.3")
+set(TAG_assimp "v6.0.5")
+
+# Create repos cache for the first build
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}")
+    message(STATUS "Cache SDL3 not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/libsdl-org/SDL.git
+                "${LOCAL_CACHE_DIR_SDL3}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_SDL3}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3}"
+    )
+endif()
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_image}")
+    message(STATUS "Cache SDL3_image not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/libsdl-org/SDL_image.git
+                "${LOCAL_CACHE_DIR_SDL3_image}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_SDL3_image}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_image}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_image}"
+    )
+endif()
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}")
+    message(STATUS "Cache SDL3_ttf not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/libsdl-org/SDL_ttf.git
+                "${LOCAL_CACHE_DIR_SDL3_ttf}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_SDL3_ttf}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_ttf}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_ttf}"
+    )
+endif()
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}")
+    message(STATUS "Cache SDL3_mixer not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/libsdl-org/SDL_mixer.git
+                "${LOCAL_CACHE_DIR_SDL3_mixer}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_SDL3_mixer}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_mixer}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_mixer}"
+    )
+endif()
+if(NOT EXISTS "${LOCAL_CACHE_DIR_zlib}")
+    message(STATUS "Cache zlib not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/madler/zlib.git
+                "${LOCAL_CACHE_DIR_zlib}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_zlib}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_zlib}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_zlib}"
+    )
+endif()
+if(NOT EXISTS "${LOCAL_CACHE_DIR_glm}")
+    message(STATUS "Cache glm not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/g-truc/glm.git
+                "${LOCAL_CACHE_DIR_glm}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_glm}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_glm}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_glm}"
+    )
+endif()
+if(NOT EXISTS "${LOCAL_CACHE_DIR_assimp}")
+    message(STATUS "Cache assimp not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/assimp/assimp.git
+                "${LOCAL_CACHE_DIR_assimp}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_assimp}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_assimp}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_assimp}"
+    )
+endif()
+
+
 set_property(GLOBAL PROPERTY Tilc_HEADERS_Property "")
 set_property(GLOBAL PROPERTY Tilc_SOURCES_Property "")
 set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property "")
@@ -81,7 +227,6 @@ function(AddPlatformSpecificSourcesRecurse DIR)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         file(GLOB_RECURSE _SOURCES_OS LIST_DIRECTORIES true "${DIR}/Windows/*.c*")
         file(GLOB_RECURSE _HEADERS_OS LIST_DIRECTORIES true "${DIR}/Windows/*.h")
-        message(${_SOURCES_OS})
     else()
         message(FATAL_ERROR "CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME} not supported.")
     endif()
@@ -130,7 +275,6 @@ list(REMOVE_DUPLICATES Tilc_SOURCES)
 list(REMOVE_DUPLICATES Tilc_HEADERS_OS)
 list(REMOVE_DUPLICATES Tilc_SOURCES_OS)
 
-
 include(FetchContent)
 
 
@@ -139,10 +283,25 @@ message("Checking for **SDL3** and downloading it when no found")
 message("***********************************************************************")
 find_package(sdl3 CONFIG QUIET)
 if(NOT TARGET SDL3::SDL3)
-    FetchContent_Populate(external_sdl3
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-        GIT_TAG release-3.4.8
-    )
+    unset(FETCHCONTENT_SOURCE_DIR_external_sdl3 CACHE)
+    unset(FETCHCONTENT_UPDATES_DISCONNECTED_external_sdl3 CACHE)
+    unset(FETCHCONTENT_FULLY_POPULATED_external_sdl3 CACHE)
+    unset(external_sdl3_SOURCE_DIR CACHE)
+    unset(external_sdl3_BINARY_DIR CACHE)
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_sdl3 "${LOCAL_CACHE_DIR_SDL3}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_sdl3_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3}")
+        set(external_sdl3_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Populate(external_sdl3
+            GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+            GIT_TAG ${TAG_SDL3}
+        )
+    endif()
     # Teraz dopiero konfiguruj
     add_subdirectory(
         ${external_sdl3_SOURCE_DIR}
@@ -175,10 +334,20 @@ if(NOT TARGET SDL3_image::SDL3_image)
         set(SDLIMAGE_BACKEND_ZLIB OFF CACHE BOOL "" FORCE)
     endif()
 
-    FetchContent_Populate(external_sdl3_image
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-        GIT_TAG release-3.4.4
-    )
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_image}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_sdl3_image "${LOCAL_CACHE_DIR_SDL3_image}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_image}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_sdl3_image_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_image}")
+        set(external_sdl3_image_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_image-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Populate(external_sdl3_image
+            GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+            GIT_TAG ${TAG_SDL3_image}
+        )
+    endif()
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         file(WRITE ${external_sdl3_image_SOURCE_DIR}/external/zlib/CMakeLists.txt "")
@@ -209,12 +378,22 @@ else()
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
     set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
     set(ZLIB_BUILD_STATIC ON  CACHE BOOL "" FORCE)
-    FetchContent_Declare(external_zlib
-        GIT_REPOSITORY https://github.com/madler/zlib.git
-        GIT_TAG v1.3.2
-        FIND_PACKAGE_ARGS NAMES zlib
-    )
-    FetchContent_MakeAvailable(external_zlib)
+    if(EXISTS "${LOCAL_CACHE_DIR_zlib}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_zlib "${LOCAL_CACHE_DIR_zlib}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_zlib}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_zlib_SOURCE_DIR "${LOCAL_CACHE_DIR_zlib}")
+        set(external_zlib_BINARY_DIR "${CMAKE_BINARY_DIR}/external_zlib-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Declare(external_zlib
+            GIT_REPOSITORY https://github.com/madler/zlib.git
+            GIT_TAG ${TAG_zlib}
+            FIND_PACKAGE_ARGS NAMES zlib
+        )
+        FetchContent_MakeAvailable(external_zlib)
+    endif()
     if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
         add_library(ZLIB::ZLIB ALIAS zlibstatic)
     elseif(TARGET zlib AND NOT TARGET ZLIB::ZLIB)
@@ -232,10 +411,20 @@ message("Checking for **SDL3_mixer** and downloading it when no found")
 message("***********************************************************************")
 find_package(sdl3_mixer CONFIG QUIET)
 if(NOT TARGET SDL3_mixer::SDL3_mixer)
-    FetchContent_Populate(external_sdl3_mixer
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-        GIT_TAG release-3.2.0
-    )
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_sdl3_mixer "${LOCAL_CACHE_DIR_SDL3_mixer}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_sdl3_mixer_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_mixer}")
+        set(external_sdl3_mixer_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_mixer-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Populate(external_sdl3_mixer
+            GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+            GIT_TAG ${TAG_SDL3_mixer}
+        )
+    endif()
     # Teraz dopiero konfiguruj
     add_subdirectory(
         ${external_sdl3_mixer_SOURCE_DIR}
@@ -250,10 +439,20 @@ message("Checking for **SDL3_ttf** and downloading it when no found")
 message("***********************************************************************")
 find_package(sdl3_ttf CONFIG QUIET)
 if(NOT TARGET SDL3_ttf::SDL3_ttf)
-    FetchContent_Populate(external_sdl3_ttf
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
-        GIT_TAG release-3.2.2
-    )
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_sdl3_ttf "${LOCAL_CACHE_DIR_SDL3_ttf}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_sdl3_ttf_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_ttf}")
+        set(external_sdl3_ttf_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_ttf-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Populate(external_sdl3_ttf
+            GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+            GIT_TAG ${TAG_SDL3_ttf}
+        )
+    endif()
     # Teraz dopiero konfiguruj
     add_subdirectory(
         ${external_sdl3_ttf_SOURCE_DIR}
@@ -271,10 +470,20 @@ find_package(glm CONFIG QUIET)
 set(GLM_BUILD_LIBRARY OFF CACHE BOOL "" FORCE)
 set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
 if(NOT TARGET glm::glm)
-    FetchContent_Populate(external_glm
-        GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG 1.0.3
-    )
+    if(EXISTS "${LOCAL_CACHE_DIR_glm}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_glm "${LOCAL_CACHE_DIR_glm}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_glm}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_glm_SOURCE_DIR "${LOCAL_CACHE_DIR_glm}")
+        set(external_glm_BINARY_DIR "${CMAKE_BINARY_DIR}/external_glm-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Populate(external_glm
+            GIT_REPOSITORY https://github.com/g-truc/glm.git
+            GIT_TAG ${TAG_glm}
+        )
+    endif()
     # Teraz dopiero konfiguruj
     add_subdirectory(
         ${external_glm_SOURCE_DIR}
@@ -294,10 +503,20 @@ message("Checking for **assimp** and downloading it when no found")
 message("***********************************************************************")
 find_package(assimp CONFIG QUIET)
 if(NOT TARGET assimp::assimp)
-    FetchContent_Populate(external_assimp
-        GIT_REPOSITORY https://github.com/assimp/assimp.git
-        GIT_TAG        v6.0.5
-    )
+    if(EXISTS "${LOCAL_CACHE_DIR_assimp}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_assimp "${LOCAL_CACHE_DIR_assimp}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_assimp}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_assimp_SOURCE_DIR "${LOCAL_CACHE_DIR_assimp}")
+        set(external_assimp_BINARY_DIR "${CMAKE_BINARY_DIR}/external_assimp-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Populate(external_assimp
+            GIT_REPOSITORY https://github.com/assimp/assimp.git
+            GIT_TAG        ${TAG_assimp}
+        )
+    endif()
     # Teraz dopiero konfiguruj
     set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
