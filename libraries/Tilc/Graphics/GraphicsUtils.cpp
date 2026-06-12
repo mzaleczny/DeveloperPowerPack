@@ -279,7 +279,7 @@ DECLSPEC SDL_Texture* Tilc::Graphics::ConvertToGrayscale(SDL_Renderer* Renderer,
     return nullptr;
 }
 
-DECLSPEC void Tilc::Graphics::ClearStreamingTexture(SDL_Texture* tex)
+DECLSPEC void Tilc::Graphics::ClearStreamingTexture(SDL_Texture* tex, const SDL_Color& color)
 {
     SDL_Surface* Surface = nullptr;
     uint8_t* pixels = nullptr;
@@ -291,7 +291,7 @@ DECLSPEC void Tilc::Graphics::ClearStreamingTexture(SDL_Texture* tex)
         return;
     }
 
-    SDL_ClearSurface(Surface, 0, 0, 0, 0);
+    SDL_ClearSurface(Surface, color.r, color.g, color.b, color.a);
 
     SDL_UnlockTexture(tex);
 }
