@@ -1,0 +1,2 @@
+cl -MD -EHsc -std:c++latest -I f:/libs/google/googletest/googletest/include/ -I .. -I ../.cache/assimp/contrib/googletest/googletest/include f:/libs/google/googletest/out/build/x64-Release/lib/gtest.lib f:/libs/google/googletest/out/build/x64-Release/lib/gtest_main.lib "%1" main.cpp
+del *.obj
