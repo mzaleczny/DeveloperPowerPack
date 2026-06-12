@@ -35,7 +35,7 @@ void THbTextLayoutCache::SetText(const Tilc::TExtString& TextUtf8)
 void THbTextLayoutCache::UpdateLine(int LineIndex, const Tilc::TExtString& NewTextUtf8)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
-    TLine& Line = GetLine(LineIndex);
+    TLine& Line = m_Lines[LineIndex];
     Line.Text32 = Utf8ToUtf32(NewTextUtf8);
     Line.Dirty = true;
 }
@@ -43,7 +43,7 @@ void THbTextLayoutCache::UpdateLine(int LineIndex, const Tilc::TExtString& NewTe
 void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteCharAtLine(int LineIndex, int CharIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
-    TLine& Line = GetLine(LineIndex);
+    TLine& Line = m_Lines[LineIndex];
     std::u32string& Text32 = Line.Text32;
     Text32.erase(CharIndex, 1);
     Line.Dirty = true;
@@ -76,32 +76,32 @@ int THbTextLayoutCache::GetLineWidth(int LineIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
     EnsureLineLayout(LineIndex);
-    TLine& Line = GetLine(LineIndex);
+    TLine& Line = m_Lines[LineIndex];
     return Line.TotalWidth;
 }
 
 int THbTextLayoutCache::GetLinePositionsNum(int LineIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
-    TLine& Line = GetLine(LineIndex);
+    TLine& Line = m_Lines[LineIndex];
     return (int)Line.Text32.size() + 1;
 }
 
 Tilc::TExtString Tilc::Gui::Helpers::THbTextLayoutCache::GetLineUtf8(int LineIndex)
 {
-    return Utf32ToUtf8(GetLine(LineIndex).Text32);
+    return Utf32ToUtf8(m_Lines[LineIndex].Text32);
 }
 
 std::u32string& Tilc::Gui::Helpers::THbTextLayoutCache::GetLineText(int LineIndex)
 {
-    return GetLine(LineIndex).Text32;
+    return m_Lines[LineIndex].Text32;
 }
 
 int THbTextLayoutCache::GetCaretX(int LineIndex, int CharIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
     EnsureLineLayout(LineIndex);
-    TLine& line = GetLine(LineIndex);
+    TLine& line = m_Lines[LineIndex];
     if (CharIndex <= 0) return 0;
     if (CharIndex >= (int)line.CaretX.size()) return line.TotalWidth;
     return line.CaretX[CharIndex];
@@ -110,7 +110,7 @@ int THbTextLayoutCache::GetCaretX(int LineIndex, int CharIndex)
 void THbTextLayoutCache::EnsureLineLayout(int LineIndex)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return;
-    TLine& Line = GetLine(LineIndex);
+    TLine& Line = m_Lines[LineIndex];
     if (!Line.Dirty) return;
 
     EnsureLineLayout(Line);
@@ -122,7 +122,9 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::EnsureLineLayout(TLine& Line)
 
     ShapeLine(Line);
     ComputeCarets(Line);
-    RenderFullLineToSegments(Line, GameObject->GetContext()->m_Window->GetRenderer(), m_Font->GetColor());
+
+    ClearSegments(Line);
+    InitSegmentsForLine(Line);
 
     Line.Dirty = false;
 }
@@ -131,16 +133,10 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::JoinLines(int FirstLineNumber, int 
 {
     if (FirstLineNumber < 0 || FirstLineNumber >= (int)m_Lines.size()) return;
     if (SecondLineNumber < 0 || SecondLineNumber >= (int)m_Lines.size()) return;
-    auto it1 = m_Lines.begin();
-    auto it2 = m_Lines.begin();
-    std::advance(it1, FirstLineNumber);
-    TLine& FirstLine = *it1;
-    std::advance(it2, FirstLineNumber + 1);
-    TLine& SecondLine = *it2;
+    TLine& FirstLine = m_Lines[FirstLineNumber];
+    TLine& SecondLine = m_Lines[FirstLineNumber+1];
     FirstLine.Text32.append(SecondLine.Text32);
-    std::advance(it1, 1);
-    std::advance(it2, 1);
-    m_Lines.erase(it1, it2);
+    m_Lines.erase(m_Lines.begin() + FirstLineNumber + 1);
     FirstLine.Dirty = true;
     EnsureLineLayout(FirstLineNumber);
 }
@@ -148,25 +144,22 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::JoinLines(int FirstLineNumber, int 
 void Tilc::Gui::Helpers::THbTextLayoutCache::BreakLineAtCharIndex(int LineNumber, int CharIndex)
 {
     if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
-    TLine& Line = GetLine(LineNumber);
+    TLine& Line = m_Lines[LineNumber];
     TLine NewLine;
-    auto it = m_Lines.begin();
     if (LineNumber + 1 < m_Lines.size())
     {
-        std::advance(it, LineNumber + 1);
-        m_Lines.insert(it, 1, NewLine);
+        m_Lines.insert(m_Lines.begin() + LineNumber + 1, NewLine);
     }
     else
     {
         m_Lines.emplace_back(NewLine);
     }
-    it = m_Lines.begin();
-    std::advance(it, LineNumber + 1);
+
     if (CharIndex < Line.CaretX.size() - 1)
     {
-        it->Text32.append(Line.Text32.substr(CharIndex));
+        m_Lines[LineNumber+1].Text32.append(Line.Text32.substr(CharIndex));
     }
-    it->Dirty = true;
+    m_Lines[LineNumber + 1].Dirty = true;
     Line.Text32.erase(Line.Text32.begin() + CharIndex, Line.Text32.end());
     Line.Dirty = true;
     EnsureLineLayout(LineNumber);
@@ -176,7 +169,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::BreakLineAtCharIndex(int LineNumber
 void Tilc::Gui::Helpers::THbTextLayoutCache::InsertText(int LineNumber, int InsertPos, std::u32string& InsertString)
 {
     if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
-    TLine& Line = GetLine(LineNumber);
+    TLine& Line = m_Lines[LineNumber];
     if (InsertPos == 0)
     {
         Line.Text32 = InsertString + Line.Text32;
@@ -206,10 +199,10 @@ void THbTextLayoutCache::ShapeLine(TLine& Line)
 
     hb_buffer_t* buf = hb_buffer_create();
     hb_buffer_add_utf32(buf,
-                        (const uint32_t*)Line.Text32.data(),
-                        Line.Text32.size(),
-                        0,
-                        Line.Text32.size());
+        (const uint32_t*)Line.Text32.data(),
+        (int)Line.Text32.size(),
+        0,
+        (int)Line.Text32.size());
     hb_buffer_guess_segment_properties(buf);
 
     hb_shape(m_HbFont, buf, nullptr, 0);
@@ -227,13 +220,13 @@ void THbTextLayoutCache::ShapeLine(TLine& Line)
     {
         TGlyph& g = Line.Glyphs[i];
         g.Codepoint = info[i].codepoint;
-        g.Cluster   = info[i].cluster;
+        g.Cluster = info[i].cluster;
 
-        // FreeType: post-hinting advance
+        // advance z FreeType – tak jak wcześniej (to u Ciebie działało)
         FT_Load_Glyph(m_Face, g.Codepoint, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL);
         int adv = m_Face->glyph->advance.x >> 6;
 
-        // kerning z FreeType (post-hinting)
+        // kerning z FreeType (post-hinting) – jak wcześniej
         int kern = 0;
         if (i > 0)
         {
@@ -242,18 +235,21 @@ void THbTextLayoutCache::ShapeLine(TLine& Line)
             kern = vec.x >> 6;
         }
 
+        // dodatkowy offset z HarfBuzz (GPOS, ligatury itd.)
+        int hb_offset = pos ? (pos[i].x_offset >> 6) : 0;
+
         x += kern;
-        g.X = x;
+        g.X = x + hb_offset;
         g.Advance = adv;
         x += adv;
+
         prevGlyph = g.Codepoint;
     }
 
     Line.TotalWidth = x;
     if (x > m_LongestLineWidth)
-    {
         m_LongestLineWidth = x;
-    }
+
     hb_buffer_destroy(buf);
 }
 
@@ -323,7 +319,7 @@ int THbTextLayoutCache::HitTestCharIndex(int LineIndex, int X)
 {
     if (LineIndex < 0 || LineIndex >= (int)m_Lines.size()) return 0;
     EnsureLineLayout(LineIndex);
-    TLine& Line = GetLine(LineIndex);
+    TLine& Line = m_Lines[LineIndex];
     return HitTestCharIndex(Line, X);
 }
 
@@ -368,7 +364,7 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
     for (int line = LineStart; line <= LineEnd; ++line)
     {
         EnsureLineLayout(line);
-        TLine& ln = GetLine(line);
+        TLine& ln = m_Lines[line];
 
         int startChar = (line == LineStart) ? CharStart : 0;
         int endChar   = (line == LineEnd)   ? CharEnd   : (int)ln.Text32.size();
@@ -389,13 +385,13 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
     }
 }
 
-SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX)
+SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, int OffsetX)
 {
-    Tilc::Gui::Helpers::THbTextLayoutCache::TLine& line = GetLine(LineNumber);
-    return RenderHbLineToTexture(renderer, line, color, OffsetX);
+    Tilc::Gui::Helpers::THbTextLayoutCache::TLine& line = m_Lines[LineNumber];
+    return RenderHbLineToTexture(renderer, line, OffsetX);
 }
 
-SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX)
+SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, int OffsetX)
 {
     if (Line.Glyphs.empty())
     {
@@ -456,9 +452,9 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
                     // manualne alpha-blending
                     float a = alpha / 255.0f;
 
-                    p[0] = (uint8_t)(color.b * a + p[0] * (1 - a)); // B
-                    p[1] = (uint8_t)(color.g * a + p[1] * (1 - a)); // G
-                    p[2] = (uint8_t)(color.r * a + p[2] * (1 - a)); // R
+                    p[0] = (uint8_t)(m_FontColor.b * a + p[0] * (1 - a)); // B
+                    p[1] = (uint8_t)(m_FontColor.g * a + p[1] * (1 - a)); // G
+                    p[2] = (uint8_t)(m_FontColor.r * a + p[2] * (1 - a)); // R
                     p[3] = std::max<uint8_t>(p[3], alpha);
                 }
             }
@@ -470,15 +466,10 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
     return tex;
 }
 
-void Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, const TLine& line, SDL_Color color, int startX, int startY)
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, TLine& line, int startX, int startY)
 {
-    SDL_Surface* Surface = nullptr;
-
-    if (!SDL_LockTextureToSurface(target, nullptr, &Surface))
-    {
-        SDL_Log("LockTexture failed: %s", SDL_GetError());
-        return;
-    }
+    SDL_Surface* Surface = SDL_CreateSurface(target->w, target->h, SDL_PIXELFORMAT_RGBA32);
+    if (!Surface) return;
 
     uint8_t* pixels = (uint8_t*)Surface->pixels;
     int pitch = Surface->pitch;
@@ -524,28 +515,35 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToCurrentTarget(S
 
                 float a = alpha / 255.0f;
 
-                p[0] = (uint8_t)(color.b * a + p[0] * (1 - a));
-                p[1] = (uint8_t)(color.g * a + p[1] * (1 - a));
-                p[2] = (uint8_t)(color.r * a + p[2] * (1 - a));
-                p[3] = 255;
+                p[0] = (uint8_t)(m_FontColor.b * a + p[0] * (1 - a));
+                p[1] = (uint8_t)(m_FontColor.g * a + p[1] * (1 - a));
+                p[2] = (uint8_t)(m_FontColor.r * a + p[2] * (1 - a));
+                p[3] = std::max<uint8_t>(p[3], alpha);
             }
         }
     }
 
-    SDL_UnlockTexture(target);
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, Surface);
+    if (tex)
+    {
+        SDL_RenderTexture(renderer, tex, nullptr, nullptr);
+        SDL_DestroyTexture(tex);
+    }
+    SDL_DestroySurface(Surface);
 }
 
-void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Renderer* renderer, const TLine& line, int visibleX0, int visibleX1, int dstX, int dstY, SDL_Texture* target)
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Renderer* renderer, TLine& line, int visibleX0, int visibleX1, int dstX, int dstY, SDL_Texture* target)
 {
+    EnsureLineLayout(line);
+
+    int lineWidth = line.TotalWidth;
+    if (visibleX0 < 0) visibleX0 = 0;
+    if (visibleX1 > lineWidth) visibleX1 = lineWidth;
     if (visibleX0 >= visibleX1)
-        return;
-    if (line.Segments.empty())
         return;
 
     SDL_Texture* oldTarget = SDL_GetRenderTarget(renderer);
     SDL_SetRenderTarget(renderer, target);
-
-    const int lineHeight = m_Face->size->metrics.height >> 6;
 
     int remainingWidth = visibleX1 - visibleX0;
     int currentSrcX = visibleX0;
@@ -553,12 +551,19 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Rende
 
     while (remainingWidth > 0)
     {
-        const int segmentIndex = currentSrcX / LINE_TILE_WIDTH;
-        const int segmentOffsetX = currentSrcX % LINE_TILE_WIDTH;
+        int segmentIndex = currentSrcX / LINE_TILE_WIDTH;
+        int segmentOffsetX = currentSrcX % LINE_TILE_WIDTH;
 
-        if (segmentIndex < 0 || segmentIndex >= static_cast<int>(line.Segments.size()))
+        if (segmentIndex < 0 ||
+            segmentIndex >= static_cast<int>(line.Segments.size()))
         {
             break;
+        }
+
+        if (!line.Segments[segmentIndex])
+        {
+            // tworzymy segment tylko raz
+            RenderSegment(renderer, line, segmentIndex);
         }
 
         SDL_Texture* segTex = line.Segments[segmentIndex];
@@ -567,15 +572,14 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Rende
             break;
         }
 
-        int segTexW = segTex->w, segTexH = segTex->h;
+        int segTexW = segTex->w;
+        int segTexH = segTex->h;
 
-        const int maxFromSegment = segTexW - segmentOffsetX;
+        int maxFromSegment = segTexW - segmentOffsetX;
         if (maxFromSegment <= 0)
-        {
             break;
-        }
 
-        const int drawWidth = std::min(remainingWidth, maxFromSegment);
+        int drawWidth = std::min(remainingWidth, maxFromSegment);
 
         SDL_FRect src{};
         src.x = static_cast<float>(segmentOffsetX);
@@ -599,17 +603,54 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Rende
     SDL_SetRenderTarget(renderer, oldTarget);
 }
 
-void Tilc::Gui::Helpers::THbTextLayoutCache::RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer, const SDL_Color& color)
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegment(SDL_Renderer* renderer, TLine& line, int i)
 {
-    SDL_Log("RENDER SEGMENTS for line %p\n", &line);
-    for (SDL_Texture* tex : line.Segments)
+    int segmentStartX = i * LINE_TILE_WIDTH;
+    if (segmentStartX >= line.TotalWidth) return;
+    int segmentWidth = std::min(LINE_TILE_WIDTH, line.TotalWidth - segmentStartX);
+    if (segmentWidth <= 0) return;
+    int lineHeight = m_Face->size->metrics.height >> 6;
+
+    SDL_Texture* segTex = SDL_CreateTexture(renderer,
+        SDL_PIXELFORMAT_RGBA32,
+        SDL_TEXTUREACCESS_TARGET,
+        segmentWidth,
+        lineHeight);
+
+    SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(renderer);
+    SDL_SetRenderTarget(renderer, segTex);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderFillRect(renderer, nullptr);
+    RenderHbLineGlyphsToCurrentTarget(renderer, segTex, line, -segmentStartX, 0);
+    SDL_SetRenderTarget(renderer, OldRenderTarget);
+
+    line.Segments[i] = segTex;
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::ClearSegments(TLine& Line)
+{
+    for (SDL_Texture* tex : Line.Segments)
     {
         if (tex)
         {
             SDL_DestroyTexture(tex);
         }
     }
-    line.Segments.clear();
+    Line.Segments.clear();
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::InitSegmentsForLine(TLine& Line)
+{
+    if (Line.TotalWidth > 0)
+    {
+        int numSegments = (Line.TotalWidth + LINE_TILE_WIDTH - 1) / LINE_TILE_WIDTH;
+        Line.Segments.resize(numSegments, nullptr);
+    }
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer)
+{
+    ClearSegments(line);
 
     if (line.TotalWidth <= 0)
     {
@@ -634,7 +675,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderFullLineToSegments(TLine& lin
             continue;
         }
         Tilc::Graphics::ClearStreamingTexture(segTex);
-        RenderHbLineGlyphsToCurrentTarget(renderer, segTex, line, color, -segmentStartX, 0);
+        RenderHbLineGlyphsToCurrentTarget(renderer, segTex, line, -segmentStartX, 0);
         line.Segments[i] = segTex;
     }
 }

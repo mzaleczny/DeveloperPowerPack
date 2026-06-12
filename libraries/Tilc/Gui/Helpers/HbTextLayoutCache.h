@@ -44,8 +44,8 @@ namespace Tilc::Gui::Helpers
             std::vector<SDL_Texture*> Segments;
         };
 
-        using TLines = std::list<TLine>;
-        using TLinesIter = std::list<TLine>::iterator;
+        using TLines = std::vector<TLine>;
+        using TLinesIter = std::vector<TLine>::iterator;
 
         THbTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth, int MaxHeight);
         ~THbTextLayoutCache();
@@ -57,16 +57,12 @@ namespace Tilc::Gui::Helpers
         TLine& GetLine(int LineNumber)
         {
             if (LineNumber >= m_Lines.size()) LineNumber = m_Lines.size() - 1;
-            auto it = m_Lines.begin();
-            std::advance(it, LineNumber);
-            return *it;
+            return m_Lines[LineNumber];
         }
         TLinesIter GetLineIterator(int LineNumber)
         {
             if (LineNumber >= m_Lines.size()) LineNumber = m_Lines.size() - 1;
-            auto it = m_Lines.begin();
-            std::advance(it, LineNumber);
-            return it;
+            return m_Lines.begin() + LineNumber;
         }
         TLines& GetLines() { return m_Lines; }
         int GetLinesCount() const { return (int)m_Lines.size(); }
@@ -85,17 +81,20 @@ namespace Tilc::Gui::Helpers
                                int LineEnd, int CharEnd,
                                std::vector<SDL_FRect>& OutRects,
                                int LineHeight, int BaseY);
-        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, SDL_Color color, int OffsetX = 0);
-        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, SDL_Color color, int OffsetX = 0);
-        void RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, const TLine& line, SDL_Color color, int startX, int startY);
-        void RenderVisibleLineFragment(SDL_Renderer* renderer, const TLine& line,
+        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, int OffsetX = 0);
+        SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, int OffsetX = 0);
+        void RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, TLine& line, int startX, int startY);
+        void RenderVisibleLineFragment(SDL_Renderer* renderer, TLine& line,
             int visibleX0,      // w przestrzeni linii
             int visibleX1,      // w przestrzeni linii
             int dstX,           // w przestrzeni kontrolki
             int dstY,           // w przestrzeni kontrolki
             SDL_Texture* target // m_TextTexture
         );
-        void RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer, const SDL_Color& color);
+        void RenderSegment(SDL_Renderer* renderer, TLine& line, int i);
+        void ClearSegments(TLine& Line);
+        void InitSegmentsForLine(TLine& Line);
+        void RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer);
         void EnsureLineLayout(int LineIndex);
         void EnsureLineLayout(TLine& Line);
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
@@ -107,8 +106,10 @@ namespace Tilc::Gui::Helpers
         }
         int GetMaxWidth() const { return m_MaxWidth; }
         void SetMaxWidth(int Value) { m_MaxWidth = Value; }
+        void SetFontColor(const SDL_Color& Color) { m_FontColor = Color; }
     private:
         Tilc::Gui::TFont* m_Font;
+        SDL_Color m_FontColor{ 0, 0, 0, 255 };
         FT_Face m_Face{};
         hb_font_t* m_HbFont{};
         int m_MaxWidth{};

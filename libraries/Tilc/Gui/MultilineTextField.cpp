@@ -27,6 +27,7 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     if (m_HbTextLayoutCache)
     {
         m_HbTextLayoutCache->SetText(text);
+        m_HbTextLayoutCache->SetFontColor(m_TextColor);
         if (m_HbTextLayoutCache->GetLinesCount() > GetNumberOfVisibleLines())
         {
             AddVerticalScrollbar(0, 100, 0, false);
@@ -121,7 +122,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
         rc.h = m_Caret->m_Position.h;
         for (size_t i = 0; i < m_HbTextLayoutCache->GetLinesCount(); ++i)
         {
-            SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, i, m_TextColor, m_ScrollOffsetX);
+            SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, i, m_ScrollOffsetX);
             if (TextLineTexture)
             {
                 rc.w = TextLineTexture->w;
@@ -1080,7 +1081,7 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumber)
 {
     // Przy określaniu linii uwzględniamy zmienną TopLine, żeby móc wskazywać linie nie mieszczące się w widoku kontrolki
-    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, m_TopLine + LineNumber, m_TextColor);
+    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, m_TopLine + LineNumber);
     if (TextLineTexture)
     {
         // Rysujemy tło i tekst
@@ -1221,119 +1222,62 @@ int Tilc::Gui::TMultilineTextField::GetNumberOfVisibleLines() const
 void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
 {
     TScrollBarHorizontal* ScrollBar = static_cast<TScrollBarHorizontal*>(Data);
+    SDL_Renderer* Renderer = GetRenderer();
     int PositionLength = ScrollBar->GetMaxValue() - ScrollBar->GetMinValue();
     if (PositionLength <= 0)
+    {
         return;
+    }
 
-    const int maxScrollPixels =
-        m_HbTextLayoutCache->GetLongestLineWidth() - m_TextTexture->w;
-    if (maxScrollPixels <= 0)
+    const int MaxScrollPixels = m_HbTextLayoutCache->GetLongestLineWidth() - m_TextTexture->w;
+    if (MaxScrollPixels <= 0)
+    {
         return;
+    }
 
-    float newScrollOffsetXf =
-        static_cast<float>(CurrentPosition) / PositionLength * maxScrollPixels;
+    float NewScrollOffsetX = static_cast<float>(CurrentPosition) / PositionLength * MaxScrollPixels;
 
-    if (newScrollOffsetXf < 0.0f) newScrollOffsetXf = 0.0f;
-    if (newScrollOffsetXf > maxScrollPixels)
-        newScrollOffsetXf = static_cast<float>(maxScrollPixels);
+    if (NewScrollOffsetX < 0)
+    {
+        NewScrollOffsetX = 0.0f;
+    }
+    if (NewScrollOffsetX > MaxScrollPixels)
+    {
+        NewScrollOffsetX = static_cast<float>(MaxScrollPixels);
+    }
 
-    m_ScrollOffsetX = static_cast<int>(newScrollOffsetXf);
-
-    SDL_Renderer* Renderer = GetRenderer();
+    m_ScrollOffsetX = static_cast<int>(NewScrollOffsetX);
 
     // czyścimy teksturę kontrolki
-    SDL_Texture* oldTarget = SDL_GetRenderTarget(Renderer);
+    SDL_Texture* OldTarget = SDL_GetRenderTarget(Renderer);
     SDL_SetRenderTarget(Renderer, m_TextTexture);
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
     SDL_RenderClear(Renderer);
 
-    const int controlWidth = m_TextTexture->w;
-    const int visibleX0 = m_ScrollOffsetX;
-    const int visibleX1 = m_ScrollOffsetX + controlWidth;
+    const int ControlWidth = m_TextTexture->w;
+    const int VisibleX0 = m_ScrollOffsetX;
+    const int VisibleX1 = m_ScrollOffsetX + ControlWidth;
 
-    auto lineIter = m_HbTextLayoutCache->GetLineIterator(m_TopLine);
-    int lineIndex = 0;
-    int lineY = 0;
-    const int lineH = static_cast<int>(m_Caret->m_Position.h);
+    auto LineIter = m_HbTextLayoutCache->GetLineIterator(m_TopLine);
+    int LineIndex = 0;
+    int LineY = 0;
+    const int LineH = static_cast<int>(m_Caret->m_Position.h);
 
-    while (lineIter != m_HbTextLayoutCache->GetLines().end() &&
-        lineIndex < GetNumberOfVisibleLines())
+    while (LineIter != m_HbTextLayoutCache->GetLines().end() && LineIndex < GetNumberOfVisibleLines())
     {
-        auto& line = *lineIter;
+        auto& Line = *LineIter;
 
         // layout + segmenty są już robione w EnsureLineLayout
         // więc tutaj tylko składamy fragment
-        m_HbTextLayoutCache->RenderVisibleLineFragment(
-            Renderer,
-            line,
-            visibleX0,
-            visibleX1,
-            /*dstX*/ 0,
-            /*dstY*/ lineY,
-            m_TextTexture);
+        m_HbTextLayoutCache->RenderVisibleLineFragment(Renderer, Line, VisibleX0, VisibleX1, /*dstX*/ 0, /*dstY*/ LineY, m_TextTexture);
 
-        lineY += lineH;
-        ++lineIndex;
-        ++lineIter;
+        LineY += LineH;
+        ++LineIndex;
+        ++LineIter;
     }
     
-    SDL_SetRenderTarget(Renderer, oldTarget);
+    SDL_SetRenderTarget(Renderer, OldTarget);
     UpdateCaretPos();
-    /*
-    TScrollBarHorizontal* ScrollBar = static_cast<TScrollBarHorizontal*>(Data);
-    int PositionLength = ScrollBar->GetMaxValue() - ScrollBar->GetMinValue();
-    m_ScrollOffsetX = static_cast<float>(CurrentPosition) / PositionLength * (m_HbTextLayoutCache->GetLongestLineWidth() - m_TextTexture->w);
-    if (m_ScrollOffsetX < 0)
-    {
-        m_ScrollOffsetX = 0;
-    }
-    int PrevScrollOffsetX = static_cast<float>(PrevPosition) / PositionLength * (m_HbTextLayoutCache->GetLongestLineWidth() - m_TextTexture->w);
-    int AdditionalTextToRedrawWidth;
-    SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
-    if (NewTextTexture)
-    {
-        SDL_FRect rc{};
-        SDL_FRect DestRect{};
-
-        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
-        SDL_SetRenderTarget(Renderer, NewTextTexture);
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
-        rc.w = NewTextTexture->w;
-        rc.h = NewTextTexture->h;
-        SDL_RenderFillRect(Renderer, &rc);
-
-
-        Tilc::Gui::Helpers::THbTextLayoutCache::TLinesIter LineIter = m_HbTextLayoutCache->GetLineIterator(m_TopLine);
-        int CountLine = 0;
-        int StartX = PrevScrollOffsetX + m_TextTexture->w;
-        m_HbTextLayoutCache->SetMaxWidth(m_TextTexture->w);
-        while (LineIter != m_HbTextLayoutCache->GetLines().end() && CountLine < GetNumberOfVisibleLines())
-        {
-            SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, *LineIter, m_TextColor, m_ScrollOffsetX, 0);
-            if (TextLineTexture)
-            {
-                rc.x = 0;
-                rc.w = TextLineTexture->w;
-                rc.h = TextLineTexture->h;
-                SDL_RenderFillRect(Renderer, &rc);
-                SDL_RenderTexture(Renderer, TextLineTexture, nullptr, &rc);
-                SDL_DestroyTexture(TextLineTexture);
-            }
-            rc.y += m_Caret->m_Position.h;
-
-            ++CountLine;
-            ++LineIter;
-        }
-
-        SDL_SetRenderTarget(Renderer, m_TextTexture);
-        SDL_RenderFillRect(Renderer, nullptr);
-        SDL_RenderTexture(Renderer, NewTextTexture, nullptr, nullptr);
-
-        SDL_SetRenderTarget(Renderer, OldRenderTarget);
-        SDL_DestroyTexture(NewTextTexture);
-    }
-    UpdateCaretPos();
-    */
 }
 
 void Tilc::Gui::TMultilineTextField::OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
