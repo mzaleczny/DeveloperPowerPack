@@ -8,8 +8,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "Tilc/Utils/ExtString.h"
 #include "Tilc/DllGlobals.h"
+#include "Tilc/Utils/ExtString.h"
+#include "Tilc/Thread/ThreadSafeQueue.h"
+#include "Tilc/Thread/ThreadPool.h"
 
 #include <SDL3/SDL.h>
 
@@ -83,6 +85,7 @@ namespace Tilc::Gui::Helpers
                                int LineHeight, int BaseY);
         SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, int OffsetX = 0);
         SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, int OffsetX = 0);
+        SDL_Surface* RenderHbLineGlyphsToSurface(TLine& line, int Width, int Height, int startX, int startY);
         void RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, TLine& line, int startX, int startY);
         void RenderVisibleLineFragment(SDL_Renderer* renderer, TLine& line,
             int visibleX0,      // w przestrzeni linii
@@ -91,7 +94,7 @@ namespace Tilc::Gui::Helpers
             int dstY,           // w przestrzeni kontrolki
             SDL_Texture* target // m_TextTexture
         );
-        void RenderSegment(SDL_Renderer* renderer, TLine& line, int i);
+        void RenderSegment(SDL_Renderer* renderer, TLine& line, int SegmentIndex);
         void ClearSegments(TLine& Line);
         void InitSegmentsForLine(TLine& Line);
         void RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer);
@@ -107,6 +110,7 @@ namespace Tilc::Gui::Helpers
         int GetMaxWidth() const { return m_MaxWidth; }
         void SetMaxWidth(int Value) { m_MaxWidth = Value; }
         void SetFontColor(const SDL_Color& Color) { m_FontColor = Color; }
+        void RenderSegmentsInBackground(int StartLine, int NumberOfLines);
     private:
         Tilc::Gui::TFont* m_Font;
         SDL_Color m_FontColor{ 0, 0, 0, 255 };
@@ -125,4 +129,28 @@ namespace Tilc::Gui::Helpers
         void ShapeLine(TLine& Line);
         void ComputeCarets(TLine& Line);
     };
+
+
+    // struktura reprezentująca zadanie dla wątku - wyrysowanie na surface podanego segmentu w podanej linii
+    struct DECLSPEC TSegmentJob
+    {
+        int LineIndex{};
+        int SegmentIndex{};
+        int SegmentWidth{};
+        int LineHeight{};
+        int startX{};
+        int startY{};
+        std::string FontFilePath{};
+        float FontSize{};
+        FT_Library m_FT{};
+        FT_Face m_Face{};
+        std::shared_ptr<THbTextLayoutCache::TLine> Line{};
+        std::shared_ptr<SDL_Surface> Surface{};
+        SDL_Color FontColor{};
+    };
+    extern DECLSPEC Tilc::Thread::TThreadSafeQueue<TSegmentJob> JobQueue;
+    extern DECLSPEC Tilc::Thread::TThreadSafeQueue<TSegmentJob> ReadyQueue;
+
+
+    DECLSPEC void SegmentTask();
 }

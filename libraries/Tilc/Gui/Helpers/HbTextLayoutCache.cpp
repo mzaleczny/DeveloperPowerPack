@@ -466,10 +466,10 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
     return tex;
 }
 
-void Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, TLine& line, int startX, int startY)
+SDL_Surface* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToSurface(TLine& line, int Width, int Height, int startX, int startY)
 {
-    SDL_Surface* Surface = SDL_CreateSurface(target->w, target->h, SDL_PIXELFORMAT_RGBA32);
-    if (!Surface) return;
+    SDL_Surface* Surface = SDL_CreateSurface(Width, Height, SDL_PIXELFORMAT_RGBA32);
+    if (!Surface) return nullptr;
 
     uint8_t* pixels = (uint8_t*)Surface->pixels;
     int pitch = Surface->pitch;
@@ -523,13 +523,22 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToCurrentTarget(S
         }
     }
 
-    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, Surface);
-    if (tex)
+    return Surface;
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineGlyphsToCurrentTarget(SDL_Renderer* renderer, SDL_Texture* target, TLine& line, int startX, int startY)
+{
+    SDL_Surface* Surface = RenderHbLineGlyphsToSurface(line, target->w, target->h, startX, startY);
+    if (Surface)
     {
-        SDL_RenderTexture(renderer, tex, nullptr, nullptr);
-        SDL_DestroyTexture(tex);
+        SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, Surface);
+        if (tex)
+        {
+            SDL_RenderTexture(renderer, tex, nullptr, nullptr);
+            SDL_DestroyTexture(tex);
+        }
+        SDL_DestroySurface(Surface);
     }
-    SDL_DestroySurface(Surface);
 }
 
 void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Renderer* renderer, TLine& line, int visibleX0, int visibleX1, int dstX, int dstY, SDL_Texture* target)
@@ -603,9 +612,9 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderVisibleLineFragment(SDL_Rende
     SDL_SetRenderTarget(renderer, oldTarget);
 }
 
-void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegment(SDL_Renderer* renderer, TLine& line, int i)
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegment(SDL_Renderer* renderer, TLine& line, int SegmentIndex)
 {
-    int segmentStartX = i * LINE_TILE_WIDTH;
+    int segmentStartX = SegmentIndex * LINE_TILE_WIDTH;
     if (segmentStartX >= line.TotalWidth) return;
     int segmentWidth = std::min(LINE_TILE_WIDTH, line.TotalWidth - segmentStartX);
     if (segmentWidth <= 0) return;
@@ -624,7 +633,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegment(SDL_Renderer* rendere
     RenderHbLineGlyphsToCurrentTarget(renderer, segTex, line, -segmentStartX, 0);
     SDL_SetRenderTarget(renderer, OldRenderTarget);
 
-    line.Segments[i] = segTex;
+    line.Segments[SegmentIndex] = segTex;
 }
 
 void Tilc::Gui::Helpers::THbTextLayoutCache::ClearSegments(TLine& Line)
@@ -678,4 +687,150 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderFullLineToSegments(TLine& lin
         RenderHbLineGlyphsToCurrentTarget(renderer, segTex, line, -segmentStartX, 0);
         line.Segments[i] = segTex;
     }
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInBackground(int StartLine, int NumberOfLines)
+{
+    const int MaxThreads = 8;
+    const int HardwareThreads = std::thread::hardware_concurrency();
+    const int NumThreads = std::min(HardwareThreads != 0 ? HardwareThreads : 2, MaxThreads);
+    int CurrentLine = StartLine;
+    int EndLine = StartLine + NumberOfLines - 1;
+    int LineHeight = m_Face->size->metrics.height >> 6;
+
+    // Najpierw dodajemy taski do kolejki. Taskiem jest wygenerowanie każdego segmentu w każdej z widocznych na ekranie linii
+    for (int i = CurrentLine; i <= EndLine; ++i)
+    {
+        THbTextLayoutCache::TLine& Line = m_Lines[i];
+        for (int Segment = 0; Segment < Line.Segments.size(); ++Segment)
+        {
+            if (!Line.Segments[Segment])
+            {
+                Tilc::Gui::Helpers::TSegmentJob Job;
+                Job.Line = std::make_shared<THbTextLayoutCache::TLine>(Line);
+                Job.LineIndex = CurrentLine + i;
+                Job.SegmentIndex = Segment;
+                Job.startX = -(Job.SegmentIndex * LINE_TILE_WIDTH);
+                Job.startY = 0;
+                if (Job.startX >= Job.Line->TotalWidth) return;
+                Job.SegmentWidth = std::min(LINE_TILE_WIDTH, Job.Line->TotalWidth - Job.startX);
+                if (Job.SegmentWidth <= 0) continue;
+                Job.LineHeight = LineHeight;
+                Job.Surface = nullptr;
+                Job.FontColor = { 0, 0, 0, 255 };
+                Job.FontFilePath = m_Font->m_FontFilePath;
+                Job.FontSize = m_Font->m_Size;
+                JobQueue.Push(Job);
+            }
+        }
+    }
+
+    std::thread Thread([this, CurrentLine, EndLine, NumThreads, LineHeight]() {
+        while (!JobQueue.Empty())
+        {
+            int Num = std::min(static_cast<int>(JobQueue.Size()), NumThreads);
+            {
+                Tilc::Thread::TThreadPool SegmentTasksPool;
+                for (int i = 0; i < Num; ++i)
+                {
+                    SegmentTasksPool.submit(SegmentTask);
+                }
+                SegmentTasksPool.SetAllThreadsAdded(true);
+                while (!SegmentTasksPool.IsDone())
+                {
+                    std::this_thread::yield();
+                }
+            }
+        }
+    });
+    Thread.detach();
+}
+
+
+DECLSPEC Tilc::Thread::TThreadSafeQueue<Tilc::Gui::Helpers::TSegmentJob> Tilc::Gui::Helpers::JobQueue;
+DECLSPEC Tilc::Thread::TThreadSafeQueue<Tilc::Gui::Helpers::TSegmentJob> Tilc::Gui::Helpers::ReadyQueue;
+
+DECLSPEC void Tilc::Gui::Helpers::SegmentTask()
+{
+    Tilc::Gui::Helpers::TSegmentJob Job;
+    if (!JobQueue.TryPop(Job))
+    {
+        return;
+    }
+
+    FT_Init_FreeType(&Job.m_FT);
+    if (!Job.m_FT) return;
+    //FT_New_Memory_Face(Job.m_FT, BUFFER_DATA, BUFFER_DATA_SIZE, 0, &m_Face);
+    FT_New_Face(Job.m_FT, Job.FontFilePath.c_str(), 0, &Job.m_Face);
+    if (!Job.m_Face)
+    {
+        FT_Done_FreeType(Job.m_FT);
+        return;
+    }
+    FT_Set_Pixel_Sizes(Job.m_Face, Job.FontSize, 0);
+    Job.Surface = std::shared_ptr<SDL_Surface>(
+        SDL_CreateSurface(Job.SegmentWidth, Job.LineHeight, SDL_PIXELFORMAT_RGBA32),
+        SDL_DestroySurface
+    );
+    if (!Job.Surface) return;
+    SDL_ClearSurface(Job.Surface.get(), 0, 0, 0, 0);
+
+    uint8_t* pixels = (uint8_t*)Job.Surface.get()->pixels;
+    int pitch = Job.Surface.get()->pitch;
+    int w = Job.Surface.get()->w;
+    int h = Job.Surface.get()->h;
+
+    const int ascender = Job.m_Face->size->metrics.ascender >> 6;
+
+    for (const auto& g : Job.Line->Glyphs)
+    {
+        if (FT_Load_Glyph(Job.m_Face, g.Codepoint, FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL))
+            continue;
+        FT_GlyphSlot slot = Job.m_Face->glyph;
+        FT_Bitmap& bmp = slot->bitmap;
+
+        if (bmp.width == 0 || bmp.rows == 0)
+            continue;
+
+        const int glyphX = Job.startX + g.X + slot->bitmap_left;
+        const int glyphY = Job.startY + (ascender - slot->bitmap_top);
+
+        for (int y = 0; y < bmp.rows; ++y)
+        {
+            int dstY = glyphY + y;
+            if (dstY < 0 || dstY >= h)
+                continue;
+
+            uint8_t* srcRow = bmp.buffer + y * bmp.pitch;
+            uint8_t* dstRow = pixels + dstY * pitch;
+
+            for (int x = 0; x < bmp.width; ++x)
+            {
+                int dstX = glyphX + x;
+                if (dstX < 0 || dstX >= w)
+                    continue;
+
+                uint8_t alpha = srcRow[x];
+                if (alpha == 0)
+                    continue;
+
+                uint8_t* p = dstRow + dstX * 4;
+
+                float a = alpha / 255.0f;
+
+                p[0] = (uint8_t)(Job.FontColor.b * a + p[0] * (1 - a));
+                p[1] = (uint8_t)(Job.FontColor.g * a + p[1] * (1 - a));
+                p[2] = (uint8_t)(Job.FontColor.r * a + p[2] * (1 - a));
+                p[3] = std::max<uint8_t>(p[3], alpha);
+            }
+        }
+    }
+
+    if (Job.m_Face)
+    {
+        FT_Done_Face(Job.m_Face);
+    }
+    FT_Done_FreeType(Job.m_FT);
+
+    ReadyQueue.Push(Job);
 }

@@ -90,6 +90,13 @@ namespace Tilc
             // Offsety w poziomie (X) i pionie (Y) używane podczas scrollowania zawartości tekstu przy pomocy ScrollBarów
             int m_ScrollOffsetX{};
             int m_ScrollOffsetY{};
+            // Jeśli poniższa zmienna jest ustawiona na true, to na koniec odrysowywania kontrolki wywoływany jest wątek rednerujący segmenty w bieżąco wyświetlanym fragmencie tekstu,
+            // które nie zostały jeszcze wyrenderowane
+            bool m_StartDrawingSegmentsInBackground{ true };
+            // Wyrenderowane segmenty są wyrysowane na Surface, bo działa ona CPU i jest bezpieczna dla wątków. Funkcja ta zamienia wszystkie wyrenderowane Surface na tekstury i przypisuje je
+            // do odpowiednich fragmentów linii. Tworzenie tekstór musi się odbywać w wątku głównym, bo nie jest bezpieczne w wątkach - próba utworzenia tekstury w wątku = crash.
+            void AttachRenderedSegmentsToCache();
+
             void OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
             void OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
 

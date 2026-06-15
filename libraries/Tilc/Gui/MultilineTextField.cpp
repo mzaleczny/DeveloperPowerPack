@@ -161,6 +161,13 @@ void Tilc::Gui::TMultilineTextField::Draw()
     DrawVerticalAndHorizontalScrollBars();
 
     m_NeedUpdate = ENeedUpdate::ENU_None;
+
+    if (m_StartDrawingSegmentsInBackground)
+    {
+        m_StartDrawingSegmentsInBackground = false;
+        m_HbTextLayoutCache->RenderSegmentsInBackground(m_TopLine, GetNumberOfVisibleLines());
+    }
+    AttachRenderedSegmentsToCache();
 }
 
 int Tilc::Gui::TMultilineTextField::GetLastVisibleCharPosInLine(int StartChar)
@@ -1217,6 +1224,28 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAt
 int Tilc::Gui::TMultilineTextField::GetNumberOfVisibleLines() const
 {
     return CalculateInnerHeight() / m_Caret->m_Position.h;
+}
+
+void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
+{
+    while (!Tilc::Gui::Helpers::ReadyQueue.Empty())
+    {
+        Tilc::Gui::Helpers::TSegmentJob Job;
+        if (Tilc::Gui::Helpers::ReadyQueue.TryPop(Job))
+        {
+            if (Job.Surface)
+            {
+                Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(Job.LineIndex);
+                SDL_Texture* tex = SDL_CreateTexture(Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, Job.Surface->w, Job.Surface->h);
+                if (tex)
+                {
+                    SDL_UpdateTexture(tex, nullptr, Job.Surface->pixels, Job.Surface->pitch);
+                    Line.Segments[Job.SegmentIndex] = tex;
+                    Job.Surface.reset();
+                }
+            }
+        }
+    }
 }
 
 void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
