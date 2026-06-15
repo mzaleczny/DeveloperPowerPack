@@ -1,13 +1,17 @@
+#pragma once
+
 #include <iostream>
 #include <algorithm>
 #include <atomic>
 #include <thread>
 #include <future>
+#include <functional>
+#include "Tilc/DllGlobals.h"
 #include "Tilc/Thread/ThreadSafeQueue.h"
 
 namespace Tilc::Thread
 {
-    class TJoinThreads
+    class DECLSPEC TJoinThreads
     {
         std::vector<std::thread>& m_Threads;
     public:
@@ -26,7 +30,7 @@ namespace Tilc::Thread
         }
     };
 
-    class TThreadPool
+    class DECLSPEC TThreadPool
     {
     private:
         std::atomic_bool m_Done;
@@ -81,7 +85,7 @@ namespace Tilc::Thread
         }
 
         bool IsDone() const { return m_Done.load(); }
-        bool AllThreadsAdded() { return m_AllThreadsAdded = true; }
+        bool SetAllThreadsAdded(bool Value) { return m_AllThreadsAdded = Value; }
 
         template<typename FunctionType>
         void submit(FunctionType f)
