@@ -5,6 +5,8 @@
 #include <sstream>
 #include <thread>
 #include <mutex>
+
+#define DECLSPEC
 #include "../Tilc/Thread/ThreadPool.h"
 
 std::mutex Mutex;
@@ -78,7 +80,7 @@ TEST_F(TestSuite, RunningThreads)
         tpool.submit(Task3);
         tpool.submit(Task4);
         tpool.submit(Task4);
-        tpool.AllThreadsAdded();
+        tpool.SetAllThreadsAdded(true);
         while (!tpool.IsDone())
         {
             std::this_thread::yield();
