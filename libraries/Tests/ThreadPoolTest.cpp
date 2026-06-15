@@ -69,7 +69,7 @@ TEST_F(TestSuite, RunningThreads)
     std::stringstream Buffer;
     std::streambuf* OldCoutBuffer = std::cout.rdbuf(Buffer.rdbuf());
     {
-        TThreadPool tpool;
+        Tilc::Thread::TThreadPool tpool;
         tpool.submit(Task1);
         tpool.submit(Task1);
         tpool.submit(Task2);
@@ -78,6 +78,7 @@ TEST_F(TestSuite, RunningThreads)
         tpool.submit(Task3);
         tpool.submit(Task4);
         tpool.submit(Task4);
+        tpool.AllThreadsAdded();
         while (!tpool.IsDone())
         {
             std::this_thread::yield();
@@ -86,8 +87,8 @@ TEST_F(TestSuite, RunningThreads)
     std::cout.rdbuf(OldCoutBuffer);
     std::cout << Buffer.str() << std::endl;
 
-    ASSERT_EQ(CountPhrase("1", Buffer), 2);
-    ASSERT_EQ(CountPhrase("2", Buffer), 2);
-    ASSERT_EQ(CountPhrase("3", Buffer), 2);
-    ASSERT_EQ(CountPhrase("4", Buffer), 2);
+    ASSERT_EQ(CountPhrase("This is task 1", Buffer), 2);
+    ASSERT_EQ(CountPhrase("This is task 2", Buffer), 2);
+    ASSERT_EQ(CountPhrase("This is task 3", Buffer), 2);
+    ASSERT_EQ(CountPhrase("This is task 4", Buffer), 2);
 }
