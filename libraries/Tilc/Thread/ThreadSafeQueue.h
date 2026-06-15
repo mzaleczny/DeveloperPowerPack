@@ -1,7 +1,10 @@
+#pragma once
+
 #include <queue>
 #include <mutex>
 #include <condition_variable>
 #include <memory>
+#include "Tilc/DllGlobals.h"
 
 namespace Tilc::Thread
 {
@@ -69,6 +72,12 @@ namespace Tilc::Thread
         {
             std::lock_guard<std::mutex> lk(m_Mutex);
             return m_DataQueue.empty();
+        }
+
+        size_t Size() const
+        {
+            std::lock_guard<std::mutex> lk(m_Mutex);
+            return m_DataQueue.size();
         }
     };
 
