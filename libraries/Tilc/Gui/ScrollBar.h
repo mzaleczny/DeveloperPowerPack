@@ -39,6 +39,8 @@ namespace Tilc::Gui {
         virtual ~TScrollBar();
 
         void SetSteps(int _small, int _large);
+        int GetSmallStep() const { return m_SmallStep; }
+        int GetLargeStep() const { return m_LargeStep; }
         void SetMinValue(int value);
         void SetMaxValue(int value);
         void StepBy(int step, bool redraw = true);

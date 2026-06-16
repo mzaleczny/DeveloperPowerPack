@@ -165,7 +165,10 @@ void Tilc::Gui::TScrollBar::SetPosition(int position, bool fireEvent, bool redra
     {
         OnPositionChanged(oldPosition);
     }
-    Invalidate();
+    if (redraw)
+    {
+        Invalidate();
+    }
 }
 
 void Tilc::Gui::TScrollBar::SetSteps(int _small, int _large)
