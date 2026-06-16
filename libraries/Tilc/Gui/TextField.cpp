@@ -1014,7 +1014,8 @@ int Tilc::Gui::TTextField::CalculateInnerWidth() const
 int Tilc::Gui::TTextField::CalculateInnerHeight() const
 {
     //TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    return m_Position.h - m_PaddingTop - m_PaddingBottom;
+    int scrh = m_HScrollBar ? 10 : 0;
+    return m_Position.h - m_PaddingTop - m_PaddingBottom - scrh;
 }
 
 int Tilc::Gui::TTextField::GetMaxXPosAllowedForContent()

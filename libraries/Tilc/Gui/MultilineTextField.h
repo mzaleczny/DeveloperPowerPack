@@ -10,6 +10,7 @@ namespace Tilc
     namespace Gui
     {
         class TStyledWindow;
+        class TScrollBar;
 
         namespace Helpers {
             class TTextLayoutCache;
@@ -100,9 +101,10 @@ namespace Tilc
             // do odpowiednich fragmentów linii. Tworzenie tekstór musi się odbywać w wątku głównym, bo nie jest bezpieczne w wątkach - próba utworzenia tekstury w wątku = crash.
             void AttachRenderedSegmentsToCache();
 
+            int CalculateNewOffset(TScrollBar* ScrollBar, float MaxScrollPixels, int CurrentPosition);
             void OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
             void OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
-
+            void DrawTextInView();
         };
     }
 }

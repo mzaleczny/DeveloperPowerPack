@@ -291,7 +291,11 @@ void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
     m_Caret->m_Position.y = RealPosition.y + m_PaddingTop + (m_CurrentLine - m_TopLine) * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
-    if (m_Caret->m_Position.x >= RealPosition.x + m_PaddingLeft)
+    if (
+        m_Caret->m_Position.x >= RealPosition.x + m_PaddingLeft && m_Caret->m_Position.x <= RealPosition.x + m_PaddingLeft + CalculateInnerWidth()
+        &&
+        m_Caret->m_Position.y >= RealPosition.y + m_PaddingTop && m_Caret->m_Position.y <= RealPosition.y + m_PaddingTop + CalculateInnerHeight()
+        )
     {
         m_Caret->Show();
     }
@@ -1267,7 +1271,13 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAt
 
 int Tilc::Gui::TMultilineTextField::GetNumberOfVisibleLines() const
 {
-    return CalculateInnerHeight() / m_Caret->m_Position.h;
+    int h = CalculateInnerHeight();
+    int Lines = h / m_Caret->m_Position.h;
+    if (h % static_cast<int>(m_Caret->m_Position.h) >= m_Caret->m_Position.h / 2)
+    {
+        Lines += 1;
+    }
+    return Lines;
 }
 
 void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
@@ -1292,15 +1302,30 @@ void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
     }
 }
 
-void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
+int Tilc::Gui::TMultilineTextField::CalculateNewOffset(TScrollBar* ScrollBar, float MaxScrollPixels, int CurrentPosition)
 {
-    TScrollBarHorizontal* ScrollBar = static_cast<TScrollBarHorizontal*>(Data);
-    SDL_Renderer* Renderer = GetRenderer();
     int PositionLength = ScrollBar->GetMaxValue() - ScrollBar->GetMinValue();
     if (PositionLength <= 0)
     {
-        return;
+        return 0;
     }
+
+    float NewScrollOffset = static_cast<float>(CurrentPosition) / PositionLength * MaxScrollPixels;
+    if (NewScrollOffset < 0)
+    {
+        NewScrollOffset = 0.0f;
+    }
+    if (NewScrollOffset > MaxScrollPixels)
+    {
+        NewScrollOffset = static_cast<float>(MaxScrollPixels);
+    }
+
+    return NewScrollOffset;
+}
+
+void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
+{
+    TScrollBar* ScrollBar = static_cast<TScrollBar*>(Data);
 
     const int MaxScrollPixels = m_HbTextLayoutCache->GetLongestLineWidth() - m_TextTexture->w;
     if (MaxScrollPixels <= 0)
@@ -1308,19 +1333,30 @@ void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Dat
         return;
     }
 
-    float NewScrollOffsetX = static_cast<float>(CurrentPosition) / PositionLength * MaxScrollPixels;
+    m_ScrollOffsetX = CalculateNewOffset(ScrollBar, MaxScrollPixels, CurrentPosition);
 
-    if (NewScrollOffsetX < 0)
+    DrawTextInView();
+}
+
+void Tilc::Gui::TMultilineTextField::OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
+{
+    TScrollBar* ScrollBar = static_cast<TScrollBar*>(Data);
+
+    const int MaxScrollPixels = m_HbTextLayoutCache->GetLinesCount() * m_Caret->m_Position.h - m_TextTexture->h;
+    if (MaxScrollPixels <= 0)
     {
-        NewScrollOffsetX = 0.0f;
-    }
-    if (NewScrollOffsetX > MaxScrollPixels)
-    {
-        NewScrollOffsetX = static_cast<float>(MaxScrollPixels);
+        return;
     }
 
-    m_ScrollOffsetX = static_cast<int>(NewScrollOffsetX);
+    m_ScrollOffsetY = CalculateNewOffset(ScrollBar, MaxScrollPixels, CurrentPosition);
+    // Wyliczamy linie, od której zaczynamy wyświetlanie tekstu w zależności od scroll offsetu w pionie
+    m_TopLine = m_ScrollOffsetY / m_Caret->m_Position.h;
 
+    DrawTextInView();
+}
+
+void Tilc::Gui::TMultilineTextField::DrawTextInView()
+{
     // czyścimy teksturę kontrolki
     SDL_Texture* OldTarget = SDL_GetRenderTarget(Renderer);
     SDL_SetRenderTarget(Renderer, m_TextTexture);
@@ -1348,11 +1384,7 @@ void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Dat
         ++LineIndex;
         ++LineIter;
     }
-    
+
     SDL_SetRenderTarget(Renderer, OldTarget);
     UpdateCaretPos();
-}
-
-void Tilc::Gui::TMultilineTextField::OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
-{
 }
