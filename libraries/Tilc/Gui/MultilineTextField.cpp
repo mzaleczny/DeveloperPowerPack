@@ -756,6 +756,10 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToNextLine(bool SetCaretAtBeginOfL
         if (SetCaretAtBeginOfLine)
         {
             m_CaretAtChar = 0;
+            if (m_HScrollBar)
+            {
+                m_HScrollBar->SetPosition(0);
+            }
         }
         else
         {
@@ -842,6 +846,14 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
         if (m_CaretAtChar < Line.Text32.length())
         {
             ++m_CaretAtChar;
+            // opcjonalnie scrollujemy content jeśli jesteśmy przy prawym brzegu kontrolki i nadal idziemy w prawo
+            if (Line.CaretX[m_CaretAtChar] - m_ScrollOffsetX > CalculateInnerWidth() - 75)
+            {
+                if (m_HScrollBar)
+                {
+                    m_HScrollBar->StepBy(m_HScrollBar->GetSmallStep());
+                }
+            }
         }
         // w przeciwnym razie jeśli przechodzimy do następnej linii (która istnieje)
         else if (m_CurrentLine + 1 < m_HbTextLayoutCache->GetLinesCount())
