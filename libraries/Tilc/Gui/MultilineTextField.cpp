@@ -291,11 +291,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
     m_Caret->m_Position.y = RealPosition.y + m_PaddingTop + (m_CurrentLine - m_TopLine) * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
-    if (
-        m_Caret->m_Position.x >= RealPosition.x + m_PaddingLeft && m_Caret->m_Position.x <= RealPosition.x + m_PaddingLeft + CalculateInnerWidth()
-        &&
-        m_Caret->m_Position.y >= RealPosition.y + m_PaddingTop && m_Caret->m_Position.y <= RealPosition.y + m_PaddingTop + CalculateInnerHeight()
-        )
+    if (IsCaretInsideView())
     {
         m_Caret->Show();
     }
@@ -611,6 +607,8 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     {
         const bool* Keys = SDL_GetKeyboardState(nullptr);
 
+        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
+
         // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
         // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
         // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
@@ -645,6 +643,8 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     else if (vkKey == SDLK_LEFT)
     {
         const bool* Keys = SDL_GetKeyboardState(nullptr);
+
+        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
 
         // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
         // alfanumerycznego, przed którym znajduje się znak nie-alfanumeryczny lub na początek
@@ -681,11 +681,13 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
 
     else if (vkKey == SDLK_UP)
     {
+        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
         MoveCaretToPreviousLine(false);
     }
 
     else if (vkKey == SDLK_DOWN)
     {
+        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
         MoveCaretToNextLine(false);
     }
 
@@ -710,6 +712,8 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             updateCaretPos = true;
             redraw = true;
         }
+        UpdateCaretPos();
+        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
         return;
     }
 
@@ -732,6 +736,8 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             updateCaretPos = true;
             redraw = true;
         }
+        UpdateCaretPos();
+        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
         return;
     }
 }
@@ -740,7 +746,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToNextLine(bool SetCaretAtBeginOfL
 {
     int NumberOfVisibleLines = std::min(GetNumberOfVisibleLines(), m_HbTextLayoutCache->GetLinesCount());
     int LineInView = m_CurrentLine - m_TopLine;
-    if (LineInView < NumberOfVisibleLines)
+    if (LineInView >= 0 && LineInView < NumberOfVisibleLines)
     {
         // jeśli nie wyszliśmy poza dolny brzeg tekstu kontrolki, to po prostu przesuwamy karetkę
         if (LineInView < NumberOfVisibleLines - 1)
@@ -771,10 +777,26 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToNextLine(bool SetCaretAtBeginOfL
             PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
         }
     }
+
+    // move horizontal scrollbar adequately forward to make current position in view
+    if (m_VScrollBar)
+    {
+        if (LineInView < 0 || LineInView == NumberOfVisibleLines - 1)
+        {
+            int position = (static_cast<float>(m_TopLine) / (m_HbTextLayoutCache->GetLinesCount() - NumberOfVisibleLines)) * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue());
+            if (position < 0) position = 0;
+            if (m_CurrentLine == m_HbTextLayoutCache->GetLinesCount() - 1)
+            {
+                position = m_VScrollBar->GetMaxValue();
+            }
+            m_VScrollBar->SetPosition(position, false);
+        }
+    }
 }
 
 void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndOfLine)
 {
+    int NumberOfVisibleLines = std::min(GetNumberOfVisibleLines(), m_HbTextLayoutCache->GetLinesCount());
     int LineInView = m_CurrentLine - m_TopLine;
     if (LineInView >= 0)
     {
@@ -799,11 +821,15 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndO
         {
             Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
             m_CaretAtChar = Line.Text32.length();
-            // move horizontal scrollbar adequately forward to make current position in view
-            if (m_HScrollBar)
+            UpdateCaretPos();
+            if (!IsCaretInsideView())
             {
-                float Position = static_cast<float>(Line.CaretX[m_CaretAtChar]) / m_HbTextLayoutCache->GetLongestLineWidth() * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue());
-                m_HScrollBar->SetPosition(Position);
+                // move horizontal scrollbar adequately forward to make current position in view
+                if (m_HScrollBar)
+                {
+                    float Position = static_cast<float>(Line.CaretX[m_CaretAtChar]) / m_HbTextLayoutCache->GetLongestLineWidth() * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue());
+                    m_HScrollBar->SetPosition(Position);
+                }
             }
         }
         else
@@ -811,6 +837,35 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndO
             PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
         }
     }
+
+    // move horizontal scrollbar adequately forward to make current position in view
+    if (m_VScrollBar)
+    {
+        if (LineInView < 0 || LineInView == 0)
+        {
+            int position = (static_cast<float>(m_TopLine) / (m_HbTextLayoutCache->GetLinesCount() - NumberOfVisibleLines)) * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue());
+            if (position < 0) position = 0;
+            if (m_CurrentLine == m_HbTextLayoutCache->GetLinesCount() - 1)
+            {
+                position = m_VScrollBar->GetMaxValue();
+            }
+            m_VScrollBar->SetPosition(position, false);
+        }
+    }
+}
+
+bool Tilc::Gui::TMultilineTextField::IsCaretInsideView()
+{
+    SDL_FRect RealPosition = m_RealPosition;
+    if (
+        m_Caret->m_Position.x >= RealPosition.x + m_PaddingLeft && m_Caret->m_Position.x <= RealPosition.x + m_PaddingLeft + CalculateInnerWidth()
+        &&
+        m_Caret->m_Position.y >= RealPosition.y + m_PaddingTop && m_Caret->m_Position.y <= RealPosition.y + m_PaddingTop + CalculateInnerHeight()
+        )
+    {
+        return true;
+    }
+    return false;
 }
 
 void Tilc::Gui::TMultilineTextField::ClearSelection(bool redraw)
@@ -1280,6 +1335,12 @@ int Tilc::Gui::TMultilineTextField::GetNumberOfVisibleLines() const
     return Lines;
 }
 
+int Tilc::Gui::TMultilineTextField::GetLineForCaretPos()
+{
+    float y = m_ScrollOffsetY + m_Caret->m_Position.y - m_PaddingTop;
+    return y / m_Caret->m_Position.h;
+}
+
 void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
 {
     while (!Tilc::Gui::Helpers::ReadyQueue.Empty())
@@ -1350,7 +1411,7 @@ void Tilc::Gui::TMultilineTextField::OnVerticalSliderPositionChanged(void* Data,
 
     m_ScrollOffsetY = CalculateNewOffset(ScrollBar, MaxScrollPixels, CurrentPosition);
     // Wyliczamy linie, od której zaczynamy wyświetlanie tekstu w zależności od scroll offsetu w pionie
-    m_TopLine = m_ScrollOffsetY / m_Caret->m_Position.h;
+    m_TopLine = (m_ScrollOffsetY + m_PaddingTop) / m_Caret->m_Position.h;
 
     DrawTextInView();
 }
@@ -1387,4 +1448,30 @@ void Tilc::Gui::TMultilineTextField::DrawTextInView()
 
     SDL_SetRenderTarget(Renderer, OldTarget);
     UpdateCaretPos();
+}
+
+void Tilc::Gui::TMultilineTextField::MoveScrollBarsIntoView()
+{
+    int NumberOfVisibleLines = std::min(GetNumberOfVisibleLines(), m_HbTextLayoutCache->GetLinesCount());
+    Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+
+    // move horizontal scrollbar adequately forward to make current position in view
+    if (m_HScrollBar)
+    {
+        float Position = (static_cast<float>(Line.CaretX[m_CaretAtChar]) - CalculateInnerWidth()) / m_HbTextLayoutCache->GetLongestLineWidth() * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue());
+        if (Position < 0) Position = 0;
+        m_HScrollBar->SetPosition(Position, true);
+    }
+    // move horizontal scrollbar adequately forward to make current position in view
+    if (m_VScrollBar)
+    {
+        m_TopLine = m_CurrentLine;
+        int position = (static_cast<float>(m_TopLine) / (m_HbTextLayoutCache->GetLinesCount() - NumberOfVisibleLines)) * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue());
+        if (position < 0) position = 0;
+        if (m_CurrentLine == m_HbTextLayoutCache->GetLinesCount() - 1)
+        {
+            position = m_VScrollBar->GetMaxValue();
+        }
+        m_VScrollBar->SetPosition(position, true);
+    }
 }

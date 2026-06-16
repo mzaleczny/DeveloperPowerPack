@@ -38,6 +38,7 @@ namespace Tilc
 
             void MoveCaretToNextLine(bool SetCaretAtBeginOfLine);
             void MoveCaretToPreviousLine(bool SetCaretAtEndOfLine);
+            bool IsCaretInsideView();
 
             // Usuwa zaznaczenie (bez usunięcia tekstu, który ono wskazywało) i ewentualnie odrysowuje
             // kontrolkę
@@ -79,6 +80,8 @@ namespace Tilc
             // i po niej kopiowana jest zawartość tekstu od podanej linii do końca minus ostatni linia. Bo po wstawieniu pustej linii tekstu ostatni linia wyjdzie poza granice kontrolki.
             void RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(int StartLineNumber);
             int GetNumberOfVisibleLines() const;
+            // returns line number for current position of caret
+            int GetLineForCaretPos();
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;
@@ -105,6 +108,7 @@ namespace Tilc
             void OnHorizontalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
             void OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
             void DrawTextInView();
+            void MoveScrollBarsIntoView();
         };
     }
 }
