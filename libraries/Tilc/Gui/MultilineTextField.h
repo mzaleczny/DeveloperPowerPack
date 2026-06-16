@@ -35,6 +35,9 @@ namespace Tilc
             // Updates position within text with use of m_CaretAtChar
             virtual void UpdateCursorPosition(unsigned int vkKey, bool& updateCaretPos, bool& redraw) override;
 
+            void MoveCaretToNextLine(bool SetCaretAtBeginOfLine);
+            void MoveCaretToPreviousLine(bool SetCaretAtEndOfLine);
+
             // Usuwa zaznaczenie (bez usunięcia tekstu, który ono wskazywało) i ewentualnie odrysowuje
             // kontrolkę
             virtual void ClearSelection(bool redraw = true) override;

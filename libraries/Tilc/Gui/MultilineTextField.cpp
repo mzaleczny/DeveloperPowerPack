@@ -605,123 +605,84 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
 
     if (vkKey == SDLK_RIGHT)
     {
-        // przetwarzamy zdarzenie jeśli jeszcze nie jesteśmy na końcu tekstu
-        if (m_CaretAtChar < m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine))
-        {
-            const bool* Keys = SDL_GetKeyboardState(nullptr);
+        const bool* Keys = SDL_GetKeyboardState(nullptr);
 
-            // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
-            // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
-            // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
-            if (Keys[SDL_SCANCODE_LCTRL])
+        // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
+        // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
+        // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
+        if (Keys[SDL_SCANCODE_LCTRL])
+        {
+            Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+            // Sprawdzamy czy w momencie początku ruchu kursora jesteśmy na końcu linii
+            bool InitialOnEndLine = (m_CaretAtChar == Line.Text32.length());
+            MoveCaretOneCharRight();
+            // Jeśli w wyniku ruchu przeszliśmy do nowej linii (m_CaretAtChar == 0), to nie wykonujemy dalszego przesunięcia
+            if (m_CaretAtChar > 0)
             {
-                MoveCaretOneCharRight();
-                while (m_CaretAtChar < m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) && !IsWideCharWhiteSpace(m_HbTextLayoutCache->GetLineText(m_CurrentLine)[m_CaretAtChar]))
+                while (m_CaretAtChar < Line.Text32.length() && !IsWideCharWhiteSpace(Line.Text32[m_CaretAtChar]))
                 {
+                    // Jeśli nie byliśmy przed ruchem na początku linii, to zatrzymujemy się po dojściu do końca linii
+                    if (!InitialOnEndLine && m_CaretAtChar == Line.Text32.length())
+                    {
+                        break;
+                    }
                     MoveCaretOneCharRight();
                 }
             }
-            else
-            {
-                MoveCaretOneCharRight();
-            }
-            // ładujemy jeśli trzeba pozycje karetki
-            updateCaretPos = true;
         }
-        else if (m_CurrentLine < m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine))
+        else
         {
-            ++m_CurrentLine;
-            m_CaretAtChar = 0;
-            // ładujemy jeśli trzeba pozycje karetki
-            updateCaretPos = true;
+            MoveCaretOneCharRight();
         }
+        // ładujemy jeśli trzeba pozycje karetki
+        updateCaretPos = true;
         return;
     }
     else if (vkKey == SDLK_LEFT)
     {
-        // jeśli nie jesteśmy na początku tekstu, to przetwarzamy zdarzenie
-        if (m_CaretAtChar > 0)
-        {
-            const bool* Keys = SDL_GetKeyboardState(nullptr);
+        const bool* Keys = SDL_GetKeyboardState(nullptr);
 
-            // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
-            // alfanumerycznego, przed którym znajduje się znak nie-alfanumeryczny lub na początek
-            // tekstu jeśli przed bieżącą pozycją są wyłącznie znaki alfanumeryczne
-            if (Keys[SDL_SCANCODE_LCTRL])
+        // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
+        // alfanumerycznego, przed którym znajduje się znak nie-alfanumeryczny lub na początek
+        // tekstu jeśli przed bieżącą pozycją są wyłącznie znaki alfanumeryczne
+        if (Keys[SDL_SCANCODE_LCTRL])
+        {
+            // Sprawdzamy czy w momencie początku ruchu kursora jesteśmy na początku linii
+            bool InitialOnBeginLine = (m_CaretAtChar == 0);
+            MoveCaretOneCharLeft();
+            Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+            // Jeśli w wyniku ruchu przeszliśmy do poprzedniej linii (m_CaretAtChar == Line.Text32.length()), to w tym kroku się zatrzymujemy
+            if (m_CaretAtChar < Line.Text32.length())
             {
-                MoveCaretOneCharLeft();
-                while (m_CaretAtChar > 0 && !IsWideCharWhiteSpace(m_HbTextLayoutCache->GetLineText(m_CurrentLine)[m_CaretAtChar]))
+                while (m_CaretAtChar > 0 && !IsWideCharWhiteSpace(Line.Text32[m_CaretAtChar]))
                 {
+                    // Jeśli nie byliśmy przed ruchem na początku linii, to zatrzymujemy się po dojściu do początku linii
+                    if (!InitialOnBeginLine && m_CaretAtChar == Line.Text32.length())
+                    {
+                        break;
+                    }
                     MoveCaretOneCharLeft();
                 }
             }
-            else
-            {
-                MoveCaretOneCharLeft();
-            }
-
-            // ładujemy jeśli trzeba pozycje karetki
-            updateCaretPos = true;
         }
-        else if (m_CurrentLine > 0)
+        else
         {
-            --m_CurrentLine;
-            m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine);
-            // ładujemy jeśli trzeba pozycje karetki
-            updateCaretPos = true;
+            MoveCaretOneCharLeft();
         }
+
+        // ładujemy jeśli trzeba pozycje karetki
+        updateCaretPos = true;
         return;
     }
 
     else if (vkKey == SDLK_UP)
     {
-        int LineInView = m_CurrentLine - m_TopLine;
-        if (LineInView >= 0)
-        {
-            // jeśli jesteśmy w środku tekstu kontrolki (poniżej pierwszej widocznej od góry linijki), to przesuwamy karetkę do góry
-            if (LineInView > 0)
-            {
-                --m_CurrentLine;
-                m_Caret->m_Position.y -= m_Caret->m_Position.h;
-            }
-            // jeśli zaś jesteśmy w pierwszej widocznej linijce, to karetki nie przesuwamy do góy tylko scrollujemy tekst na dół
-            else if (m_CurrentLine > 0)
-            {
-                int NumberOfVisibleLines = GetNumberOfVisibleLines();
-                // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
-                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(0);
-                --m_CurrentLine;
-                --m_TopLine;
-                RedrawLineInTextTextureBuffer(0);
-
-            }
-            PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
-        }
+        MoveCaretToPreviousLine(false);
     }
 
     else if (vkKey == SDLK_DOWN)
     {
-        int NumberOfVisibleLines = std::min(GetNumberOfVisibleLines(), m_HbTextLayoutCache->GetLinesCount());
-        int LineInView = m_CurrentLine - m_TopLine;
-        if (LineInView < NumberOfVisibleLines)
-        {
-            // jeśli nie wyszliśmy poza dolny brzeg tekstu kontrolki, to po prostu przesuwamy karetkę
-            if (LineInView < NumberOfVisibleLines - 1)
-            {
-                ++m_CurrentLine;
-                m_Caret->m_Position.y += m_Caret->m_Position.h;
-            }
-            // jeśli jednak wyszliśmy, to przesuwamy tekst do góry (o ile nie zeszliśmy na sam jego dół)
-            else if (m_CurrentLine < m_HbTextLayoutCache->GetLinesCount() - 1)
-            {
-                // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
-                RedrawTextTextureBufferWithoutLine(0);
-                ++m_CurrentLine;
-                ++m_TopLine;
-                RedrawLineInTextTextureBuffer(NumberOfVisibleLines - 1);
-            }
-            PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
-        }
+        MoveCaretToNextLine(false);
     }
 
     else if (vkKey == SDLK_HOME)
@@ -771,6 +732,71 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
     }
 }
 
+void Tilc::Gui::TMultilineTextField::MoveCaretToNextLine(bool SetCaretAtBeginOfLine)
+{
+    int NumberOfVisibleLines = std::min(GetNumberOfVisibleLines(), m_HbTextLayoutCache->GetLinesCount());
+    int LineInView = m_CurrentLine - m_TopLine;
+    if (LineInView < NumberOfVisibleLines)
+    {
+        // jeśli nie wyszliśmy poza dolny brzeg tekstu kontrolki, to po prostu przesuwamy karetkę
+        if (LineInView < NumberOfVisibleLines - 1)
+        {
+            ++m_CurrentLine;
+            m_Caret->m_Position.y += m_Caret->m_Position.h;
+        }
+        // jeśli jednak wyszliśmy, to przesuwamy tekst do góry (o ile nie zeszliśmy na sam jego dół)
+        else if (m_CurrentLine < m_HbTextLayoutCache->GetLinesCount() - 1)
+        {
+            // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
+            RedrawTextTextureBufferWithoutLine(0);
+            ++m_CurrentLine;
+            ++m_TopLine;
+            RedrawLineInTextTextureBuffer(NumberOfVisibleLines - 1);
+        }
+        if (SetCaretAtBeginOfLine)
+        {
+            m_CaretAtChar = 0;
+        }
+        else
+        {
+            PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
+        }
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndOfLine)
+{
+    int LineInView = m_CurrentLine - m_TopLine;
+    if (LineInView >= 0)
+    {
+        // jeśli jesteśmy w środku tekstu kontrolki (poniżej pierwszej widocznej od góry linijki), to przesuwamy karetkę do góry
+        if (LineInView > 0)
+        {
+            --m_CurrentLine;
+            m_Caret->m_Position.y -= m_Caret->m_Position.h;
+        }
+        // jeśli zaś jesteśmy w pierwszej widocznej linijce, to karetki nie przesuwamy do góy tylko scrollujemy tekst na dół
+        else if (m_CurrentLine > 0)
+        {
+            int NumberOfVisibleLines = GetNumberOfVisibleLines();
+            // kopijemy wszystkie linie pomijając pierwszą czyli tekst przesuwa się do góry o jedną linię
+            RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(0);
+            --m_CurrentLine;
+            --m_TopLine;
+            RedrawLineInTextTextureBuffer(0);
+
+        }
+        if (SetCaretAtEndOfLine)
+        {
+            m_CaretAtChar = m_HbTextLayoutCache->GetLine(m_CurrentLine).Text32.length();
+        }
+        else
+        {
+            PositionCaretNearClickedPoint(m_Caret->m_Position.x - m_Position.x, m_Caret->m_Position.y - m_Position.y);
+        }
+    }
+}
+
 void Tilc::Gui::TMultilineTextField::ClearSelection(bool redraw)
 {
     if (!IsSelection())
@@ -791,47 +817,37 @@ void Tilc::Gui::TMultilineTextField::ClearSelection(bool redraw)
 
 void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
 {
-    size_t strLen = m_Text.length();
-    int count = -1;
-
     if (m_CurrentLine >= 0 && m_CurrentLine < m_HbTextLayoutCache->GetLinesCount())
     {
-        int CurrentLineStartChar = 0;
-        Tilc::TExtString CurrentLine = m_HbTextLayoutCache->GetLineUtf8(m_CurrentLine);
-
-        while (m_CaretAtChar + count < strLen && m_CaretAtChar + count >= 0 && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
+        Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+        // Jeśli poruszamy się w obrębie tej samej linii, to po prostu dekrementujemy pozycję kursora
+        if (m_CaretAtChar > 0)
         {
-            count -= 1;
+            --m_CaretAtChar;
         }
-        int NewCaretPos = m_CaretAtChar + count;
-        if (m_CurrentLine > 0)
+        // w przeciwnym razie jeśli przechodzimy do poprzedniej linii (która istnieje)
+        else if (m_CurrentLine > 0)
         {
-            if (NewCaretPos < CurrentLineStartChar)
-            {
-                --m_CurrentLine;
-                return;
-            }
+            MoveCaretToPreviousLine(true);
         }
-        m_CaretAtChar += count;
     }
 }
 
 void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
 {
-    size_t strLen = m_Text.length();
-    int count = 1;
-
     if (m_CurrentLine >= 0 && m_CurrentLine < m_HbTextLayoutCache->GetLinesCount())
     {
-        int CurrentLineStartChar = 0;
-        Tilc::TExtString CurrentLine = m_HbTextLayoutCache->GetLineUtf8(m_CurrentLine);
-
-        while (static_cast<size_t>(m_CaretAtChar + count) < strLen && IsUtf8ContinuationByte(m_Text[m_CaretAtChar + count]))
+        Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+        // Jeśli poruszamy się w obrębie tej samej linii, to po prostu inkrementujemy pozycję kursora
+        if (m_CaretAtChar < Line.Text32.length())
         {
-            count += 1;
+            ++m_CaretAtChar;
         }
-        int NewCaretPos = m_CaretAtChar + count;
-        m_CaretAtChar += count;
+        // w przeciwnym razie jeśli przechodzimy do następnej linii (która istnieje)
+        else if (m_CurrentLine + 1 < m_HbTextLayoutCache->GetLinesCount())
+        {
+            MoveCaretToNextLine(true);
+        }
     }
 }
 
