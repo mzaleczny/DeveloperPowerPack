@@ -9,7 +9,7 @@
 namespace Tilc
 {
 
-    template <typename T> requires (requires (T a, T b) { a < b; })
+    template <Tilc::Comparable T>
     class TExtVectorContainer : public std::vector<T>
     {
     public:
@@ -27,12 +27,12 @@ namespace Tilc
         // Zwraca indeks elementu w wektorze lub wartosc MAX jesli go tam nie bylo.
         size_t IndexOf(const T& Elem) const;
         // zwraca true jesli Element jest w wektorze.
-        bool Contains(const T& Elem) const { return IndexOf(Elem) < UINT_LONGONG_MAX; }
+        bool Contains(const T& Elem) const { return IndexOf(Elem) < Tilc::UINT_LONGLONG_MAX; }
         // usuwa pierwszy element w wektorze
         bool Remove(T First)
         {
             size_t Index = IndexOf(First);
-            if (Index == UINT_LONGONG_MAX) return false;
+            if (Index == Tilc::UINT_LONGLONG_MAX) return false;
             std::vector<T>::erase(std::vector<T>::begin() + Index);
             return true;
         }
@@ -58,7 +58,7 @@ namespace Tilc
     // ********************************************************************************************************
     // UWAGA!!! definicje metod powyzszej klasy musza byc w tym samym pliku, bo inaczej kod sie nie skompiluje.
     // ********************************************************************************************************
-    template <typename T>
+    template <Tilc::Comparable T>
     std::ostream& operator<<(std::ostream& cout, const Tilc::TExtVectorContainer<T>& v)
     {
         // W przeciwnym razie musimy przejrzec potencjalnie caly wektor
@@ -72,7 +72,7 @@ namespace Tilc
         return cout;
     }
 
-    template <typename T>
+    template <Tilc::Comparable T>
     void Tilc::TExtVectorContainer<T>::push_back(const T& Elem)
     {
         // Jesli nie utrzymujemy porzadku, to po prostu dokladamy element na koniec
@@ -83,7 +83,7 @@ namespace Tilc
         }
 
         size_t Index = BinarySearch(Elem, true);
-        if (Index == UINT_LONGONG_MAX)
+        if (Index == Tilc::UINT_LONGLONG_MAX)
         {
             std::vector<T>::push_back(Elem);
         }
@@ -93,13 +93,13 @@ namespace Tilc
         }
     }
 
-    template <typename T>
+    template <Tilc::Comparable T>
     size_t Tilc::TExtVectorContainer<T>::BinarySearch(const T& Elem, bool ReturnInsertionIndex) const
     {
         // Jesli wektor nie jest posortowany, to zwracamy wartosc oznaczajaca brak elementu
         if (!m_KeepSorted)
         {
-            return UINT_LONGONG_MAX;
+            return Tilc::UINT_LONGLONG_MAX;
         }
 
         if (std::vector<T>::size() == 0)
@@ -147,10 +147,10 @@ namespace Tilc
             return Left;
         }
 
-        return UINT_LONGONG_MAX;
+        return Tilc::UINT_LONGLONG_MAX;
     }
 
-    template <typename T>
+    template <Tilc::Comparable T>
     size_t Tilc::TExtVectorContainer<T>::IndexOf(const T& Elem) const
     {
         // Jesli wektor jest posortowany, to znalezienie elementu jest szybkie
@@ -167,14 +167,14 @@ namespace Tilc
                 return true;
             }
         }
-        return UINT_LONGONG_MAX;
+        return Tilc::UINT_LONGLONG_MAX;
     }
 
-    template <typename T>
+    template <Tilc::Comparable T>
     size_t Tilc::TExtVectorContainer<T>::RemoveAll(T Elem)
     {
         size_t Index = IndexOf(Elem);
-        if (Index == UINT_LONGONG_MAX) return 0;
+        if (Index == Tilc::UINT_LONGLONG_MAX) return 0;
 
         size_t Count = 0;
         auto it = std::vector<T>::begin() + Index;
@@ -190,7 +190,7 @@ namespace Tilc
         return Count;
     }
 
-    template <typename T>
+    template <Tilc::Comparable T>
     Tilc::TExtString Tilc::TExtVectorContainer<T>::GetString() const
     {
         Tilc::TExtString s;
@@ -205,7 +205,7 @@ namespace Tilc
         return s;
     }
 
-    template <typename T>
+    template <Tilc::Comparable T>
     void Tilc::TExtVectorContainer<T>::SetSorted(bool Sorted)
     {
         m_KeepSorted = Sorted;
