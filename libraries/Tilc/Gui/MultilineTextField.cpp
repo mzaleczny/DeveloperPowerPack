@@ -756,6 +756,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToNextLine(bool SetCaretAtBeginOfL
         if (SetCaretAtBeginOfLine)
         {
             m_CaretAtChar = 0;
+            // move horizontal scrollbar to the beginning to make current position in view
             if (m_HScrollBar)
             {
                 m_HScrollBar->SetPosition(0);
@@ -792,7 +793,14 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndO
         }
         if (SetCaretAtEndOfLine)
         {
-            m_CaretAtChar = m_HbTextLayoutCache->GetLine(m_CurrentLine).Text32.length();
+            Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+            m_CaretAtChar = Line.Text32.length();
+            // move horizontal scrollbar adequately forward to make current position in view
+            if (m_HScrollBar)
+            {
+                float Position = static_cast<float>(Line.CaretX[m_CaretAtChar]) / m_HbTextLayoutCache->GetLongestLineWidth() * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue());
+                m_HScrollBar->SetPosition(Position);
+            }
         }
         else
         {
@@ -828,6 +836,14 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
         if (m_CaretAtChar > 0)
         {
             --m_CaretAtChar;
+            // opcjonalnie scrollujemy content jeśli jesteśmy przy prawym brzegu kontrolki i nadal idziemy w prawo
+            if (Line.CaretX[m_CaretAtChar] - m_ScrollOffsetX < 75)
+            {
+                if (m_HScrollBar)
+                {
+                    m_HScrollBar->StepBy(-m_HScrollBar->GetSmallStep());
+                }
+            }
         }
         // w przeciwnym razie jeśli przechodzimy do poprzedniej linii (która istnieje)
         else if (m_CurrentLine > 0)
