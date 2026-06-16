@@ -42,6 +42,7 @@ namespace Tilc::Game2D
         float m_Area;
         TTileInfo* m_Tile;
         SDL_FRect m_TileBounds;
+        bool operator<(const TCollisionElement& b) { return m_Area < b.m_Area; }
     };
     using TCollisions = TExtVectorContainer<TCollisionElement>;
     
