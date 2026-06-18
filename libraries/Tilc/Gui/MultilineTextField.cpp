@@ -747,17 +747,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             redraw = true;
         }
         UpdateCaretPos();
-        if (m_HScrollBar)
-        {
-            Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
-            float Position = (static_cast<float>(Line.TotalWidth) / m_HbTextLayoutCache->GetLongestLineWidth()) * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue());
-            if (Position < 0) Position = 0;
-            // Przewijamy tylko wtedy, gdy koniec linii jest poza bieżącym widokiem
-            if (Position < m_ScrollOffsetX || Line.CaretX[m_CaretAtChar] > m_ScrollOffsetX + CalculateInnerWidth())
-            {
-                m_HScrollBar->SetPosition(Position, true);
-            }
-        }
+        MoveHorizontalScrollBarToEndOfLineIfOutOfView();
         return;
     }
 }
@@ -812,6 +802,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToNextLine(bool SetCaretAtBeginOfL
             m_VScrollBar->SetPosition(position, false);
         }
     }
+    MoveHorizontalScrollBarToEndOfLineIfOutOfView();
 }
 
 void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndOfLine)
@@ -872,6 +863,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndO
             m_VScrollBar->SetPosition(position, false);
         }
     }
+    MoveHorizontalScrollBarToEndOfLineIfOutOfView();
 }
 
 bool Tilc::Gui::TMultilineTextField::IsCaretInsideView()
@@ -949,6 +941,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharRight()
                     m_HScrollBar->StepBy(m_HScrollBar->GetSmallStep());
                 }
             }
+            MoveHorizontalScrollBarToEndOfLineIfOutOfView();
         }
         // w przeciwnym razie jeśli przechodzimy do następnej linii (która istnieje)
         else if (m_CurrentLine + 1 < m_HbTextLayoutCache->GetLinesCount())
@@ -1480,5 +1473,20 @@ void Tilc::Gui::TMultilineTextField::MoveScrollBarsIntoView()
             position = m_VScrollBar->GetMaxValue();
         }
         m_VScrollBar->SetPosition(position, true);
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::MoveHorizontalScrollBarToEndOfLineIfOutOfView()
+{
+    if (m_HScrollBar)
+    {
+        Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+        float Position = (static_cast<float>(Line.TotalWidth) / m_HbTextLayoutCache->GetLongestLineWidth()) * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue());
+        if (Position < 0) Position = 0;
+        // Przewijamy tylko wtedy, gdy koniec linii jest poza bieżącym widokiem
+        if (Line.CaretX[m_CaretAtChar] < m_ScrollOffsetX || Line.CaretX[m_CaretAtChar] > m_ScrollOffsetX + CalculateInnerWidth())
+        {
+            m_HScrollBar->SetPosition(Position, true);
+        }
     }
 }

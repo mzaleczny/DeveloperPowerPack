@@ -109,6 +109,7 @@ namespace Tilc
             void OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition);
             void DrawTextInView();
             void MoveScrollBarsIntoView();
+            void MoveHorizontalScrollBarToEndOfLineIfOutOfView();
         };
     }
 }
