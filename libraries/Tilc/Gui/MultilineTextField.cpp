@@ -1437,6 +1437,46 @@ int Tilc::Gui::TMultilineTextField::GetLineForCaretPos()
     return y / m_Caret->m_Position.h;
 }
 
+size_t Tilc::Gui::TMultilineTextField::GetSelectionLength()
+{
+    if (!IsSelection())
+    {
+        return 0;
+    }
+    if (m_SelectionLineStart == m_SelectionLineEnd)
+    {
+        return m_SelEnd - m_SelStart;
+    }
+
+    size_t Result = m_HbTextLayoutCache->GetLine(m_SelectionLineStart).Text32.length() - m_SelStart;
+    for (int i = m_SelectionLineStart + 1; i < m_SelectionLineEnd - 1; ++i)
+    {
+        Result += 1 + m_HbTextLayoutCache->GetLine(i).Text32.length();
+    }
+    Result += 1 + m_SelEnd;
+    return Result;
+}
+
+Tilc::TExtString Tilc::Gui::TMultilineTextField::GetSelectedText()
+{
+    if (!IsSelection())
+    {
+        return Tilc::TExtString();
+    }
+    if (m_SelectionLineStart == m_SelectionLineEnd)
+    {
+        return Tilc::Utf32ToUtf8(m_HbTextLayoutCache->GetLine(m_SelectionLineStart).Text32.substr(m_SelStart, m_SelEnd - m_SelStart));
+    }
+
+    Tilc::TExtString Text = Tilc::Utf32ToUtf8(m_HbTextLayoutCache->GetLine(m_SelectionLineStart).Text32.substr(m_SelStart));
+    for (int i = m_SelectionLineStart + 1; i < m_SelectionLineEnd - 1; ++i)
+    {
+        Text += "\n" + Tilc::Utf32ToUtf8(m_HbTextLayoutCache->GetLine(i).Text32);
+    }
+    Text += "\n" + Tilc::Utf32ToUtf8(m_HbTextLayoutCache->GetLine(m_SelectionLineEnd).Text32.substr(0, m_SelEnd));
+    return Text;
+}
+
 void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
 {
     while (!Tilc::Gui::Helpers::ReadyQueue.Empty())

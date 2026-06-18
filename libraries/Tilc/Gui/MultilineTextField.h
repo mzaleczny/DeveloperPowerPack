@@ -82,6 +82,10 @@ namespace Tilc
             int GetNumberOfVisibleLines() const;
             // returns line number for current position of caret
             int GetLineForCaretPos();
+            // Zwraca łańcuch wskazywany przez zaznaczenie.
+            virtual size_t GetSelectionLength() override;
+            // Zwraca łańcuch wskazywany przez zaznaczenie.
+            virtual Tilc::TExtString GetSelectedText() override;
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;
