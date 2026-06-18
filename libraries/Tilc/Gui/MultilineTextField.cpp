@@ -704,6 +704,10 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             {
                 m_CaretAtChar = 0;
                 m_CurrentLine = 0;
+                if (m_VScrollBar)
+                {
+                    m_VScrollBar->SetPosition(m_VScrollBar->GetMinValue(), true);
+                }
             }
             else
             {
@@ -713,7 +717,10 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             redraw = true;
         }
         UpdateCaretPos();
-        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
+        if (m_HScrollBar)
+        {
+            m_HScrollBar->SetPosition(m_HScrollBar->GetMinValue(), true);
+        }
         return;
     }
 
@@ -722,22 +729,35 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
         {
             const bool* Keys = SDL_GetKeyboardState(nullptr);
 
-            // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
-            // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
-            // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
             if (Keys[SDL_SCANCODE_LCTRL])
             {
-                m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_HbTextLayoutCache->GetLinesCount() - 1);
+                m_CurrentLine = m_HbTextLayoutCache->GetLinesCount() - 1;
+                m_TopLine = m_CurrentLine - m_HbTextLayoutCache->GetLinesCount();
+                if (m_TopLine < 0)
+                {
+                    m_TopLine = 0;
+                }
+                if (m_VScrollBar)
+                {
+                    m_VScrollBar->SetPosition(m_VScrollBar->GetMaxValue(), true);
+                }
             }
-            else
-            {
-                m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine);
-            }
+            m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
             updateCaretPos = true;
             redraw = true;
         }
         UpdateCaretPos();
-        if (!IsCaretInsideView()) MoveScrollBarsIntoView();
+        if (m_HScrollBar)
+        {
+            Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
+            float Position = (static_cast<float>(Line.TotalWidth) / m_HbTextLayoutCache->GetLongestLineWidth()) * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue());
+            if (Position < 0) Position = 0;
+            // Przewijamy tylko wtedy, gdy koniec linii jest poza bieżącym widokiem
+            if (Position < m_ScrollOffsetX || Line.CaretX[m_CaretAtChar] > m_ScrollOffsetX + CalculateInnerWidth())
+            {
+                m_HScrollBar->SetPosition(Position, true);
+            }
+        }
         return;
     }
 }
@@ -1092,19 +1112,6 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
         updateCaretPos = true;
         redraw = true;
         processed = true;
-    }
-    else if (event.key.key == SDLK_HOME)
-    {
-        processed = TTextField::OnKeyDown(event);
-    }
-    else if (event.key.key == SDLK_END)
-    {
-        processed = TTextField::OnKeyDown(event);
-        if (m_CurrentLine >= 0 && m_CurrentLine < m_HbTextLayoutCache->GetLinesCount())
-        {
-            m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine);
-        }
-        updateCaretPos = true;
     }
     else
     {
