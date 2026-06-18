@@ -1462,6 +1462,7 @@ void Tilc::Gui::TMultilineTextField::OnHorizontalSliderPositionChanged(void* Dat
     m_ScrollOffsetX = CalculateNewOffset(ScrollBar, MaxScrollPixels, CurrentPosition);
 
     DrawTextInView();
+    m_StartDrawingSegmentsInBackground = true;
 }
 
 void Tilc::Gui::TMultilineTextField::OnVerticalSliderPositionChanged(void* Data, int PrevPosition, int CurrentPosition)
@@ -1479,6 +1480,7 @@ void Tilc::Gui::TMultilineTextField::OnVerticalSliderPositionChanged(void* Data,
     m_TopLine = (m_ScrollOffsetY + m_PaddingTop) / m_Caret->m_Position.h;
 
     DrawTextInView();
+    m_StartDrawingSegmentsInBackground = true;
 }
 
 void Tilc::Gui::TMultilineTextField::DrawTextInView()

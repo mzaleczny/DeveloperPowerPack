@@ -698,6 +698,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInBackground(int Star
     int EndLine = StartLine + NumberOfLines - 1;
     int LineHeight = m_Face->size->metrics.height >> 6;
 
+    //SDL_Log("====> RenderSegmentsInBackground: StartLine: %d,  NumberOfLines: %d", StartLine, NumberOfLines);
     // Najpierw dodajemy taski do kolejki. Taskiem jest wygenerowanie każdego segmentu w każdej z widocznych na ekranie linii
     for (int i = CurrentLine; i <= EndLine; ++i)
     {
@@ -708,7 +709,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInBackground(int Star
             {
                 Tilc::Gui::Helpers::TSegmentJob Job;
                 Job.Line = std::make_shared<THbTextLayoutCache::TLine>(Line);
-                Job.LineIndex = CurrentLine + i;
+                Job.LineIndex = i;
                 Job.SegmentIndex = Segment;
                 Job.startX = -(Job.SegmentIndex * LINE_TILE_WIDTH);
                 Job.startY = 0;
@@ -721,6 +722,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInBackground(int Star
                 Job.FontFilePath = m_Font->m_FontFilePath;
                 Job.FontSize = m_Font->m_Size;
                 JobQueue.Push(Job);
+                //SDL_Log("Added task for line %d and segment %d", i, Segment);
             }
         }
     }
