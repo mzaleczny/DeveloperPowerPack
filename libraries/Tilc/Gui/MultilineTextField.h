@@ -91,6 +91,7 @@ namespace Tilc
             // Indeksy linijek początku i końca zaznaczenia
             int m_SelectionLineStart{};
             int m_SelectionLineEnd{};
+            int m_SelectionLineBegin{};
             // Number of top line in current text content
             int m_TopLine{ 0 };
 

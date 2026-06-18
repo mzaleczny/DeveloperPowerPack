@@ -82,7 +82,7 @@ namespace Tilc::Gui::Helpers
         void GetSelectionRects(int LineStart, int CharStart,
                                int LineEnd, int CharEnd,
                                std::vector<SDL_FRect>& OutRects,
-                               int LineHeight, int BaseY);
+                               int LineHeight, int BaseY, int OffsetX);
         SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, int LineNumber, int OffsetX = 0);
         SDL_Texture* RenderHbLineToTexture(SDL_Renderer* renderer, TLine& Line, int OffsetX = 0);
         SDL_Surface* RenderHbLineGlyphsToSurface(TLine& line, int Width, int Height, int startX, int startY);

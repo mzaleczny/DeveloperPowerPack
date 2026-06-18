@@ -355,7 +355,7 @@ int Tilc::Gui::Helpers::THbTextLayoutCache::HitTestCharIndex(TLine& Line, int X)
 void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
                                            int LineEnd, int CharEnd,
                                            std::vector<SDL_FRect>& OutRects,
-                                           int LineHeight, int BaseY)
+                                           int LineHeight, int BaseY, int OffsetX)
 {
     OutRects.clear();
     if (LineStart > LineEnd || (LineStart == LineEnd && CharStart >= CharEnd))
@@ -373,8 +373,8 @@ void THbTextLayoutCache::GetSelectionRects(int LineStart, int CharStart,
         if (endChar > (int)ln.Text32.size()) endChar = (int)ln.Text32.size();
         if (startChar >= endChar) continue;
 
-        int x1 = ln.CaretX[startChar];
-        int x2 = std::min(ln.CaretX[endChar], m_MaxWidth);
+        int x1 = std::max(0, ln.CaretX[startChar] - OffsetX);
+        int x2 = std::min(std::max(0, ln.CaretX[endChar] - OffsetX), m_MaxWidth);
 
         SDL_FRect r;
         r.x = (float)x1;

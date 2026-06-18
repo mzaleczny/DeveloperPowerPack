@@ -87,14 +87,17 @@ void Tilc::Gui::TMultilineTextField::Draw()
     if (m_SelStart < m_SelEnd || m_SelectionLineStart < m_SelectionLineEnd)
     {
         std::vector<SDL_FRect> SelRects;
-        m_HbTextLayoutCache->GetSelectionRects(m_SelectionLineStart, m_SelStart, m_SelectionLineEnd, m_SelEnd, SelRects, m_Caret->m_Position.h, m_PaddingTop);
+        m_HbTextLayoutCache->GetSelectionRects(m_SelectionLineStart, m_SelStart, m_SelectionLineEnd, m_SelEnd, SelRects, m_Caret->m_Position.h, m_PaddingTop, m_ScrollOffsetX);
         std::for_each(SelRects.begin(), SelRects.end(), [this, TextureMap, t, RealPosition](SDL_FRect item) {
             if (item.w > 0)
             {
                 item.x += RealPosition.x + m_PaddingLeft;
                 item.y += RealPosition.y;
                 item.w = std::min(static_cast<int>(item.w), m_TextTexture->w);
-                RenderTiledTexture(TextureMap, &t->textfield_selection_rc, &item);
+                if (item.y + item.h <= RealPosition.y + CalculateInnerHeight() + m_PaddingBottom + item.h / 2.0)
+                {
+                    RenderTiledTexture(TextureMap, &t->textfield_selection_rc, &item);
+                }
             }
         });
     }
@@ -349,6 +352,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             m_SelBegin = lastCaretAtChar;
             m_SelectionLineStart = m_CurrentLine;
             m_SelectionLineEnd = m_CurrentLine+1;
+            m_SelectionLineBegin = m_CurrentLine;
             redraw = true;
         }
         // jeśli cofamy się z zaznaczeniem o jedną linijkę w górę, ale nadal początek zaznaczenia jest na lewo od bieżącej pozycji
@@ -394,6 +398,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             m_SelBegin = lastCaretAtChar;
             m_SelectionLineStart = PrevLineNumber;
             m_SelectionLineEnd = m_CurrentLine;
+            m_SelectionLineBegin = PrevLineNumber;
             redraw = true;
         }
         // jeśli cofamy się z zaznaczeniem o jedną linijkę w dół, ale nadal koniec zaznaczenia jest na prawo od bieżącej pozycji
@@ -441,6 +446,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             if (!IsSelection())
             {
                 m_SelBegin = lastCaretAtChar;
+                m_SelectionLineBegin = m_CurrentLine;
             }
             if (Keys[SDL_SCANCODE_LCTRL])
             {
@@ -462,6 +468,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             if (!IsSelection())
             {
                 m_SelBegin = lastCaretAtChar;
+                m_SelectionLineBegin = m_CurrentLine;
             }
             if (Keys[SDL_SCANCODE_LCTRL])
             {
@@ -482,7 +489,22 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
         // this->_startChar i this->_caretAtChar
         else if (vkKey == SDLK_LEFT)
         {
-            if (!IsSelection())
+            bool bIsSelection = IsSelection();
+            if (bIsSelection)
+            {
+                if (m_CaretAtChar == LineEndPos)
+                {
+                    if (m_SelectionLineStart < m_CurrentLine)
+                    {
+                        m_SelectionLineEnd = m_CurrentLine;
+                    }
+                    else
+                    {
+                        m_SelectionLineStart = m_CurrentLine;
+                    }
+                }
+            }
+            if (!bIsSelection)
             {
                 if (static_cast<unsigned int>(m_CaretAtChar) >= 0)
                 {
@@ -491,6 +513,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
                     m_SelBegin = m_SelStart;
                     m_SelectionLineStart = m_CurrentLine;
                     m_SelectionLineEnd = m_CurrentLine;
+                    m_SelectionLineBegin = m_CurrentLine;
                     redraw = true;
                 }
             }
@@ -524,6 +547,31 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
                     m_SelEnd = m_CaretAtChar;
                     m_SelectionLineEnd = m_CurrentLine;
                 }
+                else if (m_CurrentLine == m_SelectionLineStart)
+                {
+                    if (m_SelectionLineStart < m_SelectionLineBegin)
+                    {
+                        m_SelStart = m_CaretAtChar;
+                        m_SelectionLineStart = m_CurrentLine;
+                    }
+                    else if (m_SelectionLineStart > m_SelectionLineBegin)
+                    {
+                        m_SelEnd = m_CaretAtChar;
+                        m_SelectionLineEnd = m_CurrentLine;
+                    }
+                    else
+                    {
+                        if (m_CaretAtChar <= m_SelBegin)
+                        {
+                            m_SelStart = m_CaretAtChar;
+                        }
+                        else
+                        {
+                            m_SelEnd = m_CaretAtChar;
+                        }
+                        m_SelectionLineStart = m_SelectionLineEnd = m_CurrentLine;
+                    }
+                }
                 else
                 {
                     m_SelStart = m_CaretAtChar;
@@ -536,7 +584,22 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
 
         if (vkKey == SDLK_RIGHT)
         {
-            if (!IsSelection())
+            bool bIsSelection = IsSelection();
+            if (bIsSelection)
+            {
+                if (m_CaretAtChar == 0)
+                {
+                    if (m_SelectionLineBegin < m_CurrentLine)
+                    {
+                        m_SelectionLineEnd = m_CurrentLine;
+                    }
+                    else
+                    {
+                        m_SelectionLineStart = m_CurrentLine;
+                    }
+                }
+            }
+            if (!bIsSelection)
             {
                 if (m_CaretAtChar < LineEndPos)
                 {
@@ -545,6 +608,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
                     m_SelBegin = m_SelStart;
                     m_SelectionLineStart = m_CurrentLine;
                     m_SelectionLineEnd = m_CurrentLine;
+                    m_SelectionLineBegin = m_CurrentLine;
                     redraw = true;
                 }
             }
@@ -892,6 +956,7 @@ void Tilc::Gui::TMultilineTextField::ClearSelection(bool redraw)
     m_SelBegin = 0;
     m_SelectionLineStart = 0;
     m_SelectionLineEnd = 0;
+    m_SelectionLineBegin = 0;
     if (redraw)
     {
         Invalidate();
