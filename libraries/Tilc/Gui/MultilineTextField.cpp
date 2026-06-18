@@ -87,7 +87,8 @@ void Tilc::Gui::TMultilineTextField::Draw()
     if (m_SelStart < m_SelEnd || m_SelectionLineStart < m_SelectionLineEnd)
     {
         std::vector<SDL_FRect> SelRects;
-        m_HbTextLayoutCache->GetSelectionRects(m_SelectionLineStart, m_SelStart, m_SelectionLineEnd, m_SelEnd, SelRects, m_Caret->m_Position.h, m_PaddingTop, m_ScrollOffsetX);
+        m_HbTextLayoutCache->GetSelectionRects(m_SelectionLineStart, m_SelStart, m_SelectionLineEnd, m_SelEnd, SelRects, m_Caret->m_Position.h,
+            m_PaddingTop - m_TopLine * m_Caret->m_Position.h, m_ScrollOffsetX);
         std::for_each(SelRects.begin(), SelRects.end(), [this, TextureMap, t, RealPosition](SDL_FRect item) {
             if (item.w > 0)
             {
@@ -294,6 +295,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
     m_Caret->m_Position.y = RealPosition.y + m_PaddingTop + (m_CurrentLine - m_TopLine) * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
+    //SDL_Log("CaretPos: %.2f x %.2f", m_Caret->m_Position.x, m_Caret->m_Position.y);
     if (IsCaretInsideView())
     {
         m_Caret->Show();
@@ -446,20 +448,33 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             if (!IsSelection())
             {
                 m_SelBegin = lastCaretAtChar;
-                m_SelectionLineBegin = m_CurrentLine;
+                m_SelectionLineBegin = PrevLineNumber;
+                m_SelectionLineStart = 0;
+                m_SelectionLineEnd = PrevLineNumber;
             }
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 LineStartPos = 0;
             }
-            int DestPos = LineStartPos;
-            if (DestPos > m_SelBegin)
+            if (m_CurrentLine < PrevLineNumber)
             {
-                m_SelEnd = DestPos;
+                m_SelStart = LineStartPos;
+                m_SelectionLineStart = 0;
+                m_SelEnd = m_SelBegin;
+                m_SelectionLineEnd = m_SelectionLineBegin;
             }
             else
             {
-                m_SelStart = DestPos;
+                if (m_CaretAtChar < m_SelBegin)
+                {
+                    m_SelStart = LineStartPos;
+                    m_SelectionLineStart = 0;
+                }
+                else
+                {
+                    m_SelEnd = LineStartPos;
+                    m_SelectionLineEnd = 0;
+                }
             }
             redraw = true;
         }
@@ -468,20 +483,34 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
             if (!IsSelection())
             {
                 m_SelBegin = lastCaretAtChar;
-                m_SelectionLineBegin = m_CurrentLine;
+                m_SelectionLineBegin = PrevLineNumber;
+                m_SelectionLineStart = PrevLineNumber;
+                m_SelectionLineEnd = m_HbTextLayoutCache->GetLinesCount() - 1;
             }
             if (Keys[SDL_SCANCODE_LCTRL])
             {
-                LineEndPos = m_Text.length();
+                LineEndPos = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
             }
             int DestPos = LineEndPos;
-            if (DestPos < m_SelEnd)
+            if (m_CurrentLine > PrevLineNumber)
             {
-                m_SelStart = DestPos;
+                m_SelStart = m_SelBegin;
+                m_SelectionLineStart = m_SelectionLineBegin;
+                m_SelEnd = LineEndPos;
+                m_SelectionLineEnd = m_CurrentLine;
             }
             else
             {
-                m_SelEnd = DestPos;
+                if (m_CaretAtChar > m_SelBegin)
+                {
+                    m_SelStart = LineEndPos;
+                    m_SelectionLineStart = m_CurrentLine;
+                }
+                else
+                {
+                    m_SelEnd = LineEndPos;
+                    m_SelectionLineEnd = m_CurrentLine;
+                }
             }
             redraw = true;
         }
@@ -796,7 +825,8 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             if (Keys[SDL_SCANCODE_LCTRL])
             {
                 m_CurrentLine = m_HbTextLayoutCache->GetLinesCount() - 1;
-                m_TopLine = m_CurrentLine - m_HbTextLayoutCache->GetLinesCount();
+                m_TopLine = m_CurrentLine - GetNumberOfVisibleLines() + 1;
+                m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
                 if (m_TopLine < 0)
                 {
                     m_TopLine = 0;
@@ -806,7 +836,10 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
                     m_VScrollBar->SetPosition(m_VScrollBar->GetMaxValue(), true);
                 }
             }
-            m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
+            else
+            {
+                m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
+            }
             updateCaretPos = true;
             redraw = true;
         }
@@ -1194,15 +1227,13 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     }
     else if (vkControl && event.key.key == SDLK_END)
     {
-        m_CurrentLine = 0;
         m_CurrentLine = m_HbTextLayoutCache->GetLinesCount() - 1;
-        m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine);
+        m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
         updateCaretPos = true;
     }
 
     if (updateCaretPos)
     {
-        CalculateCaretPos();
         UpdateCaretPos();
     }
     if (redraw)
