@@ -757,7 +757,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
 
     else if (vkKey == SDLK_HOME)
     {
-        if (m_CaretAtChar > 0)
+        if (m_CaretAtChar > 0 || m_CurrentLine > 0)
         {
             const bool* Keys = SDL_GetKeyboardState(nullptr);
 
