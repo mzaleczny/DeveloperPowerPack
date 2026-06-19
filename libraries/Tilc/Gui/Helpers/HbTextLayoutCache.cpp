@@ -214,6 +214,15 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteLine(int LineNumber)
         }
     }
     m_Lines.erase(m_Lines.begin() + LineNumber);
+    // Recalculate longest line width
+    m_LongestLineWidth = 0;
+    for (int i = 0; i < m_Lines.size(); ++i)
+    {
+        if (m_Lines[i].TotalWidth > m_LongestLineWidth)
+        {
+            m_LongestLineWidth = m_Lines[i].TotalWidth;
+        }
+    }
 }
 
 void Tilc::Gui::Helpers::THbTextLayoutCache::AppendEmptyLine()
@@ -736,7 +745,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInBackground(int Star
 
     //SDL_Log("====> RenderSegmentsInBackground: StartLine: %d,  NumberOfLines: %d", StartLine, NumberOfLines);
     // Najpierw dodajemy taski do kolejki. Taskiem jest wygenerowanie każdego segmentu w każdej z widocznych na ekranie linii
-    for (int i = CurrentLine; i <= EndLine; ++i)
+    for (int i = CurrentLine; i <= EndLine && i < m_Lines.size(); ++i)
     {
         THbTextLayoutCache::TLine& Line = m_Lines[i];
         for (int Segment = 0; Segment < Line.Segments.size(); ++Segment)
