@@ -1137,12 +1137,12 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
-        }
 
-        // Get number of lines per control
-        int NumberOfLines = GetNumberOfVisibleLines();
-        RedrawLineInTextTextureBuffer(NumberOfLines-2);
-        RedrawLineInTextTextureBuffer(NumberOfLines-1);
+            // Get number of lines per control
+            int NumberOfLines = GetNumberOfVisibleLines();
+            RedrawLineInTextTextureBuffer(NumberOfLines - 2);
+            RedrawLineInTextTextureBuffer(NumberOfLines - 1);
+        }
 
         updateCaretPos = true;
         redraw = true;
@@ -1170,12 +1170,12 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
-        }
 
-        // Get number of lines per control
-        int NumberOfLines = GetNumberOfVisibleLines();
-        RedrawLineInTextTextureBuffer(NumberOfLines-2);
-        RedrawLineInTextTextureBuffer(NumberOfLines-1);
+            // Get number of lines per control
+            int NumberOfLines = GetNumberOfVisibleLines();
+            RedrawLineInTextTextureBuffer(NumberOfLines - 2);
+            RedrawLineInTextTextureBuffer(NumberOfLines - 1);
+        }
 
         updateCaretPos = true;
         redraw = true;
@@ -1308,6 +1308,7 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 
 void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumber)
 {
+    if (LineNumber < 0 || LineNumber >= m_HbTextLayoutCache->GetLinesCount()) return;
     // Przy określaniu linii uwzględniamy zmienną TopLine, żeby móc wskazywać linie nie mieszczące się w widoku kontrolki
     SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, m_TopLine + LineNumber, m_ScrollOffsetX);
     if (TextLineTexture)
@@ -1349,6 +1350,7 @@ void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumbe
 
 void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int WithoutLineNumber)
 {
+    if (WithoutLineNumber < 0 || WithoutLineNumber >= m_HbTextLayoutCache->GetLinesCount()) return;
     SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
     if (NewTextTexture)
     {
@@ -1399,8 +1401,53 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
     }
 }
 
+void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLines(int ToLine, int FromLine, int VisibleLines)
+{
+    SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
+    if (NewTextTexture)
+    {
+        SDL_FRect rc{};
+        SDL_FRect DestRect{};
+
+        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, NewTextTexture);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        rc.w = NewTextTexture->w;
+        rc.h = NewTextTexture->h;
+        SDL_RenderFillRect(Renderer, &rc);
+
+        if (ToLine > 0 && ToLine < m_HbTextLayoutCache->GetLinesCount())
+        {
+            rc.y = 0;
+            rc.h = ToLine * m_Caret->m_Position.h;
+            DestRect.w = rc.w;
+            DestRect.h = rc.h;
+            SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
+        }
+        rc.y = FromLine * m_Caret->m_Position.h;
+        rc.h = (VisibleLines - FromLine) * m_Caret->m_Position.h;
+        DestRect.y = ToLine * m_Caret->m_Position.h;
+        DestRect.w = rc.w;
+        DestRect.h = rc.h;
+        SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
+
+        SDL_SetRenderTarget(Renderer, m_TextTexture);
+        DestRect.x = 0;
+        DestRect.y = 0;
+        DestRect.w = NewTextTexture->w;
+        DestRect.h = NewTextTexture->h;
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        SDL_RenderFillRect(Renderer, &DestRect);
+        SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
+
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        SDL_DestroyTexture(NewTextTexture);
+    }
+}
+
 void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(int StartLineNumber)
 {
+    if (StartLineNumber < 0 || StartLineNumber >= m_HbTextLayoutCache->GetLinesCount()) return;
     SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
     if (NewTextTexture)
     {
@@ -1535,6 +1582,43 @@ Tilc::TExtString Tilc::Gui::TMultilineTextField::GetSelectedText()
     }
     Text += "\n" + Tilc::Utf32ToUtf8(m_HbTextLayoutCache->GetLine(m_SelectionLineEnd).Text32.substr(0, m_SelEnd));
     return Text;
+}
+
+void Tilc::Gui::TMultilineTextField::ReplaceSelectionWith(const Tilc::TExtString& replaceWith, bool redraw)
+{
+}
+
+void Tilc::Gui::TMultilineTextField::RemoveSelectedText(bool redraw)
+{
+    if (m_SelectionLineStart == m_SelectionLineEnd)
+    {
+        m_HbTextLayoutCache->DeleteText(m_SelectionLineStart, m_SelStart, m_SelEnd - m_SelStart);
+        RedrawLineInTextTextureBuffer(m_SelectionLineEnd - m_TopLine);
+    }
+    else
+    {
+        RedrawTextTextureBufferWithoutLines(m_SelectionLineStart - m_TopLine, m_SelectionLineEnd - m_TopLine, GetNumberOfVisibleLines());
+        // Usuń linijki od Start+1 do End-1
+        int Count = m_SelectionLineEnd - m_SelectionLineStart - 1;
+        for (int i = 0; i < Count; ++i)
+        {
+            m_HbTextLayoutCache->DeleteLine(m_SelectionLineStart + 1);
+        }
+        // Usuń tekst z pierwszej zaznaczonej linijki od SelStart do końca
+        m_HbTextLayoutCache->DeleteText(m_SelectionLineStart, m_SelStart);
+        // Usuń tekst z ostatniej zaznaczonej linijki od SelEnd od początku do SelEnd
+        m_HbTextLayoutCache->DeleteText(m_SelectionLineStart+1, 0, m_SelEnd);
+        // Połącz linijki SelectionLineStart i SelectionLineStart+1
+        m_HbTextLayoutCache->JoinLines(m_SelectionLineStart, m_SelectionLineStart + 1);
+        RedrawLineInTextTextureBuffer(m_SelectionLineStart - m_TopLine);
+        for (int i = m_SelectionLineStart; (i - m_TopLine < GetNumberOfVisibleLines()) && (i < m_HbTextLayoutCache->GetLinesCount()); ++i)
+        {
+            RedrawLineInTextTextureBuffer(i - m_TopLine);
+        }
+        m_CurrentLine = m_SelectionLineStart;
+        m_CaretAtChar = m_SelStart;
+    }
+    ClearSelection();
 }
 
 void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()

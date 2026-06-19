@@ -104,9 +104,9 @@ namespace Tilc
             // (length) liczonej w znakach. Ewentualnie odrysowuje kontrolkę.
             void SetSelection(size_t start, size_t length, bool redraw = true);
             // zastępuje tekst wskazywany przez zaznaczenie i ewentualnie odrysowuje kontrolkę.
-            void ReplaceSelectionWith(const Tilc::TExtString& replaceWith, bool redraw = true);
+            virtual void ReplaceSelectionWith(const Tilc::TExtString& replaceWith, bool redraw = true);
             // usuwa tekst wskazywany przez zaznaczenie i ewentualnie odrysowuje kontrolkę.
-            void RemoveSelectedText(bool redraw = true);
+            virtual void RemoveSelectedText(bool redraw = true);
 
             // Zwraca długość zaznaczenia liczoną w znakach.
             virtual size_t GetSelectionLength();

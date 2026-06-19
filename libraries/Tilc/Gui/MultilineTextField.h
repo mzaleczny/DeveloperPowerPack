@@ -74,10 +74,15 @@ namespace Tilc
             // LineNumber jest numerem linii od 0 do NumerWidocznychLinii - 1
             void RedrawLineInTextTextureBuffer(int LineNumber);
             // Odświeża bufor przechowujący cały tekst widoczny w kontrolce tak, że zawiera on wszystkie linie jedna pod drugą, ale bez linii o podanym numerze. Przed odpowiednim skopiowaniem
-            // tekstu bufor jest czyszczony kolorem przezroczystym. W wyniku tej operacji na dole bufora zostaje więcwolne miejsce na kolejną linię. Któą należy wyrysować po wywołaniu tej
+            // tekstu bufor jest czyszczony kolorem przezroczystym. W wyniku tej operacji na dole bufora zostaje więcwolne miejsce na kolejną linię. Którą należy wyrysować po wywołaniu tej
             // funkcji.
             // WithoutLineNumber jest numerem linii od 0 do NumerWidocznychLinii - 1
             void RedrawTextTextureBufferWithoutLine(int WithoutLineNumber);
+            // Odświeża bufor przechowujący cały tekst widoczny w kontrolce tak, że zawiera on wszystkie linie jedna pod drugą, ale do linii ToLine ale bez niej a następnie w ciągu od linii
+            // FromLine. Przed odpowiednim skopiowaniem tekstu bufor jest czyszczony kolorem przezroczystym. W wyniku tej operacji na dole bufora zostaje więcwolne miejsce na kolejną linię.
+            // Którą należy wyrysować po wywołaniu tej funkcji.
+            // WithoutLineNumbers zawiera numery linii o wartościch od 0 do NumerWidocznychLinii - 1
+            void RedrawTextTextureBufferWithoutLines(int ToLine, int FromLine, int VisibleLines);
             // Odświeża bufor przechowujący cały tekst widoczny w kontrolce tak, że kopiowana jest z niego zawartość tekstu do podanej linii, następnie zostawiana jest linia przerwy
             // i po niej kopiowana jest zawartość tekstu od podanej linii do końca minus ostatni linia. Bo po wstawieniu pustej linii tekstu ostatni linia wyjdzie poza granice kontrolki.
             // StartLineNumber jest numerem linii od 0 do NumerWidocznychLinii - 1
@@ -90,6 +95,10 @@ namespace Tilc
             virtual size_t GetSelectionLength() override;
             // Zwraca łańcuch wskazywany przez zaznaczenie.
             virtual Tilc::TExtString GetSelectedText() override;
+            // zastępuje tekst wskazywany przez zaznaczenie i ewentualnie odrysowuje kontrolkę.
+            virtual void ReplaceSelectionWith(const Tilc::TExtString& replaceWith, bool redraw = true) override;
+            // usuwa tekst wskazywany przez zaznaczenie i ewentualnie odrysowuje kontrolkę.
+            virtual void RemoveSelectedText(bool redraw = true) override;
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;

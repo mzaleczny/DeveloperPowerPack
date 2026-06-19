@@ -186,6 +186,28 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::InsertText(int LineNumber, int Inse
     EnsureLineLayout(LineNumber);
 }
 
+void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteText(int LineNumber, size_t StartPos, size_t Count)
+{
+    if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
+    TLine& Line = m_Lines[LineNumber];
+    if (Count != std::string::npos)
+    {
+        Line.Text32.erase(StartPos, Count);
+    }
+    else
+    {
+        Line.Text32.erase(StartPos);
+    }
+    Line.Dirty = true;
+    EnsureLineLayout(LineNumber);
+}
+
+void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteLine(int LineNumber)
+{
+    if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
+    m_Lines.erase(m_Lines.begin() + LineNumber);
+}
+
 void Tilc::Gui::Helpers::THbTextLayoutCache::AppendEmptyLine()
 {
     m_Lines.emplace_back();
