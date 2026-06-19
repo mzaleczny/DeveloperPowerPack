@@ -452,7 +452,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
                 m_SelectionLineStart = 0;
                 m_SelectionLineEnd = PrevLineNumber;
             }
-            if (Keys[SDL_SCANCODE_LCTRL])
+            if (Keys[SDL_SCANCODE_LCTRL] || Keys[SDL_SCANCODE_RCTRL])
             {
                 LineStartPos = 0;
             }
@@ -487,7 +487,7 @@ void Tilc::Gui::TMultilineTextField::UpdateSelection(unsigned int vkKey, int las
                 m_SelectionLineStart = PrevLineNumber;
                 m_SelectionLineEnd = m_HbTextLayoutCache->GetLinesCount() - 1;
             }
-            if (Keys[SDL_SCANCODE_LCTRL])
+            if (Keys[SDL_SCANCODE_LCTRL] || Keys[SDL_SCANCODE_RCTRL])
             {
                 LineEndPos = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
             }
@@ -705,7 +705,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
         // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
         // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
         // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
-        if (Keys[SDL_SCANCODE_LCTRL])
+        if (Keys[SDL_SCANCODE_LCTRL] || Keys[SDL_SCANCODE_RCTRL])
         {
             Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
             // Sprawdzamy czy w momencie początku ruchu kursora jesteśmy na końcu linii
@@ -742,7 +742,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
         // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
         // alfanumerycznego, przed którym znajduje się znak nie-alfanumeryczny lub na początek
         // tekstu jeśli przed bieżącą pozycją są wyłącznie znaki alfanumeryczne
-        if (Keys[SDL_SCANCODE_LCTRL])
+        if (Keys[SDL_SCANCODE_LCTRL] || Keys[SDL_SCANCODE_RCTRL])
         {
             // Sprawdzamy czy w momencie początku ruchu kursora jesteśmy na początku linii
             bool InitialOnBeginLine = (m_CaretAtChar == 0);
@@ -793,7 +793,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
             // jeśli trzymany jest dowolny klawisz Control, to idziemy do najbliższego znaku
             // alfanumerycznego, po którym znajduje się znak nie-alfanumeryczny lub na koniec
             // tekstu jeśli po bieżącej pozycji są wyłącznie znaki alfanumeryczne
-            if (Keys[SDL_SCANCODE_LCTRL])
+            if (Keys[SDL_SCANCODE_LCTRL] || Keys[SDL_SCANCODE_RCTRL])
             {
                 m_CaretAtChar = 0;
                 m_CurrentLine = 0;
@@ -822,7 +822,7 @@ void Tilc::Gui::TMultilineTextField::UpdateCursorPosition(unsigned int vkKey, bo
         {
             const bool* Keys = SDL_GetKeyboardState(nullptr);
 
-            if (Keys[SDL_SCANCODE_LCTRL])
+            if (Keys[SDL_SCANCODE_LCTRL] || Keys[SDL_SCANCODE_RCTRL])
             {
                 m_CurrentLine = m_HbTextLayoutCache->GetLinesCount() - 1;
                 m_TopLine = m_CurrentLine - GetNumberOfVisibleLines() + 1;
