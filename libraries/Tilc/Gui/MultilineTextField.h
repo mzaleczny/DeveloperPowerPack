@@ -79,6 +79,7 @@ namespace Tilc
             // Odświeża bufor przechowujący cały tekst widoczny w kontrolce tak, że kopiowana jest z niego zawartość tekstu do podanej linii, następnie zostawiana jest linia przerwy
             // i po niej kopiowana jest zawartość tekstu od podanej linii do końca minus ostatni linia. Bo po wstawieniu pustej linii tekstu ostatni linia wyjdzie poza granice kontrolki.
             void RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(int StartLineNumber);
+            void RedrawTextTextureBufferAddingEmptyLineOnBottom();
             int GetNumberOfVisibleLines() const;
             // returns line number for current position of caret
             int GetLineForCaretPos();

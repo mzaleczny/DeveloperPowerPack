@@ -186,6 +186,12 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::InsertText(int LineNumber, int Inse
     EnsureLineLayout(LineNumber);
 }
 
+void Tilc::Gui::Helpers::THbTextLayoutCache::AppendEmptyLine()
+{
+    m_Lines.emplace_back();
+    EnsureLineLayout(m_Lines.size() - 1);
+}
+
 void THbTextLayoutCache::ShapeLine(TLine& Line)
 {
     Line.Glyphs.clear();

@@ -1183,22 +1183,33 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
     }
     else if (event.key.key == SDLK_RETURN)
     {
-        m_HbTextLayoutCache->BreakLineAtCharIndex(m_CurrentLine, m_CaretAtChar);
-        if (m_CaretAtChar > 0)
+        if (m_CurrentLine < m_HbTextLayoutCache->GetLinesCount() - 1 || m_CaretAtChar < m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1)
         {
-            RedrawLineInTextTextureBuffer(m_CurrentLine);
-            m_CaretAtChar = 0;
-            ++m_CurrentLine;
-            RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
-            RedrawLineInTextTextureBuffer(m_CurrentLine);
+            m_HbTextLayoutCache->BreakLineAtCharIndex(m_CurrentLine, m_CaretAtChar);
+            if (m_CaretAtChar > 0)
+            {
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                m_CaretAtChar = 0;
+                ++m_CurrentLine;
+                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+            }
+            else
+            {
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                m_CaretAtChar = 0;
+                ++m_CurrentLine;
+                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine);
+            }
         }
         else
         {
-            RedrawLineInTextTextureBuffer(m_CurrentLine);
+            m_HbTextLayoutCache->AppendEmptyLine();
             m_CaretAtChar = 0;
             ++m_CurrentLine;
-            RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
-            RedrawLineInTextTextureBuffer(m_CurrentLine);
+            ++m_TopLine;
+            RedrawTextTextureBufferAddingEmptyLineOnBottom();
         }
         updateCaretPos = true;
         redraw = true;
@@ -1262,9 +1273,20 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
         else
         {
             std::u32string InsertString32 = Utf8ToUtf32(event.text.text);
-            m_HbTextLayoutCache->InsertText(m_CurrentLine, m_CaretAtChar, InsertString32);
-            // i przesuwamy karetkę w prawo
-            m_CaretAtChar += InsertString32.length();
+            if (InsertString32.length() > 0)
+            {
+                if (InsertString32.compare({ L'\n' }) && InsertString32.compare({ L'\n', L'\n'}))
+                {
+                    m_HbTextLayoutCache->InsertText(m_CurrentLine, m_CaretAtChar, InsertString32);
+                    // i przesuwamy karetkę w prawo
+                    m_CaretAtChar += InsertString32.length();
+                }
+                else
+                {
+                    m_HbTextLayoutCache->AppendEmptyLine();
+                    ++m_CurrentLine;
+                }
+            }
             RedrawLineInTextTextureBuffer(m_CurrentLine);
             updateCaretPos = true;
             redraw = true;
@@ -1414,6 +1436,44 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAt
         SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
         SDL_RenderFillRect(Renderer, &DestRect);
         SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
+
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        SDL_DestroyTexture(NewTextTexture);
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferAddingEmptyLineOnBottom()
+{
+    SDL_Texture* NewTextTexture = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_TextTexture->w, m_TextTexture->h);
+    if (NewTextTexture)
+    {
+        SDL_FRect rc{};
+        SDL_FRect DestRect{};
+
+        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, NewTextTexture);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        rc.w = NewTextTexture->w;
+        rc.h = NewTextTexture->h;
+        SDL_RenderFillRect(Renderer, &rc);
+
+        rc.y = m_Caret->m_Position.h;
+        rc.h = (GetNumberOfVisibleLines() - 1) * m_Caret->m_Position.h;
+        DestRect.w = rc.w;
+        DestRect.h = rc.h;
+        SDL_RenderTexture(Renderer, m_TextTexture, &rc, &DestRect);
+
+
+        SDL_SetRenderTarget(Renderer, m_TextTexture);
+        DestRect.x = 0;
+        DestRect.y = 0;
+        DestRect.w = NewTextTexture->w;
+        DestRect.h = NewTextTexture->h;
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        SDL_RenderFillRect(Renderer, &DestRect);
+        DestRect.h = rc.h;
+        rc.y = 0;
+        SDL_RenderTexture(Renderer, NewTextTexture, &rc, &DestRect);
 
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
         SDL_DestroyTexture(NewTextTexture);

@@ -103,6 +103,7 @@ namespace Tilc::Gui::Helpers
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
         void BreakLineAtCharIndex(int LineNumber, int CharIndex);
         void InsertText(int LineNumber, int InsertPos, std::u32string& InsertString);
+        void AppendEmptyLine();
         int GetLongestLineWidth() const
         {
             return m_LongestLineWidth;
