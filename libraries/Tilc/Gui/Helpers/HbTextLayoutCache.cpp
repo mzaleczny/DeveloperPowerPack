@@ -205,6 +205,14 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteText(int LineNumber, size_t S
 void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteLine(int LineNumber)
 {
     if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
+    for (int i = 0; i < m_Lines[LineNumber].Segments.size(); ++i)
+    {
+        if (m_Lines[LineNumber].Segments[i])
+        {
+            SDL_DestroyTexture(m_Lines[LineNumber].Segments[i]);
+            m_Lines[LineNumber].Segments[i] = nullptr;
+        }
+    }
     m_Lines.erase(m_Lines.begin() + LineNumber);
 }
 
