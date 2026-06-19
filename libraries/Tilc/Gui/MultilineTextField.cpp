@@ -1309,7 +1309,7 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumber)
 {
     // Przy określaniu linii uwzględniamy zmienną TopLine, żeby móc wskazywać linie nie mieszczące się w widoku kontrolki
-    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, m_TopLine + LineNumber);
+    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, m_TopLine + LineNumber, m_ScrollOffsetX);
     if (TextLineTexture)
     {
         // Rysujemy tło i tekst
