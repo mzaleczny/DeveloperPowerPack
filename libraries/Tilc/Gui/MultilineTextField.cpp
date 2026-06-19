@@ -1126,7 +1126,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 --m_CaretAtChar;
                 m_HbTextLayoutCache->DeleteCharAtLine(m_CurrentLine, m_CaretAtChar);
                 m_HbTextLayoutCache->EnsureLineLayout(m_CurrentLine);
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
             else if (m_CurrentLine > 0)
             {
@@ -1135,7 +1135,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
                 m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
                 RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
         }
 
@@ -1161,14 +1161,14 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             {
                 m_HbTextLayoutCache->DeleteCharAtLine(m_CurrentLine, m_CaretAtChar);
                 m_HbTextLayoutCache->EnsureLineLayout(m_CurrentLine);
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
             else if (m_CurrentLine > 0)
             {
                 // Tutaj usuwamy znak łamania linii, czyli bieżącą linię dopisujemy do poprzedniej lini w cache
                 m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
                 RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
         }
 
@@ -1188,19 +1188,19 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             m_HbTextLayoutCache->BreakLineAtCharIndex(m_CurrentLine, m_CaretAtChar);
             if (m_CaretAtChar > 0)
             {
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
                 m_CaretAtChar = 0;
                 ++m_CurrentLine;
                 RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
             else
             {
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
                 m_CaretAtChar = 0;
                 ++m_CurrentLine;
                 RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
-                RedrawLineInTextTextureBuffer(m_CurrentLine);
+                RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
         }
         else
@@ -1287,7 +1287,7 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
                     ++m_CurrentLine;
                 }
             }
-            RedrawLineInTextTextureBuffer(m_CurrentLine);
+            RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             updateCaretPos = true;
             redraw = true;
         }
@@ -1309,9 +1309,7 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
 void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumber)
 {
     // Przy określaniu linii uwzględniamy zmienną TopLine, żeby móc wskazywać linie nie mieszczące się w widoku kontrolki
-    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, LineNumber);
-    // Set Line number relative to top line to properly manipulate rendered texture
-    LineNumber -= m_TopLine;
+    SDL_Texture* TextLineTexture = m_HbTextLayoutCache->RenderHbLineToTexture(Renderer, m_TopLine + LineNumber);
     if (TextLineTexture)
     {
         // Rysujemy tło i tekst
