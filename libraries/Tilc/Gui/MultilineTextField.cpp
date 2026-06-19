@@ -1141,8 +1141,8 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 
         // Get number of lines per control
         int NumberOfLines = GetNumberOfVisibleLines();
+        RedrawLineInTextTextureBuffer(NumberOfLines-2);
         RedrawLineInTextTextureBuffer(NumberOfLines-1);
-        RedrawLineInTextTextureBuffer(NumberOfLines);
 
         updateCaretPos = true;
         redraw = true;
@@ -1174,8 +1174,8 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
 
         // Get number of lines per control
         int NumberOfLines = GetNumberOfVisibleLines();
+        RedrawLineInTextTextureBuffer(NumberOfLines-2);
         RedrawLineInTextTextureBuffer(NumberOfLines-1);
-        RedrawLineInTextTextureBuffer(NumberOfLines);
 
         updateCaretPos = true;
         redraw = true;
