@@ -128,6 +128,7 @@ namespace Tilc
             void DrawTextInView();
             void MoveScrollBarsIntoView();
             void MoveHorizontalScrollBarToEndOfLineIfOutOfView();
+            void MoveVerticalScrollBarAccordingToTopLine(bool DoTriggerEvent);
         };
     }
 }

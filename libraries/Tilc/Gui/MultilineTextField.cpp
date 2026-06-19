@@ -30,7 +30,7 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
         m_HbTextLayoutCache->SetFontColor(m_TextColor);
         if (m_HbTextLayoutCache->GetLinesCount() > GetNumberOfVisibleLines())
         {
-            AddVerticalScrollbar(0, 100, 0, false);
+            AddVerticalScrollbar(0, m_HbTextLayoutCache->GetLinesCount(), 0, false);
             if (m_VScrollBar)
             {
                 m_VScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnVerticalSliderPositionChanged, this);
@@ -890,13 +890,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToNextLine(bool SetCaretAtBeginOfL
     {
         if (LineInView < 0 || LineInView == NumberOfVisibleLines - 1)
         {
-            int position = (static_cast<float>(m_TopLine) / (m_HbTextLayoutCache->GetLinesCount() - NumberOfVisibleLines)) * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue());
-            if (position < 0) position = 0;
-            if (m_CurrentLine == m_HbTextLayoutCache->GetLinesCount() - 1)
-            {
-                position = m_VScrollBar->GetMaxValue();
-            }
-            m_VScrollBar->SetPosition(position, false);
+            MoveVerticalScrollBarAccordingToTopLine(false);
         }
     }
     MoveHorizontalScrollBarToEndOfLineIfOutOfView();
@@ -946,20 +940,14 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndO
         }
     }
 
-    // move horizontal scrollbar adequately forward to make current position in view
     if (m_VScrollBar)
     {
         if (LineInView < 0 || LineInView == 0)
         {
-            int position = (static_cast<float>(m_TopLine) / (m_HbTextLayoutCache->GetLinesCount() - NumberOfVisibleLines)) * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue());
-            if (position < 0) position = 0;
-            if (m_CurrentLine == m_HbTextLayoutCache->GetLinesCount() - 1)
-            {
-                position = m_VScrollBar->GetMaxValue();
-            }
-            m_VScrollBar->SetPosition(position, false);
+            MoveVerticalScrollBarAccordingToTopLine(false);
         }
     }
+    // move horizontal scrollbar adequately forward to make current position in view
     MoveHorizontalScrollBarToEndOfLineIfOutOfView();
 }
 
@@ -1617,6 +1605,11 @@ void Tilc::Gui::TMultilineTextField::RemoveSelectedText(bool redraw)
         }
         m_CurrentLine = m_SelectionLineStart;
         m_CaretAtChar = m_SelStart;
+        if (m_VScrollBar)
+        {
+            m_VScrollBar->SetMaxValue(m_HbTextLayoutCache->GetLinesCount());
+            MoveVerticalScrollBarAccordingToTopLine(false);
+        }
     }
     ClearSelection();
 }
@@ -1748,13 +1741,7 @@ void Tilc::Gui::TMultilineTextField::MoveScrollBarsIntoView()
     if (m_VScrollBar)
     {
         m_TopLine = m_CurrentLine;
-        int position = (static_cast<float>(m_TopLine) / (m_HbTextLayoutCache->GetLinesCount() - NumberOfVisibleLines)) * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue());
-        if (position < 0) position = 0;
-        if (m_CurrentLine == m_HbTextLayoutCache->GetLinesCount() - 1)
-        {
-            position = m_VScrollBar->GetMaxValue();
-        }
-        m_VScrollBar->SetPosition(position, true);
+        MoveVerticalScrollBarAccordingToTopLine(true);
     }
 }
 
@@ -1770,5 +1757,19 @@ void Tilc::Gui::TMultilineTextField::MoveHorizontalScrollBarToEndOfLineIfOutOfVi
         {
             m_HScrollBar->SetPosition(Position, true);
         }
+    }
+}
+
+void Tilc::Gui::TMultilineTextField::MoveVerticalScrollBarAccordingToTopLine(bool DoTriggerEvent)
+{
+    if (m_VScrollBar)
+    {
+        int position = (static_cast<float>(m_TopLine) / (m_HbTextLayoutCache->GetLinesCount() - GetNumberOfVisibleLines())) * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue());
+        if (position < 0) position = 0;
+        if (m_CurrentLine == m_HbTextLayoutCache->GetLinesCount() - 1)
+        {
+            position = m_VScrollBar->GetMaxValue();
+        }
+        m_VScrollBar->SetPosition(position, DoTriggerEvent);
     }
 }
