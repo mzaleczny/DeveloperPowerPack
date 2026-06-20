@@ -51,6 +51,7 @@ namespace Tilc::Gui::Helpers
 
         THbTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth, int MaxHeight);
         ~THbTextLayoutCache();
+        void DestroySegmentsTextures(TLine& Line);
 
         void SetText(const Tilc::TExtString& TextUtf8);
         void UpdateLine(int LineIndex, const Tilc::TExtString& NewTextUtf8);
@@ -147,8 +148,8 @@ namespace Tilc::Gui::Helpers
         float FontSize{};
         FT_Library m_FT{};
         FT_Face m_Face{};
-        std::shared_ptr<THbTextLayoutCache::TLine> Line{};
-        std::shared_ptr<SDL_Surface> Surface{};
+        THbTextLayoutCache::TLine* Line{};
+        SDL_Surface* Surface{};
         SDL_Color FontColor{};
     };
     extern DECLSPEC Tilc::Thread::TThreadSafeQueue<TSegmentJob> JobQueue;

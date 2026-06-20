@@ -5,6 +5,7 @@
 
 using namespace Tilc::Gui::Helpers;
 
+
 THbTextLayoutCache::THbTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth, int MaxHeight)
     : m_Font(Font), m_MaxWidth(MaxWidth), m_MaxHeight(MaxHeight)
 {
@@ -14,6 +15,24 @@ THbTextLayoutCache::THbTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth, int
 
 THbTextLayoutCache::~THbTextLayoutCache()
 {
+    for (int i = 0; i < m_Lines.size(); ++i)
+    {
+        DestroySegmentsTextures(m_Lines[i]);
+    }
+}
+
+void THbTextLayoutCache::DestroySegmentsTextures(TLine& Line)
+{
+    //SDL_Log("DestroySegmentsTextures:");
+    for (int i = 0; i < Line.Segments.size(); ++i)
+    {
+        //SDL_Log("  Segment[%d] %p", i, Line.Segments[i]);
+        if (Line.Segments[i])
+        {
+            //SDL_Log("  DestroyTexture %d", i);
+            Line.Segments[i] = nullptr;
+        }
+    }
 }
 
 void THbTextLayoutCache::InitHbFont()
@@ -205,15 +224,10 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteText(int LineNumber, size_t S
 void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteLine(int LineNumber)
 {
     if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
-    for (int i = 0; i < m_Lines[LineNumber].Segments.size(); ++i)
-    {
-        if (m_Lines[LineNumber].Segments[i])
-        {
-            SDL_DestroyTexture(m_Lines[LineNumber].Segments[i]);
-            m_Lines[LineNumber].Segments[i] = nullptr;
-        }
-    }
-    m_Lines.erase(m_Lines.begin() + LineNumber);
+    //SDL_Log("Erase line: %d", LineNumber);
+    auto LineIter = m_Lines.begin() + LineNumber;
+    DestroySegmentsTextures(*LineIter);
+    m_Lines.erase(LineIter);
     // Recalculate longest line width
     m_LongestLineWidth = 0;
     for (int i = 0; i < m_Lines.size(); ++i)
@@ -753,7 +767,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInBackground(int Star
             if (!Line.Segments[Segment])
             {
                 Tilc::Gui::Helpers::TSegmentJob Job;
-                Job.Line = std::make_shared<THbTextLayoutCache::TLine>(Line);
+                Job.Line = &Line;
                 Job.LineIndex = i;
                 Job.SegmentIndex = Segment;
                 Job.startX = -(Job.SegmentIndex * LINE_TILE_WIDTH);
@@ -815,17 +829,14 @@ DECLSPEC void Tilc::Gui::Helpers::SegmentTask()
         return;
     }
     FT_Set_Pixel_Sizes(Job.m_Face, Job.FontSize, 0);
-    Job.Surface = std::shared_ptr<SDL_Surface>(
-        SDL_CreateSurface(Job.SegmentWidth, Job.LineHeight, SDL_PIXELFORMAT_RGBA32),
-        SDL_DestroySurface
-    );
+    Job.Surface = SDL_CreateSurface(Job.SegmentWidth, Job.LineHeight, SDL_PIXELFORMAT_RGBA32);
     if (!Job.Surface) return;
-    SDL_ClearSurface(Job.Surface.get(), 0, 0, 0, 0);
+    SDL_ClearSurface(Job.Surface, 0, 0, 0, 0);
 
-    uint8_t* pixels = (uint8_t*)Job.Surface.get()->pixels;
-    int pitch = Job.Surface.get()->pitch;
-    int w = Job.Surface.get()->w;
-    int h = Job.Surface.get()->h;
+    uint8_t* pixels = (uint8_t*)Job.Surface->pixels;
+    int pitch = Job.Surface->pitch;
+    int w = Job.Surface->w;
+    int h = Job.Surface->h;
 
     const int ascender = Job.m_Face->size->metrics.ascender >> 6;
 
