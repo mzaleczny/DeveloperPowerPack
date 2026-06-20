@@ -1588,16 +1588,32 @@ void Tilc::Gui::TMultilineTextField::RemoveSelectedText(bool redraw)
         RedrawTextTextureBufferWithoutLines(m_SelectionLineStart - m_TopLine, m_SelectionLineEnd - m_TopLine, GetNumberOfVisibleLines());
         // Usuń linijki od Start+1 do End-1
         int Count = m_SelectionLineEnd - m_SelectionLineStart - 1;
+        int StartRemovingFrom = 1;
+        if (m_SelStart == 0)
+        {
+            StartRemovingFrom = 0;
+            ++Count;
+        }
+        //SDL_Log("Lines to delete: %d, m_SelectionLineEnd: %d, m_SelectionLineStart: %d", Count, m_SelectionLineEnd, m_SelectionLineStart);
         for (int i = 0; i < Count; ++i)
         {
-            m_HbTextLayoutCache->DeleteLine(m_SelectionLineStart + 1);
+            m_HbTextLayoutCache->DeleteLine(m_SelectionLineStart + StartRemovingFrom);
         }
-        // Usuń tekst z pierwszej zaznaczonej linijki od SelStart do końca
-        m_HbTextLayoutCache->DeleteText(m_SelectionLineStart, m_SelStart);
-        // Usuń tekst z ostatniej zaznaczonej linijki od SelEnd od początku do SelEnd
-        m_HbTextLayoutCache->DeleteText(m_SelectionLineStart+1, 0, m_SelEnd);
-        // Połącz linijki SelectionLineStart i SelectionLineStart+1
-        m_HbTextLayoutCache->JoinLines(m_SelectionLineStart, m_SelectionLineStart + 1);
+        // Jeśli linia startowa nie została usunięta, czyli zaznaczoną ją od początku linii do końca
+        if (StartRemovingFrom > 0)
+        {
+            // Usuń tekst z pierwszej zaznaczonej linijki od SelStart do końca
+            m_HbTextLayoutCache->DeleteText(m_SelectionLineStart, m_SelStart);
+            // Usuń tekst z ostatniej zaznaczonej linijki od SelEnd od początku do SelEnd
+            m_HbTextLayoutCache->DeleteText(m_SelectionLineStart + 1, 0, m_SelEnd);
+            // Połącz linijki SelectionLineStart i SelectionLineStart+1
+            m_HbTextLayoutCache->JoinLines(m_SelectionLineStart, m_SelectionLineStart + 1);
+        }
+        else
+        {
+            // Usuń tekst z ostatniej zaznaczonej linijki od SelEnd od początku do SelEnd
+            m_HbTextLayoutCache->DeleteText(m_SelectionLineStart, 0, m_SelEnd);
+        }
         RedrawLineInTextTextureBuffer(m_SelectionLineStart - m_TopLine);
         for (int i = m_SelectionLineStart; (i - m_TopLine < GetNumberOfVisibleLines()) && (i < m_HbTextLayoutCache->GetLinesCount()); ++i)
         {
@@ -1623,13 +1639,14 @@ void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
         {
             if (Job.Surface)
             {
-                Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(Job.LineIndex);
                 SDL_Texture* tex = SDL_CreateTexture(Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, Job.Surface->w, Job.Surface->h);
                 if (tex)
                 {
+                    //SDL_Log("Set Line[%d] at %p,  Segment[%d] to texture: %p", Job.LineIndex, Job.Line, Job.SegmentIndex, tex);
                     SDL_UpdateTexture(tex, nullptr, Job.Surface->pixels, Job.Surface->pitch);
-                    Line.Segments[Job.SegmentIndex] = tex;
-                    Job.Surface.reset();
+                    Job.Line->Segments[Job.SegmentIndex] = tex;
+                    SDL_DestroySurface(Job.Surface);
+                    Job.Surface = nullptr;
                 }
             }
         }
