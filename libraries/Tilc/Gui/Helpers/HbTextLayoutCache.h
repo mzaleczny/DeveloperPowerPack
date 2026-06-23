@@ -46,12 +46,12 @@ namespace Tilc::Gui::Helpers
             std::vector<SDL_Texture*> Segments{};
             TLine()
             {
-                SDL_Log("TLine(): %p", this);
+                //SDL_Log("TLine(): %p", this);
             }
             TLine(const TLine& o)
             {
                 *this = o;
-                SDL_Log("TLine(const TLine& o): %p", this);
+                //SDL_Log("TLine(const TLine& o): %p", this);
             }
             TLine& operator=(const TLine& o);
             TLine(TLine&& o);
