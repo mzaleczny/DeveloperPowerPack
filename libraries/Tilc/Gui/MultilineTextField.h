@@ -99,6 +99,12 @@ namespace Tilc
             virtual void ReplaceSelectionWith(const Tilc::TExtString& replaceWith, bool redraw = true) override;
             // usuwa tekst wskazywany przez zaznaczenie i ewentualnie odrysowuje kontrolkę.
             virtual void RemoveSelectedText(bool redraw = true) override;
+            // Ustaw zawiajanie tekstu
+            void SetTextWrap(bool Value);
+            // zwróć czy ustawione jest zawijanie tekstu
+            bool GetTextWrap() const;
+            virtual void SetText(const Tilc::TExtString& Text) override;
+
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;

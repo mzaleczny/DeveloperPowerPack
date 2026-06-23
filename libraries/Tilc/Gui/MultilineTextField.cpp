@@ -26,21 +26,7 @@ Tilc::Gui::TMultilineTextField::TMultilineTextField(Tilc::Gui::TGuiControl* pare
     m_HbTextLayoutCache = new Tilc::Gui::Helpers::THbTextLayoutCache(t->DefaultFont, CalculateInnerWidth(), CalculateInnerHeight());
     if (m_HbTextLayoutCache)
     {
-        m_HbTextLayoutCache->SetText(text);
-        m_HbTextLayoutCache->SetFontColor(m_TextColor);
-        if (m_HbTextLayoutCache->GetLinesCount() > GetNumberOfVisibleLines())
-        {
-            AddVerticalScrollbar(0, m_HbTextLayoutCache->GetLinesCount(), 0, false);
-            if (m_VScrollBar)
-            {
-                m_VScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnVerticalSliderPositionChanged, this);
-            }
-        }
-        AddHorizontalScrollbar(0, 100, 0, false);
-        if (m_HScrollBar)
-        {
-            m_HScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnHorizontalSliderPositionChanged, this);
-        }
+        SetText(text);
     }
 }
 
@@ -135,13 +121,16 @@ void Tilc::Gui::TMultilineTextField::Draw()
                 SDL_DestroyTexture(TextLineTexture);
             }
             rc.y += m_Caret->m_Position.h;
-            if (m_HbTextLayoutCache->GetLongestLineWidth() < CalculateInnerWidth())
+            if (m_HScrollBar)
             {
-                m_HScrollBar->Hide();
-            }
-            else
-            {
-                m_HScrollBar->Show();
+                if (m_HbTextLayoutCache->GetLongestLineWidth() < CalculateInnerWidth())
+                {
+                    m_HScrollBar->Hide();
+                }
+                else
+                {
+                    m_HScrollBar->Show();
+                }
             }
         }
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
@@ -1628,6 +1617,53 @@ void Tilc::Gui::TMultilineTextField::RemoveSelectedText(bool redraw)
         }
     }
     ClearSelection();
+}
+
+void Tilc::Gui::TMultilineTextField::SetTextWrap(bool Value)
+{
+    m_HbTextLayoutCache->SetTextWrap(Value);
+}
+
+bool Tilc::Gui::TMultilineTextField::GetTextWrap() const
+{
+    return m_HbTextLayoutCache->GetTextWrap();
+}
+
+void Tilc::Gui::TMultilineTextField::SetText(const Tilc::TExtString& Text)
+{
+    if (m_HbTextLayoutCache)
+    {
+        m_HbTextLayoutCache->ClearLines();
+        m_HbTextLayoutCache->SetText(Text);
+        m_HbTextLayoutCache->SetFontColor(m_TextColor);
+        if (!m_VScrollBar && m_HbTextLayoutCache->GetLinesCount() > GetNumberOfVisibleLines())
+        {
+            AddVerticalScrollbar(0, m_HbTextLayoutCache->GetLinesCount(), 0, false);
+            if (m_VScrollBar)
+            {
+                m_VScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnVerticalSliderPositionChanged, this);
+            }
+        }
+        if (GetTextWrap())
+        {
+            if (m_HScrollBar)
+            {
+                RemoveHorizontalScrollbar();
+            }
+        }
+        else
+        {
+            if (!m_HScrollBar)
+            {
+                AddHorizontalScrollbar(0, 100, 0, false);
+                if (m_HScrollBar)
+                {
+                    m_HScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnHorizontalSliderPositionChanged, this);
+                }
+            }
+            m_HScrollBar->Show();
+        }
+    }
 }
 
 void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()

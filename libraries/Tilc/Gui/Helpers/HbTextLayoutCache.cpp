@@ -88,11 +88,6 @@ void THbTextLayoutCache::InitHbFont()
     m_HbFont = m_Font->GetHBFont();
 }
 
-void THbTextLayoutCache::ClearLines()
-{
-    m_Lines.clear();
-}
-
 void THbTextLayoutCache::SetText(const Tilc::TExtString& TextUtf8)
 {
     if (m_Lines.capacity() < 512)
@@ -124,23 +119,127 @@ void THbTextLayoutCache::BuildLinesFromUtf8(const Tilc::TExtString& TextUtf8)
 {
     std::u32string full = Utf8ToUtf32(TextUtf8);
     m_Lines.clear();
-    m_Lines.emplace_back();
-    TLine* current = &m_Lines.back();
 
-    for (char32_t ch : full)
+    if (!m_DoTextWrap)
     {
+        // dzielenie po \n
+        m_Lines.emplace_back();
+        TLine* current = &m_Lines.back();
+
+        for (char32_t ch : full)
+        {
+            if (ch == U'\n')
+            {
+                current->Dirty = true;
+                m_Lines.emplace_back();
+                current = &m_Lines.back();
+            }
+            else
+            {
+                current->Text32.push_back(ch);
+            }
+        }
+        current->Dirty = true;
+        return;
+    }
+
+    std::u32string currentLine;
+    std::u32string currentWord;
+    int currentWidth = 0;
+    int wordWidth = 0;
+
+    auto flushWord = [&]()
+        {
+            currentLine += currentWord;
+            currentWidth += wordWidth;
+            currentWord.clear();
+            wordWidth = 0;
+        };
+
+    auto flushLine = [&]()
+        {
+            m_Lines.emplace_back();
+            m_Lines.back().Text32 = currentLine;
+            m_Lines.back().Dirty = true;
+            currentLine.clear();
+            currentWidth = 0;
+        };
+
+    int m_MaxWidth = this->m_MaxWidth - 5;
+    for (size_t i = 0; i < full.size(); ++i)
+    {
+        char32_t ch = full[i];
+
         if (ch == U'\n')
         {
-            current->Dirty = true;
-            m_Lines.emplace_back();
-            current = &m_Lines.back();
+            flushWord();
+            flushLine();
+            continue;
+        }
+
+        // whitespace kończy słowo
+        if (ch == U' ' || ch == U'\t')
+        {
+            flushWord();
+
+            // whitespace też ma szerokość
+            int wsWidth = 0;
+            FT_Load_Char(m_Face, ch, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL);
+            wsWidth = m_Face->glyph->advance.x >> 6;
+
+            if (currentWidth + wsWidth >= m_MaxWidth && !currentLine.empty())
+            {
+                flushLine();
+            }
+
+            currentLine.push_back(ch);
+            currentWidth += wsWidth;
+            continue;
+        }
+
+        // budujemy słowo
+        currentWord.push_back(ch);
+
+        // liczymy szerokość słowa
+        FT_Load_Char(m_Face, ch, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL);
+        wordWidth += m_Face->glyph->advance.x >> 6;
+
+        // jeśli słowo samo w sobie przekracza szerokość → łamiemy po znakach
+        if (wordWidth > m_MaxWidth)
+        {
+            // flush dotychczasowego słowa
+            for (char32_t c : currentWord)
+            {
+                int adv = 0;
+                FT_Load_Char(m_Face, c, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL);
+                adv = m_Face->glyph->advance.x >> 6;
+
+                if (currentWidth + adv >= m_MaxWidth && !currentLine.empty())
+                {
+                    flushLine();
+                }
+
+                currentLine.push_back(c);
+                currentWidth += adv;
+            }
+
+            currentWord.clear();
+            wordWidth = 0;
         }
         else
         {
-            current->Text32.push_back(ch);
+            // sprawdzamy czy słowo zmieści się w linii
+            if (currentWidth + wordWidth >= m_MaxWidth && !currentLine.empty())
+            {
+                flushLine();
+            }
         }
     }
-    current->Dirty = true;
+
+    // koniec tekstu
+    flushWord();
+    if (!currentLine.empty())
+        flushLine();
 }
 
 int THbTextLayoutCache::GetLineWidth(int LineIndex)
@@ -333,11 +432,9 @@ void THbTextLayoutCache::ShapeLine(TLine& Line)
         g.Codepoint = info[i].codepoint;
         g.Cluster = info[i].cluster;
 
-        // advance z FreeType – tak jak wcześniej (to u Ciebie działało)
         FT_Load_Glyph(m_Face, g.Codepoint, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL);
         int adv = m_Face->glyph->advance.x >> 6;
 
-        // kerning z FreeType (post-hinting) – jak wcześniej
         int kern = 0;
         if (i > 0)
         {
@@ -346,7 +443,6 @@ void THbTextLayoutCache::ShapeLine(TLine& Line)
             kern = vec.x >> 6;
         }
 
-        // dodatkowy offset z HarfBuzz (GPOS, ligatury itd.)
         int hb_offset = pos ? (pos[i].x_offset >> 6) : 0;
 
         x += kern;

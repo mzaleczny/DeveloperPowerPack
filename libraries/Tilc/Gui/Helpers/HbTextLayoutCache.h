@@ -66,6 +66,8 @@ namespace Tilc::Gui::Helpers
         ~THbTextLayoutCache();
         void DestroySegmentsTextures(TLine& Line);
 
+        void SetTextWrap(bool Value) { m_DoTextWrap = Value; }
+        bool GetTextWrap() const { return m_DoTextWrap; }
         void SetText(const Tilc::TExtString& TextUtf8);
         void UpdateLine(int LineIndex, const Tilc::TExtString& NewTextUtf8);
         void DeleteCharAtLine(int LineIndex, int CharIndex);
@@ -114,6 +116,7 @@ namespace Tilc::Gui::Helpers
         void RenderFullLineToSegments(TLine& line, SDL_Renderer* renderer);
         void EnsureLineLayout(int LineIndex);
         void EnsureLineLayout(TLine& Line);
+        
         void JoinLines(int FirstLineNumber, int SecondLineNumber);
         void BreakLineAtCharIndex(int LineNumber, int CharIndex);
         void InsertText(int LineNumber, int InsertPos, std::u32string& InsertString);
@@ -128,6 +131,9 @@ namespace Tilc::Gui::Helpers
         void SetMaxWidth(int Value) { m_MaxWidth = Value; }
         void SetFontColor(const SDL_Color& Color) { m_FontColor = Color; }
         void RenderSegmentsInBackground(int StartLine, int NumberOfLines);
+        void ClearLines() {
+            m_Lines.clear();
+        }
     private:
         Tilc::Gui::TFont* m_Font;
         SDL_Color m_FontColor{ 0, 0, 0, 255 };
@@ -138,9 +144,9 @@ namespace Tilc::Gui::Helpers
         int m_LongestLineWidth{};
 
         TLines m_Lines;
+        bool m_DoTextWrap{ false };
 
         void InitHbFont();
-        void ClearLines();
         void BuildLinesFromUtf8(const Tilc::TExtString& TextUtf8);
 
         void ShapeLine(TLine& Line);
