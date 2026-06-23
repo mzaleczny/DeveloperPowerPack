@@ -849,7 +849,9 @@ bool Tilc::Gui::TGuiControl::RemoveVerticalScrollbar()
 {
     if (m_VScrollBar)
     {
-        return RemoveChild(m_VScrollBar) > 0;
+        bool Result = RemoveChild(m_VScrollBar) > 0;
+        m_VScrollBar = nullptr;
+        return Result;
     }
     return false;
 }
@@ -893,7 +895,9 @@ bool Tilc::Gui::TGuiControl::RemoveHorizontalScrollbar()
 {
     if (m_HScrollBar)
     {
-        return RemoveChild(m_HScrollBar) > 0;
+        bool Result = RemoveChild(m_HScrollBar) > 0;
+        m_HScrollBar = nullptr;
+        return Result;
     }
     return false;
 }
