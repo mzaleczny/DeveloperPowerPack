@@ -780,17 +780,37 @@ void Tilc::Gui::TTheme::LoadButtonSkinResources(Tilc::TExtString themeName)
 
 void Tilc::Gui::TTheme::LoadCheckboxSkinResources(Tilc::TExtString themeName)
 {
-    /*
-    this->checkbox = new CBitmap(this->_hInst, checkboxDir + L"checkbox.bmp");
-    this->checkbox_disabled = new CBitmap(this->_hInst, checkboxDir + L"checkbox_disabled.bmp");
-    this->checkbox_hover = new CBitmap(this->_hInst, checkboxDir + L"checkbox_hover.bmp");
-    this->checkbox_checked = new CBitmap(this->_hInst, checkboxDir + L"checkbox_checked.bmp");
-    this->checkbox_checked_disabled = new CBitmap(this->_hInst, checkboxDir + L"checkbox_checked_disabled.bmp");
-    this->checkbox_checked_hover = new CBitmap(this->_hInst, checkboxDir + L"checkbox_checked_hover.bmp");
+    if (GameObject)
+    {
+        Tilc::TExtString Line;
+        while (std::getline(LayoutInputStream, Line))
+        {
+            std::stringstream Keystream(Line);
+            Tilc::TExtString Item, sx, sy, sw, sh;
+            Keystream >> Item >> sx >> sy >> sw >> sh;
+            Item = Item.substr(0, Item.length() - 1);
+            sx = sx.substr(0, sx.length() - 1);
+            sy = sy.substr(0, sy.length() - 1);
+            sw = sw.substr(0, sw.length() - 1);
+            //sh = sh.substr(0, sh.length() - 1);
 
-    // Fonty
-    this->commonCheckboxControlFont = this->globalStandardFont;
-    */
+            if (Item == "checkbox_rc")
+                checkbox_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "checkbox_disabled_rc")
+                checkbox_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "checkbox_hover_rc")
+                checkbox_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "checkbox_checked_rc")
+                checkbox_checked_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "checkbox_checked_disabled_rc")
+                checkbox_checked_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "checkbox_checked_hover_rc")
+            {
+                checkbox_checked_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                break;
+            }
+        }
+    }
 }
 
 void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)

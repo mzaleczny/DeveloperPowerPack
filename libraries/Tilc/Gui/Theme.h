@@ -337,7 +337,7 @@ namespace Tilc {
             SDL_FRect button_right_pushed_focused_rc;
             SDL_FRect button_middle_pushed_focused_rc;
 
-            /*
+
             // checkbox bitmaps
             SDL_FRect checkbox_rc;
             SDL_FRect checkbox_disabled_rc;
@@ -346,6 +346,7 @@ namespace Tilc {
             SDL_FRect checkbox_checked_disabled_rc;
             SDL_FRect checkbox_checked_hover_rc;
 
+            /*
             // listbox bitmaps
             SDL_FRect listbox_bg_fullscreen_rc;
             SDL_FRect listbox_bg_rc;
