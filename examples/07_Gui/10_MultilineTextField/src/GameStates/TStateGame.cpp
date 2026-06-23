@@ -54,9 +54,8 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     Y += 30.0f;
     txt = new Tilc::Gui::TTextField(wnd, "Text Field 11", { X, Y, 220, 25 }, "Linijka 11");
     Y += 30.0f;
-    
-    Tilc::Gui::TMultilineTextField* memo;
-    memo = new Tilc::Gui::TMultilineTextField(wnd, "Multiline Text Field 1", { 260, 60, 1500, 825 },
+
+    Tilc::TExtString Text =
         R"##(Materiał z wikipedii: https://pl.wikipedia.org/wiki/Polska
 Po 123 latach, pod koniec I wojny światowej, w 1918, Polska odzyskała niepodległość (odrodzona wówczas państwowość nazywana jest II Rzecząpospolitą). 1 września 1939 atakiem Niemiec na Polskę rozpoczęła się II wojna światowa, zaś 17 września 1939 nastąpiła agresja ZSRR; wobec tego w październiku 1939 całe terytorium kraju znalazło się pod okupacją niemiecką i sowiecką. W wyniku II wojny światowej życie straciło ponad sześć milionów obywateli Polski[19][20]. Konferencja jałtańska w lutym 1945 umieściła Polskę w strefie wpływów ZSRR. W lipcu 1945 postanowieniami konferencji poczdamskiej granice Polski przesunięto na zachód (między linię Odry i Nysy Łużyckiej, a linię Curzona), przyłączając Ziemie Odzyskane w miejsce Kresów Wschodnich. Polska Rzeczpospolita Ludowa (nazwa państwa przyjęta w 1952) była państwem satelickim ZSRR w formule tzw. demokracji ludowej. Rządy w systemie monopartyjnym sprawowała komunistyczna Polska Partia Robotnicza, a następnie Polska Zjednoczona Partia Robotnicza (przy formalnym istnieniu ugrupowań satelickich). W okresie zimnej wojny PRL należała do Układu Warszawskiego, stanowiła zatem część tzw. bloku wschodniego.
 Wikipedia Wikipedii figura firma fintech klasyfikuje
@@ -122,8 +121,12 @@ Pierwszą historycznie potwierdzoną datą opisującą dzieje Polski jest rok 96
 Po 123 latach, pod koniec I wojny światowej, w 1918, Polska odzyskała niepodległość (odrodzona wówczas państwowość nazywana jest II Rzecząpospolitą). 1 września 1939 atakiem Niemiec na Polskę rozpoczęła się II wojna światowa, zaś 17 września 1939 nastąpiła agresja ZSRR; wobec tego w październiku 1939 całe terytorium kraju znalazło się pod okupacją niemiecką i sowiecką. W wyniku II wojny światowej życie straciło ponad sześć milionów obywateli Polski[19][20]. Konferencja jałtańska w lutym 1945 umieściła Polskę w strefie wpływów ZSRR. W lipcu 1945 postanowieniami konferencji poczdamskiej granice Polski przesunięto na zachód (między linię Odry i Nysy Łużyckiej, a linię Curzona), przyłączając Ziemie Odzyskane w miejsce Kresów Wschodnich. Polska Rzeczpospolita Ludowa (nazwa państwa przyjęta w 1952) była państwem satelickim ZSRR w formule tzw. demokracji ludowej. Rządy w systemie monopartyjnym sprawowała komunistyczna Polska Partia Robotnicza, a następnie Polska Zjednoczona Partia Robotnicza (przy formalnym istnieniu ugrupowań satelickich). W okresie zimnej wojny PRL należała do Układu Warszawskiego, stanowiła zatem część tzw. bloku wschodniego.
 Po przemianach politycznych zapoczątkowanych w konsekwencji Okrągłego Stołu i częściowo demokratycznych wyborów parlamentarnych w czerwcu 1989 został powołany pierwszy rząd z premierem spoza partii komunistycznej. Polska zmodyfikowała konstytucję, zmieniając 31 grudnia 1989 nazwę państwa na Rzeczpospolita Polska i stając się krajem demokratycznym.
 Mimo olbrzymich strat w ludziach oraz znacznego zniszczenia kraju w wyniku II wojny światowej w Polsce udało się zachować wiele bogactwa kulturowego. Znajduje się tu 17 miejsc wpisanych na listę światowego dziedzictwa UNESCO (15 obiektów dziedzictwa kulturowego i 2 o charakterze przyrodniczym)[21], 123 pomniki historii[22][23] oraz duża liczba zarejestrowanych zabytków.
-Ostatnia linijka)##"
-    );
+Ostatnia linijka)##";
+
+    Tilc::Gui::TMultilineTextField* memo;
+    memo = new Tilc::Gui::TMultilineTextField(wnd, "Multiline Text Field 1", { 260, 60, 1500, 825 });
+    memo->SetTextWrap(true);
+    memo->SetText(Text);
     
     Tilc::Gui::TButton* btnSave = new Tilc::Gui::TButton(wnd, "SaveButton", { X, Y, 100, 25 }, "Zapisz");
     Tilc::Gui::TButton* btnCancel = new Tilc::Gui::TButton(wnd, "CancelButton", { X + 120.0f, Y, 100, 25 }, "Anuluj");
