@@ -39,6 +39,7 @@ void RenderScrollBars(const int size, std::string postfix = "");
 void RenderSliders();
 void RenderSvgTile(std::string Name, SDL_Rect DestRect, bool Split, bool OutputTileToDescriptionFile = true, std::string OutputPostfix = "");
 void RenderButtons(std::string Name, int width, int height, bool Split = true, std::string OutputPostfix = "");
+void RenderButtonsByNamesHorizontal(std::vector<std::string> Names, int width, int height, int LineBreakAfterItemNumber = 3, std::string OutputPostfix = "");
 void AddX(int Value, int NextItemWidth);
 void AddY(int Value, int NextItemHeight);
 std::ofstream& operator<<(std::ofstream& out, const SDL_Rect& rc);
@@ -119,6 +120,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     RenderButtons("multiline-textfield", 75, 50);
     AddY(7 * 50, 0);
     X = CurrentColumnX;
+    RenderButtonsByNamesHorizontal({"checkbox", "checkbox-checked", "checkbox-checked-disabled", "checkbox-checked-hover", "checkbox-disabled", "checkbox-hover"}, 20, 20);
+    AddY(25, 0);
 
     SDL_SetRenderTarget(renderer, nullptr);
 
@@ -900,6 +903,48 @@ void RenderButtons(std::string Name, int width, int height, bool Split, std::str
             of << rc << std::endl;
         }
         SDL_DestroyTexture(ButtonTexture);
+    }
+}
+
+void RenderButtonsByNamesHorizontal(std::vector<std::string> Names, int width, int height, int LineBreakAfterItemNumber, std::string OutputPostfix)
+{
+    if (X + width > CurrentColumnX + CurrentColumnWidth)
+    {
+        CurrentColumnWidth = X + width - CurrentColumnX;
+    }
+    SDL_Rect rc = { X, Y, width, height }, LeftRC, MiddleRC, RightRC;
+    SDL_FRect frc;
+    SDL_Texture* ButtonTexture;
+
+    for (int i = 0; i < Names.size(); ++i)
+    {
+        ButtonTexture = LoadSVG((ThemeDir + "/" + Names[i] + ".svg").c_str(), rc.w, rc.h);
+        if (ButtonTexture)
+        {
+            SDL_RectToFRect(&rc, &frc);
+            SDL_RenderTexture(renderer, ButtonTexture, nullptr, &frc);
+
+            if (OutputPostfix.empty())
+            {
+                of << Names[i] + "_rc: ";
+            }
+            else
+            {
+                of << Names[i] + "_rc_" << OutputPostfix << ": ";
+            }
+            of << rc << std::endl;
+
+            SDL_DestroyTexture(ButtonTexture);
+            if (i + 1 == LineBreakAfterItemNumber)
+            {
+                rc.y += height;
+                rc.x = 0;
+            }
+            else
+            {
+                rc.x += width;
+            }
+        }
     }
 }
 
