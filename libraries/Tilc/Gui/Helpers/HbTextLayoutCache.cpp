@@ -6,6 +6,58 @@
 using namespace Tilc::Gui::Helpers;
 
 
+Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Tilc::Gui::Helpers::THbTextLayoutCache::TLine::operator=(const TLine& o)
+{
+    Text32 = o.Text32;
+    Glyphs = o.Glyphs;
+    CaretX = o.CaretX;
+    TotalWidth = o.TotalWidth;
+    Dirty = o.Dirty;
+    Segments = o.Segments;
+    //SDL_Log("operator=(const TLine& o): %p", this);
+    return *this;
+}
+
+Tilc::Gui::Helpers::THbTextLayoutCache::TLine::TLine(TLine&& o)
+{
+    using std::swap;
+    swap(Text32, o.Text32);
+    swap(Glyphs, o.Glyphs);
+    swap(CaretX, o.CaretX);
+    TotalWidth = o.TotalWidth;
+    Dirty = o.Dirty;
+    swap(Segments, o.Segments);
+    //SDL_Log("TLine(TLine&& o): %p", this);
+}
+
+Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Tilc::Gui::Helpers::THbTextLayoutCache::TLine::operator=(TLine&& o)
+{
+    using std::swap;
+    swap(Text32, o.Text32);
+    swap(Glyphs, o.Glyphs);
+    swap(CaretX, o.CaretX);
+    TotalWidth = o.TotalWidth;
+    Dirty = o.Dirty;
+    swap(Segments, o.Segments);
+    //SDL_Log("operator=(TLine&& o): %p", this);
+    return *this;
+}
+
+Tilc::Gui::Helpers::THbTextLayoutCache::TLine::~TLine()
+{
+    //SDL_Log("Destroy Line: %p", this);
+    for (SDL_Texture* tex : Segments)
+    {
+        if (tex)
+        {
+            //SDL_Log("    Destroy segment texture: %p", tex);
+            SDL_DestroyTexture(tex);
+        }
+    }
+    Segments.clear();
+}
+
+
 THbTextLayoutCache::THbTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth, int MaxHeight)
     : m_Font(Font), m_MaxWidth(MaxWidth), m_MaxHeight(MaxHeight)
 {
@@ -15,10 +67,6 @@ THbTextLayoutCache::THbTextLayoutCache(Tilc::Gui::TFont* Font, int MaxWidth, int
 
 THbTextLayoutCache::~THbTextLayoutCache()
 {
-    for (int i = 0; i < m_Lines.size(); ++i)
-    {
-        DestroySegmentsTextures(m_Lines[i]);
-    }
 }
 
 void THbTextLayoutCache::DestroySegmentsTextures(TLine& Line)
@@ -47,6 +95,10 @@ void THbTextLayoutCache::ClearLines()
 
 void THbTextLayoutCache::SetText(const Tilc::TExtString& TextUtf8)
 {
+    if (m_Lines.capacity() < 512)
+    {
+        m_Lines.reserve(512);
+    }
     ClearLines();
     BuildLinesFromUtf8(TextUtf8);
 }
@@ -226,7 +278,7 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::DeleteLine(int LineNumber)
     if (LineNumber < 0 || LineNumber >= (int)m_Lines.size()) return;
     //SDL_Log("Erase line: %d", LineNumber);
     auto LineIter = m_Lines.begin() + LineNumber;
-    DestroySegmentsTextures(*LineIter);
+    //DestroySegmentsTextures(*LineIter);
     m_Lines.erase(LineIter);
     // Recalculate longest line width
     m_LongestLineWidth = 0;

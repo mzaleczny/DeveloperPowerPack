@@ -43,7 +43,20 @@ namespace Tilc::Gui::Helpers
             std::vector<int> CaretX;      // CaretX[i] = pozycja X przed znakiem i (UTF-32)
             int TotalWidth{0};
             bool Dirty{true};
-            std::vector<SDL_Texture*> Segments;
+            std::vector<SDL_Texture*> Segments{};
+            TLine()
+            {
+                SDL_Log("TLine(): %p", this);
+            }
+            TLine(const TLine& o)
+            {
+                *this = o;
+                SDL_Log("TLine(const TLine& o): %p", this);
+            }
+            TLine& operator=(const TLine& o);
+            TLine(TLine&& o);
+            TLine& operator=(TLine&& o);
+            ~TLine();
         };
 
         using TLines = std::vector<TLine>;
