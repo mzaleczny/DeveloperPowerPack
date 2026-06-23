@@ -1111,7 +1111,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 --m_CurrentLine;
                 m_CaretAtChar = m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1;
                 m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
-                RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
+                RedrawTextTextureBufferWithoutLine(m_CurrentLine+1-m_TopLine);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
 
@@ -1144,7 +1144,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             {
                 // Tutaj usuwamy znak łamania linii, czyli bieżącą linię dopisujemy do poprzedniej lini w cache
                 m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
-                RedrawTextTextureBufferWithoutLine(m_CurrentLine+1);
+                RedrawTextTextureBufferWithoutLine(m_CurrentLine+1-m_TopLine);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
 
@@ -1168,7 +1168,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
                 m_CaretAtChar = 0;
                 ++m_CurrentLine;
-                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
+                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine - m_TopLine);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
             else
@@ -1176,7 +1176,7 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
                 m_CaretAtChar = 0;
                 ++m_CurrentLine;
-                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine);
+                RedrawTextTextureBufferInsertingBlankLineAtSpecifiedNumber(m_CurrentLine - m_TopLine);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
         }
