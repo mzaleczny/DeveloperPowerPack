@@ -901,15 +901,18 @@ bool Tilc::Gui::TStyledWindow::SetActiveControl(Tilc::Gui::TGuiControl* Control)
         // jeśli zmieniliśmy aktywną kontrolkę, to domyślnie ukrywamy karetkę
         // jeśli mamy pole tekstowe, to pokazujemy karetkę
         Tilc::Gui::TTextField* tf = dynamic_cast<Tilc::Gui::TTextField*>(Control);
-        if (tf)
+        if (Caret)
         {
-            Caret->m_Active = true;
-            Caret->Show();
-        }
-        else
-        {
-            Caret->m_Active = false;
-            Caret->Hide();
+            if (tf)
+            {
+                Caret->m_Active = true;
+                Caret->Show();
+            }
+            else
+            {
+                Caret->m_Active = false;
+                Caret->Hide();
+            }
         }
         return true;
     }
