@@ -5,374 +5,194 @@
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Game.h"
 
-/*
-
-void CommonInit(const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool checked, int width, int textPlacement, int textSpacing)
+void Tilc::Gui::TCheckbox::CommonInit(const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool checked, int textPlacement, int textSpacing)
 {
     m_TextPlacement = textPlacement;
     m_TextSpacing = textSpacing;
     m_IsChecked = checked;
-    
+
+    Tilc::Gui::TTheme* Theme = GetTheme();
     SetText(checkedStateText, uncheckedStateText, false);
-    int min_height = this->_theme->checkbox->height() + 2 + 2;
-    if (min_height < this->_textSize.cy + 2 + 2)
+    int min_height = Theme->checkbox_rc.h + 2 + 2;
+    if (min_height < m_TextSize.h + 2 + 2)
     {
-        min_height = this->_textSize.cy + 2 + 2;
+        min_height = m_TextSize.h + 2 + 2;
     }
-    LONG min_width = this->_theme->checkbox->width() + this->_textSpacing + this->_textSize.cx + 2 + 2;
-    if (width < min_width) {
-        width = min_width;
+    int min_width = Theme->checkbox_rc.w + m_TextSpacing + m_TextSize.w + 2 + 2;
+    if (m_Position.w < min_width || m_Position.h < min_height)
+    {
+        SetSize(min_width, min_height);
     }
-    this->setSize(width, min_height);
-    this->_tabStop = TRUE;
+    m_TabStop = true;
 }
 
-CmzCheckbox::CmzCheckbox(CSprite *parent, CmzString name, CmzString text, BOOL checked, LONG x, LONG y)
-    : CGuiControl(parent, name, NULL, x, y)
+Tilc::Gui::TCheckbox::TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool checked)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Checkbox)
 {
-    this->_commonInit(text, text, checked, 0, CHECKBOX_TEXT_PLACEMENT_RIGHT, CHECKBOX_DEFAULT_SPACING);
+    CommonInit(text, text, checked, CHECKBOX_TEXT_PLACEMENT_RIGHT, CHECKBOX_DEFAULT_SPACING);
 }
 
-CmzCheckbox::CmzCheckbox(CSprite *parent, CmzString name, CmzString checkedStateText, CmzString uncheckedStateText, BOOL checked, LONG x, LONG y, LONG width, LONG textPlacement, LONG textSpacing)
-    : CGuiControl(parent, name, NULL, x, y)
+Tilc::Gui::TCheckbox::TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool checked, int textPlacement, int textSpacing)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Checkbox)
 {
-    this->_commonInit(checkedStateText, uncheckedStateText, checked, width, textPlacement, textSpacing);
+    CommonInit(checkedStateText, uncheckedStateText, checked, textPlacement, textSpacing);
 }
 
-CmzCheckbox::~CmzCheckbox() {
+Tilc::Gui::TCheckbox::~TCheckbox() {
 }
 
-VOID CmzCheckbox::setText(CmzString checkedStateText, CmzString uncheckedStateText, BOOL redraw) {
-    this->_checkedStateText = checkedStateText;
-    this->_uncheckedStateText = uncheckedStateText;
+void Tilc::Gui::TCheckbox::SetText(const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool redraw)
+{
+    m_CheckedStateText = checkedStateText;
+    m_UncheckedStateText = uncheckedStateText;
     
-    CmzString text = this->_checkedStateText;
-    SIZE size = {0,0};
-    this->_textSize = size;
-    if (this->_font) {
-        size = this->_font->measureString(text, NULL);
-        this->_textSize = size;
-        text = this->_uncheckedStateText;
-        size = this->_font->measureString(text, NULL);
-        if (size.cx > this->_textSize.cx) {
-            this->_textSize.cx = size.cx;
+    Tilc::TExtString text = m_CheckedStateText;
+    Tilc::Gui::TTheme* Theme = GetTheme();
+    int Width, Height;
+    m_TextSize = {};
+    if (Theme->DefaultFont)
+    {
+        Theme->DefaultFont->GetTextSize(text.c_str(), Width, Height);
+        m_TextSize.w = static_cast<float>(Width);
+        m_TextSize.h = static_cast<float>(Height);
+
+        text = m_UncheckedStateText;
+        Theme->DefaultFont->GetTextSize(text.c_str(), Width, Height);
+        if (Width > m_TextSize.w)
+        {
+            m_TextSize.w = static_cast<float>(Width);
         }
-        if (size.cy > this->_textSize.cy) {
-            this->_textSize.cy = size.cy;
-        }
-    }
-    
-    if (this->checked()) {
-        this->_text = this->_checkedStateText;
-     } else {
-        this->_text = this->_uncheckedStateText;
-    }
-    
-    this->_text.removeCharsWithCodeLessThan(32);
-    if (redraw) {
-        this->redraw();
-    }
-}
-
-VOID CmzCheckbox::setText(CmzString text, BOOL redraw) {
-    this->setText(text, text, redraw);
-}
-
-CmzString CmzCheckbox::getText() {
-    return this->_text;
-}
-
-CmzFont* CmzCheckbox::getFont() {
-    CmzFont* font = this->_theme->commonCheckboxControlFont;
-    if (this->_font) {
-        font = this->_font;
-    }
-    return font;
-}
-
-VOID CmzCheckbox::_updateCanvas() {
-    this->_needUpdate = FALSE;
-    if (!this->canvas) {
-		return;
-    }
-
-	LONG x = 1;
-    LONG y = 1;
-    HDC hdc = GetDC(0);
-	CTheme *t = this->_theme;
-    CmzBitmap* checkbox = NULL;
-
-    if (this->checked()) {
-        if (this->_state & CONTROL_STATE_DISABLED) {
-            checkbox = this->_theme->checkbox_checked_disabled;
-        } else if (this->_state & CONTROL_STATE_HOVER) {
-            checkbox = this->_theme->checkbox_checked_hover;
-        } else {
-            checkbox = this->_theme->checkbox_checked;
-        }
-    } else {
-        if (this->_state & CONTROL_STATE_DISABLED) {
-            checkbox = this->_theme->checkbox_disabled;
-        } else if (this->_state & CONTROL_STATE_HOVER) {
-            checkbox = this->_theme->checkbox_hover;
-        } else {
-            checkbox = this->_theme->checkbox;
+        if (Height > m_TextSize.h)
+        {
+            m_TextSize.h = static_cast<float>(Height);
         }
     }
     
-    LONG checkbox_width = checkbox ? checkbox->width() : 0;
-    LONG checkbox_height = checkbox ? checkbox->height() : 0;
-    
-    CmzFont* font = this->getFont();
-    SIZE size = {0,0};
-    if (font) {
-        size = font->measureString(this->_text, NULL);
+    if (IsChecked())
+    {
+        m_Text = m_CheckedStateText;
     }
-    if (this->_textPlacement == CHECKBOX_TEXT_PLACEMENT_RIGHT) {
-        x = 1;
-        y = (this->height - checkbox_height)/2;
-    } else {
-        x = 1 + size.cx + this->_textSpacing;
-        y = (this->height - checkbox_height)/2;
+    else
+    {
+        m_Text = m_UncheckedStateText;
     }
     
-	this->canvas->beginPaint(hdc);
-    this->canvas->setBkMode(TRANSPARENT);
-	this->canvas->fillWithColor(this->_transparentColor);
+    m_Text.RemoveCharsWithCodeLessThan(32);
+    if (redraw)
+    {
+        Invalidate();
+    }
+}
+
+void Tilc::Gui::TCheckbox::SetText(const Tilc::TExtString& text)
+{
+    SetText(text, text, true);
+}
+
+void Tilc::Gui::TCheckbox::Draw()
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    SDL_Texture* OldRenderTarget{ nullptr };
+
+    if (m_Canvas)
+    {
+        OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, m_Canvas);
+    }
+
     // ================================================================
     // Draw checkbox
     // ================================================================
-    if (checkbox) {
-        this->canvas->drawBitmap(checkbox, x, y, 0);
-        x += checkbox_width + this->_textSpacing;
+    int checkbox_width = t->checkbox_checked_rc.w;
+    int checkbox_height = t->checkbox_checked_rc.h;
+    float x{}, y = (m_Position.h - checkbox_height) / 2.0f;
+    if (m_TextPlacement == CHECKBOX_TEXT_PLACEMENT_LEFT)
+    {
+        x = m_TextSize.w + m_TextSpacing;
     }
-    // ================================================================
-    // ================================================================
 
-    // ================================================================
-    // Draw focus if applied
-    // ================================================================
+    SDL_FRect Position = GetRealPosition();
+    Position.x = x;
+    Position.y = y;
+    DrawCommon(
+        Position,
+        m_IsChecked ? t->checkbox_checked_rc : t->checkbox_rc,
+        m_IsChecked ? t->checkbox_checked_disabled_rc : t->checkbox_disabled_rc,
+        m_IsChecked ? t->checkbox_checked_focused_rc : t->checkbox_focused_rc,
+        m_IsChecked ? t->checkbox_checked_focused_rc : t->checkbox_focused_rc, // hover_focused, the same as above
+        m_IsChecked ? t->checkbox_checked_focused_rc : t->checkbox_focused_rc, // pushed_focused, the same as above
+        m_IsChecked ? t->checkbox_checked_hover_rc : t->checkbox_hover_rc,
+        m_IsChecked ? t->checkbox_checked_rc : t->checkbox_rc // checked_pushed the same as in normal state
+    );
     // ================================================================
     // ================================================================
 
     // ================================================================
     // Draw label
     // ================================================================
-    if (this->_textPlacement == CHECKBOX_TEXT_PLACEMENT_RIGHT) {
-        x = 1;
-        if (checkbox_width) {
-            x += checkbox_width + this->_textSpacing;
+    Position = GetRealPosition();
+    x = 0;
+    if (m_TextPlacement == CHECKBOX_TEXT_PLACEMENT_RIGHT)
+    {
+        x = 0;
+        if (checkbox_width)
+        {
+            x += checkbox_width + m_TextSpacing;
         }
-        y = 7;
-    } else {
-        x = 1;
-        y = 7;
     }
-    this->canvas->drawText(font, this->_text, x, y, TRUE);
+    Position.x += x;
+    t->DefaultFont->DrawString(GetRenderer(), m_Text.c_str(), &Position, Align_CenterVertical | Align_Left);
     // ================================================================
     // ================================================================
 
-    this->canvas->endPaint();
-
-	ReleaseDC(0, hdc);
-}
-
-VOID CmzCheckbox::onDraw(CmzBitmap *dest) {
-	CSprite::onDraw(dest);
-}
-
-VOID CmzCheckbox::focus() {
-    CStyledWindow* swnd = this->getParentWindow();
-    if (swnd && swnd->getActiveControl() != this) {
-        swnd->setActiveControl(this);
-        return;
+    if (m_Canvas)
+    {
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
-    this->addState(CONTROL_STATE_FOCUSED);
+    m_NeedUpdate = ENeedUpdate::ENU_None;
 }
 
-VOID CmzCheckbox::looseFocus() {
-    CStyledWindow* wnd = this->getParentWindow();
-    LONG x = MININT, y = MININT;
-    wnd->setOnlyActiveControlPointer(NULL);
-    this->getCurrentMousePosition(x, y);
-
-    if (x != MININT && y != MININT) {
-        if (this->pointIn(x, y)) {
-            this->addState(CONTROL_STATE_HOVER);
-        } else {
-            this->removeState(CONTROL_STATE_HOVER);
-        }
-    } else {
-        this->removeState(CONTROL_STATE_HOVER);
-    }
-}
-
-BOOL CmzCheckbox::onMouseMove(LONG x, LONG y) {
-    if (!this->_visible) return FALSE;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return FALSE;
+bool Tilc::Gui::TCheckbox::OnMouseButtonUp(const SDL_Event& event)
+{
+    if (!m_Visible) return false;
+    if (OtherControlCapturedMouse())
+    {
+        return false;
     }
 
-    if (this->pointIn(x, y)) {
-        this->addState(CONTROL_STATE_HOVER);
-        return TRUE;
-    } else {
-        this->removeState(CONTROL_STATE_HOVER);
+    TGuiControl::OnMouseButtonUp(event);
+
+    if (PointIn(event.button.x, event.button.y))
+    {
+        ToggleCheckedState();
+        Invalidate();
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
-BOOL CmzCheckbox::onMouseDown(LONG x, LONG y) {
-    if (!this->_visible) return FALSE;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return FALSE;
+void Tilc::Gui::TCheckbox::SetChecked(bool checked)
+{
+    m_IsChecked = checked;
+    if (m_IsChecked)
+    {
+        m_Text = m_CheckedStateText;
+    }
+    else
+    {
+        m_Text = m_UncheckedStateText;
+    }
+    Invalidate();
+}
+
+bool Tilc::Gui::TCheckbox::OnKeyUp(const SDL_Event& event)
+{
+    if (event.key.key == SDLK_SPACE)
+    {
+        ToggleCheckedState();
+        return true;
     }
 
-    if (this->pointIn(x, y)) {
-        this->_lMouseButtonPressed = TRUE;
-        CStyledWindow* wnd = this->getParentWindow();
-        wnd->captureMouse(this);
-
-        if (wnd->getActiveControl() != this) {
-            wnd->setActiveControl(this);
-        }
-        this->toggleCheckedState();
-
-        return TRUE;
-    }
-
-    return FALSE;
+    return false;
 }
-
-BOOL CmzCheckbox::onMouseUp(LONG x, LONG y) {
-    if (!this->_visible) return FALSE;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return FALSE;
-    }
-
-    BOOL mouseWasPressed = this->_lMouseButtonPressed;
-    this->_lMouseButtonPressed = FALSE;
-    CStyledWindow* wnd = this->getParentWindow();
-    wnd->captureMouse(NULL);
-
-    if (this->pointIn(x, y)) {
-        if (wnd->getActiveControl() == this) {
-            this->setState(CONTROL_STATE_FOCUSED);
-        } else {
-            this->setState(CONTROL_STATE_HOVER);
-        }
-
-        if (mouseWasPressed) {
-            this->onClick();
-        }
-        return TRUE;
-    }
-
-
-    return FALSE;
-}
-
-VOID CmzCheckbox::setChecked() {
-    this->_checked = TRUE;
-    this->_text = this->_checkedStateText;
-    this->redraw();
-}
-
-VOID CmzCheckbox::setUnchecked() {
-    this->_checked = FALSE;
-    this->_text = this->_uncheckedStateText;
-    this->redraw();
-}
-
-VOID CmzCheckbox::toggleCheckedState() {
-    if (this->checked()) {
-        this->setUnchecked();
-    } else {
-        this->setChecked();
-    }
-}
-
-VOID CmzCheckbox::onClick() {
-    __super::onClick();
-}
-
-BOOL CmzCheckbox::_commonKeyProcessing(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-            BOOL vkLAlt, BOOL vkRAlt,
-            BOOL vkLShift, BOOL vkRShift,
-            BOOL vkLControl, BOOL vkRControl,
-            BOOL systemKey,
-            ULONG virtualCode, ULONG scanCode, WCHAR ch, BOOL& redraw) {
-    redraw = FALSE;
-
-    CKeyboard* kbd = this->getKbd();
-
-    return TRUE;
-}
-
-BOOL CmzCheckbox::onKeyDown(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl,
-        BOOL systemKey,
-        ULONG virtualCode, ULONG scanCode, WCHAR ch) {
-    
-    BOOL redraw = FALSE;
-
-    // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    if (!systemKey) {
-        BOOL process = !this->_commonKeyProcessing(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift,
-                                    vkLControl, vkRControl, systemKey, virtualCode, scanCode, ch, redraw);
-        if (process) {
-            CKeyboard* kbd = this->getKbd();
-            BOOL processed = FALSE;
-            if (kbd) {
-                if (virtualCode == VK_SPACE) {
-                    this->toggleCheckedState();
-                }
-            }
-        }
-    }
-
-    if (redraw) {
-        this->redraw();
-    }
-
-    return TRUE;
-}
-
-BOOL CmzCheckbox::onKeyPressed(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl,
-        BOOL systemKey,
-        ULONG virtualCode, ULONG scanCode, WCHAR ch) {
-
-    BOOL redraw = FALSE;
-
-
-    // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    if (!systemKey) {
-        this->_commonKeyProcessing(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift,
-            vkLControl, vkRControl, systemKey, virtualCode, scanCode, ch, redraw);
-    }
-
-    if (redraw) {
-        this->redraw();
-    }
-
-    return TRUE;
-}
-
-BOOL CmzCheckbox::onKeyUp(BOOL vkAlt, BOOL vkShift, BOOL vkControl,
-        BOOL vkLAlt, BOOL vkRAlt,
-        BOOL vkLShift, BOOL vkRShift,
-        BOOL vkLControl, BOOL vkRControl,
-        BOOL systemKey,
-        ULONG virtualCode, ULONG scanCode, WCHAR ch) {
-    return TRUE;
-}
-*/
