@@ -158,6 +158,8 @@ multiline-textfield_middle_pushed_focused_rc: 26, 906, 1, 50
 checkbox_rc: 0, 956, 20, 20
 checkbox-checked_rc: 20, 956, 20, 20
 checkbox-checked-disabled_rc: 40, 956, 20, 20
+checkbox-checked-focused_rc: 60, 956, 20, 20
 checkbox-checked-hover_rc: 0, 976, 20, 20
 checkbox-disabled_rc: 20, 976, 20, 20
 checkbox-hover_rc: 40, 976, 20, 20
+checkbox-focused_rc: 60, 976, 20, 20
