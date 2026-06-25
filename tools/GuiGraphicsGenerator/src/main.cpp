@@ -122,7 +122,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     X = CurrentColumnX;
     RenderButtonsByNamesHorizontal({"checkbox", "checkbox-checked", "checkbox-checked-disabled", "checkbox-checked-focused", "checkbox-checked-hover",
         "checkbox-disabled", "checkbox-hover", "checkbox-focused"}, 20, 20, 4);
-    AddY(25, 0);
+    AddY(20 * 2, 0);
+    RenderButtonsByNamesHorizontal({"option", "option-checked", "option-checked-disabled", "option-checked-focused", "option-checked-hover",
+        "option-disabled", "option-hover", "option-focused"}, 20, 20, 4);
+    AddY(20 * 2, 0);
 
     SDL_SetRenderTarget(renderer, nullptr);
 
