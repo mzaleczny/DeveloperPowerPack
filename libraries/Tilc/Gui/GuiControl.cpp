@@ -1583,6 +1583,46 @@ void Tilc::Gui::TGuiControl::LoadBackground(const Tilc::TExtString& Filename)
     }
 }
 
+void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRect& rc, const SDL_FRect& disabled_rc, const SDL_FRect& focused_rc, const SDL_FRect& hover_focused_rc, const SDL_FRect& pushed_focused_rc, const SDL_FRect& hover_rc, const SDL_FRect& pushed_rc)
+{
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+    SDL_Texture* TextureMap = t->GuiTextureMap1;
+    Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
+    SDL_FRect rc, DestRect;
+    float x{}, y{};
+
+    SDL_FRect ctrl = rc;
+
+    if (m_State & CONTROL_STATE_DISABLED)
+    {
+        ctrl = disabled_rc;
+    }
+    else if (m_State & CONTROL_STATE_FOCUSED)
+    {
+        ctrl = focused_rc;
+        if (m_State & CONTROL_STATE_HOVER)
+        {
+            //std::cout << "HOVER: " << m_Name << std::endl;
+            ctrl = hover_focused_rc;
+        }
+        else if (m_State & CONTROL_STATE_PUSHED)
+        {
+            ctrl = pushed_focused_rc;
+        }
+    }
+    else if (m_State & CONTROL_STATE_HOVER)
+    {
+        ctrl = hover_rc;
+    }
+    else if (m_State & CONTROL_STATE_PUSHED)
+    {
+        ctrl = pushed_rc;
+    }
+
+    RenderTexture(TextureMap, &ctrl, x, y);
+}
+
 void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRect& left_rc, const SDL_FRect& middle_rc, const SDL_FRect& right_rc, const SDL_FRect& left_disabled_rc, const SDL_FRect& middle_disabled_rc, const SDL_FRect& right_disabled_rc, const SDL_FRect& left_focused_rc, const SDL_FRect& middle_focused_rc, const SDL_FRect& right_focused_rc, const SDL_FRect& left_hover_focused_rc, const SDL_FRect& middle_hover_focused_rc, const SDL_FRect& right_hover_focused_rc, const SDL_FRect& left_pushed_focused_rc, const SDL_FRect& middle_pushed_focused_rc, const SDL_FRect& right_pushed_focused_rc, const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc, const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc)
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;

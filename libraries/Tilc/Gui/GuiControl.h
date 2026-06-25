@@ -53,7 +53,9 @@ namespace Tilc {
             ECT_Button,
             ECT_Label,
             ECT_TextField,
-            ECT_MultilineTextField
+            ECT_MultilineTextField,
+            ECT_Checkbox,
+            ECT_Option
         };
 
         enum class EControlBorderType
@@ -522,6 +524,17 @@ namespace Tilc {
                 m_BeginUpdate = false;
                 Invalidate();
             }
+
+            void DrawCommon(
+                const SDL_FRect& Position,
+                const SDL_FRect& rc,
+                const SDL_FRect& disabled_rc,
+                const SDL_FRect& focused_rc,
+                const SDL_FRect& hover_focused_rc,
+                const SDL_FRect& pushed_focused_rc,
+                const SDL_FRect& hover_rc,
+                const SDL_FRect& pushed_rc
+            );
 
             void DrawCommon(
                 const SDL_FRect& Position,
