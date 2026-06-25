@@ -26,14 +26,14 @@ void Tilc::Gui::TCheckbox::CommonInit(const Tilc::TExtString& checkedStateText, 
     m_TabStop = true;
 }
 
-Tilc::Gui::TCheckbox::TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool checked)
-    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Checkbox)
+Tilc::Gui::TCheckbox::TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool checked, Tilc::Gui::EControlType Type)
+    : Tilc::Gui::TGuiControl(parent, name, position, Type)
 {
-    CommonInit(text, text, checked, CHECKBOX_TEXT_PLACEMENT_RIGHT, CHECKBOX_DEFAULT_SPACING);
+    CommonInit(text, text, checked, CONTROL_TEXT_PLACEMENT_RIGHT, CONTROL_DEFAULT_SPACING);
 }
 
-Tilc::Gui::TCheckbox::TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool checked, int textPlacement, int textSpacing)
-    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Checkbox)
+Tilc::Gui::TCheckbox::TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool checked, int textPlacement, int textSpacing, Tilc::Gui::EControlType Type)
+    : Tilc::Gui::TGuiControl(parent, name, position, Type)
 {
     CommonInit(checkedStateText, uncheckedStateText, checked, textPlacement, textSpacing);
 }
@@ -106,7 +106,7 @@ void Tilc::Gui::TCheckbox::Draw()
     int checkbox_width = t->checkbox_checked_rc.w;
     int checkbox_height = t->checkbox_checked_rc.h;
     float x{}, y = (m_Position.h - checkbox_height) / 2.0f;
-    if (m_TextPlacement == CHECKBOX_TEXT_PLACEMENT_LEFT)
+    if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_LEFT)
     {
         x = m_TextSize.w + m_TextSpacing;
     }
@@ -132,7 +132,7 @@ void Tilc::Gui::TCheckbox::Draw()
     // ================================================================
     Position = GetRealPosition();
     x = 0;
-    if (m_TextPlacement == CHECKBOX_TEXT_PLACEMENT_RIGHT)
+    if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_RIGHT)
     {
         x = 0;
         if (checkbox_width)

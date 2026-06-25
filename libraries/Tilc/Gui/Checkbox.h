@@ -8,15 +8,10 @@
 
 namespace Tilc::Gui
 {
-
-    constexpr const int CHECKBOX_DEFAULT_SPACING = 4;
-    constexpr const int CHECKBOX_TEXT_PLACEMENT_LEFT = 1;
-    constexpr const int CHECKBOX_TEXT_PLACEMENT_RIGHT = 2;
-
     class DECLSPEC TCheckbox : public TGuiControl {
     public:
-        TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool checked);
-        TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool checked, int textPlacement = CHECKBOX_TEXT_PLACEMENT_RIGHT, int textSpacing = CHECKBOX_DEFAULT_SPACING);
+        TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, bool checked, Tilc::Gui::EControlType Type = Tilc::Gui::EControlType::ECT_Checkbox);
+        TCheckbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool checked, int textPlacement = CONTROL_TEXT_PLACEMENT_RIGHT, int textSpacing = CONTROL_DEFAULT_SPACING, Tilc::Gui::EControlType Type = Tilc::Gui::EControlType::ECT_Checkbox);
         virtual ~TCheckbox();
 
         virtual void SetText(const Tilc::TExtString& checkedStateText, const Tilc::TExtString& uncheckedStateText, bool redraw = true);
