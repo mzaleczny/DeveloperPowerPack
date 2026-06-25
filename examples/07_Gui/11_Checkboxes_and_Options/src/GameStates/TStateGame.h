@@ -2,6 +2,7 @@
 
 #include "Tilc/Tilc.h"
 #include "Tilc/StateManager.h"
+#include "Tilc/Gui/OptionGroup.h"
 
 namespace Tilc::Gui
 {
@@ -27,4 +28,6 @@ protected:
     Tilc::Gui::TFont* m_Font{};
 	float m_Elapsed;
     std::string m_PositionText;
+    Tilc::Gui::TOptionGroup Opts1;
+    Tilc::Gui::TOptionGroup Opts2;
 };
