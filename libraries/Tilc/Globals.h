@@ -25,6 +25,12 @@ namespace Tilc
     constexpr const int InitFlag_WindowBorderless = 4;
 
     constexpr const char* Chars = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*()-=_+[]{};:\'\"\\|,<.>/?";
+    constexpr int HiWord(int Value) {
+        return (0xffff0000 & Value) >> 16;
+    }
+    constexpr int LoWord(int Value) {
+        return (0x0000ffff & Value);
+    }
 
     enum class EMessageBoxType
     {
