@@ -371,8 +371,9 @@ namespace Tilc {
             SDL_FRect listbox_frame_bottom_right_rc;
             SDL_FRect listbox_frame_left_rc;
             SDL_FRect listbox_frame_right_rc;
+            */
 
-            // Bitmapy grid
+            // Grid
             SDL_FRect grid_cell_inner_bg_normal_rc;
             SDL_FRect grid_cell_inner_bg_selected_rc;
             SDL_FRect grid_cell_inner_bg_selected_active_rc;
@@ -382,7 +383,6 @@ namespace Tilc {
             SDL_FRect grid_left_top_header_mark_rc;
             SDL_FRect grid_top_header_inner_bg_normal_cell_rc;
             SDL_FRect grid_top_header_inner_bg_selected_cell_rc;
-            */
 
             TFont* DefaultFont;
 
