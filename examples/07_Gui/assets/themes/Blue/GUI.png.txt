@@ -163,3 +163,11 @@ checkbox-checked-hover_rc: 0, 976, 20, 20
 checkbox-disabled_rc: 20, 976, 20, 20
 checkbox-hover_rc: 40, 976, 20, 20
 checkbox-focused_rc: 60, 976, 20, 20
+option_rc: 0, 996, 20, 20
+option-checked_rc: 20, 996, 20, 20
+option-checked-disabled_rc: 40, 996, 20, 20
+option-checked-focused_rc: 60, 996, 20, 20
+option-checked-hover_rc: 0, 1016, 20, 20
+option-disabled_rc: 20, 1016, 20, 20
+option-hover_rc: 40, 1016, 20, 20
+option-focused_rc: 60, 1016, 20, 20
