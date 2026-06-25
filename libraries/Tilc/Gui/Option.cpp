@@ -1,4 +1,5 @@
 #include "Tilc/Gui/Option.h"
+#include "Tilc/Gui/OptionGroup.h"
 #include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
@@ -79,4 +80,55 @@ void Tilc::Gui::TOption::Draw()
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
     m_NeedUpdate = ENeedUpdate::ENU_None;
+}
+
+bool Tilc::Gui::TOption::OnMouseButtonUp(const SDL_Event& event)
+{
+    if (!m_Visible) return false;
+    if (OtherControlCapturedMouse())
+    {
+        return false;
+    }
+
+    TGuiControl::OnMouseButtonUp(event);
+
+    if (PointIn(event.button.x, event.button.y))
+    {
+        if (!m_IsChecked)
+        {
+            if (m_OptionGroup)
+            {
+                m_OptionGroup->CheckOption(this);
+            }
+            else
+            {
+                ToggleCheckedState();
+            }
+            Invalidate();
+        }
+        return true;
+    }
+
+    return false;
+}
+
+bool Tilc::Gui::TOption::OnKeyUp(const SDL_Event& event)
+{
+    if (event.key.key == SDLK_SPACE)
+    {
+        if (!m_IsChecked)
+        {
+            if (m_OptionGroup)
+            {
+                m_OptionGroup->CheckOption(this);
+            }
+            else
+            {
+                ToggleCheckedState();
+            }
+        }
+        return true;
+    }
+
+    return false;
 }

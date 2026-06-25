@@ -8,6 +8,7 @@
 
 namespace Tilc::Gui
 {
+    class TOptionGroup;
 
     class DECLSPEC TOption : public TCheckbox
     {
@@ -18,5 +19,14 @@ namespace Tilc::Gui
 
         // Funkcje obsługi zdarzeń
         virtual void Draw() override;
+        virtual bool OnMouseButtonUp(const SDL_Event& event) override;
+        virtual bool OnKeyUp(const SDL_Event& event) override;
+
+        void AddToGroup(TOptionGroup* Group)
+        {
+            m_OptionGroup = Group;
+        }
+    protected:
+        TOptionGroup* m_OptionGroup{};
     };
 }
