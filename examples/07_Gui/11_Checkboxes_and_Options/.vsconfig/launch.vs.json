@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "11_Checkboxes_and_Options.exe",
+      "name": "11_Checkboxes_and_Options.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}
