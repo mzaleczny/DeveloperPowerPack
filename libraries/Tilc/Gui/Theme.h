@@ -338,7 +338,7 @@ namespace Tilc {
             SDL_FRect button_middle_pushed_focused_rc;
 
 
-            // checkbox bitmaps
+            // checkbox
             SDL_FRect checkbox_rc;
             SDL_FRect checkbox_disabled_rc;
             SDL_FRect checkbox_focused_rc;
@@ -347,6 +347,17 @@ namespace Tilc {
             SDL_FRect checkbox_checked_disabled_rc;
             SDL_FRect checkbox_checked_focused_rc;
             SDL_FRect checkbox_checked_hover_rc;
+
+
+            // option
+            SDL_FRect option_rc;
+            SDL_FRect option_disabled_rc;
+            SDL_FRect option_focused_rc;
+            SDL_FRect option_hover_rc;
+            SDL_FRect option_checked_rc;
+            SDL_FRect option_checked_disabled_rc;
+            SDL_FRect option_checked_focused_rc;
+            SDL_FRect option_checked_hover_rc;
 
             /*
             // listbox bitmaps
@@ -424,6 +435,7 @@ namespace Tilc {
             void LoadMultilineTextFieldSkinResources(Tilc::TExtString themeName);
             void LoadButtonSkinResources(Tilc::TExtString themeName);
             void LoadCheckboxSkinResources(Tilc::TExtString themeName);
+            void LoadOptionSkinResources(Tilc::TExtString themeName);
             void LoadListboxSkinResources(Tilc::TExtString themeName);
             void LoadGridSkinResources(Tilc::TExtString themeName);
         protected:

@@ -53,20 +53,21 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
 
     LayoutInputStream.open(Filename + ".txt", std::ios::in);
     //this->globalStandardFont = new CFont(NULL, RGB(0, 0, 0), "Verdana", 8);
-    this->LoadWindowSkinResources(name);
-    this->LoadScrollBarSkinResources(name);
-    this->LoadScrollBarSkinResources(name, "small");
-    this->LoadButtonSkinResources(name);
-    this->LoadSliderSkinResources(name);
-    this->LoadTextFieldSkinResources(name);
-    this->LoadMultilineTextFieldSkinResources(name);
+    LoadWindowSkinResources(name);
+    LoadScrollBarSkinResources(name);
+    LoadScrollBarSkinResources(name, "small");
+    LoadButtonSkinResources(name);
+    LoadSliderSkinResources(name);
+    LoadTextFieldSkinResources(name);
+    LoadMultilineTextFieldSkinResources(name);
+    LoadCheckboxSkinResources(name);
+    LoadOptionSkinResources(name);
 
     this->LoadPanelSkinResources(name);
     this->LoadMenuSkinResources(name);
     this->LoadPopupmenuSkinResources(name);
     this->LoadToolbar16SkinResources(name);
     this->LoadLabelSkinResources(name);
-    this->LoadCheckboxSkinResources(name);
     this->LoadListboxSkinResources(name);
     this->LoadGridSkinResources(name);
 
@@ -811,6 +812,45 @@ void Tilc::Gui::TTheme::LoadCheckboxSkinResources(Tilc::TExtString themeName)
             else if (Item == "checkbox-focused_rc")
             {
                 checkbox_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                break;
+            }
+        }
+    }
+}
+
+void Tilc::Gui::TTheme::LoadOptionSkinResources(Tilc::TExtString themeName)
+{
+    if (GameObject)
+    {
+        Tilc::TExtString Line;
+        while (std::getline(LayoutInputStream, Line))
+        {
+            std::stringstream Keystream(Line);
+            Tilc::TExtString Item, sx, sy, sw, sh;
+            Keystream >> Item >> sx >> sy >> sw >> sh;
+            Item = Item.substr(0, Item.length() - 1);
+            sx = sx.substr(0, sx.length() - 1);
+            sy = sy.substr(0, sy.length() - 1);
+            sw = sw.substr(0, sw.length() - 1);
+            //sh = sh.substr(0, sh.length() - 1);
+
+            if (Item == "option_rc")
+                option_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "option-checked_rc")
+                option_checked_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "option-checked-disabled_rc")
+                option_checked_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "option-checked-focused_rc")
+                option_checked_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "option-checked-hover_rc")
+                option_checked_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "option-disabled_rc")
+                option_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "option-hover_rc")
+                option_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "option-focused_rc")
+            {
+                option_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 break;
             }
         }
