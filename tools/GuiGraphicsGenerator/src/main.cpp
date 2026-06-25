@@ -120,7 +120,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     RenderButtons("multiline-textfield", 75, 50);
     AddY(7 * 50, 0);
     X = CurrentColumnX;
-    RenderButtonsByNamesHorizontal({"checkbox", "checkbox-checked", "checkbox-checked-disabled", "checkbox-checked-hover", "checkbox-disabled", "checkbox-hover"}, 20, 20);
+    RenderButtonsByNamesHorizontal({"checkbox", "checkbox-checked", "checkbox-checked-disabled", "checkbox-checked-focused", "checkbox-checked-hover",
+        "checkbox-disabled", "checkbox-hover", "checkbox-focused"}, 20, 20, 4);
     AddY(25, 0);
 
     SDL_SetRenderTarget(renderer, nullptr);
