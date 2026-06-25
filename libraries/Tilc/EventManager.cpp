@@ -199,7 +199,7 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
         {
             if (RenderWindow->m_LastProcessedWindow)
             {
-                if (RenderWindow->m_LastProcessedWindow->ResetControlsState(CONTROL_STATE_HOVER | CONTROL_STATE_PUSHED, false))
+                if (RenderWindow->m_LastProcessedWindow->ResetControlsState(Tilc::Gui::CONTROL_STATE_HOVER | Tilc::Gui::CONTROL_STATE_PUSHED, false))
                 {
                     RenderWindow->m_LastProcessedWindow->Invalidate();
                 }
