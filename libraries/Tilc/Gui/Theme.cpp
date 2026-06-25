@@ -796,21 +796,21 @@ void Tilc::Gui::TTheme::LoadCheckboxSkinResources(Tilc::TExtString themeName)
 
             if (Item == "checkbox_rc")
                 checkbox_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "checkbox_checked_rc")
+            else if (Item == "checkbox-checked_rc")
                 checkbox_checked_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "checkbox_checked_disabled_rc")
+            else if (Item == "checkbox-checked-disabled_rc")
                 checkbox_checked_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "checkbox_checked_focused_rc")
+            else if (Item == "checkbox-checked-focused_rc")
                 checkbox_checked_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "checkbox_checked_hover_rc")
+            else if (Item == "checkbox-checked-hover_rc")
                 checkbox_checked_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "checkbox_disabled_rc")
+            else if (Item == "checkbox-disabled_rc")
                 checkbox_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "checkbox_hover_rc")
+            else if (Item == "checkbox-hover_rc")
                 checkbox_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "checkbox_focused_rc")
+            else if (Item == "checkbox-focused_rc")
             {
-                checkbox_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                checkbox_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 break;
             }
         }
