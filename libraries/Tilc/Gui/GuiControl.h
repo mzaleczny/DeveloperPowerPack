@@ -8,18 +8,6 @@
 #include <list>
 #include <unordered_map>
 
-constexpr const int CONTROL_STATE_NORMAL = 1;
-constexpr const int CONTROL_STATE_HOVER = 2;
-constexpr const int CONTROL_STATE_PUSHED = 4;
-constexpr const int CONTROL_STATE_FOCUSED = 8;
-constexpr const int CONTROL_STATE_DISABLED = 16;
-constexpr const int CONTROL_STATE_ACTIVE = 32;
-constexpr const int CONTROL_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS = 64;
-
-constexpr const int MOUSE_EVENT_ONMOUSEDOWN = 1;
-constexpr const int MOUSE_EVENT_ONMOUSEMOVE = 2;
-constexpr const int MOUSE_EVENT_ONMOUSEUP = 3;
-
 namespace Tilc {
     namespace Game2D {
         namespace Sprite {
@@ -33,6 +21,23 @@ namespace Tilc {
         class TScrollBar;
         class TTheme;
         class TStyledWindow;
+
+
+        constexpr const int CONTROL_STATE_NORMAL = 1;
+        constexpr const int CONTROL_STATE_HOVER = 2;
+        constexpr const int CONTROL_STATE_PUSHED = 4;
+        constexpr const int CONTROL_STATE_FOCUSED = 8;
+        constexpr const int CONTROL_STATE_DISABLED = 16;
+        constexpr const int CONTROL_STATE_ACTIVE = 32;
+        constexpr const int CONTROL_STATE_UPDATE_CURSOR_POS_ACCORDING_MOUSE_POS = 64;
+
+        constexpr const int MOUSE_EVENT_ONMOUSEDOWN = 1;
+        constexpr const int MOUSE_EVENT_ONMOUSEMOVE = 2;
+        constexpr const int MOUSE_EVENT_ONMOUSEUP = 3;
+
+        constexpr const int CONTROL_DEFAULT_SPACING = 4;
+        constexpr const int CONTROL_TEXT_PLACEMENT_LEFT = 1;
+        constexpr const int CONTROL_TEXT_PLACEMENT_RIGHT = 2;
 
         enum class ENeedUpdate
         {
