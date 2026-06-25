@@ -60,7 +60,8 @@ namespace Tilc {
             ECT_TextField,
             ECT_MultilineTextField,
             ECT_Checkbox,
-            ECT_Option
+            ECT_Option,
+            ECT_Grid
         };
 
         enum class EControlBorderType
