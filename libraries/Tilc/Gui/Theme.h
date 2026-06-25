@@ -341,9 +341,11 @@ namespace Tilc {
             // checkbox bitmaps
             SDL_FRect checkbox_rc;
             SDL_FRect checkbox_disabled_rc;
+            SDL_FRect checkbox_focused_rc;
             SDL_FRect checkbox_hover_rc;
             SDL_FRect checkbox_checked_rc;
             SDL_FRect checkbox_checked_disabled_rc;
+            SDL_FRect checkbox_checked_focused_rc;
             SDL_FRect checkbox_checked_hover_rc;
 
             /*
