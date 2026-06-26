@@ -126,6 +126,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     RenderButtonsByNamesHorizontal({"option", "option-checked", "option-checked-disabled", "option-checked-focused", "option-checked-hover",
         "option-disabled", "option-hover", "option-focused"}, 20, 20, 4);
     AddY(20 * 2, 0);
+    RenderButtonsByNamesHorizontal({ "grid_cell_inner_bg_normal", "grid_cell_inner_bg_selected", "grid_cell_inner_bg_selected_active", "grid_left_header_inner_bg_normal_cell",
+        "grid_left_header_inner_bg_selected_cell", "grid_left_top_header_inner_bg", "grid_top_header_inner_bg_normal_cell", "grid_top_header_inner_bg_selected_cell" }, 4, 30, 8);
+    AddX(8 * 4, 0);
+    RenderButtonsByNamesHorizontal({ "grid_left_top_header_mark" }, 4, 4, 1);
+    AddY(30, 0);
 
     SDL_SetRenderTarget(renderer, nullptr);
 
