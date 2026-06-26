@@ -955,15 +955,14 @@ void Tilc::Gui::TGuiControl::ResetEditor()
     }
 }
 
-void Tilc::Gui::TGuiControl::SetEditorValue(Tilc::TStdObject* value)
+void Tilc::Gui::TGuiControl::SetEditorValue(const Tilc::TExtString& value)
 {
     if (m_Editor)
     {
         Tilc::Gui::TTextField* tf = dynamic_cast<Tilc::Gui::TTextField*>(m_Editor);
         if (tf)
         {
-            Tilc::TExtString v = value->getAsString("text");
-            m_Editor->SetText(v);
+            m_Editor->SetText(value);
         }
     }
 }
@@ -975,8 +974,8 @@ void Tilc::Gui::TGuiControl::Edit()
         return;
     }
     ResetEditor();
-    Tilc::TStdObject value = GetValue();
-    SetEditorValue(&value);
+    Tilc::TExtString value = GetValue();
+    SetEditorValue(value);
     OnEditorShow();
     m_Editor->Show();
 

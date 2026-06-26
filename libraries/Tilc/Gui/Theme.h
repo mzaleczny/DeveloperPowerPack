@@ -384,7 +384,20 @@ namespace Tilc {
             SDL_FRect grid_top_header_inner_bg_normal_cell_rc;
             SDL_FRect grid_top_header_inner_bg_selected_cell_rc;
 
-            TFont* DefaultFont;
+            SDL_Color commonGridControlTopHeaderNormalFontColor{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlTopHeaderSelectedFontColor{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlLeftHeaderNormalFontColor{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlLeftHeaderSelectedFontColor{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlTopHeaderCellBorderColor_Normal{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlTopHeaderCellBorderColor_Selected{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlLeftTopHeaderCellBorderColor{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlLeftHeaderCellBorderColor_Normal{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlLeftHeaderCellBorderColor_Selected{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlCellBorderColor_Normal{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlCellBorderColor_Selected{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlCellBorderColor_Active{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlSelectionBorderColor{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlFocusedGridBorderColor{ 0, 0, 0, 255 };
 
             /*
             // Dostępne fonty
@@ -398,26 +411,13 @@ namespace Tilc {
             CFont* commonGridControlFont;
             CFont* commonCheckboxControlFont;
             CFont* commonListboxControlFont;
+            */
 
             // kolory fontu this->commonTextControlFont wyświetlonego w trybie normalnym i zaznaczonym
             SDL_Color commonTextControlNormalFontColor;
             SDL_Color commonTextControlSelectedFontColor;
 
-            SDL_Color commonGridControlTopHeaderNormalFontColor;
-            SDL_Color commonGridControlTopHeaderSelectedFontColor;
-            SDL_Color commonGridControlLeftHeaderNormalFontColor;
-            SDL_Color commonGridControlLeftHeaderSelectedFontColor;
-            SDL_Color commonGridControlTopHeaderCellBorderColor_Normal;
-            SDL_Color commonGridControlTopHeaderCellBorderColor_Selected;
-            SDL_Color commonGridControlLeftTopHeaderCellBorderColor;
-            SDL_Color commonGridControlLeftHeaderCellBorderColor_Normal;
-            SDL_Color commonGridControlLeftHeaderCellBorderColor_Selected;
-            SDL_Color commonGridControlCellBorderColor_Normal;
-            SDL_Color commonGridControlCellBorderColor_Selected;
-            SDL_Color commonGridControlCellBorderColor_Active;
-            SDL_Color commonGridControlSelectionBorderColor;
-            SDL_Color commonGridControlFocusedGridBorderColor;
-            */
+            TFont* DefaultFont;
 
             void Load(Tilc::TExtString name = "");
             void LoadFonts();

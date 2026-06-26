@@ -425,8 +425,7 @@ namespace Tilc {
             virtual void AddEditor();
             virtual bool RemoveEditor();
 
-            virtual Tilc::TStdObject GetValue() { return {}; }
-            virtual void SetValue(const Tilc::TStdObject& value, bool redraw = true) {}
+            virtual Tilc::TExtString GetValue() { return {}; }
             virtual void SetValue(const Tilc::TExtString& value, bool redraw = true) {}
             virtual void Edit();
             virtual void OnEditorShow() {};
@@ -435,7 +434,7 @@ namespace Tilc {
             virtual void OnApplyEditorChanges(Tilc::TStdObject* value) {};
 
             virtual void ResetEditor();
-            virtual void SetEditorValue(Tilc::TStdObject* value);
+            virtual void SetEditorValue(const Tilc::TExtString& value);
 
             TGuiControl* GetChild(const Tilc::TExtString& name);
 

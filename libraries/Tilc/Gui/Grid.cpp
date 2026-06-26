@@ -1,22 +1,20 @@
 #include "Tilc/Gui/Grid.h"
+#include "Tilc/Gui/Theme.h"
+#include "Tilc/Gui/Font.h"
+#include "Tilc/Game.h"
+#include "Tilc/Gui/Scrollbar.h"
+#include "Tilc/Gui/ScrollbarVertical.h"
+#include "Tilc/Gui/ScrollbarHorizontal.h"
+#include "Tilc/Gui/TextField.h"
+#include "Tilc/Gui/StyledWIndow.h"
+#include "Tilc/Utils/FileUtils.h"
 /*
-#include "mzstdguiGlobals.h"
-#include "mzstd.h"
-#include "mzFileUtils.h"
 #include "mzImageList.h"
-#include "mzTheme.h"
-#include "mzBitmap.h"
-#include "mzKeyboard.h"
-#include "mzStyledWindow.h"
 #include "mzMessages.h"
-#include "mzApplication.h"
-#include "mzArrayList.h"
-#include "mzTextField.h"
-#include "mzScrollbar.h"
-#include "mzScrollbarVertical.h"
-#include "mzScrollbarHorizontal.h"
 #include "mzStdDialogs.h"
 */
+#include <ranges>
+
 Tilc::Gui::TGridCell::TGridCell(const Tilc::TExtString& value, SDL_Point size, bool isHeader, bool selected)
     : m_Value(value), m_Size(size), m_IsHeader(isHeader), m_Selected(selected)
 {
@@ -27,7 +25,6 @@ Tilc::Gui::TGridCell::~TGridCell()
 }
 
 
-/*
 
 Tilc::Gui::TGrid::TGrid(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, int columnCount, int rowCount, bool editable)
     : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Grid, editable)
@@ -59,7 +56,7 @@ void Tilc::Gui::TGrid::CommonInit(int columnCount, int rowCount, bool editable, 
     m_LeftHeaderWidth = Tilc::Gui::GRID_DEFAULT_LEFT_HEADER_WIDTH;
     m_DefColumnWidth = Tilc::Gui::GRID_DEFAULT_COLUMN_WIDTH;
 
-    m_DefRowHeight = GetTheme()->grid_cell_inner_bg_normal->height() + 2;
+    m_DefRowHeight = GetTheme()->grid_cell_inner_bg_normal_rc.h + 2;
     m_TopHeaderHeight = m_DefRowHeight;
 
     m_StartCellCoordX = 1;
@@ -70,218 +67,184 @@ void Tilc::Gui::TGrid::CommonInit(int columnCount, int rowCount, bool editable, 
     SetGridSize(columnCount, rowCount);
 
     //this->_backgroundColor = RGB(0xff, 0xff, 0xff);
-    this->setSize(width, height);
     // Adding scrollbars and editor
-    bool addVScr = static_cast<int>(this->getTotalRowsHeight()) > this->height;
-    bool addHScr = static_cast<int>(this->getTotalColumnsWidth()) > this->width;
-    this->addScrollbars(addVScr, addHScr, 0, 1000, 0, 1000);
-    CScrollbar* scr = dynamic_cast<CScrollbar*>(this->getChild(this->name + "_VSB"));
+    bool addVScr = static_cast<int>(GetTotalRowsHeight()) > m_Position.h;
+    bool addHScr = static_cast<int>(GetTotalColumnsWidth()) > m_Position.w;
+    AddScrollbars(addVScr, addHScr, 0, 1000, 0, 1000);
+    Tilc::Gui::TScrollBar* scr = dynamic_cast<Tilc::Gui::TScrollBar*>(GetChild(m_Name + "_VSB"));
     if (scr)
     {
-        (dynamic_cast<CScrollbarVertical*>(scr))->setSteps(50, 100);
+        (dynamic_cast<Tilc::Gui::TScrollBarVertical*>(scr))->SetSteps(50, 100);
     }
-    scr = dynamic_cast<CScrollbar*>(this->getChild(this->name + "_HSB"));
+    scr = dynamic_cast<Tilc::Gui::TScrollBar*>(GetChild(m_Name + "_HSB"));
     if (scr)
     {
-        (dynamic_cast<CScrollbarHorizontal*>(scr))->setSteps(50, 100);
+        (dynamic_cast<Tilc::Gui::TScrollBarHorizontal*>(scr))->SetSteps(50, 100);
     }
-    this->_tabStop = true;
-    if (editable) {
-        this->addEditor();
+    m_TabStop = true;
+    if (editable)
+    {
+        AddEditor();
     }
 
-    this->_cachedFonts = new CmzArrayList(10);
-    this->_updateGridParameters();
+    UpdateGridParameters();
 
-    if (this->_visibleWidthOfLastColumn < 4) {
-        this->_xPageStep = this->getFullVisibleColumnCount();
-    } else {
-        this->_xPageStep = this->getVisibleColumnCount();
+    if (m_VisibleWidthOfLastColumn < 4)
+    {
+        m_XPageStep = GetFullVisibleColumnCount();
     }
-    if (this->_visibleHeightOfLastRow < 4) {
-        this->_yPageStep = this->getFullVisibleRowCount();
-    } else {
-        this->_yPageStep = this->getVisibleRowCount();
+    else
+    {
+        m_XPageStep = GetVisibleColumnCount();
     }
-}
-
-Tilc::Gui::TGrid::~Tilc::Gui::TGrid() {
-    this->_cleanGridContent();
-    if (this->_cachedFonts->size() > 0) {
-        this->cleanCachedFonts();
-        delete this->_cachedFonts;
-        this->_cachedFonts = NULL;
+    if (m_VisibleHeightOfLastRow < 4)
+    {
+        m_YPageStep = GetFullVisibleRowCount();
+    }
+    else
+    {
+        m_YPageStep = GetVisibleRowCount();
     }
 }
 
-VOID Tilc::Gui::TGrid::cleanData() {
-    CPairExt* p;
-    Tilc::Gui::TGridCell* c;
-    Uintint size = this->_data.size();
-    intint* items = this->_data.getItemsBuf();
-    for (Uint i = 0; i < size; i++) {
-        p = (CPairExt*)items[i];
-        if (p) {
-            c = (Tilc::Gui::TGridCell*)p->second;
-            delete c;
-        }
-    }
-    // clearing below does delete on CPairExt objects
-    this->_data.clear();
+Tilc::Gui::TGrid::~TGrid()
+{
+    CleanGridContent();
 }
 
-VOID Tilc::Gui::TGrid::cleanCachedFonts() {
-    Uintint size = this->_cachedFonts->size();
-    intint* items = this->_cachedFonts->getItemsBuf();
-    CmzFont* font;
-    for (Uintint i = 0; i < size; i++) {
-        font = (CmzFont*)items[i];
-        delete font;
-    }
-    this->_cachedFonts->clear();
+void Tilc::Gui::TGrid::CleanData() {
+    m_Data.clear();
 }
 
-CmzFont* Tilc::Gui::TGrid::getFont(const WCHAR* fontName, int fontSize, int fontColor) {
-    CmzFont* defFont = this->_theme->commonGridControlFont;
-    Uintint size = this->_cachedFonts->size();
-    if (fontName == COMMON_EMPTY_STRING || size < 1) {
-        return defFont;
-    }
-
-    intint* items = this->_cachedFonts->getItemsBuf();
-    CmzFont* font;
-    for (Uintint i = 0; i < size; i++) {
-        font = (CmzFont*)items[i];
-        if (font->name == fontName && font->size == fontSize && font->color == fontColor) {
-            return font;
-        }
-    }
-
-    font = new CmzFont(NULL, fontColor, fontName, fontSize);
-    this->_cachedFonts->append((intint)font);
-
-    return font;
-}
-
-VOID Tilc::Gui::TGrid::_updateCanvas() {
-    this->_needUpdate = false;
-    if (!this->canvas || !this->isVisible()) {
-		return;
-    }
-
-	int x = 0;
+void Tilc::Gui::TGrid::Draw()
+{
+    Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    SDL_Texture* OldRenderTarget{ nullptr };
+    Tilc::Gui::TFont* f = t->DefaultFont;
+    int x = 0;
     int y = 0;
-    HDC hdc = GetDC(0);
-	CTheme *t = this->_theme;
-    bool drawScrollbarsEmptySquare = false;
-    if (this->_vscrollbar || this->_hscrollbar) {
-        drawScrollbarsEmptySquare = true;
-    }
-
+    SDL_Texture* TextureMap = t->GuiTextureMap1;
+    SDL_Color border_color{ 0, 0, 0, 255 };
     int w, h;
-    Tilc::Gui::TGridHeaderCell *xheaderCell, *yheaderCell;
-    SIZE cellSize;
-
-	this->canvas->beginPaint(hdc);
-
-    RECT clientRect, noheadersClientRect;
+    Tilc::Gui::TGridCell* xheaderCell, * yheaderCell;
+    SDL_Point cellSize;
+    SDL_FRect clientRect = m_RealPosition, noheadersClientRect, rc;
     int maxRightX = 0;
     int maxBottomY = 0;
-    clientRect.left = 0;
-    clientRect.top = 0;
-    clientRect.right = this->width;
-    clientRect.bottom = this->height;
-    if (this->_showLeftHeader) {
-        clientRect.left = this->_leftHeaderWidth - 1;
-    }
-    if (this->_showTopHeader) {
-        clientRect.top = this->_topHeaderHeight - 1;
-    }
-    if (this->_vscrollbar) {
-        clientRect.right -= this->_vscrollbar->width;
-    }
-    if (this->_hscrollbar) {
-        clientRect.bottom -= this->_hscrollbar->height;
+    bool drawScrollbarsEmptySquare = true;
+
+    if (m_Canvas)
+    {
+        OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, m_Canvas);
     }
 
-    clientRect.right -= 1;      // apply border size
-    clientRect.bottom -= 1;     // apply border size
+
+    if (m_ShowLeftHeader)
+    {
+        clientRect.x += m_LeftHeaderWidth - 1;
+    }
+    if (m_ShowTopHeader)
+    {
+        clientRect.y = m_TopHeaderHeight - 1;
+    }
+    if (m_VScrollBar)
+    {
+        clientRect.w -= m_VScrollBar->m_Position.w;
+    }
+    if (m_HScrollBar)
+    {
+        clientRect.h -= m_HScrollBar->m_Position.h;
+    }
+
+    clientRect.w -= 1;      // apply border size
+    clientRect.h -= 1;     // apply border size
     noheadersClientRect = clientRect;
-    noheadersClientRect.left = 0;
-    noheadersClientRect.top = 0;
+    noheadersClientRect.x = m_RealPosition.x;
+    noheadersClientRect.y = m_RealPosition.y;
 
-    int theaderSize = this->_showTopHeader ? this->_topHeaderHeight : 0;
-    int lheaderSize = this->_showLeftHeader ? this->_leftHeaderWidth : 0;
+    int theaderSize = m_ShowTopHeader ? m_TopHeaderHeight : 0;
+    int lheaderSize = m_ShowLeftHeader ? m_LeftHeaderWidth : 0;
 
     // clear canvas
-    this->canvas->fillRectangle(this->_backgroundColor, 0, 0, this->width, this->height);
+    SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+    SDL_RenderFillRect(Renderer, &m_RealPosition);
 
     // ================================================================
     // Rysujemy lewą górną komórkę nagłówka
     // ================================================================
-    if (this->_showLeftHeader && this->_showTopHeader) {
-        w = this->_leftHeaderWidth;
-        h = this->_topHeaderHeight;
-        this->canvas->stretchBitmap(t->grid_left_top_header_inner_bg, x + 1, y + 1, w - 2, h - 2);
-        this->canvas->drawBitmap(t->grid_left_top_header_mark, x + w - t->grid_left_top_header_mark->width() - 3, y + (h - t->grid_left_top_header_mark->height() - 2));
-        this->canvas->drawRectangle(t->commonGridControlLeftTopHeaderCellBorderColor, x, y, x + w, y + h);
+    x = m_RealPosition.x;
+    y = m_RealPosition.y;
+    if (m_ShowLeftHeader && m_ShowTopHeader)
+    {
+        w = m_LeftHeaderWidth;
+        h = m_TopHeaderHeight;
+        RenderTexture(TextureMap, &t->grid_left_top_header_inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
+        RenderTexture(TextureMap, &t->grid_left_top_header_mark_rc, x + w - t->grid_left_top_header_mark_rc.w - 3, y + (h - t->grid_left_top_header_mark_rc.h - 2));
+        SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
+        rc.x = x;
+        rc.y = y;
+        rc.w = w;
+        rc.h = h;
+        SDL_RenderRect(Renderer, &rc);
         x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
     }
     // ================================================================
     // Koniec rysowania lewej górnej komórki nagłówka
     // ================================================================
 
+    SDL_FRect inner_bg_rc;
     bool selected = false, xHeaderColSelected = false, yHeaderColSelected = false;
-    CmzBitmap *inner_bg;
-    COLORREF border_color;
-    CmzFont *f = this->getFont();
     int xIndex, yIndex;
-    RECT rc;
-    Uintint xheader_items_count, yheader_items_count;
-    intint *xheader_items, *yheader_items;
+    unsigned int xheader_items_count, yheader_items_count;
+    std::vector<TGridCell>& xheader_items = m_ColData;
+    std::vector<TGridCell>& yheader_items = m_RowData;
 
-    xheader_items_count = this->_colData->size();
-    xheader_items = this->_colData->getItemsBuf();
-    yheader_items_count = this->_rowData->size();
-    yheader_items = this->_rowData->getItemsBuf();
+    xheader_items_count = xheader_items.size();
+    yheader_items_count = yheader_items.size();
 
     // ================================================================
     // Rysujemy górny nagłówek
     // ================================================================
-    if (this->_showTopHeader) {
-        h = this->_topHeaderHeight;
-        xIndex = this->_startCellCoordX;
-        while ((x < this->_dataCanvasWidth + lheaderSize) && (xIndex-1 < xheader_items_count)) {
-            xheaderCell = (Tilc::Gui::TGridHeaderCell*)xheader_items[xIndex-1];
-            w = xheaderCell->size;
+    if (m_ShowTopHeader)
+    {
+        h = m_TopHeaderHeight;
+        xIndex = m_StartCellCoordX;
+        while ((x < m_DataCanvasWidth + lheaderSize) && (xIndex-1 < xheader_items_count))
+        {
+            Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex-1];
+            w = xheaderCell.m_Size.x;
             // najpierw ustalamy czy komórka nagłówka jest aktywna
-            if (xIndex == this->_coordX) {
+            if (xIndex == m_CoordX)
+            {
                 xHeaderColSelected = true;
-            } else {
-                if (xheaderCell) {
-                    xHeaderColSelected = xheaderCell->selected;
-                } else {
-                    xHeaderColSelected = false;
-                }
+            }
+            else
+            {
+                xHeaderColSelected = xheaderCell.m_Selected;
             }
 
-            if (xHeaderColSelected) {
-                inner_bg = t->grid_top_header_inner_bg_selected_cell;
+            if (xHeaderColSelected)
+            {
+                inner_bg_rc = t->grid_top_header_inner_bg_selected_cell_rc;
                 border_color = t->commonGridControlTopHeaderCellBorderColor_Selected;
-            } else {
-                inner_bg = t->grid_top_header_inner_bg_normal_cell;
+            }
+            else
+            {
+                inner_bg_rc = t->grid_top_header_inner_bg_normal_cell_rc;
                 border_color = t->commonGridControlTopHeaderCellBorderColor_Normal;
             }
 
-            rc.left = x;
-            rc.top = y;
-            rc.right = rc.left + w;
-            rc.bottom = rc.top + h;
-
-            this->canvas->stretchBitmap(inner_bg, x + 1, y + 1, w - 2, h - 2);
-            this->canvas->drawRectangle(border_color, rc);
-            if (xheaderCell && xIndex <= this->_maxColumnNumber) {
-                this->canvas->drawText(f, xheaderCell->text, rc, true, 0, DT_SINGLELINE | DT_CENTER | DT_VCENTER, 0);
+            rc.x = x;
+            rc.y = y;
+            rc.w = w;
+            rc.h = h;
+            RenderTexture(TextureMap, &inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
+            SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
+            SDL_RenderRect(Renderer, &rc);
+            if (xIndex <= m_MaxColumnNumber)
+            {
+                f->DrawString(Renderer, xheaderCell.m_Value.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
             }
 
             x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
@@ -296,50 +259,53 @@ VOID Tilc::Gui::TGrid::_updateCanvas() {
     // ================================================================
     // Rysujemy lewy nagłówek
     // ================================================================
-    if (this->_showLeftHeader) {
-        x = 0;
-        if (this->_showTopHeader) {
-            y = t->grid_top_header_inner_bg_normal_cell->height() + 2 - 1;
-        } else {
-            y = 0;
+    if (m_ShowLeftHeader)
+    {
+        x = m_RealPosition.x;
+        if (m_ShowTopHeader)
+        {
+            y = m_RealPosition.y + t->grid_top_header_inner_bg_normal_cell_rc.h + 2 - 1;
         }
-        w = this->_leftHeaderWidth;
-        yIndex = this->_startCellCoordY;
-        while ((y < this->_dataCanvasHeight + theaderSize) && (yIndex-1 < yheader_items_count)) {
-            yheaderCell = (Tilc::Gui::TGridHeaderCell*)yheader_items[yIndex-1];
-            h = yheaderCell->size;
+        w = m_LeftHeaderWidth;
+        yIndex = m_StartCellCoordY;
+        while ((y < m_DataCanvasHeight + theaderSize) && (yIndex-1 < yheader_items_count))
+        {
+            Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex-1];
+            h = yheaderCell.m_Size.y;
             // najpierw ustalamy czy komórka nagłówka jest aktywna
-            if (yIndex == this->_coordY) {
+            if (yIndex == m_CoordY)
+            {
                 yHeaderColSelected = true;
-            } else {
-                if (yheaderCell) {
-                    yHeaderColSelected = yheaderCell->selected;
-                } else {
-                    yHeaderColSelected = false;
-                }
+            }
+            else
+            {
+                yHeaderColSelected = yheaderCell.m_Selected;
             }
 
-            if (yHeaderColSelected) {
-                inner_bg = t->grid_left_header_inner_bg_selected_cell;
+            if (yHeaderColSelected)
+            {
+                inner_bg_rc = t->grid_left_header_inner_bg_selected_cell_rc;
                 border_color = t->commonGridControlLeftHeaderCellBorderColor_Selected;
             } else {
-                inner_bg = t->grid_left_header_inner_bg_normal_cell;
+                inner_bg_rc = t->grid_left_header_inner_bg_normal_cell_rc;
                 border_color = t->commonGridControlLeftHeaderCellBorderColor_Normal;
             }
 
-            rc.left = x;
-            rc.top = y;
-            rc.right = rc.left + w;
-            rc.bottom = rc.top + h;
+            rc.x = x;
+            rc.y = y;
+            rc.w = w;
+            rc.h = h;
 
-            this->canvas->stretchBitmap(inner_bg, x + 1, y + 1, w - 2, h - 2);
-            this->canvas->drawRectangle(border_color, rc);
-            if (yheaderCell && yIndex <= this->_maxRowNumber) {
-                this->canvas->drawText(f, yheaderCell->text, rc, true, 0, DT_SINGLELINE | DT_CENTER | DT_VCENTER, 0);
+            RenderTexture(TextureMap, &inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
+            SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
+            SDL_RenderRect(Renderer, &rc);
+            if (xIndex <= m_MaxRowNumber)
+            {
+                f->DrawString(Renderer, yheaderCell.m_Value.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
             }
 
             y += h - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
-            yIndex++;
+            ++yIndex;
         }
     }
     // ================================================================
@@ -347,79 +313,104 @@ VOID Tilc::Gui::TGrid::_updateCanvas() {
     // ================================================================
 
 
-    Tilc::Gui::TGridCell *cellData;
-    CPairExt *cellPair;
-    intint coord;
-    intint foundCellPairPosition;
+    int coord;
+    int foundCellPairPosition;
     // ================================================================
     // Rysujemy komórki wewnętrzne (z danymi)
     // ================================================================
     x = lheaderSize ? lheaderSize - 1 : 0;
     y = theaderSize ? theaderSize - 1 : 0;
-    w = this->_defColumnWidth;
-    h = t->grid_cell_inner_bg_normal->height();
+    w = m_DefColumnWidth;
+    h = t->grid_cell_inner_bg_normal_rc.h;
 
-    xIndex = this->_startCellCoordX;
-    yIndex = this->_startCellCoordY;
+    xIndex = m_StartCellCoordX;
+    yIndex = m_StartCellCoordY;
     int startX = x;
 
-    while ((y <= this->_dataCanvasHeight + theaderSize) && (yIndex <= yheader_items_count)) {
+    while ((y <= m_DataCanvasHeight + theaderSize) && (yIndex <= yheader_items_count))
+    {
         x = startX;
-        xIndex = this->_startCellCoordX;
-        while ((x <= this->_dataCanvasWidth + lheaderSize) && (xIndex <= xheader_items_count)) {
-            xheaderCell = (Tilc::Gui::TGridHeaderCell*)xheader_items[xIndex-1];
-            yheaderCell = (Tilc::Gui::TGridHeaderCell*)yheader_items[yIndex-1];
-            w = xheaderCell->size;
-            h = yheaderCell->size;
+        xIndex = m_StartCellCoordX;
+        while ((x <= m_DataCanvasWidth + lheaderSize) && (xIndex <= xheader_items_count))
+        {
+            Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex-1];
+            Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex-1];
+            w = xheaderCell.m_Size.x;
+            h = yheaderCell.m_Size.y;
 
-            coord = this->_cellCoordsToint(xIndex, yIndex);
-            cellPair = this->_data.findFirstItemByFirst(coord, &foundCellPairPosition);
-            if (cellPair) {
-                cellData = (Tilc::Gui::TGridCell*)cellPair->second;
-                selected = cellData->selected || (this->_entireRowSelect && (xIndex == this->_coordX)) || (this->_entireColumnSelect && (yIndex == this->_coordY));
-            } else {
-                selected = (this->_entireRowSelect && (xIndex == this->_coordX)) || (this->_entireColumnSelect && (yIndex == this->_coordY));
+            coord = CellCoordsToInt(xIndex, yIndex);
+            auto cellPair = m_Data.find(coord);
+            if (cellPair != m_Data.end())
+            {
+                selected = cellPair->second.m_Selected || (m_EntireRowSelect && (xIndex == m_CoordX)) || (m_EntireColumnSelect && (yIndex == m_CoordY));
+            }
+            else
+            {
+                selected = (m_EntireRowSelect && (xIndex == m_CoordX)) || (m_EntireColumnSelect && (yIndex == m_CoordY));
             }
 
-            if (selected) {
-                inner_bg = t->grid_cell_inner_bg_selected;
+            if (selected)
+            {
+                inner_bg_rc = t->grid_cell_inner_bg_selected_rc;
                 border_color = t->commonGridControlCellBorderColor_Selected;
-            } else {
-                inner_bg = t->grid_cell_inner_bg_normal;
+            }
+            else
+            {
+                inner_bg_rc = t->grid_cell_inner_bg_normal_rc;
                 border_color = t->commonGridControlCellBorderColor_Normal;
             }
 
-            rc.left = x;
-            rc.top = y;
-            rc.right = rc.left + w;
-            rc.bottom = rc.top + h;
+            rc.x = x;
+            rc.y = y;
+            rc.w = w;
+            rc.h = h;
 
-            this->canvas->stretchBitmap(inner_bg, x + 1, y + 1, w - 2, h - 2);
-            if (this->_drawVerticalLines && this->_drawHorizontalLines) {
-                this->canvas->drawRectangle(border_color, rc);
-            } else {
-                if (this->_drawHorizontalLines) {
-                    this->canvas->drawHLine(border_color, rc.left, rc.top, w);
-                    this->canvas->drawHLine(border_color, rc.left, rc.top + h - 1, w);
-                } else if (yIndex == this->_maxRowNumber) {
-                    // last (closing) grid horizontal line we draw always
-                    this->canvas->drawHLine(border_color, rc.left, rc.top + h - 1, w);
+            RenderTexture(TextureMap, &inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
+            if (m_DrawVerticalLines && m_DrawHorizontalLines)
+            {
+                SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
+                SDL_RenderRect(Renderer, &rc);
+            }
+            else
+            {
+                if (m_DrawHorizontalLines)
+                {
+                    rc.h = 1;
+                    SDL_RenderRect(Renderer, &rc);
+                    rc.y += h - 1;
+                    SDL_RenderRect(Renderer, &rc);
                 }
-                if (this->_drawVerticalLines) {
-                    this->canvas->drawVLine(border_color, rc.left, rc.top, h);
-                    this->canvas->drawVLine(border_color, rc.left + w - 1, rc.top, h);
-                } else if (xIndex == this->_maxColumnNumber) {
+                else if (yIndex == m_MaxRowNumber)
+                {
+                    // last (closing) grid horizontal line we draw always
+                    rc.h = 1;
+                    rc.y += h - 1;
+                    SDL_RenderRect(Renderer, &rc);
+                }
+                rc.x = x;
+                rc.y = y;
+                if (m_DrawVerticalLines)
+                {
+                    rc.w = 1;
+                    SDL_RenderRect(Renderer, &rc);
+                    rc.x += w - 1;
+                    SDL_RenderRect(Renderer, &rc);
+                }
+                else if (xIndex == m_MaxColumnNumber)
+                {
                     // last (closing) grid vertical line we draw always
-                    this->canvas->drawVLine(border_color, rc.left + w - 1, rc.top, h);
+                    rc.h = 1;
+                    rc.x += w - 1;
+                    SDL_RenderRect(Renderer, &rc);
                 }
             }
 
             x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
-            xIndex++;
+            ++xIndex;
         }
 
         y += h - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
-        yIndex++;
+        ++yIndex;
     }
     // ================================================================
     // Koniec rysowania komórek wewnętrznych (z danymi)
@@ -428,56 +419,62 @@ VOID Tilc::Gui::TGrid::_updateCanvas() {
 
     int cellMarginLeft = 2;
     int cellMarginRight = 2;
-    Tilc::TExtString cellValue;
     // ================================================================
     // Rysujemy zawartości (dane) komórek wewnętrznych
     // ================================================================
-    x = this->_leftHeaderWidth - 1;
-    y = t->grid_top_header_inner_bg_normal_cell->height() + 2 - 1;
-    w = this->_defColumnWidth;
-    h = t->grid_cell_inner_bg_normal->height();
-    xIndex = this->_startCellCoordX;
-    yIndex = this->_startCellCoordY;
-    while (y < this->_dataCanvasHeight && (yIndex - this->_startCellCoordY < yheader_items_count)) {
-        x = this->_leftHeaderWidth - 1;
-        xIndex = this->_startCellCoordX;
-        while (x < this->_dataCanvasWidth && (xIndex - this->_startCellCoordX < xheader_items_count)) {
-            xheaderCell = (Tilc::Gui::TGridHeaderCell*)xheader_items[xIndex - this->_startCellCoordX];
-            yheaderCell = (Tilc::Gui::TGridHeaderCell*)yheader_items[yIndex - this->_startCellCoordY];
-            w = xheaderCell->size;
-            h = yheaderCell->size - 2;
+    Tilc::TExtString cellValue;
+    x = m_RealPosition.x + m_LeftHeaderWidth - 1;
+    y = m_RealPosition.y + t->grid_top_header_inner_bg_normal_cell_rc.h + 2 - 1;
+    w = m_DefColumnWidth;
+    h = t->grid_cell_inner_bg_normal_rc.h;
+    xIndex = m_StartCellCoordX;
+    yIndex = m_StartCellCoordY;
+    while (y < m_DataCanvasHeight && (yIndex - m_StartCellCoordY < yheader_items_count))
+    {
+        x = m_LeftHeaderWidth - 1;
+        xIndex = m_StartCellCoordX;
+        while (x < m_DataCanvasWidth && (xIndex - m_StartCellCoordX < xheader_items_count))
+        {
+            Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex - m_StartCellCoordX];
+            Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex - m_StartCellCoordY];
+            w = xheaderCell.m_Size.x;
+            h = yheaderCell.m_Size.y - 2;
 
-            if (selected) {
-                inner_bg = t->grid_cell_inner_bg_selected;
+            if (selected)
+            {
+                inner_bg_rc = t->grid_cell_inner_bg_selected_rc;
                 border_color = t->commonGridControlCellBorderColor_Selected;
-            } else {
-                inner_bg = t->grid_cell_inner_bg_normal;
+            }
+            else
+            {
+                inner_bg_rc = t->grid_cell_inner_bg_normal_rc;
                 border_color = t->commonGridControlCellBorderColor_Normal;
             }
 
 
-            rc.left = x + cellMarginLeft;
-            rc.top = y;
-            rc.right = x + w - 1 - cellMarginRight;
-            rc.bottom = y + h + 2;
+            rc.x = x + cellMarginLeft;
+            rc.y = y;
+            rc.w = w - 1 - cellMarginRight;
+            rc.h = h + 2;
 
-            coord = this->_cellCoordsToint(xIndex, yIndex);
-            cellPair = this->_data.findFirstItemByFirst(coord, &foundCellPairPosition);
-            if (!cellPair) {
-                cellValue = COMMON_EMPTY_STRING;
-            } else {
-                cellData = (Tilc::Gui::TGridCell*)cellPair->second;
-                cellValue = cellData->value;
+            coord = CellCoordsToInt(xIndex, yIndex);
+            auto cellPair = m_Data.find(coord);
+            if (cellPair == m_Data.end())
+            {
+                cellValue = "";
             }
-
-            this->canvas->drawText(f, cellValue, rc, true, DT_VCENTER, -1, 0);
+            else
+            {
+                cellValue = cellPair->second.m_Value;
+            }
+            f->DrawString(Renderer, cellValue.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
 
             x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
-            xIndex++;
+            ++xIndex;
         }
 
         y += h + 2 - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
-        yIndex++;
+        ++yIndex;
     }
     // ================================================================
     // Koniec rysowania zawartości (dane) komórek wewnętrznych
@@ -487,23 +484,38 @@ VOID Tilc::Gui::TGrid::_updateCanvas() {
     // Rysowanie końcowych obramowań
     // ================================================================
     // Obramowanie całego Grida
-    if (this->_state == Tilc::Gui::TGrid_STATE_FOCUSED) {
-        this->canvas->drawRectangle(t->commonGridControlFocusedGridBorderColor, 0, 0, this->width, this->height);
-    } else {
-        this->canvas->drawRectangle(t->commonGridControlLeftTopHeaderCellBorderColor, 0, 0, this->width, this->height);
+    if (m_State == Tilc::Gui::CONTROL_STATE_FOCUSED)
+    {
+        SDL_SetRenderDrawColor(Renderer, t->commonGridControlFocusedGridBorderColor.r, t->commonGridControlFocusedGridBorderColor.g, t->commonGridControlFocusedGridBorderColor.b, t->commonGridControlFocusedGridBorderColor.a);
+        SDL_RenderRect(Renderer, &m_RealPosition);
+    }
+    else
+    {
+        SDL_SetRenderDrawColor(Renderer, t->commonGridControlLeftTopHeaderCellBorderColor.r, t->commonGridControlLeftTopHeaderCellBorderColor.g, t->commonGridControlLeftTopHeaderCellBorderColor.b, t->commonGridControlLeftTopHeaderCellBorderColor.a);
+        SDL_RenderRect(Renderer, &m_RealPosition);
     }
 
     // Obramowanie dolne górnego nagłówka (gdyż zostało nadpisane przez komórki)
-    if (this->_showTopHeader) {
-        x = 1;
-        y = this->_topHeaderHeight - 1;
-        this->canvas->drawLine(t->commonGridControlTopHeaderCellBorderColor_Normal, x, y, this->_dataCanvasWidth + lheaderSize - 1, y);
+    if (m_ShowTopHeader)
+    {
+        rc = m_RealPosition;
+        rc.x += 1;
+        rc.y += m_TopHeaderHeight - 1;
+        rc.w = 1;
+        rc.h = m_DataCanvasWidth + lheaderSize - 1;
+        SDL_SetRenderDrawColor(Renderer, t->commonGridControlTopHeaderCellBorderColor_Normal.r, t->commonGridControlTopHeaderCellBorderColor_Normal.g, t->commonGridControlTopHeaderCellBorderColor_Normal.b, t->commonGridControlTopHeaderCellBorderColor_Normal.a);
+        SDL_RenderRect(Renderer, &m_RealPosition);
     }
     // Obramowanie prawe lewego nagłówka (gdyż zostało nadpisane przez komórki)
-    if (this->_showLeftHeader) {
-        x = this->_leftHeaderWidth - 1;
-        y = 1;
-        this->canvas->drawLine(t->commonGridControlTopHeaderCellBorderColor_Normal, x, y, x, this->_dataCanvasHeight + theaderSize - 1);
+    if (m_ShowLeftHeader)
+    {
+        rc = m_RealPosition;
+        rc.x += m_LeftHeaderWidth - 1;
+        rc.y += 1;
+        rc.w = m_DataCanvasHeight + theaderSize - 1;
+        rc.h = 1;
+        SDL_SetRenderDrawColor(Renderer, t->commonGridControlTopHeaderCellBorderColor_Normal.r, t->commonGridControlTopHeaderCellBorderColor_Normal.g, t->commonGridControlTopHeaderCellBorderColor_Normal.b, t->commonGridControlTopHeaderCellBorderColor_Normal.a);
+        SDL_RenderRect(Renderer, &m_RealPosition);
     }
     // ================================================================
     // Koniec rysowania końcowych obramowań
@@ -516,271 +528,251 @@ VOID Tilc::Gui::TGrid::_updateCanvas() {
     if (maxBottomY < clientRect.bottom) {
         this->canvas->fillRectangle(this->_backgroundColor, clientRect.left, maxBottomY, clientRect.right - clientRect.left, clientRect.bottom - maxBottomY);
     }
-    *-/
+    */
     // ================================================================
     // Rysowanie aktywnej komórki (a właściwie jej obramowania)
     // ================================================================
-    if (this->cellVisible(this->_coordX, this->_coordY, true)) {
-        this->cellCoordsToCanvasCoords(this->_coordX, this->_coordY, &x, &y);
+    if (CellVisible(m_CoordX, m_CoordY, true))
+    {
+        CellCoordsToCanvasCoords(m_CoordX, m_CoordY, &x, &y);
         // Inkrementujemy obie współrzedne, bo prostokąt rysujemy pogrubioną linią
         x += 1;
         y += 1;
-        cellSize = this->getCellSize(this->_coordX, this->_coordY);
-        rc.left = x;
-        rc.top = y;
-        rc.right = x + cellSize.cx - 1; // -1, bo prostokąt rysujemy pogrubioną linią
-        rc.bottom = y + cellSize.cy - 1; // -1, bo prostokąt rysujemy pogrubioną linią
-        this->canvas->drawRectangle(t->commonGridControlCellBorderColor_Active, rc, 2);
-        rc.left = rc.right - 4;
-        rc.right += 3;
-        rc.top = rc.bottom - 4;
-        rc.bottom += 3;
-        this->canvas->fillRectangle(RGB(0xff, 0xff, 0xff), t->commonGridControlCellBorderColor_Active, rc, 1);
+        cellSize = GetCellSize(m_CoordX, m_CoordY);
+        rc = m_RealPosition;
+        rc.x += rc.w - 4;
+        rc.w += 3;
+        rc.y += rc.h - 4;
+        rc.h += 3;
+        SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+        SDL_RenderFillRect(Renderer, &m_RealPosition);
+        SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
+        SDL_RenderRect(Renderer, &rc);
     }
     // ================================================================
     // Koniec rysowania aktywnej komórki (a właściwie jej obramowania)
     // ================================================================
 
-    if (drawScrollbarsEmptySquare) {
+    if (drawScrollbarsEmptySquare)
+    {
         int scw = 0;
         int sch = 0;
-        if (this->_vscrollbar) {
-            scw = this->_vscrollbar->width;
+        if (m_VScrollBar)
+        {
+            scw = m_VScrollBar->m_Position.w;
         }
-        if (this->_hscrollbar) {
-            sch = this->_hscrollbar->height;
+        if (m_HScrollBar)
+        {
+            sch = m_HScrollBar->m_Position.h;
         }
-        this->canvas->fillRectangle(RGB(0xff, 0xff, 0xff), this->width - scw, this->height - sch, scw, sch);
+
+        rc.x = m_RealPosition.x + m_RealPosition.w - scw;
+        rc.y = m_RealPosition.y + m_RealPosition.h - sch;
+        rc.w = scw;
+        rc.h = sch;
+        SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+        SDL_RenderFillRect(Renderer, &rc);
     }
 
-    this->canvas->endPaint();
-
-	ReleaseDC(0, hdc);
-}
-
-VOID Tilc::Gui::TGrid::onDraw(CmzBitmap *dest) {
-    if (!this->_visible) return;
-	if (!this->canvas) return;
-
-    if (this->_needUpdate) {
-        this->invalidateChildSpritesCanvases();
-        this->_updateCanvas();
+    if (m_Canvas)
+    {
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
-
-    // ================================================================
-    // drawing child-sprites
-    // ================================================================
-	HDC hdc = GetDC(0);
-	this->canvas->beginPaint(hdc);
-    this->drawChildSprites(this->canvas);
-	this->canvas->endPaint();
-	ReleaseDC(0, hdc);
-    // ================================================================
-    // end of drawing child-sprites
-    // ================================================================
-
-    dest->drawBitmap(this->canvas, this->x, this->y, this->_currentFrame);
+    m_NeedUpdate = ENeedUpdate::ENU_None;
 }
 
-
-VOID Tilc::Gui::TGrid::focus() {
-    CStyledWindow* wnd = this->getParentWindow();
-    if (wnd && wnd->getActiveControl() != this) {
-        wnd->setActiveControl(this);
-        return;
-    }
-    this->setState(Tilc::Gui::TGrid_STATE_FOCUSED);
-}
-
-VOID Tilc::Gui::TGrid::looseFocus() {
-    //CStyledWindow* wnd = this->getParentWindow();
-    //int x = MININT, y = MININT;
-    //wnd->setOnlyActiveControlPointer(NULL);
-    // this->getCurrentMousePosition(x, y);
-
-    this->setState(Tilc::Gui::TGrid_STATE_NORMAL);
-}
-
-Tilc::TExtString Tilc::Gui::TGrid::_indexToLetter(int index) {
+Tilc::TExtString Tilc::Gui::TGrid::IndexToLetter(int index)
+{
     // ABCDEFGHIJKLMNOPQRSTUVWXYZ - 26 liter
-    WCHAR* letters = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const char* letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     // dopuszczamy numery maksymalnie 3-literowe
     if (index < 1 || index > 17576) { // 17576 = 26 * 26 * 26
-        return COMMON_EMPTY_STRING;
+        return "";
     }
 
-    if (index <= 26) {
-        return Tilc::TExtString(letters[index-1]);
+    if (index <= 26)
+    {
+        return Tilc::TExtString({ letters[index - 1] });
     }
     if (index <= 676) { // 676 = 26 * 26
-        return Tilc::TExtString(letters[index / 26 - 1]) + Tilc::TExtString(letters[index % 26]);
+        return Tilc::TExtString({ letters[index / 26 - 1], letters[index % 26] });
     }
     if (index <= 17576) { // 17576 = 26 * 26 * 26
         int tmp = index / 26;
-        return Tilc::TExtString(letters[tmp / 26 - 1]) + Tilc::TExtString(letters[tmp % 26]) + Tilc::TExtString(letters[index % 26]);
+        return Tilc::TExtString({ letters[tmp / 26 - 1], letters[tmp % 26], letters[index % 26] });
     }
 
-    return COMMON_EMPTY_STRING;
+    return "";
 }
 
-int Tilc::Gui::TGrid::_cellCoordsToint(int x, int y) {
-    DWORD result = (((DWORD)y) << (sizeof(WORD) << 3)) | ((WORD)x);
-    return (int)result;
+int Tilc::Gui::TGrid::CellCoordsToInt(int x, int y)
+{
+    int result = ((y & 0x0000ffff) << 16) | (x & 0x0000ff);
+    return result;
 }
 
-VOID Tilc::Gui::TGrid::_intToCellCoords(int data, int* x, int* y) {
-    *x = LOWORD((DWORD)data);
-    *y = HIWORD((DWORD)data);
+void Tilc::Gui::TGrid::IntToCellCoords(int data, int* x, int* y)
+{
+    *x = Tilc::LoWord(data);
+    *y = Tilc::HiWord(data);
 }
 
-VOID Tilc::Gui::TGrid::cellCoordsToCanvasCoords(int cellCoordX, int cellCoordY, int* x, int* y) {
-    *x = this->_showLeftHeader ? this->_leftHeaderWidth - 1 : 0;
-    *y = this->_showTopHeader ? this->_topHeaderHeight - 1 : 0;
+void Tilc::Gui::TGrid::CellCoordsToCanvasCoords(int cellCoordX, int cellCoordY, int* x, int* y)
+{
+    *x = m_ShowLeftHeader ? m_LeftHeaderWidth - 1 : 0;
+    *y = m_ShowTopHeader ? m_TopHeaderHeight - 1 : 0;
 
-    int xIndex = this->_startCellCoordX;
-    int yIndex = this->_startCellCoordY;
-    Tilc::Gui::TGridHeaderCell *headerData;
-    Uintint xheader_items_count, yheader_items_count;
-    intint *xheader_items, *yheader_items;
+    int xIndex = m_StartCellCoordX;
+    int yIndex = m_StartCellCoordY;
+    size_t xheader_items_count, yheader_items_count;
+    std::vector<TGridCell>& xheader_items = m_ColData;
+    std::vector<TGridCell>& yheader_items = m_RowData;
 
-    xheader_items_count = this->_colData->size();
-    xheader_items = this->_colData->getItemsBuf();
-    yheader_items_count = this->_rowData->size();
-    yheader_items = this->_rowData->getItemsBuf();
+    xheader_items_count = m_ColData.size();
+    yheader_items_count = m_RowData.size();
 
-    while (xIndex < cellCoordX) {
-        headerData = (Tilc::Gui::TGridHeaderCell*)xheader_items[xIndex - this->_startCellCoordX];
-        *x += headerData->size - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
-        xIndex++;
+    while (xIndex < cellCoordX)
+    {
+        *x += xheader_items[xIndex - m_StartCellCoordX].m_Size.x - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
+        ++xIndex;
     }
 
-    while (yIndex < cellCoordY) {
-        headerData = (Tilc::Gui::TGridHeaderCell*)yheader_items[yIndex - this->_startCellCoordY];
-        *y += headerData->size - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
-        yIndex++;
+    while (yIndex < cellCoordY)
+    {
+        *y += yheader_items[yIndex - m_StartCellCoordY].m_Size.y - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
+        ++yIndex;
     }
 }
 
-SIZE Tilc::Gui::TGrid::getCellSize(int cellCoordX, int cellCoordY) {
-    SIZE retval;
-    retval.cx = 0;
-    retval.cy = 0;
-    Tilc::Gui::TGridHeaderCell* headerData;
+SDL_Point Tilc::Gui::TGrid::GetCellSize(int cellCoordX, int cellCoordY)
+{
+    SDL_Point retval;
+    retval.x = 0;
+    retval.y = 0;
+    Tilc::Gui::TGridCell* headerData;
 
-    headerData = this->getHeaderCellX(cellCoordX);
-    if (headerData) {
-        retval.cx = headerData->size;
+    headerData = GetHeaderCellX(cellCoordX);
+    if (headerData)
+    {
+        retval.x = headerData->m_Size.x;
     }
-    headerData = this->getHeaderCellY(cellCoordY);
-    if (headerData) {
-        retval.cy = headerData->size;
+    headerData = GetHeaderCellY(cellCoordY);
+    if (headerData)
+    {
+        retval.y = headerData->m_Size.y;
     }
 
     return retval;
 }
 
-Tilc::Gui::TGridCell* Tilc::Gui::TGrid::getCell(int cellCoordX, int cellCoordY) {
-    intint pos;
-    intint first = this->_cellCoordsToint(cellCoordX, cellCoordY);
-    CPairExt* p = this->_data.findFirstItemByFirst(first, &pos);
-    if (p) {
-        return (Tilc::Gui::TGridCell*)p->second;
+Tilc::Gui::TGridCell* Tilc::Gui::TGrid::GetCell(int cellCoordX, int cellCoordY)
+{
+    int pos;
+    int first = CellCoordsToInt(cellCoordX, cellCoordY);
+    auto p = m_Data.find(first);
+    if (p != m_Data.end())
+    {
+        return &p->second;
     }
-    return NULL;
+    return nullptr;
 }
 
-Tilc::Gui::TGridCell* Tilc::Gui::TGrid::getCurrentCell() {
-    return this->getCell(this->_coordX, this->_coordY);
+Tilc::Gui::TGridCell* Tilc::Gui::TGrid::GetCurrentCell()
+{
+    return GetCell(m_CoordX, m_CoordY);
 }
 
-Tilc::Gui::TGridHeaderCell* Tilc::Gui::TGrid::getHeaderCellX(int coordX) {
-    return (Tilc::Gui::TGridHeaderCell*)this->_colData->getAt(coordX-1);
+Tilc::Gui::TGridCell* Tilc::Gui::TGrid::GetHeaderCellX(int coordX)
+{
+    return &m_ColData[coordX-1];
 }
 
-Tilc::Gui::TGridHeaderCell* Tilc::Gui::TGrid::getCurrentHeaderCellX() {
-    return (Tilc::Gui::TGridHeaderCell*)this->_colData->getAt(this->_coordX-1);
+Tilc::Gui::TGridCell* Tilc::Gui::TGrid::GetCurrentHeaderCellX()
+{
+    return &m_ColData[m_CoordX-1];
 }
 
-Tilc::Gui::TGridHeaderCell* Tilc::Gui::TGrid::getHeaderCellY(int coordY) {
-    return (Tilc::Gui::TGridHeaderCell*)this->_rowData->getAt(coordY-1);
+Tilc::Gui::TGridCell* Tilc::Gui::TGrid::GetHeaderCellY(int coordY)
+{
+    return &m_RowData[coordY-1];
 }
 
-Tilc::Gui::TGridHeaderCell* Tilc::Gui::TGrid::getCurrentHeaderCellY() {
-    return (Tilc::Gui::TGridHeaderCell*)this->_rowData->getAt(this->_coordY-1);
+Tilc::Gui::TGridCell* Tilc::Gui::TGrid::GetCurrentHeaderCellY()
+{
+    return &m_RowData[m_CoordY-1];
 }
 
-VOID Tilc::Gui::TGrid::setStartCellCoordX(int coordX) {
-    if (coordX <= 0) {
+void Tilc::Gui::TGrid::SetStartCellCoordX(int coordX)
+{
+    if (coordX <= 0)
+    {
         return;
     }
 
-    this->_startCellCoordX = coordX;
+    m_StartCellCoordX = coordX;
 
-    if (this->_startCellCoordX < 1) {
-        this->_startCellCoordX = 1;
+    if (m_StartCellCoordX < 1)
+    {
+        m_StartCellCoordX = 1;
         return;
     }
 
-    if (this->_startCellCoordX > this->_maxAllowableStartCellCoordX) {
-        this->_startCellCoordX = this->_maxAllowableStartCellCoordX;
+    if (m_StartCellCoordX > m_MaxAllowableStartCellCoordX)
+    {
+        m_StartCellCoordX = m_MaxAllowableStartCellCoordX;
     }
 
 //    InformationBox(FormatMessage(L"_maxAllowableStartCellCoordX: %d, _maxAllowableStartCellCoordY: %d, _startCellCoordX: %d, _startCellCoordY: %d",
-//        this->_maxAllowableStartCellCoordX, this->_maxAllowableStartCellCoordY, this->_startCellCoordX, this->_startCellCoordY));
+//        this->_maxAllowableStartCellCoordX, this->_maxAllowableStartCellCoordY, m_StartCellCoordX, m_StartCellCoordY));
 }
 
-VOID Tilc::Gui::TGrid::setStartCellCoordY(int coordY) {
-    if (coordY <= 0) {
+void Tilc::Gui::TGrid::SetStartCellCoordY(int coordY)
+{
+    if (coordY <= 0)
+    {
         return;
     }
 
-    this->_startCellCoordY = coordY;
+    m_StartCellCoordY = coordY;
 
-    if (this->_startCellCoordY < 1) {
-        this->_startCellCoordY = 1;
+    if (m_StartCellCoordY < 1)
+    {
+        m_StartCellCoordY = 1;
         return;
     }
 
-    if (this->_startCellCoordY > this->_maxAllowableStartCellCoordY) {
-        this->_startCellCoordY = this->_maxAllowableStartCellCoordY;
+    if (m_StartCellCoordY > m_MaxAllowableStartCellCoordY)
+    {
+        m_StartCellCoordY = m_MaxAllowableStartCellCoordY;
     }
 
 //    InformationBox(FormatMessage(L"_maxAllowableStartCellCoordX: %d, _maxAllowableStartCellCoordY: %d, _startCellCoordX: %d, _startCellCoordY: %d",
-//        this->_maxAllowableStartCellCoordX, this->_maxAllowableStartCellCoordY, this->_startCellCoordX, this->_startCellCoordY));
+//        this->_maxAllowableStartCellCoordX, this->_maxAllowableStartCellCoordY, m_StartCellCoordX, m_StartCellCoordY));
 }
 
-bool Tilc::Gui::TGrid::moveRight(int count) {
-    if (this->_coordX < this->_maxColumnNumber) {
-        if (this->_coordX + count <= this->_maxColumnNumber) {
-            this->_coordX += count;
-        } else {
-            count = this->_maxColumnNumber - this->_coordX;
-            this->_coordX = this->_maxColumnNumber;
+bool Tilc::Gui::TGrid::MoveRight(int count)
+{
+    if (m_CoordX < m_MaxColumnNumber)
+    {
+        if (m_CoordX + count <= m_MaxColumnNumber)
+        {
+            m_CoordX += count;
         }
-        if (this->_coordX > this->_maxFullVisibleColumnNumber && this->_coordX < this->_maxColumnNumber) {
-            this->setStartCellCoordX(this->_startCellCoordX + count);
-            this->_updateGridParameters();
-        } else if (this->_coordX == this->_maxColumnNumber) {
-            this->setStartCellCoordX(this->_maxColumnNumber);
-            this->_updateGridParameters();
+        else
+        {
+            count = m_MaxColumnNumber - m_CoordX;
+            m_CoordX = m_MaxColumnNumber;
         }
-        return true;
-    }
-
-    return false;
-}
-
-bool Tilc::Gui::TGrid::moveLeft(int count) {
-    if (this->_coordX > 1) {
-        if (this->_coordX - count >= 1) {
-            this->_coordX -= count;
-        } else {
-            this->_coordX = 1;
+        if (m_CoordX > m_MaxFullVisibleColumnNumber && m_CoordX < m_MaxColumnNumber)
+        {
+            SetStartCellCoordX(m_StartCellCoordX + count);
+            UpdateGridParameters();
         }
-        if (this->_startCellCoordX > this->_coordX) {
-            this->setStartCellCoordX(this->_coordX);
-            this->_updateGridParameters();
+        else if (m_CoordX == m_MaxColumnNumber)
+        {
+            SetStartCellCoordX(m_MaxColumnNumber);
+            UpdateGridParameters();
         }
         return true;
     }
@@ -788,34 +780,22 @@ bool Tilc::Gui::TGrid::moveLeft(int count) {
     return false;
 }
 
-bool Tilc::Gui::TGrid::moveUp(int count) {
-    if (this->_coordY > 1) {
-        if (this->_coordY - count >= 1) {
-            this->_coordY -= count;
-        } else {
-            this->_coordY = 1;
+bool Tilc::Gui::TGrid::MoveLeft(int count)
+{
+    if (m_CoordX > 1)
+    {
+        if (m_CoordX - count >= 1)
+        {
+            m_CoordX -= count;
         }
-        if (this->_startCellCoordY > this->_coordY) {
-            this->setStartCellCoordY(this->_coordY);
-            this->_updateGridParameters();
+        else
+        {
+            m_CoordX = 1;
         }
-        return true;
-    }
-
-    return false;
-}
-
-bool Tilc::Gui::TGrid::moveDown(int count) {
-    if (this->_coordY < this->_maxRowNumber) {
-        if (this->_coordY + count <= this->_maxRowNumber) {
-            this->_coordY += count;
-        } else {
-            count = this->_maxRowNumber - this->_coordY;
-            this->_coordY = this->_maxRowNumber;
-        }
-        if (this->_coordY > this->_maxFullVisibleRowNumber) {
-            this->setStartCellCoordY(this->_startCellCoordY + count);
-            this->_updateGridParameters();
+        if (m_StartCellCoordX > m_CoordX)
+        {
+            SetStartCellCoordX(m_CoordX);
+            UpdateGridParameters();
         }
         return true;
     }
@@ -823,202 +803,284 @@ bool Tilc::Gui::TGrid::moveDown(int count) {
     return false;
 }
 
-bool Tilc::Gui::TGrid::movePageUp() {
-    return this->moveUp(this->_yPageStep);
+bool Tilc::Gui::TGrid::MoveUp(int count)
+{
+    if (m_CoordY > 1)
+    {
+        if (m_CoordY - count >= 1)
+        {
+            m_CoordY -= count;
+        }
+        else
+        {
+            m_CoordY = 1;
+        }
+        if (m_StartCellCoordY > m_CoordY)
+        {
+            SetStartCellCoordY(m_CoordY);
+            UpdateGridParameters();
+        }
+        return true;
+    }
+
+    return false;
 }
 
-bool Tilc::Gui::TGrid::movePageDown() {
-    return this->moveDown(this->_yPageStep);
+bool Tilc::Gui::TGrid::MoveDown(int count)
+{
+    if (m_CoordY < m_MaxRowNumber)
+    {
+        if (m_CoordY + count <= m_MaxRowNumber)
+        {
+            m_CoordY += count;
+        }
+        else
+        {
+            count = m_MaxRowNumber - m_CoordY;
+            m_CoordY = m_MaxRowNumber;
+        }
+        if (m_CoordY > m_MaxFullVisibleRowNumber)
+        {
+            SetStartCellCoordY(m_StartCellCoordY + count);
+            UpdateGridParameters();
+        }
+        return true;
+    }
+
+    return false;
 }
 
-bool Tilc::Gui::TGrid::movePageLeft() {
-    return this->moveLeft(this->_xPageStep);
+bool Tilc::Gui::TGrid::MovePageUp()
+{
+    return MoveUp(m_YPageStep);
 }
 
-bool Tilc::Gui::TGrid::movePageRight() {
-    return this->moveRight(this->_xPageStep);
+bool Tilc::Gui::TGrid::MovePageDown()
+{
+    return MoveDown(m_YPageStep);
 }
 
-bool Tilc::Gui::TGrid::moveHome() {
-    return this->moveToCell(1, 1);
+bool Tilc::Gui::TGrid::MovePageLeft()
+{
+    return MoveLeft(m_XPageStep);
 }
 
-bool Tilc::Gui::TGrid::moveHomeVertical() {
-    return this->moveToCell(this->_coordX, 1);
+bool Tilc::Gui::TGrid::MovePageRight()
+{
+    return MoveRight(m_XPageStep);
 }
 
-bool Tilc::Gui::TGrid::moveHomeHorizontal() {
-    return this->moveToCell(1, this->_coordY);
+bool Tilc::Gui::TGrid::MoveHome()
+{
+    return MoveToCell(1, 1);
 }
 
-bool Tilc::Gui::TGrid::moveEnd() {
-    return this->moveToCell(this->_maxColumnNumber, this->_maxRowNumber);
+bool Tilc::Gui::TGrid::MoveHomeVertical()
+{
+    return MoveToCell(m_CoordX, 1);
 }
 
-bool Tilc::Gui::TGrid::moveEndVertical() {
-    return this->moveToCell(this->_coordX, this->_maxRowNumber);
+bool Tilc::Gui::TGrid::MoveHomeHorizontal()
+{
+    return MoveToCell(1, m_CoordY);
 }
 
-bool Tilc::Gui::TGrid::moveEndHorizontal() {
-    return this->moveToCell(this->_maxColumnNumber, this->_coordY);
+bool Tilc::Gui::TGrid::MoveEnd()
+{
+    return MoveToCell(m_MaxColumnNumber, m_MaxRowNumber);
 }
 
-bool Tilc::Gui::TGrid::moveToCell(int coordX, int coordY) {
+bool Tilc::Gui::TGrid::MoveEndVertical()
+{
+    return MoveToCell(m_CoordX, m_MaxRowNumber);
+}
+
+bool Tilc::Gui::TGrid::MoveEndHorizontal()
+{
+    return MoveToCell(m_MaxColumnNumber, m_CoordY);
+}
+
+bool Tilc::Gui::TGrid::MoveToCell(int coordX, int coordY)
+{
     if (
-        coordX < 1 || coordX > this->_maxColumnNumber ||
-        coordY < 1 || coordY > this->_maxRowNumber
+        coordX < 1 || coordX > m_MaxColumnNumber ||
+        coordY < 1 || coordY > m_MaxRowNumber
        ) {
         return false;
     }
-    int deltaX = coordX - this->_coordX;
-    int deltaY = coordY - this->_coordY;
-    if (this->cellVisible(this->_coordX + deltaX, this->_coordY + deltaY)) {
-        this->_coordX = coordX;
-        this->_coordY = coordY;
-    } else {
-        this->_coordX = coordX;
-        this->_coordY = coordY;
-        this->setStartCellCoordX(this->_startCellCoordX + deltaX > 0 ? this->_startCellCoordX + deltaX : 1);
-        this->setStartCellCoordY(this->_startCellCoordY + deltaY > 0 ? this->_startCellCoordY + deltaY : 1);
-        this->_updateGridParameters();
+    int deltaX = coordX - m_CoordX;
+    int deltaY = coordY - m_CoordY;
+    if (CellVisible(m_CoordX + deltaX, m_CoordY + deltaY))
+    {
+        m_CoordX = coordX;
+        m_CoordY = coordY;
+    }
+    else
+    {
+        m_CoordX = coordX;
+        m_CoordY = coordY;
+        SetStartCellCoordX(m_StartCellCoordX + deltaX > 0 ? m_StartCellCoordX + deltaX : 1);
+        SetStartCellCoordY(m_StartCellCoordY + deltaY > 0 ? m_StartCellCoordY + deltaY : 1);
+        UpdateGridParameters();
     }
 
     return deltaX != 0 || deltaY != 0;
 }
 
-bool Tilc::Gui::TGrid::cellVisible(int coordX, int coordY, bool acceptPartialVisibility) {
+bool Tilc::Gui::TGrid::CellVisible(int coordX, int coordY, bool acceptPartialVisibility)
+{
     int maxCoordX, maxCoordY;
-    if (!acceptPartialVisibility) {
-        maxCoordX = this->_maxFullVisibleColumnNumber;
-        maxCoordY = this->_maxFullVisibleRowNumber;
-    } else {
-        maxCoordX = this->_maxVisibleColumnNumber;
-        maxCoordY = this->_maxVisibleRowNumber;
+    if (!acceptPartialVisibility)
+    {
+        maxCoordX = m_MaxFullVisibleColumnNumber;
+        maxCoordY = m_MaxFullVisibleRowNumber;
+    }
+    else
+    {
+        maxCoordX = m_MaxVisibleColumnNumber;
+        maxCoordY = m_MaxVisibleRowNumber;
     }
 
     if (
-        (this->_startCellCoordX <= coordX) && (coordX <= maxCoordX) &&
-        (this->_startCellCoordY <= coordY) && (coordY <= maxCoordY)) {
+        (m_StartCellCoordX <= coordX) && (coordX <= maxCoordX) &&
+        (m_StartCellCoordY <= coordY) && (coordY <= maxCoordY)) {
         return true;
     }
 
     return false;
 }
 
-bool Tilc::Gui::TGrid::getCellCoordsAtMousePos(int mouseX, int mouseY, int* coordX, int* coordY) {
+bool Tilc::Gui::TGrid::GetCellCoordsAtMousePos(int mouseX, int mouseY, int* coordX, int* coordY)
+{
     *coordX = -1;
     *coordY = -1;
 
     int startMouseX;
     int startMouseY;
-    this->cellCoordsToCanvasCoords(this->_startCellCoordX, this->_startCellCoordY, &startMouseX, &startMouseY);
+    CellCoordsToCanvasCoords(m_StartCellCoordX, m_StartCellCoordY, &startMouseX, &startMouseY);
 
-    int xIndex = this->_startCellCoordX;
-    int yIndex = this->_startCellCoordY;
-    Tilc::Gui::TGridHeaderCell *headerData;
-    intint *xheader_items, *yheader_items;
+    int xIndex = m_StartCellCoordX;
+    int yIndex = m_StartCellCoordY;
+    Tilc::Gui::TGridCell* headerData;
+    std::vector<Tilc::Gui::TGridCell>& xheader_items = m_ColData;
+    std::vector<Tilc::Gui::TGridCell>& yheader_items = m_RowData;
 
-    if (mouseX < startMouseX) {
+    if (mouseX < startMouseX)
+    {
         mouseX = startMouseX;
     }
-    if (mouseY < startMouseY) {
+    if (mouseY < startMouseY)
+    {
         mouseY = startMouseY;
     }
 
     bool coordSet = false;
-    Uintint size = this->_colData->size();
-    xheader_items = this->_colData->getItemsBuf();
+    size_t size = m_ColData.size();
     int curX = startMouseX;
     int curY = startMouseY;
-    while ((xIndex - this->_startCellCoordX < size) && (curX <= this->width)) {
-        headerData = (Tilc::Gui::TGridHeaderCell*)xheader_items[xIndex - this->_startCellCoordX];
-        if (curX <= mouseX && mouseX <= curX + headerData->size) {
+    while ((xIndex - m_StartCellCoordX < size) && (curX <= m_Position.w))
+    {
+        headerData = &xheader_items[xIndex - m_StartCellCoordX];
+        if (curX <= mouseX && mouseX <= curX + headerData->m_Size.x)
+        {
             coordSet = true;
             break;
         }
-        curX += headerData->size - 1; // -1, bo sąsiednie komórki mają wspólne krawędzie
+        curX += headerData->m_Size.x - 1; // -1, bo sąsiednie komórki mają wspólne krawędzie
         xIndex += 1;
     }
-    if (coordSet) {
+    if (coordSet)
+    {
         *coordX = xIndex;
         coordSet = false;
-        size = this->_rowData->size();
-        yheader_items = this->_rowData->getItemsBuf();
-        while ((yIndex - this->_startCellCoordY < size) && (curY <= this->height)) {
-            headerData = (Tilc::Gui::TGridHeaderCell*)yheader_items[yIndex - this->_startCellCoordY];
-            if (curY <= mouseY && mouseY <= curY + headerData->size) {
+        size = m_RowData.size();
+        while ((yIndex - m_StartCellCoordY < size) && (curY <= m_Position.h))
+        {
+            headerData = &yheader_items[yIndex - m_StartCellCoordY];
+            if (curY <= mouseY && mouseY <= curY + headerData->m_Size.y)
+            {
                 coordSet = true;
                 break;
             }
-            curY += headerData->size - 1; // -1, bo sąsiednie komórki mają wspólne krawędzie
+            curY += headerData->m_Size.y - 1; // -1, bo sąsiednie komórki mają wspólne krawędzie
             yIndex += 1;
         }
-        if (coordSet) {
+        if (coordSet)
+        {
             *coordY = yIndex;
-        } else {
+        }
+        else
+        {
             *coordX = -1;
         }
     }
 
-    if (*coordX != -1 && *coordY != -1) {
+    if (*coordX != -1 && *coordY != -1)
+    {
         return true;
     }
 
     return false;
 }
 
-bool Tilc::Gui::TGrid::activateCellAtMousePos(int x, int y) {
+bool Tilc::Gui::TGrid::ActivateCellAtMousePos(int x, int y)
+{
     int coordX, coordY;
-    if (this->getCellCoordsAtMousePos(x, y, &coordX, &coordY)) {
-        this->_coordX = coordX;
-        this->_coordY = coordY;
+    if (GetCellCoordsAtMousePos(x, y, &coordX, &coordY))
+    {
+        m_CoordX = coordX;
+        m_CoordY = coordY;
         return true;
     }
 
     return false;
 }
 
-VOID Tilc::Gui::TGrid::clearSelection(bool redraw) {
+void Tilc::Gui::TGrid::ClearSelection(bool redraw)
+{
     bool had_selection = false;
 
-    CPairExt *p;
     Tilc::Gui::TGridCell *gridCell;
-    Uintint items_count = (int)this->_data.size();
-    intint *items = this->_data.getItemsBuf();
+    size_t items_count = m_Data.size();
 
-    for (int i = 0; i < items_count; i++) {
-        p = (CPairExt*)items[i];
-        gridCell = (Tilc::Gui::TGridCell*)p->second;
-        if (gridCell) {
-            if (gridCell->selected) {
+    for (auto it = m_Data.begin(); it != m_Data.end(); ++it)
+    {
+        gridCell = &(it->second);
+        if (gridCell)
+        {
+            if (gridCell->m_Selected)
+            {
                 had_selection = true;
-                gridCell->selected = false;
+                gridCell->m_Selected = false;
             }
         }
     }
 
-    if (!had_selection) {
+    if (!had_selection)
+    {
         redraw = false;
     }
 
-    if (redraw) {
-        this->redraw();
+    if (redraw)
+    {
+        Invalidate();
     }
 }
 
-bool Tilc::Gui::TGrid::isSelection() {
+bool Tilc::Gui::TGrid::IsSelection()
+{
     bool is_selection = false;
 
-    CPairExt *p;
     Tilc::Gui::TGridCell *gridCell;
-    Uintint items_count = (int)this->_data.size();
-    intint *items = this->_data.getItemsBuf();
+    size_t items_count = m_Data.size();
 
-    for (int i = 0; i < items_count; i++) {
-        p = (CPairExt*)items[i];
-        gridCell = (Tilc::Gui::TGridCell*)p->second;
-        if (gridCell) {
-            if (gridCell->selected) {
+    for (auto it = m_Data.begin(); it != m_Data.end(); ++it)
+    {
+        gridCell = &(it->second);
+        if (gridCell)
+        {
+            if (gridCell->m_Selected)
+            {
                 is_selection = true;
                 break;
             }
@@ -1028,612 +1090,499 @@ bool Tilc::Gui::TGrid::isSelection() {
     return is_selection;
 }
 
-bool Tilc::Gui::TGrid::_commonKeyProcessing(bool vkAlt, bool vkShift, bool vkControl,
-            bool vkLAlt, bool vkRAlt,
-            bool vkLShift, bool vkRShift,
-            bool vkLControl, bool vkRControl,
-            bool systemKey,
-            Uint virtualCode, Uint scanCode, WCHAR ch, bool& redraw) {
-    redraw = false;
-    return false;
-}
-
-bool Tilc::Gui::TGrid::onKeyDown(bool vkAlt, bool vkShift, bool vkControl,
-    bool vkLAlt, bool vkRAlt,
-    bool vkLShift, bool vkRShift,
-    bool vkLControl, bool vkRControl,
-    bool systemKey,
-    Uint virtualCode, Uint scanCode, WCHAR ch) {
-
+bool Tilc::Gui::TGrid::OnKeyDown(const SDL_Event& event)
+{
     bool redraw = false;
 
     // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    if (!systemKey) {
-        this->_commonKeyProcessing(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift,
-            vkLControl, vkRControl, systemKey, virtualCode, scanCode, ch, redraw);
-    }
+    bool activeCellChanged = false;
 
-    if (redraw) {
-        this->redraw();
-    }
+    const bool* Keys = SDL_GetKeyboardState(nullptr);
+    bool vkControl = Keys[SDL_SCANCODE_LCTRL] || Keys[SDL_SCANCODE_RCTRL];
 
-    return true;
-}
-
-bool Tilc::Gui::TGrid::onKeyPressed(bool vkAlt, bool vkShift, bool vkControl,
-    bool vkLAlt, bool vkRAlt,
-    bool vkLShift, bool vkRShift,
-    bool vkLControl, bool vkRControl,
-    bool systemKey,
-    Uint virtualCode, Uint scanCode, WCHAR ch) {
-
-    bool redraw = false;
-
-    // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    if (!systemKey) {
-        bool process = !this->_commonKeyProcessing(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift,
-            vkLControl, vkRControl, systemKey, virtualCode, scanCode, ch, redraw);
-
-        if (process) {
-            CKeyboard* kbd = this->getKbd();
-
-            bool activeCellChanged = false;
-            switch (virtualCode) {
-            case VK_DELETE:
-                this->clearCurrentCellValue();
-                redraw = true;
-                break;
-            case VK_RIGHT:
-                if (vkControl) {
-                    activeCellChanged = this->moveEndHorizontal();
-                } else {
-                    activeCellChanged = this->moveRight();
-                }
-                break;
-            case VK_LEFT:
-                if (vkControl) {
-                    activeCellChanged = this->moveHomeHorizontal();
-                } else {
-                    activeCellChanged = this->moveLeft();
-                }
-                break;
-            case VK_UP:
-                if (vkControl) {
-                    activeCellChanged = this->moveHomeVertical();
-                } else {
-                    activeCellChanged = this->moveUp();
-                }
-                break;
-            case VK_DOWN:
-                if (vkControl) {
-                    activeCellChanged = this->moveEndVertical();
-                } else {
-                    activeCellChanged = this->moveDown();
-                }
-                break;
-            case VK_NEXT:
-                activeCellChanged = this->movePageDown();
-                break;
-            case VK_PRIOR:
-                activeCellChanged = this->movePageUp();
-                break;
-            case VK_HOME:
-                activeCellChanged = this->moveHome();
-                break;
-            case VK_END:
-                activeCellChanged = this->moveEnd();
-                break;
-            }
-
-            if (activeCellChanged) {
-                this->_updateScrollbars();
-                redraw = activeCellChanged;
-            }
+    switch (event.key.key)
+    {
+    case SDLK_DELETE:
+        ClearCurrentCellValue();
+        redraw = true;
+        break;
+    case SDLK_RIGHT:
+        if (vkControl)
+        {
+            activeCellChanged = MoveEndHorizontal();
         }
+        else
+        {
+            activeCellChanged = MoveRight();
+        }
+        break;
+    case SDLK_LEFT:
+        if (vkControl)
+        {
+            activeCellChanged = MoveHomeHorizontal();
+        }
+        else
+        {
+            activeCellChanged = MoveLeft();
+        }
+        break;
+    case SDLK_UP:
+        if (vkControl)
+        {
+            activeCellChanged = MoveHomeVertical();
+        }
+        else
+        {
+            activeCellChanged = MoveUp();
+        }
+        break;
+    case SDLK_DOWN:
+        if (vkControl)
+        {
+            activeCellChanged = MoveEndVertical();
+        }
+        else
+        {
+            activeCellChanged = MoveDown();
+        }
+        break;
+    case SDLK_PAGEDOWN:
+        activeCellChanged = MovePageDown();
+        break;
+    case SDLK_PAGEUP:
+        activeCellChanged = MovePageUp();
+        break;
+    case SDLK_HOME:
+        activeCellChanged = MoveHome();
+        break;
+    case SDLK_END:
+        activeCellChanged = MoveEnd();
+        break;
+    }
+
+    if (activeCellChanged)
+    {
+        UpdateScrollBars();
+        redraw = activeCellChanged;
     }
 
     //InformationBox(FormatMessage(L"_coordX: %d, _coordY: %d, _startCellCoordX: %d, _startCellCoordY: %d",
-    //        this->_coordX, this->_coordY, this->_startCellCoordX, this->_startCellCoordY));
-    if (redraw) {
-        this->redraw();
+    //        m_CoordX, m_CoordY, m_StartCellCoordX, m_StartCellCoordY));
+    if (redraw)
+    {
+        Invalidate();
     }
 
     return true;
 }
 
-bool Tilc::Gui::TGrid::onKeyUp(bool vkAlt, bool vkShift, bool vkControl,
-    bool vkLAlt, bool vkRAlt,
-    bool vkLShift, bool vkRShift,
-    bool vkLControl, bool vkRControl,
-    bool systemKey,
-    Uint virtualCode, Uint scanCode, WCHAR ch) {
-
-    return true;
-}
-
-bool Tilc::Gui::TGrid::onMouseMove(int x, int y) {
-    if (!this->_visible) return false;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this && !this->_sprites.contains((intint)spriteThatCapturedMouse)) {
+bool Tilc::Gui::TGrid::OnMouseButtonDown(const SDL_Event& event)
+{
+    if (!m_Visible) return false;
+    if (OtherControlCapturedMouse())
+    {
         return false;
     }
 
-    if (this->pointIn(x, y)) {
-        bool result = this->doChildOnMouseMove(x - this->x, y - this->y);
-        if (result) {
-            return true;
-        }
+    TGuiControl::OnMouseButtonDown(event);
 
-        if (this->_lMouseButtonPressed) {
-        }
+    if (PointIn(event.button.x, event.button.y))
+    {
+        CaptureMouse(this);
+
+        ActivateCellAtMousePos(event.button.x - m_RealPosition.x, event.button.y - m_RealPosition.y);
+
+        ClearSelection(false);
+        Invalidate();
 
         return true;
-    } else {
-        this->doChildOnMouseMove(-1, -1);
     }
 
     return false;
 }
 
-bool Tilc::Gui::TGrid::onMouseDown(int x, int y) {
-    if (!this->_visible) return false;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this && !this->_sprites.contains((intint)spriteThatCapturedMouse)) {
-        return false;
+void Tilc::Gui::TGrid::OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar)
+{
+    float CurPositionPercent = ((float)curPosition - scrollbar->GetMinValue()) / (scrollbar->GetMaxValue() - scrollbar->GetMinValue());
+    if (scrollbar == m_HScrollBar)
+    {
+        m_StartCellCoordX = static_cast<int>(CurPositionPercent * (m_MaxAllowableStartCellCoordX-1)) + 1; //curPosition + 1;
+        UpdateGridParameters();
+        Invalidate();
     }
-
-    if (this->pointIn(x, y)) {
-        bool result = this->doChildOnMouseDown(x - this->x, y - this->y);
-        if (result) {
-            return true;
-        }
-
-        this->_lMouseButtonPressed = true;
-        this->getParentWindow()->captureMouse(this);
-
-        // pozycjonujemy karetkę na odpowiednim znaku
-        this->activateCellAtMousePos(x - this->x, y - this->y);
-
-        if (!(this->_state & Tilc::Gui::TGrid_STATE_FOCUSED)) {
-            this->_state = Tilc::Gui::TGrid_STATE_FOCUSED;
-            this->getParentWindow()->setActiveControl(this);
-        }
-
-        this->clearSelection(false);
-        this->redraw();
-        return true;
-    } else {
-        this->doChildOnMouseDown(-1, -1);
-    }
-
-    return false;
-}
-
-bool Tilc::Gui::TGrid::onMouseUp(int x, int y) {
-    if (!this->_visible) return false;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this && !this->_sprites.contains((intint)spriteThatCapturedMouse)) {
-        return false;
-    }
-
-    this->_lMouseButtonPressed = false;
-    if (spriteThatCapturedMouse == this) {
-        this->getParentWindow()->captureMouse(NULL);
-    }
-
-    if (this->pointIn(x, y)) {
-        bool result = this->doChildOnMouseUp(x - this->x, y - this->y);
-        if (result) {
-            return true;
-        }
-        return true;
-    } else {
-        this->doChildOnMouseUp(x - this->x, y - this->y);
-    }
-
-    return false;
-}
-
-VOID Tilc::Gui::TGrid::onThumbChange(int oldPosition, int curPosition, CScrollbar* scrollbar) {
-    float CurPositionPercent = ((float)curPosition - scrollbar->getMinValue()) / (scrollbar->getMaxValue() - scrollbar->getMinValue());
-    if (scrollbar == this->_hscrollbar) {
-        this->_startCellCoordX = static_cast<int>(CurPositionPercent * (this->_maxAllowableStartCellCoordX-1)) + 1; //curPosition + 1;
-        this->_updateGridParameters();
-        this->redraw();
-    }
-    if (scrollbar == this->_vscrollbar) {
-        this->_startCellCoordY = static_cast<int>(CurPositionPercent * (this->_maxAllowableStartCellCoordY-1)) + 1; //curPosition + 1;
-        this->_updateGridParameters();
-        this->redraw();
+    if (scrollbar == m_VScrollBar)
+    {
+        m_StartCellCoordY = static_cast<int>(CurPositionPercent * (m_MaxAllowableStartCellCoordY-1)) + 1; //curPosition + 1;
+        UpdateGridParameters();
+        Invalidate();
     }
 }
 
-Uint Tilc::Gui::TGrid::getTotalColumnsWidth() {
+unsigned int Tilc::Gui::TGrid::GetTotalColumnsWidth()
+{
     int i;
     // Inicjalizujemy właściwości komórek nagłówka górnego
-    Tilc::Gui::TGridHeaderCell* headerData;
-    Uint totalWidth = 0;
-    for (i = 0; i < this->_maxColumnNumber; i++) {
-        headerData = (Tilc::Gui::TGridHeaderCell*)this->_colData->getAt(i);
-        totalWidth += headerData->size;
+    unsigned int totalWidth = 0;
+    for (i = 0; i < m_MaxColumnNumber; ++i)
+    {
+        totalWidth += m_ColData[i].m_Size.x;
     }
 
     return totalWidth;
 }
 
-Uint Tilc::Gui::TGrid::getTotalRowsHeight() {
+unsigned int Tilc::Gui::TGrid::GetTotalRowsHeight()
+{
     int i;
     // Inicjalizujemy właściwości komórek nagłówka górnego
-    Tilc::Gui::TGridHeaderCell* headerData;
-    Uint totalHeight = 0;
-    for (i = 0; i < this->_maxRowNumber; i++) {
-        headerData = (Tilc::Gui::TGridHeaderCell*)this->_rowData->getAt(i);
-        totalHeight += headerData->size;
+    unsigned int totalHeight = 0;
+    for (i = 0; i < m_MaxRowNumber; ++i)
+    {
+        totalHeight += m_RowData[i].m_Size.y;
     }
 
     return totalHeight;
 }
 
-int Tilc::Gui::TGrid::getVisibleColumnCount() {
-    int count = (this->_maxVisibleColumnNumber - this->_startCellCoordX) + 1;
-    //WriteLogMessage(L"_maxVisibleColumnNumber: %d, : _startCellCoordX: %d", this->_maxVisibleColumnNumber, this->_startCellCoordX);
+int Tilc::Gui::TGrid::GetVisibleColumnCount()
+{
+    int count = (m_MaxVisibleColumnNumber - m_StartCellCoordX) + 1;
+    //WriteLogMessage(L"_maxVisibleColumnNumber: %d, : _startCellCoordX: %d", this->_maxVisibleColumnNumber, m_StartCellCoordX);
     return count;
 }
 
-int Tilc::Gui::TGrid::getFullVisibleColumnCount() {
-    int count = (this->_maxFullVisibleColumnNumber - this->_startCellCoordX) + 1;
+int Tilc::Gui::TGrid::GetFullVisibleColumnCount()
+{
+    int count = (m_MaxFullVisibleColumnNumber - m_StartCellCoordX) + 1;
     return count;
 }
 
-int Tilc::Gui::TGrid::getVisibleRowCount() {
-    int count = (this->_maxVisibleRowNumber - this->_startCellCoordY) + 1;
-    //WriteLogMessage(L"_maxVisibleRowNumber: %d, : _startCellCoordY: %d", this->_maxVisibleRowNumber, this->_startCellCoordY);
+int Tilc::Gui::TGrid::GetVisibleRowCount()
+{
+    int count = (m_MaxVisibleRowNumber - m_StartCellCoordY) + 1;
+    //WriteLogMessage(L"_maxVisibleRowNumber: %d, : _startCellCoordY: %d", this->_maxVisibleRowNumber, m_StartCellCoordY);
     return count;
 }
 
-int Tilc::Gui::TGrid::getFullVisibleRowCount() {
-    int count = (this->_maxFullVisibleRowNumber - this->_startCellCoordY) + 1;
+int Tilc::Gui::TGrid::GetFullVisibleRowCount()
+{
+    int count = (m_MaxFullVisibleRowNumber - m_StartCellCoordY) + 1;
     return count;
 }
 
-VOID Tilc::Gui::TGrid::onApplyEditorChanges(CmzStdObject* value) {
-    Tilc::TExtString v = value->getAsString(L"text");
-    this->setValue(v);
+void Tilc::Gui::TGrid::OnApplyEditorChanges(const Tilc::TExtString& value)
+{
+    SetValue(value);
 }
 
-CmzStdObject Tilc::Gui::TGrid::getValue() {
-    Tilc::Gui::TGridCell* c = this->getCell(this->_coordX, this->_coordY);
-    CmzStdObject v;
 
-    if (c) {
-        v.set(L"text", c->value);
+Tilc::TExtString Tilc::Gui::TGrid::GetValue()
+{
+    Tilc::Gui::TGridCell* c = GetCell(m_CoordX, m_CoordY);
+    if (c)
+    {
+        return c->m_Value;
+    }
+    return "";
+}
+
+void Tilc::Gui::TGrid::SetValue(const Tilc::TExtString& value, bool redraw)
+{
+    SetCellValue(m_CoordX, m_CoordY, value, redraw);
+}
+
+void Tilc::Gui::TGrid::SetCurrentCellValue(const Tilc::TExtString& value, bool redraw)
+{
+    SetCellValue(m_CoordX, m_CoordY, value, redraw);
+}
+
+void Tilc::Gui::TGrid::SetCellValue(int cellCoordX, int cellCoordY, const Tilc::TExtString& value, bool redraw)
+{
+    Tilc::Gui::TGridCell* c = GetCell(cellCoordX, cellCoordY);
+    if (c)
+    {
+        c->m_Value = value;
+    }
+    else
+    {
+        int first = CellCoordsToInt(cellCoordX, cellCoordY);
+        m_Data[first] = Tilc::Gui::TGridCell(value, { 0, 0 }, false, false);
     }
 
-    return v;
-}
-
-VOID Tilc::Gui::TGrid::setValue(Tilc::TExtString value, bool redraw) {
-    this->setCellValue(this->_coordX, this->_coordY, value, redraw);
-}
-
-VOID Tilc::Gui::TGrid::setCurrentCellValue(Tilc::TExtString value, bool redraw) {
-    this->setCellValue(this->_coordX, this->_coordY, value, redraw);
-}
-
-VOID Tilc::Gui::TGrid::setCellValue(int cellCoordX, int cellCoordY, Tilc::TExtString value, bool redraw) {
-    Tilc::Gui::TGridCell* c = this->getCell(cellCoordX, cellCoordY);
-    if (c) {
-        c->value = value;
-    } else {
-        c = new Tilc::Gui::TGridCell(value, false);
-        intint first = this->_cellCoordsToint(cellCoordX, cellCoordY);
-        this->_data.set(first, (intint)c);
-    }
-
-    if (redraw) {
-        this->redraw();
+    if (redraw)
+    {
+        Invalidate();
     }
 }
 
-VOID Tilc::Gui::TGrid::clearCurrentCellValue(bool redraw) {
-    this->setCellValue(this->_coordX, this->_coordY, COMMON_EMPTY_STRING, redraw);
+void Tilc::Gui::TGrid::ClearCurrentCellValue(bool redraw)
+{
+    SetCellValue(m_CoordX, m_CoordY, "", redraw);
 }
 
-VOID Tilc::Gui::TGrid::clearCellValue(int cellCoordX, int cellCoordY, bool redraw) {
-    this->setCellValue(cellCoordX, cellCoordY, COMMON_EMPTY_STRING, redraw);
+void Tilc::Gui::TGrid::ClearCellValue(int cellCoordX, int cellCoordY, bool redraw)
+{
+    SetCellValue(cellCoordX, cellCoordY, "", redraw);
 }
 
-VOID Tilc::Gui::TGrid::onEditorShow() {
+void Tilc::Gui::TGrid::OnEditorShow()
+{
     int x, y, w;
-    this->cellCoordsToCanvasCoords(this->_coordX, this->_coordY, &x, &y);
-    CTextField* tf = (CTextField*)this->_editor;
-    this->_editor->x = x;
-    this->_editor->y = y;
-    w = this->width - x;
-    if (this->_vscrollbar) {
-        w -= this->_vscrollbar->width;
+    CellCoordsToCanvasCoords(m_CoordX, m_CoordY, &x, &y);
+    Tilc::Gui::TTextField* tf = (Tilc::Gui::TTextField*)m_Editor;
+    m_Editor->m_Position.x = x;
+    m_Editor->m_Position.y = y;
+    w = m_Position.w - x;
+    if (m_VScrollBar)
+    {
+        w -= m_VScrollBar->m_Position.w;
     }
-    this->_editor->setSize(w - 2, this->_editor->height);
-    tf->selectAll();
+    m_Editor->SetSize(w - 2, m_Editor->m_Position.h);
+    tf->SelectAll();
 }
 
-VOID Tilc::Gui::TGrid::_updateScrollbars() {
+void Tilc::Gui::TGrid::UpdateScrollBars()
+{
     int pos;
-    if (this->_vscrollbar) {
-        pos = this->_startCellCoordY-1;
-        this->_vscrollbar->setPosition(pos, false, false);
+    if (m_VScrollBar)
+    {
+        pos = m_StartCellCoordY-1;
+        m_VScrollBar->SetPosition(pos, false, false);
     }
-    if (this->_hscrollbar) {
-        pos = this->_startCellCoordX-1;
-        this->_hscrollbar->setPosition(pos, false, false);
-    }
-}
-
-VOID Tilc::Gui::TGrid::showTopHeader(bool showTopHeader, bool redraw) {
-    this->_showTopHeader = showTopHeader;
-    this->_updateGridParameters();
-    if (redraw) {
-        this->redraw();
+    if (m_HScrollBar)
+    {
+        pos = m_StartCellCoordX-1;
+        m_HScrollBar->SetPosition(pos, false, false);
     }
 }
 
-VOID Tilc::Gui::TGrid::showLeftHeader(bool showLeftHeader, bool redraw) {
-    this->_showLeftHeader = showLeftHeader;
-    this->_updateGridParameters();
-    if (redraw) {
-        this->redraw();
+void Tilc::Gui::TGrid::ShowTopHeader(bool showTopHeader, bool redraw)
+{
+    m_ShowTopHeader = showTopHeader;
+    UpdateGridParameters();
+    if (redraw)
+    {
+        Invalidate();
     }
 }
 
-VOID Tilc::Gui::TGrid::setGridSize(int columnCount, int rowCount) {
-    this->_maxColumnNumber = columnCount;
-    this->_maxRowNumber = rowCount;
+void Tilc::Gui::TGrid::ShowLeftHeader(bool showLeftHeader, bool redraw)
+{
+    m_ShowLeftHeader = showLeftHeader;
+    UpdateGridParameters();
+    if (redraw)
+    {
+        Invalidate();
+    }
+}
 
-    if (this->_colData && this->_rowData) {
-        this->_compactData();
+void Tilc::Gui::TGrid::SetGridSize(int columnCount, int rowCount)
+{
+    m_MaxColumnNumber = columnCount;
+    m_MaxRowNumber = rowCount;
+
+    if (m_ColData.size() > 0 && m_RowData.size() > 0)
+    {
+        CompactData();
         return;
     }
 
-    if (!this->_colData) {
-        this->_colData = new CmzArrayList(this->_maxColumnNumber);
+    if (m_ColData.size() < 1)
+    {
+        m_ColData.reserve(m_MaxColumnNumber);
     }
-    if (!this->_rowData) {
-        this->_rowData = new CmzArrayList(this->_maxRowNumber);
+    if (m_RowData.size() < 1)
+    {
+        m_RowData.reserve(m_MaxRowNumber);
     }
 
     int i;
-    // Inicjalizujemy właściwości komórek nagłówka górnego
-    Tilc::Gui::TGridHeaderCell *headerData;
     int index;
-    for (i = 0; i < this->_maxColumnNumber; i++) {
+    for (i = 0; i < m_MaxColumnNumber; i++)
+    {
         index = i + 1;
-        headerData = new Tilc::Gui::TGridHeaderCell(this->_indexToLetter(index) + L"[" + index + L"]", this->_defColumnWidth, false);
-        this->_colData->insert(i, (intint)headerData);
+        m_ColData.emplace_back(IndexToLetter(index) + "[" + std::to_string(index) + "]", SDL_Point({ m_DefColumnWidth, 0 }), true, false);
     }
     // Inicjalizujemy właściwości komórek nagłówka lewego
-    for (i = 0; i < this->_maxRowNumber; i++) {
+    for (i = 0; i < m_MaxRowNumber; i++)
+    {
         index = i + 1;
-        headerData = new Tilc::Gui::TGridHeaderCell(Tilc::TExtString(index), this->_theme->grid_top_header_inner_bg_normal_cell->height() + 2, false);
-        this->_rowData->insert(i, (intint)headerData);
+        m_RowData.emplace_back(std::to_string(index), SDL_Point({0, static_cast<int>(GetTheme()->grid_top_header_inner_bg_normal_cell_rc.h + 2) }), true, false);
     }
 }
 
-VOID Tilc::Gui::TGrid::_cleanGridContent() {
+void Tilc::Gui::TGrid::CleanGridContent()
+{
     int i;
-    Tilc::Gui::TGridHeaderCell *headerCell;
-    intint *items;
-    Uintint items_count;
+    Tilc::Gui::TGridCell *headerCell;
+    int items_count;
 
-    if (this->_colData) {
-        items_count = this->_colData->size();
-        items = this->_colData->getItemsBuf();
-        for (i = 0; i < items_count; i++) {
-            headerCell = (Tilc::Gui::TGridHeaderCell*)items[i];
-            if (headerCell) {
-                delete headerCell;
-            }
+    m_ColData.clear();
+    m_RowData.clear();
+    CleanData();
+}
+
+void Tilc::Gui::TGrid::CompactData()
+{
+    std::vector<int> ItemsDoDelete;
+    std::for_each(m_Data.begin(), m_Data.end(), [this, &ItemsDoDelete](auto& item) {
+        int x, y;
+        IntToCellCoords(static_cast<int>(item.first), &x, &y);
+        if (x > m_MaxColumnNumber || y > m_MaxRowNumber)
+        {
+            ItemsDoDelete.push_back(item.first);
         }
-        this->_colData->clear();
-        delete this->_colData;
-        this->_colData = NULL;
+    });
+    std::ranges::for_each(ItemsDoDelete, [this](int item) {
+        m_Data.erase(item);
+    });
+
+    while (m_ColData.size() > m_MaxColumnNumber)
+    {
+        m_ColData.pop_back();
     }
 
-    if (this->_rowData) {
-        items_count = (int)this->_rowData->size();
-        items = this->_rowData->getItemsBuf();
-        for (i = 0; i < items_count; i++) {
-            headerCell = (Tilc::Gui::TGridHeaderCell*)items[i];
-            if (headerCell) {
-                delete headerCell;
-            }
-        }
-        this->_rowData->clear();
-        delete this->_rowData;
-        this->_rowData = NULL;
-    }
-
-    if (this->_data.size() > 0) {
-        this->cleanData();
+    while (m_RowData.size() > m_MaxRowNumber)
+    {
+        m_RowData.pop_back();
     }
 }
 
-VOID Tilc::Gui::TGrid::_compactData() {
-    CPairExt* p;
-    Tilc::Gui::TGridCell* c;
-    Uintint size = this->_data.size();
-    intint* items = this->_data.getItemsBuf();
-    int x,y;
-    Uint i;
-
-    for (i = 0; i < size; i++) {
-        p = (CPairExt*)items[i];
-        if (p) {
-            this->_intToCellCoords(static_cast<int>(p->first), &x, &y);
-            if (x > this->_maxColumnNumber || y > this->_maxRowNumber) {
-                c = (Tilc::Gui::TGridCell*)p->second;
-                delete c;
-                items[i] = NULL;
-            }
-        }
-    }
-    // throw off all NULL-s
-    this->_data.remove(NULL);
-
-    bool removeNulls = false;
-    Tilc::Gui::TGridHeaderCell* hc;
-    size = this->_colData->size();
-    items = this->_colData->getItemsBuf();
-    for (i = this->_maxColumnNumber; i < size; i++) {
-        hc = (Tilc::Gui::TGridHeaderCell*)items[i];
-        if (hc) {
-            items[i] = NULL;
-            delete hc;
-            removeNulls = true;
-        }
-    }
-    if (removeNulls) {
-        this->_colData->del(0);
-    }
-
-    removeNulls = false;
-    size = this->_rowData->size();
-    items = this->_rowData->getItemsBuf();
-    for (i = this->_maxRowNumber; i < size; i++) {
-        hc = (Tilc::Gui::TGridHeaderCell*)items[i];
-        if (hc) {
-            items[i] = NULL;
-            delete hc;
-            removeNulls = true;
-        }
-    }
-    if (removeNulls) {
-        this->_rowData->del(0);
-    }
-}
-
-VOID Tilc::Gui::TGrid::_updateGridParameters() {
+void Tilc::Gui::TGrid::UpdateGridParameters()
+{
     int size;
     int maxAllowableSize;
 
     // data width
-    Tilc::Gui::TGridHeaderCell* hc;
     int i;
-    Uintint itemsize;
-    intint* items;
     int curX, curY;
 
-    this->_maxFullVisibleColumnNumber = this->_startCellCoordX;
-    this->_maxVisibleColumnNumber = this->_startCellCoordX;
-    this->_maxFullVisibleRowNumber = this->_startCellCoordY;
-    this->_maxVisibleRowNumber = this->_startCellCoordY;
-    this->_visibleWidthOfLastColumn = 0;
-    this->_visibleHeightOfLastRow = 0;
+    m_MaxFullVisibleColumnNumber = m_StartCellCoordX;
+    m_MaxVisibleColumnNumber = m_StartCellCoordX;
+    m_MaxFullVisibleRowNumber = m_StartCellCoordY;
+    m_MaxVisibleRowNumber = m_StartCellCoordY;
+    m_VisibleWidthOfLastColumn = 0;
+    m_VisibleHeightOfLastRow = 0;
 
     // X-based parameters
-    curX = this->_showLeftHeader ? this->_leftHeaderWidth - 1 : 0;
-    itemsize = this->_colData->size();
-    items = this->_colData->getItemsBuf();
+    curX = m_ShowLeftHeader ? m_LeftHeaderWidth - 1 : 0;
     size = 0;
-    maxAllowableSize = this->width;
-    if (this->_showLeftHeader) {
-        maxAllowableSize -= this->_leftHeaderWidth;
+    maxAllowableSize = m_Position.w;
+    if (m_ShowLeftHeader)
+    {
+        maxAllowableSize -= m_LeftHeaderWidth;
     }
-    if (this->_vscrollbar) {
-        maxAllowableSize -= this->_vscrollbar->width;
+    if (m_VScrollBar)
+    {
+        maxAllowableSize -= m_VScrollBar->m_Position.w;
     }
-    for (i = this->_startCellCoordX - 1; i < itemsize; i++) {
-        hc = (Tilc::Gui::TGridHeaderCell*)items[i];
-        if (hc) {
-            if (curX + hc->size <= maxAllowableSize) {
-                this->_maxFullVisibleColumnNumber = i+1;
-                this->_maxVisibleColumnNumber = i+1;
-            } else {
-                if (curX < maxAllowableSize) {
-                    this->_maxVisibleColumnNumber = i+1;
-                    this->_visibleWidthOfLastColumn = maxAllowableSize - curX;
-                }
+    for (i = m_StartCellCoordX - 1; i < m_ColData.size(); ++i)
+    {
+        TGridCell& hc = m_ColData[i];
+        if (curX + hc.m_Size.x <= maxAllowableSize)
+        {
+            m_MaxFullVisibleColumnNumber = i + 1;
+            m_MaxVisibleColumnNumber = i + 1;
+        }
+        else
+        {
+            if (curX < maxAllowableSize)
+            {
+                m_MaxVisibleColumnNumber = i + 1;
+                m_VisibleWidthOfLastColumn = maxAllowableSize - curX;
             }
-            size += hc->size-1; // -1 because cells share borders
-            curX += hc->size-1;
-            if (size > this->width) {
-                break;
-            }
+        }
+        size += hc.m_Size.x - 1; // -1 because cells share borders
+        curX += hc.m_Size.x - 1;
+        if (size > m_Position.w)
+        {
+            break;
         }
     }
     size += 1; // we count all width of the last column
-    if (size > maxAllowableSize) {
+    if (size > maxAllowableSize)
+    {
         size = maxAllowableSize;
     }
-    this->_dataCanvasWidth = size;
+    m_DataCanvasWidth = size;
 
 
 
 
     // Y based parameters
-    curY = this->_showTopHeader ? this->_topHeaderHeight - 1 : 0;
-    itemsize = this->_rowData->size();
-    items = this->_rowData->getItemsBuf();
+    curY = m_ShowTopHeader ? m_TopHeaderHeight - 1 : 0;
     size = 0;
-    maxAllowableSize = this->height;
-    if (this->_showTopHeader) {
-        maxAllowableSize -= this->_topHeaderHeight;
+    maxAllowableSize = m_Position.h;
+    if (m_ShowTopHeader)
+    {
+        maxAllowableSize -= m_TopHeaderHeight;
     }
-    if (this->_hscrollbar) {
-        maxAllowableSize -= this->_hscrollbar->height;
+    if (m_HScrollBar)
+    {
+        maxAllowableSize -= m_HScrollBar->m_Position.h;
     }
-    for (i = this->_startCellCoordY - 1; i < itemsize; i++) {
-        hc = (Tilc::Gui::TGridHeaderCell*)items[i];
-        if (hc) {
-            if (curY + hc->size <= maxAllowableSize) {
-                this->_maxFullVisibleRowNumber = i+1;
-                this->_maxVisibleRowNumber = i+1;
-            } else {
-                if (curY < maxAllowableSize) {
-                    this->_maxVisibleRowNumber = i+1;
-                    this->_visibleHeightOfLastRow = maxAllowableSize - curY;
-                }
+    for (i = m_StartCellCoordY - 1; i < m_RowData.size(); ++i)
+    {
+        TGridCell& hc = m_RowData[i];
+        if (curY + hc.m_Size.y <= maxAllowableSize)
+        {
+            m_MaxFullVisibleRowNumber = i + 1;
+            m_MaxVisibleRowNumber = i + 1;
+        }
+        else
+        {
+            if (curY < maxAllowableSize)
+            {
+                m_MaxVisibleRowNumber = i + 1;
+                m_VisibleHeightOfLastRow = maxAllowableSize - curY;
             }
-            size += hc->size-1; // -1 because cells share borders
-            curY += hc->size-1;
-            if (size > this->height) {
-                break;
-            }
+        }
+        size += hc.m_Size.y - 1; // -1 because cells share borders
+        curY += hc.m_Size.y - 1;
+        if (size > m_Position.h)
+        {
+            break;
         }
     }
     size += 1; // we count all width of the last column
-    if (size > maxAllowableSize) {
+    if (size > maxAllowableSize)
+    {
         size = maxAllowableSize;
     }
-    this->_dataCanvasHeight = size;
+    m_DataCanvasHeight = size;
 
 
-    itemsize = this->_colData->size();
-    items = this->_colData->getItemsBuf();
     size = 0;
-    i = this->_maxColumnNumber-1;
-    this->_maxAllowableStartCellCoordX = this->_maxColumnNumber;
-    while (i >= 0) {
-        hc = (Tilc::Gui::TGridHeaderCell*)items[i];
-        if (size + hc->size <= this->_dataCanvasWidth) {
-            this->_maxAllowableStartCellCoordX = i+1;
-            size += (hc->size-1); // -1 because cells share borders
-        } else {
+    i = m_MaxColumnNumber - 1;
+    m_MaxAllowableStartCellCoordX = m_MaxColumnNumber;
+    while (i >= 0)
+    {
+        TGridCell& hc = m_ColData[i];
+        if (size + hc.m_Size.x <= m_DataCanvasWidth)
+        {
+            m_MaxAllowableStartCellCoordX = i + 1;
+            size += (hc.m_Size.x - 1); // -1 because cells share borders
+        }
+        else
+        {
             break;
         }
         i -= 1;
     }
 
-    itemsize = this->_rowData->size();
-    items = this->_rowData->getItemsBuf();
     size = 0;
-    i = this->_maxRowNumber - 1;
-    this->_maxAllowableStartCellCoordY = this->_maxRowNumber;
-    while (i >= 0) {
-        hc = (Tilc::Gui::TGridHeaderCell*)items[i];
-        if (size + hc->size <= this->_dataCanvasHeight) {
-            this->_maxAllowableStartCellCoordY = i+1;
-            size += (hc->size-1); ; // -1 because cells share borders
-        } else {
+    i = m_MaxRowNumber - 1;
+    m_MaxAllowableStartCellCoordY = m_MaxRowNumber;
+    while (i >= 0)
+    {
+        TGridCell& hc = m_RowData[i];
+        if (size + hc.m_Size.y <= m_DataCanvasHeight)
+        {
+            m_MaxAllowableStartCellCoordY = i + 1;
+            size += (hc.m_Size.y - 1); ; // -1 because cells share borders
+        }
+        else
+        {
             break;
         }
         i -= 1;
@@ -1646,164 +1595,131 @@ VOID Tilc::Gui::TGrid::_updateGridParameters() {
     if (this->_vscrollbar) {
         this->_vscrollbar->setMaxValue(this->_maxAllowableStartCellCoordY-1);
     }
-    *-/
+    */
 }
 
-VOID Tilc::Gui::TGrid::_setHeaderCaptions(CmzArrayList* headerCells, Tilc::TExtStringList* captions) {
-    if (!headerCells || !captions) {
+void Tilc::Gui::TGrid::SetHeaderCaptions(std::vector<TGridCell>* headerCells, TStringVector* captions)
+{
+    if (!headerCells || !captions)
+    {
         return;
     }
 
-    Uintint hsize = headerCells->size();
-    Uintint csize = captions->size();
-    Tilc::Gui::TGridHeaderCell* hc;
-    if (!hsize || !csize) {
+    size_t hsize = headerCells->size();
+    size_t csize = captions->size();
+    if (hsize < 1 || csize < 1)
+    {
         return;
     }
 
-    for (Uintint i = 0; i < hsize; i++) {
-        hc = (Tilc::Gui::TGridHeaderCell*)headerCells->getAt(i);
-        if (hc && i < csize) {
-            hc->text = captions->getAt(i);
+    for (size_t i = 0; i < hsize; ++i)
+    {
+        Tilc::Gui::TGridCell& hc = (*headerCells)[i];
+        if (i < csize)
+        {
+            hc.m_Value = (*captions)[i];
         }
     }
 }
 
-VOID Tilc::Gui::TGrid::setLeftHeaderCaptions(Tilc::TExtStringList* captions) {
-    this->_setHeaderCaptions(this->_rowData, captions);
+void Tilc::Gui::TGrid::SetLeftHeaderCaptions(TStringVector* captions)
+{
+    SetHeaderCaptions(&m_RowData, captions);
 }
 
-VOID Tilc::Gui::TGrid::setTopHeaderCaptions(Tilc::TExtStringList* captions) {
-    this->_setHeaderCaptions(this->_colData, captions);
+void Tilc::Gui::TGrid::SetTopHeaderCaptions(TStringVector* captions)
+{
+    SetHeaderCaptions(&m_ColData, captions);
 }
 
-bool Tilc::Gui::TGrid::saveToFile(Tilc::TExtString fname) {
-    Uint bufsize = 4096;
-    BYTE* buffer = new BYTE[bufsize];
+bool Tilc::Gui::TGrid::SaveToFile(const Tilc::TExtString& fname)
+{
+    TFile File(fname.c_str(), std::ios::out | std::ios::trunc);
+    Tilc::TExtString Content;
 
-    if (buffer) {
-        intint pos = 0;
-        intint endpos = 0;
-        Uintint size = this->_data.size();
-        HANDLE fh;
-        if (size > 0) {
-            fh = CreateFile(fname.toWCHAR(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-            if (fh == INVALID_HANDLE_VALUE) {
-                delete[] buffer;
-                return false;
-            }
-
-            bool result = true;
-            CPairExt* p;
-            Tilc::Gui::TGridCell* c;
-            intint* items = this->_data.getItemsBuf();
-            size_t len;
-            Uint* plBuffer;
-            for (Uint i = 0; i < size; i++) {
-                p = (CPairExt*)items[i];
-                if (p) {
-                    c = (Tilc::Gui::TGridCell*)p->second;
-                    len = c->value.length();
-                    endpos = pos + sizeof(p->first) + sizeof(len) + len;
-                    if (endpos >= bufsize) {
-                        if (AppendToFile(fh, buffer, pos) != pos) {
-                            result = false;
-                            pos = 0;
-                            break;
-                        }
-                        pos = 0;
-                    }
-                    plBuffer = (Uint*)&buffer[pos];
-                    plBuffer[0] = static_cast<Uint>(p->first);
-                    plBuffer[1] = static_cast<Uint>(len+1);
-                    wcscpy_s((WCHAR*)&plBuffer[2], bufsize - pos - sizeof(p->first) - sizeof(len), c->value.toWCHAR());
-                    pos += sizeof(p->first) + sizeof(len) + 2*len;
-                    buffer[pos]   = 0;
-                    buffer[pos+1] = 0;
-                    pos += 2;
-                }
-            }
-
-            if (pos > 0) {
-                if (AppendToFile(fh, buffer, pos) != pos) {
-                    result = false;
-                }
-            }
-            CloseHandle(fh);
-            delete[] buffer;
-            return result;
-        }
-        delete[] buffer;
-        fh = CreateFile(fname.toWCHAR(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-        if (fh != INVALID_HANDLE_VALUE) {
-            CloseHandle(fh);
-            return true;
-        }
-    }
+    std::for_each(m_Data.begin(), m_Data.end(), [&Content, &File](auto& item) {
+        Tilc::Gui::TGridCell& c = item.second;
+        Content = "";
+        Content += std::to_string(item.first) + "\n";
+        Content += std::to_string(c.m_Value.length()) + "\n";
+        Content += c.m_Value;
+        File.AppendContent(Content);
+    });
 
     return false;
 }
 
-bool Tilc::Gui::TGrid::loadFromFile(Tilc::TExtString fname) {
-    Uint bufsize = 4096;
-    BYTE* buffer = new BYTE[bufsize];
+bool Tilc::Gui::TGrid::LoadFromFile(const Tilc::TExtString& fname)
+{
+    TFile File(fname.c_str());
+    Tilc::TExtString Content;
     bool result = false;
     bool gridContentChanged = false;
-    
-    if (buffer) {
-        HANDLE fh = CreateFile(fname.getBuffer(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-        if (fh == INVALID_HANDLE_VALUE) {
-            delete[] buffer;
-            return 0;
-        }
 
-        DWORD read;
-        DWORD offset;
-        Uint* plBuffer;
+    m_Data.clear();
+
+    File.ReadContent(Content);
+    int pos = 0;
+    while (pos < Content.length())
+    {
         int first;
         int len;
-        int hdrDataLen = sizeof(Uint) + sizeof(Uint);
-        Uint dataToRead = bufsize;
-        Uint readInDataAtOffset = 0;
-        Uint dataProcessed = 0;
-        do {
-            ReadFile(fh, &buffer[readInDataAtOffset], dataToRead, &read, NULL);
-            if (read > 0 || readInDataAtOffset > 0) {
-                dataProcessed += read;
-                offset = 0;
-                while (offset + hdrDataLen <= read) {
-                    plBuffer = (Uint*)&buffer[offset];
-                    first = plBuffer[0];
-                    len = plBuffer[1]*2;
-                    if (offset + hdrDataLen + len > read) {
-                        len = 0;
-                    }
-                    if (len > 0) {
-                        Tilc::Gui::TGridCell* c = new Tilc::Gui::TGridCell((WCHAR*)&buffer[offset+hdrDataLen], false);
-                        this->_data.set(first, (intint)c);
-                        gridContentChanged = true;
-                    }
-                    offset += hdrDataLen + len;
-                }
-                if (offset < bufsize) {
-                    CopyMemory(buffer, &buffer[offset], bufsize - offset);
-                    readInDataAtOffset = bufsize - offset;
-                    dataToRead = bufsize - readInDataAtOffset;
-                } else {
-                    readInDataAtOffset = 0;
-                    dataToRead = bufsize;
-                }
-            }
-        } while (read > 0);
-        CloseHandle(fh);
-        result = dataProcessed == GetFileSize(fname);
+
+        int EndPos = Content.find('\n', pos);
+        Tilc::TExtString s = Content.substr(pos, EndPos - pos);
+        try
+        {
+            first = s.toInt();
+            pos = EndPos + 1;
+        }
+        catch (...)
+        {
+            result = false;
+            gridContentChanged = false;
+            break;
+        }
+
+
+        if (pos >= Content.length())
+        {
+            result = false;
+            gridContentChanged = false;
+            break;
+        }
+
+        EndPos = Content.find('\n', pos);
+        s = Content.substr(pos, EndPos - pos);
+        try
+        {
+            len = s.toInt();
+            pos = EndPos + 1;
+        }
+        catch (...)
+        {
+            result = false;
+            gridContentChanged = false;
+            break;
+        }
+
+
+        if (pos + len >= Content.length())
+        {
+            result = false;
+            gridContentChanged = false;
+            break;
+        }
+        s = Content.substr(pos, len);
+        pos += len;
+
+        m_Data[first] = Tilc::Gui::TGridCell(s, { 0, 0 }, false, false);
+        gridContentChanged = true;
+        result = true;
     }
 
-    if (gridContentChanged) {
-        this->redraw();
+    if (gridContentChanged)
+    {
+        Invalidate();
     }
     
     return result;
 }
-*/

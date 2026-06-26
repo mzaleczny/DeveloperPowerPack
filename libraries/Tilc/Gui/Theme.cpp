@@ -62,6 +62,7 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     LoadMultilineTextFieldSkinResources(name);
     LoadCheckboxSkinResources(name);
     LoadOptionSkinResources(name);
+    LoadGridSkinResources(name);
 
     this->LoadPanelSkinResources(name);
     this->LoadMenuSkinResources(name);
@@ -69,7 +70,6 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     this->LoadToolbar16SkinResources(name);
     this->LoadLabelSkinResources(name);
     this->LoadListboxSkinResources(name);
-    this->LoadGridSkinResources(name);
 
     LayoutInputStream.close();
 
@@ -878,36 +878,60 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
 
 void Tilc::Gui::TTheme::LoadGridSkinResources(Tilc::TExtString themeName)
 {
+    if (GameObject)
+    {
+        Tilc::TExtString Line;
+        while (std::getline(LayoutInputStream, Line))
+        {
+            std::stringstream Keystream(Line);
+            Tilc::TExtString Item, sx, sy, sw, sh;
+            Keystream >> Item >> sx >> sy >> sw >> sh;
+            Item = Item.substr(0, Item.length() - 1);
+            sx = sx.substr(0, sx.length() - 1);
+            sy = sy.substr(0, sy.length() - 1);
+            sw = sw.substr(0, sw.length() - 1);
+            //sh = sh.substr(0, sh.length() - 1);
+
+            if (Item == "grid_cell_inner_bg_normal_rc")
+                grid_cell_inner_bg_normal_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_cell_inner_bg_selected_rc")
+                grid_cell_inner_bg_selected_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_cell_inner_bg_selected_active_rc")
+                grid_cell_inner_bg_selected_active_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_left_header_inner_bg_normal_cell_rc")
+                grid_left_header_inner_bg_normal_cell_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_left_header_inner_bg_selected_cell_rc")
+                grid_left_header_inner_bg_selected_cell_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_left_top_header_inner_bg_rc")
+                grid_left_top_header_inner_bg_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_top_header_inner_bg_normal_cell_rc")
+                grid_top_header_inner_bg_normal_cell_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_top_header_inner_bg_selected_cell_rc")
+                grid_top_header_inner_bg_selected_cell_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "grid_left_top_header_mark_rc")
+            {
+                grid_left_top_header_mark_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                break;
+            }
+        }
+    }
+
     /*
-    this->grid_cell_inner_bg_normal = new CBitmap(this->_hInst, gridDir + L"cell_inner_bg_normal.bmp");
-    this->grid_cell_inner_bg_selected = new CBitmap(this->_hInst, gridDir + L"cell_inner_bg_selected.bmp");
-    this->grid_cell_inner_bg_selected_active = new CBitmap(this->_hInst, gridDir + L"cell_inner_bg_selected_active.bmp");
-    this->grid_left_header_inner_bg_normal_cell = new CBitmap(this->_hInst, gridDir + L"left_header_inner_bg_normal_cell.bmp");
-    this->grid_left_header_inner_bg_selected_cell = new CBitmap(this->_hInst, gridDir + L"left_header_inner_bg_selected_cell.bmp");
-    this->grid_left_top_header_inner_bg = new CBitmap(this->_hInst, gridDir + L"left_top_header_inner_bg.bmp");
-    this->grid_left_top_header_mark = new CBitmap(this->_hInst, gridDir + L"left_top_header_mark.bmp");
-    this->grid_top_header_inner_bg_normal_cell = new CBitmap(this->_hInst, gridDir + L"top_header_inner_bg_normal_cell.bmp");
-    this->grid_top_header_inner_bg_selected_cell = new CBitmap(this->_hInst, gridDir + L"top_header_inner_bg_selected_cell.bmp");
-
-    // Fonty i pozostałe parametry
-    this->commonGridControlFont = this->globalStandardFont;
-
     Tilc::TExtString settings_fname = gridDir + L"\\_settings.ini";
-
-    this->commonGridControlTopHeaderNormalFontColor = this->_getIniColorValue(settings_fname, L"top_header_font_color_normal");
-    this->commonGridControlTopHeaderSelectedFontColor = this->_getIniColorValue(settings_fname, L"top_header_font_color_selected");
-    this->commonGridControlLeftHeaderNormalFontColor = this->_getIniColorValue(settings_fname, L"left_header_font_color_normal");
-    this->commonGridControlLeftHeaderSelectedFontColor = this->_getIniColorValue(settings_fname, L"left_header_font_color_selected");
-    this->commonGridControlTopHeaderCellBorderColor_Normal = this->_getIniColorValue(settings_fname, L"top_header_cell_border_color_normal");
-    this->commonGridControlTopHeaderCellBorderColor_Selected = this->_getIniColorValue(settings_fname, L"top_header_cell_border_color_selected");
-    this->commonGridControlLeftTopHeaderCellBorderColor = this->_getIniColorValue(settings_fname, L"left_top_header_cell_border_color");
-    this->commonGridControlLeftHeaderCellBorderColor_Normal = this->_getIniColorValue(settings_fname, L"left_header_cell_border_color_normal");
-    this->commonGridControlLeftHeaderCellBorderColor_Selected = this->_getIniColorValue(settings_fname, L"left_header_cell_border_color_selected");
-    this->commonGridControlCellBorderColor_Normal = this->_getIniColorValue(settings_fname, L"cell_border_color_normal");
-    this->commonGridControlCellBorderColor_Selected = this->_getIniColorValue(settings_fname, L"cell_border_color_selected");
-    this->commonGridControlCellBorderColor_Active = this->_getIniColorValue(settings_fname, L"cell_border_color_active");
-    this->commonGridControlSelectionBorderColor = this->_getIniColorValue(settings_fname, L"border_color_selection");
-    this->commonGridControlFocusedGridBorderColor = this->_getIniColorValue(settings_fname, L"border_color_focused_grid");
+    commonGridControlTopHeaderNormalFontColor = this->_getIniColorValue(settings_fname, L"top_header_font_color_normal");
+    commonGridControlTopHeaderSelectedFontColor = this->_getIniColorValue(settings_fname, L"top_header_font_color_selected");
+    commonGridControlLeftHeaderNormalFontColor = this->_getIniColorValue(settings_fname, L"left_header_font_color_normal");
+    commonGridControlLeftHeaderSelectedFontColor = this->_getIniColorValue(settings_fname, L"left_header_font_color_selected");
+    commonGridControlTopHeaderCellBorderColor_Normal = this->_getIniColorValue(settings_fname, L"top_header_cell_border_color_normal");
+    commonGridControlTopHeaderCellBorderColor_Selected = this->_getIniColorValue(settings_fname, L"top_header_cell_border_color_selected");
+    commonGridControlLeftTopHeaderCellBorderColor = this->_getIniColorValue(settings_fname, L"left_top_header_cell_border_color");
+    commonGridControlLeftHeaderCellBorderColor_Normal = this->_getIniColorValue(settings_fname, L"left_header_cell_border_color_normal");
+    commonGridControlLeftHeaderCellBorderColor_Selected = this->_getIniColorValue(settings_fname, L"left_header_cell_border_color_selected");
+    commonGridControlCellBorderColor_Normal = this->_getIniColorValue(settings_fname, L"cell_border_color_normal");
+    commonGridControlCellBorderColor_Selected = this->_getIniColorValue(settings_fname, L"cell_border_color_selected");
+    commonGridControlCellBorderColor_Active = this->_getIniColorValue(settings_fname, L"cell_border_color_active");
+    commonGridControlSelectionBorderColor = this->_getIniColorValue(settings_fname, L"border_color_selection");
+    commonGridControlFocusedGridBorderColor = this->_getIniColorValue(settings_fname, L"border_color_focused_grid");
     */
 }
 

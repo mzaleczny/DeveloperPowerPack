@@ -2,6 +2,7 @@
 
 #include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Utils/ExtString.h"
+#include "Tilc/Globals.h"
 #include <unordered_map>
 
 namespace Tilc::Gui
@@ -12,7 +13,6 @@ namespace Tilc::Gui
     constexpr const int GRID_DEFAULT_COLUMN_WIDTH = 90;
     constexpr const int GRID_DEFAULT_LEFT_HEADER_WIDTH = 30;
 
-
     struct DECLSPEC TGridCell
     {
         Tilc::TExtString m_Value;
@@ -20,11 +20,15 @@ namespace Tilc::Gui
         bool m_IsHeader;
         bool m_Selected;
 
+        TGridCell() = default;
         TGridCell(const Tilc::TExtString& value, SDL_Point size, bool isHeader = false, bool selected = false);
         virtual ~TGridCell();
     };
+    using TCells = std::unordered_map<int, TGridCell>;
+    using TCellData = std::pair<int, TGridCell>;
 
-    /*
+    class TScrollBar;
+
     class DECLSPEC TGrid : public TGuiControl
     {
     public:
@@ -37,138 +41,98 @@ namespace Tilc::Gui
             bool showLeftHeader, bool showTopHeader, bool entireRowSelect, bool entireColumnSelect,
             bool drawVerticalLines, bool drawHorizontalLines);
         virtual ~TGrid();
+        void CleanData();
 
-        // Returns CmzFont* out of the this->_cachedFonts attriubute. If fontName == "", the default font for grid
-        // defined in current theme is returned. Else if fontName != "" and font does not exists in this->_cachedFonts
-        // then it is created added tho the attribute and returned.
-        CmzFont* getFont(const WCHAR* fontName = L"", int fontSize = 0, int fontColor = 0);
-        void cleanCachedFonts();
-        void cleanData();
-
-        // Umieszcza focus na tej kontrolce a dokładnie:
-        //      Jeśli aktywną kontrolką okna Parent nie jest ta kontrolka, to jest wywoływane metoda
-        //      ParentWnd->setActiveControl(this) tego okna.
-        //      Przełącza stan kontrolki w tryb CGRID_STATE_FOCUSED.
-        virtual void focus();
-        // Usuwa focus z tej kontrolki a dokładnie:
-        //      NULL-uje wskaźnik aktywnej kontrolki w ParentWindow
-        //      Przełącza kontrolkę w stan CGRID_STATE_NORMAL
-        //      w zależności od aktualnego położenia myszy.
-        virtual void looseFocus();
-        // funkcja obsługi kliknięcia
-    //    virtual void onClick();
+        virtual void Draw();
 
         // Funkcje obsługi zdarzeń
-        virtual void onDraw(CmzBitmap* dest);
-
-        // Funkcje obsługi kliknięć
-        virtual bool onMouseMove(int x, int y);
-        virtual bool onMouseDown(int x, int y);
-        virtual bool onMouseUp(int x, int y);
-
-        virtual bool onKeyDown(bool vkAlt, bool vkShift, bool vkControl,
-            bool vkLAlt, bool vkRAlt,
-            bool vkLShift, bool vkRShift,
-            bool vkLControl, bool vkRControl,
-            bool systemKey,
-            Uint virtualCode, Uint scanCode, WCHAR ch);
-        virtual bool onKeyPressed(bool vkAlt, bool vkShift, bool vkControl,
-            bool vkLAlt, bool vkRAlt,
-            bool vkLShift, bool vkRShift,
-            bool vkLControl, bool vkRControl,
-            bool systemKey,
-            Uint virtualCode, Uint scanCode, WCHAR ch);
-        virtual bool onKeyUp(bool vkAlt, bool vkShift, bool vkControl,
-            bool vkLAlt, bool vkRAlt,
-            bool vkLShift, bool vkRShift,
-            bool vkLControl, bool vkRControl,
-            bool systemKey,
-            Uint virtualCode, Uint scanCode, WCHAR ch);
-        virtual void onThumbChange(int oldPosition, int curPosition, CScrollbar* scrollbar);
+        virtual bool OnMouseButtonDown(const SDL_Event& event) override;
+        virtual bool OnKeyDown(const SDL_Event& event) override;
+        virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar);
 
         // Move active cell to the next cell to the right and returns TRUE if active cell was changed.
-        bool moveRight(int count = 1);
+        bool MoveRight(int count = 1);
         // Move active cell to the next cell to the left and returns TRUE if active cell was changed.
-        bool moveLeft(int count = 1);
+        bool MoveLeft(int count = 1);
         // Move active cell to the next cell to the up and returns TRUE if active cell was changed.
-        bool moveUp(int count = 1);
+        bool MoveUp(int count = 1);
         // Move active cell to the next cell to the down and returns TRUE if active cell was changed.
-        bool moveDown(int count = 1);
-        bool movePageUp();
-        bool movePageDown();
-        bool movePageLeft();
-        bool movePageRight();
-        bool moveHome();
-        bool moveHomeVertical();
-        bool moveHomeHorizontal();
-        bool moveEnd();
-        bool moveEndVertical();
-        bool moveEndHorizontal();
-        bool moveToCell(int coordX, int coordY);
-        void setStartCellCoordX(int coordX);
-        void setStartCellCoordY(int coordX);
+        bool MoveDown(int count = 1);
+        bool MovePageUp();
+        bool MovePageDown();
+        bool MovePageLeft();
+        bool MovePageRight();
+        bool MoveHome();
+        bool MoveHomeVertical();
+        bool MoveHomeHorizontal();
+        bool MoveEnd();
+        bool MoveEndVertical();
+        bool MoveEndHorizontal();
+        bool MoveToCell(int coordX, int coordY);
+        void SetStartCellCoordX(int coordX);
+        void SetStartCellCoordY(int coordX);
         // Gets coords of the cell under specified mouse coordinates. Returns TRUE if cell was found.
-        bool getCellCoordsAtMousePos(int mouseX, int mouseY, LONG* coordX, LONG* coordY);
+        bool GetCellCoordsAtMousePos(int mouseX, int mouseY, int* coordX, int* coordY);
         // Move active cell to mouse-clicked cell returns TRUE if active cell was changed.
-        bool activateCellAtMousePos(int x, int y);
+        bool ActivateCellAtMousePos(int x, int y);
         // Usuwa zaznaczenie (bez usunięcia zawartości komórek, które były zaznaczone)
         // i ewentualnie odrysowuje kontrolkę
-        void clearSelection(bool redraw = TRUE);
-        bool isSelection();
+        void ClearSelection(bool redraw = true);
+        bool IsSelection();
 
         // Returns total summary width of all columns
-        Uint getTotalColumnsWidth();
+        unsigned int GetTotalColumnsWidth();
         // Returns total summary height of all rows
-        Uint getTotalRowsHeight();
+        unsigned int GetTotalRowsHeight();
         // Returns number of visible columns
-        int getVisibleColumnCount();
+        int GetVisibleColumnCount();
         // Returns number of fully visible columns (if there is column partialy visible then it is not counted)
-        int getFullVisibleColumnCount();
+        int GetFullVisibleColumnCount();
         // Returns number of visible rows
-        int getVisibleRowCount();
+        int GetVisibleRowCount();
         // Returns number of fully visible rows (if there is row partialy visible then it is not counted)
-        int getFullVisibleRowCount();
+        int GetFullVisibleRowCount();
 
-        virtual void onEditorShow();
-        virtual mzstd::CmzStdObject getValue();
-        virtual void setValue(mzstd::CmzString value, bool redraw = TRUE);
-        void setCellValue(int cellCoordX, int cellCoordY, mzstd::CmzString value, bool redraw = TRUE);
-        void setCurrentCellValue(mzstd::CmzString value, bool redraw = TRUE);
-        void clearCellValue(int cellCoordX, int cellCoordY, bool redraw = TRUE);
-        void clearCurrentCellValue(bool redraw = TRUE);
-        virtual void onApplyEditorChanges(mzstd::CmzStdObject* value);
+        virtual void OnEditorShow();
+        virtual Tilc::TExtString GetValue();
+        virtual void SetValue(const Tilc::TExtString& value, bool redraw = true);
+        void SetCellValue(int cellCoordX, int cellCoordY, const Tilc::TExtString& value, bool redraw = true);
+        void SetCurrentCellValue(const Tilc::TExtString& value, bool redraw = true);
+        void ClearCellValue(int cellCoordX, int cellCoordY, bool redraw = true);
+        void ClearCurrentCellValue(bool redraw = true);
+        virtual void OnApplyEditorChanges(const Tilc::TExtString& value);
 
-        CGridCell* getCell(int cellCoordX, int cellCoordY);
-        CGridCell* getCurrentCell();
-        CGridHeaderCell* getHeaderCellX(int coordX);
-        CGridHeaderCell* getCurrentHeaderCellX();
-        CGridHeaderCell* getHeaderCellY(int coordY);
-        CGridHeaderCell* getCurrentHeaderCellY();
+        TGridCell* GetCell(int cellCoordX, int cellCoordY);
+        TGridCell* GetCurrentCell();
+        TGridCell* GetHeaderCellX(int coordX);
+        TGridCell* GetCurrentHeaderCellX();
+        TGridCell* GetHeaderCellY(int coordY);
+        TGridCell* GetCurrentHeaderCellY();
 
         // Zwraca wymiary podane komórki grida.
-        SIZE getCellSize(int cellCoordX, int cellCoordY);
+        SDL_Point GetCellSize(int cellCoordX, int cellCoordY);
         // Zwraca współrzędne lewego górnego rogu komórki grida o podany współrzędnych logicznych.
         // Współrzędne te są współrzędnymi (x, y) bitmapy na której grid jest rysowany.
-        void cellCoordsToCanvasCoords(int cellCoordX, int cellCoordY, LONG* x, LONG* y);
-        bool cellVisible(int coordX, int coordY, bool acceptPartialVisibility = FALSE);
+        void CellCoordsToCanvasCoords(int cellCoordX, int cellCoordY, int* x, int* y);
+        bool CellVisible(int coordX, int coordY, bool acceptPartialVisibility = false);
 
-        void showTopHeader(bool showTopHeader, bool redraw = FALSE);
-        void showLeftHeader(bool showTopHeader, bool redraw = FALSE);
-        void setGridSize(int columnCount, int rowCount);
+        void ShowTopHeader(bool showTopHeader, bool redraw = false);
+        void ShowLeftHeader(bool showTopHeader, bool redraw = false);
+        void SetGridSize(int columnCount, int rowCount);
 
-        inline void setEntireRowSelect(bool value) { this->_entireRowSelect = value; }
-        inline void setEntireColumnSelect(bool value) { this->_entireColumnSelect = value; }
-        inline void setDrawVerticalLines(bool value) { this->_drawVerticalLines = value; }
-        inline void setDrawHorizontalLines(bool value) { this->_drawHorizontalLines = value; }
+        inline void SetEntireRowSelect(bool value) { m_EntireRowSelect = value; }
+        inline void SetEntireColumnSelect(bool value) { m_EntireColumnSelect = value; }
+        inline void SetDrawVerticalLines(bool value) { m_DrawVerticalLines = value; }
+        inline void SetDrawHorizontalLines(bool value) { m_DrawHorizontalLines = value; }
 
-        void setLeftHeaderCaptions(mzstd::CmzStringList* captions);
-        void setTopHeaderCaptions(mzstd::CmzStringList* captions);
+        void SetLeftHeaderCaptions(TStringVector* captions);
+        void SetTopHeaderCaptions(TStringVector* captions);
 
-        inline void setLeftHeaderWidth(int value) { this->_leftHeaderWidth = value; }
-        inline mzstd::CmzMap* getData() { return &this->_data; }
+        inline void SetLeftHeaderWidth(int value) { m_LeftHeaderWidth = value; }
+        inline TCells& GetData() { return m_Data; }
 
-        bool saveToFile(mzstd::CmzString fname);
-        bool loadFromFile(mzstd::CmzString fname);
+        bool SaveToFile(const Tilc::TExtString& fname);
+        bool LoadFromFile(const Tilc::TExtString& fname);
 
     protected:
         // Dane grida przechowywane są jako pary std::pair(int, TGridCell). gdzie int definiuje
@@ -179,7 +143,12 @@ namespace Tilc::Gui
         //    second:
         //      TGridCell obiekt komórki (wraz z zawartością).
         // Zatem przy aktualnej implementacji grid obsługuje max. siatkę o polach 1..65536 w pionie i poziomie.
-        std::unordered_map<int, TGridCell> m_Data;
+        TCells m_Data;
+        // Array containing header objects (CGridHeaderCellData*) for the columns
+        std::vector<TGridCell> m_ColData;
+        // Array containing header objects (CGridHeaderCellData*) for the rows
+        std::vector<TGridCell> m_RowData;
+
         // Przechowuje wskaźnik na listę obrazków z której pobierane są obrazki, tgo wskaźnika nie
         // zwalniamy
 //        CmzImageList* _imageList;
@@ -237,34 +206,23 @@ namespace Tilc::Gui
         int m_CoordY;
 
         virtual void CommonInit(int columnCount, int rowCount, bool editable, bool showLeftHeader, bool showTopHeader, bool entireRowSelect, bool entireColumnSelect, bool drawVerticalLines, bool drawHorizontalLines);
-        // Poniższa funkcja zwraca TRUE, jeśli przetworzyła klawisz i FALSE jeśli go zignorowała.
-        virtual bool _commonKeyProcessing(bool vkAlt, bool vkShift, bool vkControl,
-            bool vkLAlt, bool vkRAlt,
-            bool vkLShift, bool vkRShift,
-            bool vkLControl, bool vkRControl,
-            bool systemKey,
-            Uint virtualCode, Uint scanCode, WCHAR ch, bool& redraw);
 
         // Funkcja zwraca string literowy odpowiadający podanemu indeksowi. Np. dla indeks=1 zwracane
         // jest 'A', dla 2 => 'B', itd.
-        mzstd::CmzString _indexToLetter(int index);
+        Tilc::TExtString IndexToLetter(int index);
 
         // Zwraca LONGa przechowującego podane współrzędne komórki grida. Kodowanie współrzędnych
         // określone jest przy opisie danych grida.
-        inline int _cellCoordsToLONG(int x, int y);
-        inline void _LONGToCellCoords(int data, LONG* x, LONG* y);
+        int CellCoordsToInt(int x, int y);
+        void IntToCellCoords(int data, int* x, int* y);
 
         // Ustawia indeksy maksymalnych widocznych w całości/częściowo kolumn i wierszy.
-        void _updateGridParameters();
-        void _updateScrollbars();
-        void _cleanGridContent();
-        void _setHeaderCaptions(mzstd::CmzArrayList* headerCells, mzstd::CmzStringList* lst);
-        // if size of grid changed, then data for cells that are outside grid col/row dimensions are deleted.
-        void _compactData();
-
-    private:
-        virtual void _updateCanvas();
-
+        void UpdateGridParameters();
+        void UpdateScrollBars();
+        void CleanGridContent();
+        void SetHeaderCaptions(std::vector<TGridCell>* headerCells, TStringVector* captions);
+        // if size of grid changed, then data for cells that are outside grid col/row dimensions are removed.
+        void CompactData();
     };
-    */
+
 }
