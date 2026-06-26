@@ -171,3 +171,12 @@ option-checked-hover_rc: 0, 1016, 20, 20
 option-disabled_rc: 20, 1016, 20, 20
 option-hover_rc: 40, 1016, 20, 20
 option-focused_rc: 60, 1016, 20, 20
+grid_cell_inner_bg_normal_rc: 0, 1036, 4, 30
+grid_cell_inner_bg_selected_rc: 4, 1036, 4, 30
+grid_cell_inner_bg_selected_active_rc: 8, 1036, 4, 30
+grid_left_header_inner_bg_normal_cell_rc: 12, 1036, 4, 30
+grid_left_header_inner_bg_selected_cell_rc: 16, 1036, 4, 30
+grid_left_top_header_inner_bg_rc: 20, 1036, 4, 30
+grid_top_header_inner_bg_normal_cell_rc: 24, 1036, 4, 30
+grid_top_header_inner_bg_selected_cell_rc: 28, 1036, 4, 30
+grid_left_top_header_mark_rc: 32, 1036, 4, 4
