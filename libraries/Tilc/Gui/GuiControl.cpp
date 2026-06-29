@@ -913,7 +913,6 @@ void Tilc::Gui::TGuiControl::AddEditor()
         Editor->DisableTabkey();
         Editor->Hide();
         m_Editor = Editor;
-        AddChild(Editor);
         m_Editable = true;
     }
 }
