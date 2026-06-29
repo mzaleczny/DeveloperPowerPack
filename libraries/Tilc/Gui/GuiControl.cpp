@@ -785,7 +785,7 @@ bool Tilc::Gui::TGuiControl::SetTextForSprite(Tilc::TExtString value, Tilc::TExt
     return true;
 }
 
-void Tilc::Gui::TGuiControl::AddScrollbars(bool vertical, bool horizontal, int vmin, int vmax, int hmin, int hmax)
+void Tilc::Gui::TGuiControl::AddScrollBars(bool vertical, bool horizontal, int vmin, int vmax, int hmin, int hmax, bool IsStandardSizedScrollBar)
 {
     int size;
     
@@ -796,7 +796,7 @@ void Tilc::Gui::TGuiControl::AddScrollbars(bool vertical, bool horizontal, int v
         {
             size = m_Position.h;
         }
-        AddVerticalScrollbar(vmin, vmax, size);
+        AddVerticalScrollBar(vmin, vmax, size, IsStandardSizedScrollBar);
     }
     
     if (horizontal)
@@ -806,11 +806,11 @@ void Tilc::Gui::TGuiControl::AddScrollbars(bool vertical, bool horizontal, int v
         {
             size = m_Position.w;
         }
-        AddHorizontalScrollbar(hmin, hmax, size);
+        AddHorizontalScrollBar(hmin, hmax, size, IsStandardSizedScrollBar);
     }
 }
 
-void Tilc::Gui::TGuiControl::AddVerticalScrollbar(int min, int max, int size, bool IsStandardSizedScrollBar)
+void Tilc::Gui::TGuiControl::AddVerticalScrollBar(int min, int max, int size, bool IsStandardSizedScrollBar)
 {
     if (Tilc::GameObject)
     {
@@ -845,7 +845,7 @@ void Tilc::Gui::TGuiControl::AddVerticalScrollbar(int min, int max, int size, bo
     }
 }
 
-bool Tilc::Gui::TGuiControl::RemoveVerticalScrollbar()
+bool Tilc::Gui::TGuiControl::RemoveVerticalScrollBar()
 {
     if (m_VScrollBar)
     {
@@ -856,7 +856,7 @@ bool Tilc::Gui::TGuiControl::RemoveVerticalScrollbar()
     return false;
 }
 
-void Tilc::Gui::TGuiControl::AddHorizontalScrollbar(int min, int max, int size, bool IsStandardSizedScrollBar)
+void Tilc::Gui::TGuiControl::AddHorizontalScrollBar(int min, int max, int size, bool IsStandardSizedScrollBar)
 {
     if (Tilc::GameObject)
     {
@@ -891,7 +891,7 @@ void Tilc::Gui::TGuiControl::AddHorizontalScrollbar(int min, int max, int size, 
     }
 }
 
-bool Tilc::Gui::TGuiControl::RemoveHorizontalScrollbar()
+bool Tilc::Gui::TGuiControl::RemoveHorizontalScrollBar()
 {
     if (m_HScrollBar)
     {
@@ -1378,6 +1378,7 @@ void Tilc::Gui::TGuiControl::Draw(float x, float y,
     SDL_FRect* frame_bottom_left_rc, SDL_FRect* frame_bottom_rc, SDL_FRect* frame_bottom_right_rc,
     SDL_FRect* frame_left_rc, SDL_FRect* frame_right_rc, SDL_FRect* bg_rc)
 {
+    if (!m_Visible) return;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;
