@@ -70,7 +70,7 @@ void Tilc::Gui::TGrid::CommonInit(int columnCount, int rowCount, bool editable, 
     // Adding scrollbars and editor
     bool addVScr = static_cast<int>(GetTotalRowsHeight()) > m_Position.h;
     bool addHScr = static_cast<int>(GetTotalColumnsWidth()) > m_Position.w;
-    AddScrollbars(addVScr, addHScr, 0, 1000, 0, 1000);
+    AddScrollBars(addVScr, addHScr, 0, 1000, 0, 1000, false);
     Tilc::Gui::TScrollBar* scr = dynamic_cast<Tilc::Gui::TScrollBar*>(GetChild(m_Name + "_VSB"));
     if (scr)
     {
@@ -118,6 +118,7 @@ void Tilc::Gui::TGrid::CleanData() {
 
 void Tilc::Gui::TGrid::Draw()
 {
+    if (!m_Visible) return;
     Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{ nullptr };
     Tilc::Gui::TFont* f = t->DefaultFont;
@@ -128,7 +129,7 @@ void Tilc::Gui::TGrid::Draw()
     int w, h;
     Tilc::Gui::TGridCell* xheaderCell, * yheaderCell;
     SDL_Point cellSize;
-    SDL_FRect clientRect = m_RealPosition, noheadersClientRect, rc;
+    SDL_FRect clientRect = m_RealPosition, noheadersClientRect, rc, rc2;
     int maxRightX = 0;
     int maxBottomY = 0;
     bool drawScrollbarsEmptySquare = true;
@@ -173,32 +174,44 @@ void Tilc::Gui::TGrid::Draw()
     // ================================================================
     // Rysujemy lewą górną komórkę nagłówka
     // ================================================================
-    x = m_RealPosition.x;
-    y = m_RealPosition.y;
+    x = 0;
+    y = 0;
     if (m_ShowLeftHeader && m_ShowTopHeader)
     {
         w = m_LeftHeaderWidth;
         h = m_TopHeaderHeight;
-        RenderTexture(TextureMap, &t->grid_left_top_header_inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
-        RenderTexture(TextureMap, &t->grid_left_top_header_mark_rc, x + w - t->grid_left_top_header_mark_rc.w - 3, y + (h - t->grid_left_top_header_mark_rc.h - 2));
-        SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
-        rc.x = x;
-        rc.y = y;
+        rc.x = x + m_RealPosition.x;
+        rc.y = y + m_RealPosition.y;
         rc.w = w;
         rc.h = h;
+        RenderTiledTexture(TextureMap, &t->grid_left_top_header_inner_bg_rc, &rc);
+        rc2.x = x + m_RealPosition.x + w - t->grid_left_top_header_mark_rc.w - 1;
+        rc2.y = y + m_RealPosition.y + h - t->grid_left_top_header_mark_rc.h - 1;
+        rc2.w = t->grid_left_top_header_mark_rc.w;
+        rc2.h = t->grid_left_top_header_mark_rc.h;
+        RenderTiledTexture(TextureMap, &t->grid_left_top_header_mark_rc, &rc2);
+        SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
         SDL_RenderRect(Renderer, &rc);
         x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
     }
     // ================================================================
     // Koniec rysowania lewej górnej komórki nagłówka
     // ================================================================
-
     SDL_FRect inner_bg_rc;
     bool selected = false, xHeaderColSelected = false, yHeaderColSelected = false;
     int xIndex, yIndex;
     unsigned int xheader_items_count, yheader_items_count;
     std::vector<TGridCell>& xheader_items = m_ColData;
     std::vector<TGridCell>& yheader_items = m_RowData;
+    float vscrw = 0, hscrh = 0;
+    if (m_VScrollBar)
+    {
+        vscrw = m_VScrollBar->m_Position.w;
+    }
+    if (m_HScrollBar)
+    {
+        hscrh = m_HScrollBar->m_Position.h;
+    }
 
     xheader_items_count = xheader_items.size();
     yheader_items_count = yheader_items.size();
@@ -210,7 +223,7 @@ void Tilc::Gui::TGrid::Draw()
     {
         h = m_TopHeaderHeight;
         xIndex = m_StartCellCoordX;
-        while ((x < m_DataCanvasWidth + lheaderSize) && (xIndex-1 < xheader_items_count))
+        while ((x < m_RealPosition.x + m_RealPosition.w - vscrw) && (xIndex-1 < xheader_items_count))
         {
             Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex-1];
             w = xheaderCell.m_Size.x;
@@ -235,11 +248,15 @@ void Tilc::Gui::TGrid::Draw()
                 border_color = t->commonGridControlTopHeaderCellBorderColor_Normal;
             }
 
-            rc.x = x;
-            rc.y = y;
+            rc.x = x + m_RealPosition.x;
+            rc.y = y + m_RealPosition.y;
             rc.w = w;
             rc.h = h;
-            RenderTexture(TextureMap, &inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
+            if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
+            {
+                rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x;
+            }
+            RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
             SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
             SDL_RenderRect(Renderer, &rc);
             if (xIndex <= m_MaxColumnNumber)
@@ -268,7 +285,7 @@ void Tilc::Gui::TGrid::Draw()
         }
         w = m_LeftHeaderWidth;
         yIndex = m_StartCellCoordY;
-        while ((y < m_DataCanvasHeight + theaderSize) && (yIndex-1 < yheader_items_count))
+        while ((y < m_RealPosition.y + m_RealPosition.h - hscrh) && (yIndex-1 < yheader_items_count))
         {
             Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex-1];
             h = yheaderCell.m_Size.y;
@@ -295,11 +312,14 @@ void Tilc::Gui::TGrid::Draw()
             rc.y = y;
             rc.w = w;
             rc.h = h;
-
-            RenderTexture(TextureMap, &inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
+            if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
+            {
+                rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y;
+            }
+            RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
             SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
             SDL_RenderRect(Renderer, &rc);
-            if (xIndex <= m_MaxRowNumber)
+            if (yIndex <= m_MaxRowNumber)
             {
                 f->DrawString(Renderer, yheaderCell.m_Value.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
             }
@@ -322,16 +342,18 @@ void Tilc::Gui::TGrid::Draw()
     y = theaderSize ? theaderSize - 1 : 0;
     w = m_DefColumnWidth;
     h = t->grid_cell_inner_bg_normal_rc.h;
+    x += m_RealPosition.x;
+    y += m_RealPosition.y;
 
     xIndex = m_StartCellCoordX;
     yIndex = m_StartCellCoordY;
     int startX = x;
 
-    while ((y <= m_DataCanvasHeight + theaderSize) && (yIndex <= yheader_items_count))
+    while ((y < m_RealPosition.y + m_RealPosition.h - hscrh) && (yIndex <= yheader_items_count))
     {
         x = startX;
         xIndex = m_StartCellCoordX;
-        while ((x <= m_DataCanvasWidth + lheaderSize) && (xIndex <= xheader_items_count))
+        while ((x < m_RealPosition.x + m_RealPosition.w - vscrw) && (xIndex <= xheader_items_count))
         {
             Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex-1];
             Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex-1];
@@ -364,8 +386,15 @@ void Tilc::Gui::TGrid::Draw()
             rc.y = y;
             rc.w = w;
             rc.h = h;
-
-            RenderTexture(TextureMap, &inner_bg_rc, x + 1, y + 1, w - 2, h - 2);
+            if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
+            {
+                rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x;
+            }
+            if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
+            {
+                rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y;
+            }
+            RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
             if (m_DrawVerticalLines && m_DrawHorizontalLines)
             {
                 SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
@@ -429,11 +458,11 @@ void Tilc::Gui::TGrid::Draw()
     h = t->grid_cell_inner_bg_normal_rc.h;
     xIndex = m_StartCellCoordX;
     yIndex = m_StartCellCoordY;
-    while (y < m_DataCanvasHeight && (yIndex - m_StartCellCoordY < yheader_items_count))
+    while ((y < m_RealPosition.y + m_RealPosition.h - hscrh) && (yIndex - m_StartCellCoordY < yheader_items_count))
     {
         x = m_LeftHeaderWidth - 1;
         xIndex = m_StartCellCoordX;
-        while (x < m_DataCanvasWidth && (xIndex - m_StartCellCoordX < xheader_items_count))
+        while ((x < m_RealPosition.x + m_RealPosition.w - vscrw) && (xIndex - m_StartCellCoordX < xheader_items_count))
         {
             Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex - m_StartCellCoordX];
             Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex - m_StartCellCoordY];
@@ -529,6 +558,7 @@ void Tilc::Gui::TGrid::Draw()
         this->canvas->fillRectangle(this->_backgroundColor, clientRect.left, maxBottomY, clientRect.right - clientRect.left, clientRect.bottom - maxBottomY);
     }
     */
+
     // ================================================================
     // Rysowanie aktywnej komórki (a właściwie jej obramowania)
     // ================================================================
@@ -536,43 +566,51 @@ void Tilc::Gui::TGrid::Draw()
     {
         CellCoordsToCanvasCoords(m_CoordX, m_CoordY, &x, &y);
         // Inkrementujemy obie współrzedne, bo prostokąt rysujemy pogrubioną linią
-        x += 1;
-        y += 1;
+        x += 0;
+        y += 0;
         cellSize = GetCellSize(m_CoordX, m_CoordY);
-        rc = m_RealPosition;
-        rc.x += rc.w - 4;
-        rc.w += 3;
-        rc.y += rc.h - 4;
-        rc.h += 3;
-        SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-        SDL_RenderFillRect(Renderer, &m_RealPosition);
+        rc.x = x + m_RealPosition.x;
+        rc.w = cellSize.x - 2;
+        rc.y = y + m_RealPosition.y;
+        rc.h = cellSize.y - 2;
+        if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
+        {
+            rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x - 1;
+        }
+        if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
+        {
+            rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y - 1;
+        }
+        SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
+        SDL_RenderFillRect(Renderer, &rc);
         SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
+        rc.w += 2;
+        rc.h += 2;
         SDL_RenderRect(Renderer, &rc);
     }
     // ================================================================
     // Koniec rysowania aktywnej komórki (a właściwie jej obramowania)
     // ================================================================
-
     if (drawScrollbarsEmptySquare)
     {
-        int scw = 0;
-        int sch = 0;
-        if (m_VScrollBar)
+        rc.x = m_RealPosition.x + m_RealPosition.w - vscrw;
+        rc.y = m_RealPosition.y + m_RealPosition.h - hscrh;
+        rc.w = vscrw;
+        rc.h = hscrh;
+        if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
         {
-            scw = m_VScrollBar->m_Position.w;
+            rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x;
         }
-        if (m_HScrollBar)
+        if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
         {
-            sch = m_HScrollBar->m_Position.h;
+            rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y;
         }
-
-        rc.x = m_RealPosition.x + m_RealPosition.w - scw;
-        rc.y = m_RealPosition.y + m_RealPosition.h - sch;
-        rc.w = scw;
-        rc.h = sch;
         SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(Renderer, &rc);
     }
+
+
+    DrawChildren(false);
 
     if (m_Canvas)
     {
@@ -1102,6 +1140,11 @@ bool Tilc::Gui::TGrid::OnKeyDown(const SDL_Event& event)
 
     switch (event.key.key)
     {
+    case SDLK_F2:
+    case SDLK_RETURN:
+        Edit();
+        redraw = true;
+        break;
     case SDLK_DELETE:
         ClearCurrentCellValue();
         redraw = true;
@@ -1466,12 +1509,9 @@ void Tilc::Gui::TGrid::UpdateGridParameters()
 
     // X-based parameters
     curX = m_ShowLeftHeader ? m_LeftHeaderWidth - 1 : 0;
+    curX += m_RealPosition.x;
     size = 0;
     maxAllowableSize = m_Position.w;
-    if (m_ShowLeftHeader)
-    {
-        maxAllowableSize -= m_LeftHeaderWidth;
-    }
     if (m_VScrollBar)
     {
         maxAllowableSize -= m_VScrollBar->m_Position.w;
@@ -1479,14 +1519,14 @@ void Tilc::Gui::TGrid::UpdateGridParameters()
     for (i = m_StartCellCoordX - 1; i < m_ColData.size(); ++i)
     {
         TGridCell& hc = m_ColData[i];
-        if (curX + hc.m_Size.x <= maxAllowableSize)
+        if (curX + hc.m_Size.x <= m_RealPosition.x + maxAllowableSize)
         {
             m_MaxFullVisibleColumnNumber = i + 1;
             m_MaxVisibleColumnNumber = i + 1;
         }
         else
         {
-            if (curX < maxAllowableSize)
+            if (curX < m_RealPosition.x + maxAllowableSize)
             {
                 m_MaxVisibleColumnNumber = i + 1;
                 m_VisibleWidthOfLastColumn = maxAllowableSize - curX;
@@ -1511,12 +1551,9 @@ void Tilc::Gui::TGrid::UpdateGridParameters()
 
     // Y based parameters
     curY = m_ShowTopHeader ? m_TopHeaderHeight - 1 : 0;
+    curY += m_RealPosition.y;
     size = 0;
     maxAllowableSize = m_Position.h;
-    if (m_ShowTopHeader)
-    {
-        maxAllowableSize -= m_TopHeaderHeight;
-    }
     if (m_HScrollBar)
     {
         maxAllowableSize -= m_HScrollBar->m_Position.h;
@@ -1524,14 +1561,14 @@ void Tilc::Gui::TGrid::UpdateGridParameters()
     for (i = m_StartCellCoordY - 1; i < m_RowData.size(); ++i)
     {
         TGridCell& hc = m_RowData[i];
-        if (curY + hc.m_Size.y <= maxAllowableSize)
+        if (curY + hc.m_Size.y <= m_RealPosition.y + maxAllowableSize)
         {
             m_MaxFullVisibleRowNumber = i + 1;
             m_MaxVisibleRowNumber = i + 1;
         }
         else
         {
-            if (curY < maxAllowableSize)
+            if (curY < m_RealPosition.y + maxAllowableSize)
             {
                 m_MaxVisibleRowNumber = i + 1;
                 m_VisibleHeightOfLastRow = maxAllowableSize - curY;
