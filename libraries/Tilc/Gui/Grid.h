@@ -100,7 +100,7 @@ namespace Tilc::Gui
         void SetCurrentCellValue(const Tilc::TExtString& value, bool redraw = true);
         void ClearCellValue(int cellCoordX, int cellCoordY, bool redraw = true);
         void ClearCurrentCellValue(bool redraw = true);
-        virtual void OnApplyEditorChanges(const Tilc::TExtString& value);
+        virtual void OnApplyEditorChanges(const Tilc::TExtString& value) override;
 
         TGridCell* GetCell(int cellCoordX, int cellCoordY);
         TGridCell* GetCurrentCell();

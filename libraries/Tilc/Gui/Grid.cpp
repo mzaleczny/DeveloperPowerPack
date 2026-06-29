@@ -84,6 +84,7 @@ void Tilc::Gui::TGrid::CommonInit(int columnCount, int rowCount, bool editable, 
     m_TabStop = true;
     if (editable)
     {
+        m_Editable = true;
         AddEditor();
     }
 
@@ -362,75 +363,72 @@ void Tilc::Gui::TGrid::Draw()
 
             coord = CellCoordsToInt(xIndex, yIndex);
             auto cellPair = m_Data.find(coord);
-            if (cellPair != m_Data.end())
-            {
-                selected = cellPair->second.m_Selected || (m_EntireRowSelect && (xIndex == m_CoordX)) || (m_EntireColumnSelect && (yIndex == m_CoordY));
-            }
-            else
+            // rysujemy tylko te komórki, które są puste, bo te z tekstem są renderowane poniżej
+            if (cellPair == m_Data.end())
             {
                 selected = (m_EntireRowSelect && (xIndex == m_CoordX)) || (m_EntireColumnSelect && (yIndex == m_CoordY));
-            }
 
-            if (selected)
-            {
-                inner_bg_rc = t->grid_cell_inner_bg_selected_rc;
-                border_color = t->commonGridControlCellBorderColor_Selected;
-            }
-            else
-            {
-                inner_bg_rc = t->grid_cell_inner_bg_normal_rc;
-                border_color = t->commonGridControlCellBorderColor_Normal;
-            }
+                if (selected)
+                {
+                    inner_bg_rc = t->grid_cell_inner_bg_selected_rc;
+                    border_color = t->commonGridControlCellBorderColor_Selected;
+                }
+                else
+                {
+                    inner_bg_rc = t->grid_cell_inner_bg_normal_rc;
+                    border_color = t->commonGridControlCellBorderColor_Normal;
+                }
 
-            rc.x = x;
-            rc.y = y;
-            rc.w = w;
-            rc.h = h;
-            if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
-            {
-                rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x;
-            }
-            if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
-            {
-                rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y;
-            }
-            RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
-            if (m_DrawVerticalLines && m_DrawHorizontalLines)
-            {
-                SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
-                SDL_RenderRect(Renderer, &rc);
-            }
-            else
-            {
-                if (m_DrawHorizontalLines)
-                {
-                    rc.h = 1;
-                    SDL_RenderRect(Renderer, &rc);
-                    rc.y += h - 1;
-                    SDL_RenderRect(Renderer, &rc);
-                }
-                else if (yIndex == m_MaxRowNumber)
-                {
-                    // last (closing) grid horizontal line we draw always
-                    rc.h = 1;
-                    rc.y += h - 1;
-                    SDL_RenderRect(Renderer, &rc);
-                }
                 rc.x = x;
                 rc.y = y;
-                if (m_DrawVerticalLines)
+                rc.w = w;
+                rc.h = h;
+                if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
                 {
-                    rc.w = 1;
-                    SDL_RenderRect(Renderer, &rc);
-                    rc.x += w - 1;
+                    rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x;
+                }
+                if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
+                {
+                    rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y;
+                }
+                RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
+                if (m_DrawVerticalLines && m_DrawHorizontalLines)
+                {
+                    SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
                     SDL_RenderRect(Renderer, &rc);
                 }
-                else if (xIndex == m_MaxColumnNumber)
+                else
                 {
-                    // last (closing) grid vertical line we draw always
-                    rc.h = 1;
-                    rc.x += w - 1;
-                    SDL_RenderRect(Renderer, &rc);
+                    if (m_DrawHorizontalLines)
+                    {
+                        rc.h = 1;
+                        SDL_RenderRect(Renderer, &rc);
+                        rc.y += h - 1;
+                        SDL_RenderRect(Renderer, &rc);
+                    }
+                    else if (yIndex == m_MaxRowNumber)
+                    {
+                        // last (closing) grid horizontal line we draw always
+                        rc.h = 1;
+                        rc.y += h - 1;
+                        SDL_RenderRect(Renderer, &rc);
+                    }
+                    rc.x = x;
+                    rc.y = y;
+                    if (m_DrawVerticalLines)
+                    {
+                        rc.w = 1;
+                        SDL_RenderRect(Renderer, &rc);
+                        rc.x += w - 1;
+                        SDL_RenderRect(Renderer, &rc);
+                    }
+                    else if (xIndex == m_MaxColumnNumber)
+                    {
+                        // last (closing) grid vertical line we draw always
+                        rc.h = 1;
+                        rc.x += w - 1;
+                        SDL_RenderRect(Renderer, &rc);
+                    }
                 }
             }
 
@@ -445,6 +443,39 @@ void Tilc::Gui::TGrid::Draw()
     // Koniec rysowania komórek wewnętrznych (z danymi)
     // ================================================================
 
+    // ================================================================
+    // Rysowanie aktywnej komórki (a właściwie jej obramowania)
+    // ================================================================
+    if (CellVisible(m_CoordX, m_CoordY, true))
+    {
+        CellCoordsToCanvasCoords(m_CoordX, m_CoordY, &x, &y);
+        // Inkrementujemy obie współrzedne, bo prostokąt rysujemy pogrubioną linią
+        x += 0;
+        y += 0;
+        cellSize = GetCellSize(m_CoordX, m_CoordY);
+        rc.x = x + m_RealPosition.x;
+        rc.w = cellSize.x - 2;
+        rc.y = y + m_RealPosition.y;
+        rc.h = cellSize.y - 2;
+        if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
+        {
+            rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x - 1;
+        }
+        if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
+        {
+            rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y - 1;
+        }
+        SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
+        SDL_RenderFillRect(Renderer, &rc);
+        SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
+        rc.w += 2;
+        rc.h += 2;
+        SDL_RenderRect(Renderer, &rc);
+    }
+    // ================================================================
+    // Koniec rysowania aktywnej komórki (a właściwie jej obramowania)
+    // ================================================================
+
 
     int cellMarginLeft = 2;
     int cellMarginRight = 2;
@@ -453,38 +484,21 @@ void Tilc::Gui::TGrid::Draw()
     // ================================================================
     Tilc::TExtString cellValue;
     x = m_RealPosition.x + m_LeftHeaderWidth - 1;
-    y = m_RealPosition.y + t->grid_top_header_inner_bg_normal_cell_rc.h + 2 - 1;
+    y = m_RealPosition.y + t->grid_top_header_inner_bg_normal_cell_rc.h + 1;
     w = m_DefColumnWidth;
     h = t->grid_cell_inner_bg_normal_rc.h;
     xIndex = m_StartCellCoordX;
     yIndex = m_StartCellCoordY;
     while ((y < m_RealPosition.y + m_RealPosition.h - hscrh) && (yIndex - m_StartCellCoordY < yheader_items_count))
     {
-        x = m_LeftHeaderWidth - 1;
+        Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex - m_StartCellCoordY];
+        x = m_RealPosition.x + m_LeftHeaderWidth - 1;
         xIndex = m_StartCellCoordX;
         while ((x < m_RealPosition.x + m_RealPosition.w - vscrw) && (xIndex - m_StartCellCoordX < xheader_items_count))
         {
             Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex - m_StartCellCoordX];
-            Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex - m_StartCellCoordY];
             w = xheaderCell.m_Size.x;
-            h = yheaderCell.m_Size.y - 2;
-
-            if (selected)
-            {
-                inner_bg_rc = t->grid_cell_inner_bg_selected_rc;
-                border_color = t->commonGridControlCellBorderColor_Selected;
-            }
-            else
-            {
-                inner_bg_rc = t->grid_cell_inner_bg_normal_rc;
-                border_color = t->commonGridControlCellBorderColor_Normal;
-            }
-
-
-            rc.x = x + cellMarginLeft;
-            rc.y = y;
-            rc.w = w - 1 - cellMarginRight;
-            rc.h = h + 2;
+            h = yheaderCell.m_Size.y;
 
             coord = CellCoordsToInt(xIndex, yIndex);
             auto cellPair = m_Data.find(coord);
@@ -496,13 +510,73 @@ void Tilc::Gui::TGrid::Draw()
             {
                 cellValue = cellPair->second.m_Value;
             }
-            f->DrawString(Renderer, cellValue.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
 
+            if (!cellValue.empty())
+            {
+                if (selected)
+                {
+                    inner_bg_rc = t->grid_cell_inner_bg_selected_rc;
+                    border_color = t->commonGridControlCellBorderColor_Selected;
+                }
+                else
+                {
+                    inner_bg_rc = t->grid_cell_inner_bg_normal_rc;
+                    border_color = t->commonGridControlCellBorderColor_Normal;
+                }
+
+
+                // Najpierw tło
+                rc.x = x;
+                rc.y = y;
+                rc.w = w;
+                rc.h = h;
+                // Jesli to aktywna komórka, to ryzujemy na żółto
+                if (xIndex == m_CoordX && yIndex == m_CoordY)
+                {
+                    SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
+                    SDL_RenderFillRect(Renderer, &rc);
+                    SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
+                }
+                // w przeciwnym razie kolor bieżemy z theme
+                else
+                {
+                    if (cellPair != m_Data.end())
+                    {
+                        selected = cellPair->second.m_Selected || (m_EntireRowSelect && (xIndex == m_CoordX)) || (m_EntireColumnSelect && (yIndex == m_CoordY));
+                    }
+                    else
+                    {
+                        selected = (m_EntireRowSelect && (xIndex == m_CoordX)) || (m_EntireColumnSelect && (yIndex == m_CoordY));
+                    }
+
+                    if (selected)
+                    {
+                        inner_bg_rc = t->grid_cell_inner_bg_selected_rc;
+                        border_color = t->commonGridControlCellBorderColor_Selected;
+                    }
+                    else
+                    {
+                        inner_bg_rc = t->grid_cell_inner_bg_normal_rc;
+                        border_color = t->commonGridControlCellBorderColor_Normal;
+                    }
+                    RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
+                }
+                // Obramowanie
+                SDL_RenderRect(Renderer, &rc);
+
+                // Teraz zawartość
+                rc.x = x + cellMarginLeft;
+                rc.y = y;
+                rc.w = w - 1 - cellMarginLeft - cellMarginRight;
+                rc.h = h;
+                f->SetColor({ 0, 0, 0, 255 });
+                f->DrawString(Renderer, cellValue.c_str(), &rc, Align_CenterVertical | Align_Left);
+            }
             x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
             ++xIndex;
         }
 
-        y += h + 2 - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
+        y += h - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
         ++yIndex;
     }
     // ================================================================
@@ -559,38 +633,6 @@ void Tilc::Gui::TGrid::Draw()
     }
     */
 
-    // ================================================================
-    // Rysowanie aktywnej komórki (a właściwie jej obramowania)
-    // ================================================================
-    if (CellVisible(m_CoordX, m_CoordY, true))
-    {
-        CellCoordsToCanvasCoords(m_CoordX, m_CoordY, &x, &y);
-        // Inkrementujemy obie współrzedne, bo prostokąt rysujemy pogrubioną linią
-        x += 0;
-        y += 0;
-        cellSize = GetCellSize(m_CoordX, m_CoordY);
-        rc.x = x + m_RealPosition.x;
-        rc.w = cellSize.x - 2;
-        rc.y = y + m_RealPosition.y;
-        rc.h = cellSize.y - 2;
-        if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
-        {
-            rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x - 1;
-        }
-        if (rc.y + rc.h > m_RealPosition.y + m_RealPosition.h - hscrh)
-        {
-            rc.h = m_RealPosition.y + m_RealPosition.h - hscrh - rc.y - 1;
-        }
-        SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
-        SDL_RenderFillRect(Renderer, &rc);
-        SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
-        rc.w += 2;
-        rc.h += 2;
-        SDL_RenderRect(Renderer, &rc);
-    }
-    // ================================================================
-    // Koniec rysowania aktywnej komórki (a właściwie jej obramowania)
-    // ================================================================
     if (drawScrollbarsEmptySquare)
     {
         rc.x = m_RealPosition.x + m_RealPosition.w - vscrw;

@@ -373,10 +373,7 @@ namespace Tilc {
             // wciśnięty, to za każdym następnym razem wywoływana jest tylko funkcja onKeyPressed.
             // Jeśli wciśnięto tylko klawisz systemowy jak np. ALT, SHIFT, CONTROL to argument
             // systemKey jest równy true.
-            virtual bool OnKeyDown(const SDL_Event& event)
-            {
-                return false;
-            }
+            virtual bool OnKeyDown(const SDL_Event& event);
 
             // Funkcja wywoływana w momencie wprowadzenia tekstu.
             virtual bool OnTextInput(const SDL_Event& event)
@@ -431,7 +428,7 @@ namespace Tilc {
             virtual void OnEditorShow() {};
             virtual void EndEdit(bool acceptChanges);
             // Do not delete value argument inside below method
-            virtual void OnApplyEditorChanges(Tilc::TStdObject* value) {};
+            virtual void OnApplyEditorChanges(const Tilc::TExtString& value) {};
 
             virtual void ResetEditor();
             virtual void SetEditorValue(const Tilc::TExtString& value);

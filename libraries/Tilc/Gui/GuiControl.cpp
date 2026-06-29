@@ -447,6 +447,20 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonUp(const SDL_Event& event)
     return false;
 }
 
+bool Tilc::Gui::TGuiControl::OnKeyDown(const SDL_Event& event)
+{
+    // code below handles closing and applying editor if Enter pressed
+    if (event.key.key == SDLK_RETURN)
+    {
+        return OnEnterPressed();
+    }
+    else if (event.key.key == SDLK_ESCAPE)
+    {
+        return OnEscPressed();
+    }
+    return false;
+}
+
 Tilc::Gui::TStyledWindow* Tilc::Gui::TGuiControl::GetParentWindow()
 {
     if (!m_ParentWindow)
@@ -1004,9 +1018,7 @@ void Tilc::Gui::TGuiControl::EndEdit(bool acceptChanges)
         Tilc::Gui::TTextField* tf = dynamic_cast<Tilc::Gui::TTextField*>(m_Editor);
         if (tf)
         {
-            Tilc::TStdObject value;
-            value.set("text", tf->GetText());
-            OnApplyEditorChanges(&value);
+            OnApplyEditorChanges(tf->GetText());
         }
     }
     
@@ -1154,6 +1166,11 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
     // Jeśli nie kliknięto na nagłówku okna. Jeśli ta kontrolka nie jest oknem to InCaption zawsze będzie dla niej false
     if (!InCaption)
     {
+        if (m_ActiveControl && m_ActiveControl->m_IsEditor)
+        {
+            return m_ActiveControl->ProcessEvent(event);
+        }
+
         // First we traverse childs list, to handle ecvent by innermost child first and then pop upwards
         // For now we traverse it from end to begin becouse now there is no z-order so topmost childs are at the end of children list
         for (auto it = m_Children.rbegin(); it != m_Children.rend(); ++it)
@@ -1264,6 +1281,30 @@ bool Tilc::Gui::TGuiControl::ProcessEvent(const SDL_Event& event)
         if (SDL_PointInRectFloat(&pt, &Rect))
         {
             return m_VScrollBar->ProcessEvent(event);
+        }
+    }
+    if (m_Editor && m_Editor->IsVisible())
+    {
+        SDL_FPoint pt{ -1, -1 };
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            pt = SDL_FPoint(event.motion.x, event.motion.y);
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+        {
+            pt = SDL_FPoint(event.button.x, event.button.y);
+        }
+        SDL_FRect Rect = m_Editor->GetRealPosition();
+        if (SDL_PointInRectFloat(&pt, &Rect))
+        {
+            return m_Editor->ProcessEvent(event);
+        }
+        else if (pt.x < 0 && pt.y < 0)
+        {
+            if (GetParentWindow()->GetActiveControl() == m_Editor)
+            {
+                return m_Editor->ProcessEvent(event);
+            }
         }
     }
 

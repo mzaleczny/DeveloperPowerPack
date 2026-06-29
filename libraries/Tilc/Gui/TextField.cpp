@@ -584,7 +584,7 @@ bool Tilc::Gui::TTextField::OnKeyDown(const SDL_Event& event)
     bool redraw = false;
 
     //CKeyboard* kbd = this->getKbd();
-    bool processed = false;
+    bool processed = Tilc::Gui::TGuiControl::OnKeyDown(event);
     bool isCaretMovingKey = IsCaretMovingKey(event.key.key);
     void* WindowHandle = Tilc::OS::GetActiveWindowSystemHandle();
 
