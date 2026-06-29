@@ -37,6 +37,7 @@ void Tilc::Gui::TButton::CleanupText()
 
 void Tilc::Gui::TButton::Draw()
 {
+    if (!m_Visible) return;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{ nullptr };
 

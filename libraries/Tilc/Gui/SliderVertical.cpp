@@ -65,6 +65,7 @@ int Tilc::Gui::TSliderVertical::CalculatePositionForThumbCoords(float x, float y
 
 void Tilc::Gui::TSliderVertical::Draw()
 {
+    if (!m_Visible) return;
     m_NeedUpdate = ENeedUpdate::ENU_None;
 
     TTheme* m_Theme = Tilc::GameObject->GetContext()->m_Theme;

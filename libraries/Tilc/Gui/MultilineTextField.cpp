@@ -47,6 +47,7 @@ Tilc::Gui::TMultilineTextField::~TMultilineTextField()
 
 void Tilc::Gui::TMultilineTextField::Draw()
 {
+    if (!m_Visible) return;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;
@@ -1638,7 +1639,7 @@ void Tilc::Gui::TMultilineTextField::SetText(const Tilc::TExtString& Text)
         m_HbTextLayoutCache->SetFontColor(m_TextColor);
         if (!m_VScrollBar && m_HbTextLayoutCache->GetLinesCount() > GetNumberOfVisibleLines())
         {
-            AddVerticalScrollbar(0, m_HbTextLayoutCache->GetLinesCount(), 0, false);
+            AddVerticalScrollBar(0, m_HbTextLayoutCache->GetLinesCount(), 0, false);
             if (m_VScrollBar)
             {
                 m_VScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnVerticalSliderPositionChanged, this);
@@ -1648,14 +1649,14 @@ void Tilc::Gui::TMultilineTextField::SetText(const Tilc::TExtString& Text)
         {
             if (m_HScrollBar)
             {
-                RemoveHorizontalScrollbar();
+                RemoveHorizontalScrollBar();
             }
         }
         else
         {
             if (!m_HScrollBar)
             {
-                AddHorizontalScrollbar(0, 100, 0, false);
+                AddHorizontalScrollBar(0, 100, 0, false);
                 if (m_HScrollBar)
                 {
                     m_HScrollBar->SetOnPositionChangeCallback(&TMultilineTextField::OnHorizontalSliderPositionChanged, this);

@@ -132,6 +132,7 @@ int Tilc::Gui::TScrollBarHorizontal::CalculatePositionForThumbCoords(float x, fl
 
 void Tilc::Gui::TScrollBarHorizontal::Draw()
 {
+    if (!m_Visible) return;
     m_NeedUpdate = ENeedUpdate::ENU_None;
 
     TTheme* m_Theme = Tilc::GameObject->GetContext()->m_Theme;

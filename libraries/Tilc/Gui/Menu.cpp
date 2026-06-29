@@ -312,6 +312,7 @@ void Tilc::Gui::TMenu::Render()
 
 void Tilc::Gui::TMenu::Draw(float x, float y, bool CenterHorizontally, bool CenterVertically)
 {
+    if (!m_Visible) return;
 	int TexNumber = 0;
 	SDL_Texture* Image = nullptr;
 	SDL_FRect ImageRect;

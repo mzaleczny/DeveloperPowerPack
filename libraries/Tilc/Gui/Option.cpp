@@ -21,6 +21,7 @@ Tilc::Gui::TOption::~TOption() {
 
 void Tilc::Gui::TOption::Draw()
 {
+    if (!m_Visible) return;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{ nullptr };
 

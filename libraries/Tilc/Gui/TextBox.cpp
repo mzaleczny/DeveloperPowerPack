@@ -104,6 +104,7 @@ Tilc::Gui::TTextBox::~TTextBox()
 
 void Tilc::Gui::TTextBox::Draw()
 {
+    if (!m_Visible) return;
     SDL_Renderer* Renderer = Tilc::GameObject->GetContext()->m_Window->GetRenderer();
 	if (ContentLines.size() > 0)
 	{

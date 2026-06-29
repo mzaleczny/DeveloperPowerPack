@@ -15,6 +15,7 @@ Tilc::Gui::TLabel::~TLabel()
 
 void Tilc::Gui::TLabel::Draw()
 {
+    if (!m_Visible) return;
     m_NeedUpdate = ENeedUpdate::ENU_None;
 
     Tilc::Gui::TFont* Font = Tilc::GameObject->GetFont(m_FontNameToUse);

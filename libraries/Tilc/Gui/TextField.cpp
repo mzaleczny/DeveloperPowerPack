@@ -50,6 +50,7 @@ Tilc::Gui::TTextField::~TTextField()
 
 void Tilc::Gui::TTextField::Draw()
 {
+    if (!m_Visible) return;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;

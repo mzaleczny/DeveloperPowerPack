@@ -91,6 +91,7 @@ void Tilc::Gui::TCheckbox::SetText(const Tilc::TExtString& text)
 
 void Tilc::Gui::TCheckbox::Draw()
 {
+    if (!m_Visible) return;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{ nullptr };
 
