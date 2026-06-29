@@ -28,6 +28,10 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     float y = 30.0f;
     Tilc::Gui::TStyledWindow* wnd = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
     Tilc::Gui::TGrid* Grid = new Tilc::Gui::TGrid(wnd, "grid", { x, y, 800, 500 }, 25, 25);
+    if (Grid)
+    {
+        wnd->SetActiveControl(Grid);
+    }
 }
 
 TStateGame::~TStateGame()
