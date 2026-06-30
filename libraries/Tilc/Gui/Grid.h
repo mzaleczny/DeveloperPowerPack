@@ -221,6 +221,10 @@ namespace Tilc::Gui
         int ChangeColumnResizingStartColumnSize{};
         // Numer wiersza, którego rozmiar height zmieniamy
         int ChangeRowIndex{-1};
+        // pozycja x myszki w chwili rozpoczęcia zmiany rozmiaru kolumny
+        int ChangeRowResizingStartY{};
+        // rozmiar kolumny w chwili rozpoczęcia zmiany rozmiaru kolumny
+        int ChangeRowResizingStartRowSize{};
 
         virtual void CommonInit(int columnCount, int rowCount, bool editable, bool showLeftHeader, bool showTopHeader, bool entireRowSelect, bool entireColumnSelect, bool drawVerticalLines, bool drawHorizontalLines);
 

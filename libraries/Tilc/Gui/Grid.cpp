@@ -1329,6 +1329,31 @@ bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
         return true;
     }
 
+    if (ChangeRowIndex >= 0)
+    {
+        if (event.button.button == SDL_BUTTON_LEFT)
+        {
+            int dy = event.motion.y - ChangeRowResizingStartY;
+            m_RowData[ChangeRowIndex].m_Size.y = ChangeRowResizingStartRowSize + dy;
+            // Nie pozwalamay na rozmiar < 10px
+            if (m_RowData[ChangeRowIndex].m_Size.y < Tilc::Gui::GRID_MIN_ROW_HEIGHT)
+            {
+                m_RowData[ChangeRowIndex].m_Size.y = Tilc::Gui::GRID_MIN_ROW_HEIGHT;
+            }
+            UpdateGridParameters();
+            UpdateScrollBars();
+            Invalidate();
+            Tilc::GameObject->GetContext()->m_Cursor->SetSizeNSCursor();
+            //SDL_Log("Resizing column: %d, to: %d", ChangeColumnIndex, m_ColData[ChangeColumnIndex].m_Size.x);
+        }
+        else
+        {
+            ChangeColumnIndex = -1;
+            ChangeRowIndex = -1;
+        }
+        return true;
+    }
+
     for (int i = m_StartCellCoordX - 1; i < m_MaxFullVisibleColumnNumber; ++i)
     {
         TotalWidth += m_ColData[i].m_Size.x - 1; // -1 because edges of adjacent cells are shared
@@ -1339,7 +1364,7 @@ bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
         }
     }
 
-    for (int i = m_StartCellCoordY; i < m_MaxFullVisibleRowNumber; ++i)
+    for (int i = m_StartCellCoordY - 1; i < m_MaxFullVisibleRowNumber; ++i)
     {
         TotalHeight += m_RowData[i].m_Size.y - 1; // -1 because edges of adjacent cells are shared
         if ((event.motion.y - 2 <= m_RealPosition.y + TotalHeight) && (event.motion.y + 2 >= m_RealPosition.y + TotalHeight))
@@ -1378,6 +1403,21 @@ bool Tilc::Gui::TGrid::OnMouseButtonDown(const SDL_Event& event)
                 ChangeColumnIndex = coordX - 1;
                 ChangeColumnResizingStartX = event.button.x;
                 ChangeColumnResizingStartColumnSize = m_ColData[ChangeColumnIndex].m_Size.x;
+                //SDL_Log("Resize column: %d", ChangeColumnIndex);
+            }
+            return true;
+        }
+
+        if (Tilc::GameObject->GetContext()->m_Cursor->GetType() == Tilc::Gui::CURSOR_TYPE_NS)
+        {
+            int coordX, coordY;
+            // -4 poniżej jest po to by zawsze była brana pod uwagę komórka, której prawa krawędź jest najbliżej kursora myszki, bez tego moglibyśmy trafić w kolumnę następną
+            // ponieważ kursor ustawiamy na WE dl przedziału (x-2px; x+2px).
+            if (GetCellCoordsAtMousePos(event.button.x - m_RealPosition.x - 4, event.button.y - m_RealPosition.y - 4, &coordX, &coordY))
+            {
+                ChangeRowIndex = coordY - 1;
+                ChangeRowResizingStartY = event.button.y;
+                ChangeRowResizingStartRowSize = m_RowData[ChangeRowIndex].m_Size.y;
                 //SDL_Log("Resize column: %d", ChangeColumnIndex);
             }
             return true;
