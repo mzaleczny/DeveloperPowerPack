@@ -1,9 +1,11 @@
 #pragma once
 
 #include <Tilc/Utils/ExtString.h>
+#include <SDL3/SDL.h>
 #include <vector>
 #include <sys/types.h>
 #include <cstring>
+#include <cmath>
 #include <random>
 
 #define STRING2(x)  #x
@@ -49,4 +51,25 @@ namespace Tilc
     using TStringVector = std::vector<Tilc::TExtString>;
 
     extern std::default_random_engine RandomGenerator;
+
+    inline SDL_Rect FRectToRectFloor(SDL_FRect* Rect)
+    {
+        SDL_Rect r;
+        r.x = static_cast<int>(std::floor(Rect->x));
+        r.y = static_cast<int>(std::floor(Rect->y));
+        r.w = static_cast<int>(std::floor(Rect->w));
+        r.h = static_cast<int>(std::floor(Rect->h));
+        return r;
+    }
+
+    inline SDL_Rect FRectToRectRound(SDL_FRect* Rect)
+    {
+        SDL_Rect r;
+        r.x = static_cast<int>(std::round(Rect->x));
+        r.y = static_cast<int>(std::round(Rect->y));
+        r.w = static_cast<int>(std::round(Rect->w));
+        r.h = static_cast<int>(std::round(Rect->h));
+        return r;
+    }
+
 }
