@@ -452,9 +452,6 @@ void Tilc::Gui::TGrid::Draw()
     if (CellVisible(m_CoordX, m_CoordY, true))
     {
         CellCoordsToCanvasCoords(m_CoordX, m_CoordY, &x, &y);
-        // Inkrementujemy obie współrzedne, bo prostokąt rysujemy pogrubioną linią
-        x += 0;
-        y += 0;
         cellSize = GetCellSize(m_CoordX, m_CoordY);
         rc.x = x + m_RealPosition.x;
         rc.w = cellSize.x - 2;
@@ -732,13 +729,13 @@ void Tilc::Gui::TGrid::CellCoordsToCanvasCoords(int cellCoordX, int cellCoordY, 
 
     while (xIndex < cellCoordX)
     {
-        *x += xheader_items[xIndex - m_StartCellCoordX].m_Size.x - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
+        *x += xheader_items[xIndex-1].m_Size.x - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
         ++xIndex;
     }
 
     while (yIndex < cellCoordY)
     {
-        *y += yheader_items[yIndex - m_StartCellCoordY].m_Size.y - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
+        *y += yheader_items[yIndex-1].m_Size.y - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
         ++yIndex;
     }
 }
@@ -1076,9 +1073,9 @@ bool Tilc::Gui::TGrid::GetCellCoordsAtMousePos(int mouseX, int mouseY, int* coor
     size_t size = m_ColData.size();
     int curX = startMouseX;
     int curY = startMouseY;
-    while ((xIndex - m_StartCellCoordX < size) && (curX <= m_Position.w))
+    while ((xIndex <= size) && (curX <= m_Position.w))
     {
-        headerData = &xheader_items[xIndex - m_StartCellCoordX];
+        headerData = &xheader_items[xIndex-1];
         if (curX <= mouseX && mouseX <= curX + headerData->m_Size.x)
         {
             coordSet = true;
@@ -1092,9 +1089,9 @@ bool Tilc::Gui::TGrid::GetCellCoordsAtMousePos(int mouseX, int mouseY, int* coor
         *coordX = xIndex;
         coordSet = false;
         size = m_RowData.size();
-        while ((yIndex - m_StartCellCoordY < size) && (curY <= m_Position.h))
+        while ((yIndex <= size) && (curY <= m_Position.h))
         {
-            headerData = &yheader_items[yIndex - m_StartCellCoordY];
+            headerData = &yheader_items[yIndex-1];
             if (curY <= mouseY && mouseY <= curY + headerData->m_Size.y)
             {
                 coordSet = true;
@@ -1319,14 +1316,16 @@ bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
                 m_ColData[ChangeColumnIndex].m_Size.x = Tilc::Gui::GRID_MIN_COLUMN_WIDTH;
             }
             UpdateGridParameters();
+            UpdateScrollBars();
             Invalidate();
+            Tilc::GameObject->GetContext()->m_Cursor->SetSizeWECursor();
+            //SDL_Log("Resizing column: %d, to: %d", ChangeColumnIndex, m_ColData[ChangeColumnIndex].m_Size.x);
         }
         else
         {
             ChangeColumnIndex = -1;
             ChangeRowIndex = -1;
         }
-        //SDL_Log("Resizing column: %d, to: %d", ChangeColumnIndex, m_ColData[ChangeColumnIndex].m_Size.x);
         return true;
     }
 
@@ -1821,15 +1820,6 @@ void Tilc::Gui::TGrid::UpdateGridParameters()
         }
         i -= 1;
     }
-
-    /*
-    if (this->_hscrollbar) {
-        this->_hscrollbar->setMaxValue(this->_maxAllowableStartCellCoordX-1);
-    }
-    if (this->_vscrollbar) {
-        this->_vscrollbar->setMaxValue(this->_maxAllowableStartCellCoordY-1);
-    }
-    */
 }
 
 void Tilc::Gui::TGrid::SetHeaderCaptions(std::vector<TGridCell>* headerCells, TStringVector* captions)
