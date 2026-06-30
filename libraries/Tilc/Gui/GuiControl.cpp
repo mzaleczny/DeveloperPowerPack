@@ -2,6 +2,7 @@
 #include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/Theme.h"
+#include "Tilc/Gui/Cursor.h"
 #include "Tilc/Gui/ScrollBarVertical.h"
 #include "Tilc/Gui/ScrollBarHorizontal.h"
 #include "Tilc/Gui/Menu.h"
@@ -322,6 +323,12 @@ void Tilc::Gui::TGuiControl::PrependChild(TGuiControl* child)
 bool Tilc::Gui::TGuiControl::OnMouseMove(const SDL_Event& event)
 {
     if (!m_Visible) return false;
+
+    // if we have cursor created then by default reset it to normal state
+    if (Tilc::GameObject->GetContext()->m_Cursor)
+    {
+        Tilc::GameObject->GetContext()->m_Cursor->SetNormalCursor();
+    }
 
     if (m_ControlThatCapturedMouse && m_ControlThatCapturedMouse != this)
     {
