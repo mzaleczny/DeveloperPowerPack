@@ -1268,6 +1268,18 @@ bool Tilc::Gui::TGrid::OnKeyDown(const SDL_Event& event)
     return true;
 }
 
+bool Tilc::Gui::TGrid::OnTextInput(const SDL_Event& event)
+{
+    if (m_Editor)
+    {
+        Edit();
+        m_Editor->SetText(event.text.text);
+        reinterpret_cast<Tilc::Gui::TTextField*>(m_Editor)->MoveCaretToEnd();
+        return true;
+    }
+    return false;
+}
+
 bool Tilc::Gui::TGrid::OnMouseButtonDown(const SDL_Event& event)
 {
     if (!m_Visible) return false;

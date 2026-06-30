@@ -177,6 +177,12 @@ void Tilc::Gui::TTextField::SetCaretRect()
     m_Caret->m_Position.h = h;
 }
 
+void Tilc::Gui::TTextField::MoveCaretToEnd()
+{
+    m_CaretAtChar = m_Text.length();
+    UpdateCaretPos();
+}
+
 bool Tilc::Gui::TTextField::OnMouseMove(const SDL_Event& event)
 {
     if (!m_Visible) return false;

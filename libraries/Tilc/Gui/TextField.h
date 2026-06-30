@@ -54,6 +54,8 @@ namespace Tilc
 
             // Zwraca wysokość (height) karetki
             void SetCaretRect();
+            // Moves caret to end of text
+            void MoveCaretToEnd();
             // Aktualizuje położenie karetki i pokazuje ją (jeśli aktualnie była niewidoczna) w obrębie
             // tej kontrolki.
             virtual void UpdateCaretPos();

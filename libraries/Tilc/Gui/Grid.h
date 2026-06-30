@@ -48,6 +48,7 @@ namespace Tilc::Gui
         // Funkcje obsługi zdarzeń
         virtual bool OnMouseButtonDown(const SDL_Event& event) override;
         virtual bool OnKeyDown(const SDL_Event& event) override;
+        virtual bool OnTextInput(const SDL_Event& event) override;
         virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar);
 
         // Move active cell to the next cell to the right and returns TRUE if active cell was changed.
