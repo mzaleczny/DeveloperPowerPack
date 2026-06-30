@@ -46,6 +46,7 @@ namespace Tilc::Gui
         virtual void Draw();
 
         // Funkcje obsługi zdarzeń
+        virtual bool OnMouseMove(const SDL_Event& event) override;
         virtual bool OnMouseButtonDown(const SDL_Event& event) override;
         virtual bool OnKeyDown(const SDL_Event& event) override;
         virtual bool OnTextInput(const SDL_Event& event) override;

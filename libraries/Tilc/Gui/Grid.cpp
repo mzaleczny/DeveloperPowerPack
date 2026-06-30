@@ -6,7 +6,8 @@
 #include "Tilc/Gui/ScrollbarVertical.h"
 #include "Tilc/Gui/ScrollbarHorizontal.h"
 #include "Tilc/Gui/TextField.h"
-#include "Tilc/Gui/StyledWIndow.h"
+#include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/Gui/Cursor.h"
 #include "Tilc/Utils/FileUtils.h"
 /*
 #include "mzImageList.h"
@@ -1280,6 +1281,47 @@ bool Tilc::Gui::TGrid::OnTextInput(const SDL_Event& event)
     return false;
 }
 
+bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
+{
+    Tilc::Gui::TGuiControl::OnMouseMove(event);
+
+    // Jeśli myszka jest na podziale kolumn, to zmieniamy kursor na informujący o możliwości zmiany rozmiaru
+    unsigned int TotalWidth = 0;
+    unsigned int TotalHeight = 0;
+    if (m_ShowLeftHeader)
+    {
+        TotalWidth += m_LeftHeaderWidth;
+    }
+    if (m_ShowTopHeader)
+    {
+        TotalHeight += m_TopHeaderHeight;
+    }
+
+    for (int i = 0; i < m_MaxFullVisibleColumnNumber; ++i)
+    {
+        TotalWidth += m_ColData[i].m_Size.x - 1; // -1 because edges of adjacent cells are shared
+        if ((event.motion.x - 2 <= m_RealPosition.x + TotalWidth) && (event.motion.x + 2 >= m_RealPosition.x + TotalWidth))
+        {
+            Tilc::GameObject->GetContext()->m_Cursor->SetSizeWECursor();
+            return true;
+        }
+    }
+
+    for (int i = 0; i < m_MaxFullVisibleRowNumber; ++i)
+    {
+        TotalHeight += m_RowData[i].m_Size.y - 1; // -1 because edges of adjacent cells are shared
+        if ((event.motion.y - 2 <= m_RealPosition.y + TotalHeight) && (event.motion.y + 2 >= m_RealPosition.y + TotalHeight))
+        {
+            Tilc::GameObject->GetContext()->m_Cursor->SetSizeNSCursor();
+            return true;
+        }
+    }
+
+    Tilc::GameObject->GetContext()->m_Cursor->SetNormalCursor();
+
+    return false;
+}
+
 bool Tilc::Gui::TGrid::OnMouseButtonDown(const SDL_Event& event)
 {
     if (!m_Visible) return false;
@@ -1329,7 +1371,7 @@ unsigned int Tilc::Gui::TGrid::GetTotalColumnsWidth()
     unsigned int totalWidth = 0;
     for (i = 0; i < m_MaxColumnNumber; ++i)
     {
-        totalWidth += m_ColData[i].m_Size.x;
+        totalWidth += m_ColData[i].m_Size.x - 1; // -1 because edges of adjacent cells are shared
     }
 
     return totalWidth;
@@ -1342,7 +1384,7 @@ unsigned int Tilc::Gui::TGrid::GetTotalColumnsWidthFromStartTo(int ToCell)
     unsigned int totalWidth = 0;
     for (i = 0; i < m_MaxColumnNumber && ToCell > 0; ++i, --ToCell)
     {
-        totalWidth += m_ColData[i].m_Size.x;
+        totalWidth += m_ColData[i].m_Size.x - 1; // -1 because edges of adjacent cells are shared
     }
 
     return totalWidth;
@@ -1355,7 +1397,7 @@ unsigned int Tilc::Gui::TGrid::GetTotalRowsHeight()
     unsigned int totalHeight = 0;
     for (i = 0; i < m_MaxRowNumber; ++i)
     {
-        totalHeight += m_RowData[i].m_Size.y;
+        totalHeight += m_RowData[i].m_Size.y - 1; // -1 because edges of adjacent cells are shared
     }
 
     return totalHeight;
@@ -1368,7 +1410,7 @@ unsigned int Tilc::Gui::TGrid::GetTotalRowsHeightFromStartTo(int ToRow)
     unsigned int totalHeight = 0;
     for (i = 0; i < m_MaxRowNumber && ToRow > 0; ++i, --ToRow)
     {
-        totalHeight += m_RowData[i].m_Size.y;
+        totalHeight += m_RowData[i].m_Size.y - 1; // -1 because edges of adjacent cells are shared
     }
 
     return totalHeight;
