@@ -24,114 +24,162 @@ void Tilc::Gui::TCursor::Destroy()
 
 void Tilc::Gui::TCursor::SetNormalCursor()
 {
-    m_Type = CURSOR_TYPE_NORMAL;
-    m_Cursor = LoadCursorFromResource(CursorResourceArrow);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_NORMAL)
+    {
+        m_Type = CURSOR_TYPE_NORMAL;
+        m_Cursor = LoadCursorFromResource(CursorResourceArrow);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetIBeamCursor()
 {
-    m_Type = CURSOR_TYPE_BEAM;
-    m_Cursor = LoadCursorFromResource(CursorResourceBeam);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_BEAM)
+    {
+        m_Type = CURSOR_TYPE_BEAM;
+        m_Cursor = LoadCursorFromResource(CursorResourceBeam);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetWaitCursor()
 {
-    m_Type = CURSOR_TYPE_WAIT;
-    m_Cursor = LoadCursorFromResource(CursorResourceWait);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_WAIT)
+    {
+        m_Type = CURSOR_TYPE_WAIT;
+        m_Cursor = LoadCursorFromResource(CursorResourceWait);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetCrossCursor()
 {
-    m_Type = CURSOR_TYPE_CROSS;
-    m_Cursor = LoadCursorFromResource(CursorResourceCross);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_CROSS)
+    {
+        m_Type = CURSOR_TYPE_CROSS;
+        m_Cursor = LoadCursorFromResource(CursorResourceCross);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetArrowUpCursor()
 {
-    m_Type = CURSOR_TYPE_ARROW_UP;
-    m_Cursor = LoadCursorFromResource(CursorResourceArrowUp);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_ARROW_UP)
+    {
+        m_Type = CURSOR_TYPE_ARROW_UP;
+        m_Cursor = LoadCursorFromResource(CursorResourceArrowUp);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetSizeCursor()
 {
-    m_Type = CURSOR_TYPE_SIZE;
-    m_Cursor = LoadCursorFromResource(CursorResourceSize);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_SIZE)
+    {
+        m_Type = CURSOR_TYPE_SIZE;
+        m_Cursor = LoadCursorFromResource(CursorResourceSize);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetSizeAllCursor()
 {
-    m_Type = CURSOR_TYPE_SIZE_ALL;
-    m_Cursor = LoadCursorFromResource(CursorResourceSizeAll);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_SIZE_ALL)
+    {
+        m_Type = CURSOR_TYPE_SIZE_ALL;
+        m_Cursor = LoadCursorFromResource(CursorResourceSizeAll);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetSizeNWSECursor()
 {
-    m_Type = CURSOR_TYPE_NWSE;
-    m_Cursor = LoadCursorFromResource(CursorResourceNWSE);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_NWSE)
+    {
+        m_Type = CURSOR_TYPE_NWSE;
+        m_Cursor = LoadCursorFromResource(CursorResourceNWSE);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetSizeNESWCursor()
 {
-    m_Type = CURSOR_TYPE_CROSS;
-    m_Cursor = LoadCursorFromResource(CursorResourceCross);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_CROSS)
+    {
+        m_Type = CURSOR_TYPE_CROSS;
+        m_Cursor = LoadCursorFromResource(CursorResourceCross);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetSizeWECursor()
 {
-    m_Type = CURSOR_TYPE_WE;
-    m_Cursor = LoadCursorFromResource(CursorResourceWE);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_WE)
+    {
+        m_Type = CURSOR_TYPE_WE;
+        m_Cursor = LoadCursorFromResource(CursorResourceWE);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetSizeNSCursor()
 {
-    m_Type = CURSOR_TYPE_NS;
-    m_Cursor = LoadCursorFromResource(CursorResourceNS);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_NS)
+    {
+        m_Type = CURSOR_TYPE_NS;
+        m_Cursor = LoadCursorFromResource(CursorResourceNS);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetWinLogoCursor()
 {
-    m_Type = CURSOR_TYPE_WIN_LOGO;
-    m_Cursor = LoadCursorFromResource(CursorResourceWinLogo);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_WIN_LOGO)
+    {
+        m_Type = CURSOR_TYPE_WIN_LOGO;
+        m_Cursor = LoadCursorFromResource(CursorResourceWinLogo);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetNoCursor()
 {
-    m_Type = CURSOR_TYPE_NO;
-    m_Cursor = LoadCursorFromResource(CursorResourceNo);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_NO)
+    {
+        m_Type = CURSOR_TYPE_NO;
+        m_Cursor = LoadCursorFromResource(CursorResourceNo);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetHandCursor()
 {
-    m_Type = CURSOR_TYPE_HAND;
-    m_Cursor = LoadCursorFromResource(CursorResourceHand);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_HAND)
+    {
+        m_Type = CURSOR_TYPE_HAND;
+        m_Cursor = LoadCursorFromResource(CursorResourceHand);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetAppStartingCursor()
 {
-    m_Type = CURSOR_TYPE_APP_STARTING;
-    m_Cursor = LoadCursorFromResource(CursorResourceAppStarting);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_APP_STARTING)
+    {
+        m_Type = CURSOR_TYPE_APP_STARTING;
+        m_Cursor = LoadCursorFromResource(CursorResourceAppStarting);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 void Tilc::Gui::TCursor::SetHelpCursor()
 {
-    m_Type = CURSOR_TYPE_HELP;
-    m_Cursor = LoadCursorFromResource(CursorResourceHelp);
-    SDL_SetCursor(m_Cursor);
+    if (m_Type != CURSOR_TYPE_HELP)
+    {
+        m_Type = CURSOR_TYPE_HELP;
+        m_Cursor = LoadCursorFromResource(CursorResourceHelp);
+        SDL_SetCursor(m_Cursor);
+    }
 }
 
 
