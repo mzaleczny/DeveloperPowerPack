@@ -1,3 +1,4 @@
+#include "Tilc/Globals.h"
 #include "Tilc/Gui/Grid.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
@@ -131,7 +132,7 @@ void Tilc::Gui::TGrid::Draw()
     int w, h;
     Tilc::Gui::TGridCell* xheaderCell, * yheaderCell;
     SDL_Point cellSize;
-    SDL_FRect clientRect = m_RealPosition, noheadersClientRect, rc, rc2;
+    SDL_FRect OldRealPosition = m_RealPosition, clientRect = m_RealPosition, noheadersClientRect, rc, rc2;
     int maxRightX = 0;
     int maxBottomY = 0;
     bool drawScrollbarsEmptySquare = true;
@@ -142,6 +143,12 @@ void Tilc::Gui::TGrid::Draw()
         SDL_SetRenderTarget(Renderer, m_Canvas);
     }
 
+    SDL_Rect PrevViewport, GridViewport;
+    SDL_GetRenderViewport(Renderer, &PrevViewport);
+    GridViewport = FRectToRectRound(&m_RealPosition);
+    SDL_SetRenderViewport(Renderer, &GridViewport);
+    m_RealPosition.x = 0;
+    m_RealPosition.y = 0;
 
     if (m_ShowLeftHeader)
     {
@@ -245,22 +252,22 @@ void Tilc::Gui::TGrid::Draw()
                 border_color = t->commonGridControlTopHeaderCellBorderColor_Normal;
             }
 
-            rc.x = x + m_RealPosition.x;
-            rc.y = y + m_RealPosition.y;
-            rc.w = w;
-            rc.h = h;
-            if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
+            if (x < m_RealPosition.w - vscrw)
             {
-                rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x;
-            }
-            RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
-            SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
-            SDL_RenderRect(Renderer, &rc);
-            if (xIndex <= m_MaxColumnNumber)
-            {
+                rc.x = x + m_RealPosition.x;
+                rc.y = y + m_RealPosition.y;
+                rc.w = w;
+                rc.h = h;
+                if (rc.x + rc.w > m_RealPosition.x + m_RealPosition.w - vscrw)
+                {
+                    rc.w = m_RealPosition.x + m_RealPosition.w - vscrw - rc.x + 1;
+                }
+                RenderTiledTexture(TextureMap, &inner_bg_rc, &rc);
+                SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
+                SDL_RenderRect(Renderer, &rc);
+                rc.w = w;
                 f->DrawString(Renderer, xheaderCell.m_Value.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
             }
-
             x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
             xIndex += 1;
         }
@@ -533,7 +540,7 @@ void Tilc::Gui::TGrid::Draw()
                 // Jesli to aktywna komórka, to rysujemy na żółto
                 if (xIndex == m_CoordX && yIndex == m_CoordY)
                 {
-                    SDL_Log("xIndex: %d,  yIndex: %d,  rc.w: %.2f, coord: %d", xIndex, yIndex, rc.w, coord);
+                    //SDL_Log("xIndex: %d,  yIndex: %d,  rc.w: %.2f, coord: %d", xIndex, yIndex, rc.w, coord);
                     SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
                     SDL_RenderFillRect(Renderer, &rc);
                     SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
@@ -658,6 +665,10 @@ void Tilc::Gui::TGrid::Draw()
         SDL_RenderFillRect(Renderer, &rc);
     }
 
+
+    // Restore full Viewport
+    SDL_SetRenderViewport(Renderer, &PrevViewport);
+    m_RealPosition = OldRealPosition;
 
     DrawChildren(false);
 
@@ -1307,6 +1318,7 @@ bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
             {
                 m_ColData[ChangeColumnIndex].m_Size.x = Tilc::Gui::GRID_MIN_COLUMN_WIDTH;
             }
+            UpdateGridParameters();
             Invalidate();
         }
         else
@@ -1318,7 +1330,7 @@ bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
         return true;
     }
 
-    for (int i = 0; i < m_MaxFullVisibleColumnNumber; ++i)
+    for (int i = m_StartCellCoordX - 1; i < m_MaxFullVisibleColumnNumber; ++i)
     {
         TotalWidth += m_ColData[i].m_Size.x - 1; // -1 because edges of adjacent cells are shared
         if ((event.motion.x - 2 <= m_RealPosition.x + TotalWidth) && (event.motion.x + 2 >= m_RealPosition.x + TotalWidth))
@@ -1328,7 +1340,7 @@ bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
         }
     }
 
-    for (int i = 0; i < m_MaxFullVisibleRowNumber; ++i)
+    for (int i = m_StartCellCoordY; i < m_MaxFullVisibleRowNumber; ++i)
     {
         TotalHeight += m_RowData[i].m_Size.y - 1; // -1 because edges of adjacent cells are shared
         if ((event.motion.y - 2 <= m_RealPosition.y + TotalHeight) && (event.motion.y + 2 >= m_RealPosition.y + TotalHeight))
