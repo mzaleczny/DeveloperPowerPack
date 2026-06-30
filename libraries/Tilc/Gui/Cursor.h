@@ -47,6 +47,7 @@ namespace Tilc {
 
             void Destroy();
             SDL_Cursor* LoadCursorFromResource(const char* image[]);
+            int GetType() const { return m_Type; }
 
         protected:
             // uchwyt na aktualnie wyświetlany kursor
