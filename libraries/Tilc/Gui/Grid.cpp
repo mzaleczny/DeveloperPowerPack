@@ -333,7 +333,7 @@ void Tilc::Gui::TGrid::Draw()
     int coord;
     int foundCellPairPosition;
     // ================================================================
-    // Rysujemy komórki wewnętrzne (z danymi)
+    // Rysujemy komórki wewnętrzne (te bez danych)
     // ================================================================
     x = lheaderSize ? lheaderSize - 1 : 0;
     y = theaderSize ? theaderSize - 1 : 0;
@@ -440,7 +440,7 @@ void Tilc::Gui::TGrid::Draw()
     // ================================================================
 
     // ================================================================
-    // Rysowanie aktywnej komórki (a właściwie jej obramowania)
+    // Rysowanie aktywnej komórki
     // ================================================================
     if (CellVisible(m_CoordX, m_CoordY, true))
     {
@@ -465,8 +465,8 @@ void Tilc::Gui::TGrid::Draw()
         SDL_RenderFillRect(Renderer, &rc);
         SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
         rc2 = rc;
-        rc2.x += w - t->grid_left_top_header_mark_rc.w - 1;
-        rc2.y += h - t->grid_left_top_header_mark_rc.h - 1;
+        rc2.x += cellSize.x - t->grid_left_top_header_mark_rc.w - 1;
+        rc2.y += cellSize.y - t->grid_left_top_header_mark_rc.h - 1;
         rc2.w = t->grid_left_top_header_mark_rc.w;
         rc2.h = t->grid_left_top_header_mark_rc.h;
         RenderTiledTexture(TextureMap, &t->grid_left_top_header_mark_rc, &rc2);
@@ -482,26 +482,24 @@ void Tilc::Gui::TGrid::Draw()
     int cellMarginLeft = 2;
     int cellMarginRight = 2;
     // ================================================================
-    // Rysujemy zawartości (dane) komórek wewnętrznych
+    // Rysujemy komórki wewnętrzne z danymi
     // ================================================================
     Tilc::TExtString cellValue;
     x = m_RealPosition.x + m_LeftHeaderWidth - 1;
     y = m_RealPosition.y + t->grid_top_header_inner_bg_normal_cell_rc.h + 1;
     w = m_DefColumnWidth;
     h = t->grid_cell_inner_bg_normal_rc.h;
-    xIndex = m_StartCellCoordX;
     yIndex = m_StartCellCoordY;
-    while ((y < m_RealPosition.y + m_RealPosition.h - hscrh) && (yIndex - m_StartCellCoordY < yheader_items_count))
+    while ((y < m_RealPosition.y + m_RealPosition.h - hscrh) && yIndex < yheader_items_count)
     {
-        Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex - m_StartCellCoordY];
+        Tilc::Gui::TGridCell& yheaderCell = yheader_items[yIndex-1];
         x = m_RealPosition.x + m_LeftHeaderWidth - 1;
         xIndex = m_StartCellCoordX;
-        while ((x < m_RealPosition.x + m_RealPosition.w - vscrw) && (xIndex - m_StartCellCoordX < xheader_items_count))
+        while ((x < m_RealPosition.x + m_RealPosition.w - vscrw) && xIndex < xheader_items_count)
         {
-            Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex - m_StartCellCoordX];
+            Tilc::Gui::TGridCell& xheaderCell = xheader_items[xIndex-1];
             w = xheaderCell.m_Size.x;
             h = yheaderCell.m_Size.y;
-
             coord = CellCoordsToInt(xIndex, yIndex);
             auto cellPair = m_Data.find(coord);
             if (cellPair == m_Data.end())
@@ -535,6 +533,7 @@ void Tilc::Gui::TGrid::Draw()
                 // Jesli to aktywna komórka, to rysujemy na żółto
                 if (xIndex == m_CoordX && yIndex == m_CoordY)
                 {
+                    SDL_Log("xIndex: %d,  yIndex: %d,  rc.w: %.2f, coord: %d", xIndex, yIndex, rc.w, coord);
                     SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
                     SDL_RenderFillRect(Renderer, &rc);
                     SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
@@ -1297,6 +1296,28 @@ bool Tilc::Gui::TGrid::OnMouseMove(const SDL_Event& event)
         TotalHeight += m_TopHeaderHeight;
     }
 
+    if (ChangeColumnIndex >= 0)
+    {
+        if (event.button.button == SDL_BUTTON_LEFT)
+        {
+            int dx = event.motion.x - ChangeColumnResizingStartX;
+            m_ColData[ChangeColumnIndex].m_Size.x = ChangeColumnResizingStartColumnSize + dx;
+            // Nie pozwalamay na rozmiar < 10px
+            if (m_ColData[ChangeColumnIndex].m_Size.x < Tilc::Gui::GRID_MIN_COLUMN_WIDTH)
+            {
+                m_ColData[ChangeColumnIndex].m_Size.x = Tilc::Gui::GRID_MIN_COLUMN_WIDTH;
+            }
+            Invalidate();
+        }
+        else
+        {
+            ChangeColumnIndex = -1;
+            ChangeRowIndex = -1;
+        }
+        //SDL_Log("Resizing column: %d, to: %d", ChangeColumnIndex, m_ColData[ChangeColumnIndex].m_Size.x);
+        return true;
+    }
+
     for (int i = 0; i < m_MaxFullVisibleColumnNumber; ++i)
     {
         TotalWidth += m_ColData[i].m_Size.x - 1; // -1 because edges of adjacent cells are shared
@@ -1336,6 +1357,21 @@ bool Tilc::Gui::TGrid::OnMouseButtonDown(const SDL_Event& event)
     {
         CaptureMouse(this);
 
+        if (Tilc::GameObject->GetContext()->m_Cursor->GetType() == Tilc::Gui::CURSOR_TYPE_WE)
+        {
+            int coordX, coordY;
+            // -4 poniżej jest po to by zawsze była brana pod uwagę komórka, której prawa krawędź jest najbliżej kursora myszki, bez tego moglibyśmy trafić w kolumnę następną
+            // ponieważ kursor ustawiamy na WE dl przedziału (x-2px; x+2px).
+            if (GetCellCoordsAtMousePos(event.button.x - m_RealPosition.x - 4, event.button.y - m_RealPosition.y - 4, &coordX, &coordY))
+            {
+                ChangeColumnIndex = coordX - 1;
+                ChangeColumnResizingStartX = event.button.x;
+                ChangeColumnResizingStartColumnSize = m_ColData[ChangeColumnIndex].m_Size.x;
+                //SDL_Log("Resize column: %d", ChangeColumnIndex);
+            }
+            return true;
+        }
+
         ActivateCellAtMousePos(event.button.x - m_RealPosition.x, event.button.y - m_RealPosition.y);
 
         ClearSelection(false);
@@ -1345,6 +1381,16 @@ bool Tilc::Gui::TGrid::OnMouseButtonDown(const SDL_Event& event)
     }
 
     return false;
+}
+
+bool Tilc::Gui::TGrid::OnMouseButtonUp(const SDL_Event& event)
+{
+    TGuiControl::OnMouseButtonUp(event);
+
+    ChangeColumnIndex = -1;
+    ChangeRowIndex = -1;
+
+    return true;
 }
 
 void Tilc::Gui::TGrid::OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar)

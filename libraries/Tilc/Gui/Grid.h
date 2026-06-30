@@ -12,6 +12,8 @@ namespace Tilc::Gui
     constexpr const int GRID_DEFAULT_ROW_COUNT = 10;
     constexpr const int GRID_DEFAULT_COLUMN_WIDTH = 90;
     constexpr const int GRID_DEFAULT_LEFT_HEADER_WIDTH = 30;
+    constexpr const int GRID_MIN_COLUMN_WIDTH = 30;
+    constexpr const int GRID_MIN_ROW_HEIGHT = 30;
 
     struct DECLSPEC TGridCell
     {
@@ -48,6 +50,7 @@ namespace Tilc::Gui
         // Funkcje obsługi zdarzeń
         virtual bool OnMouseMove(const SDL_Event& event) override;
         virtual bool OnMouseButtonDown(const SDL_Event& event) override;
+        virtual bool OnMouseButtonUp(const SDL_Event& event) override;
         virtual bool OnKeyDown(const SDL_Event& event) override;
         virtual bool OnTextInput(const SDL_Event& event) override;
         virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar);
@@ -210,6 +213,14 @@ namespace Tilc::Gui
         int m_CoordX;
         // Współrzędna Y (1.._maxRowNumber NOT a coord on Canvas) aktywnej komórki.
         int m_CoordY;
+        // Numer kolumny, której rozmiar width zmieniamy
+        int ChangeColumnIndex{-1};
+        // pozycja x myszki w chwili rozpoczęcia zmiany rozmiaru kolumny
+        int ChangeColumnResizingStartX{};
+        // rozmiar kolumny w chwili rozpoczęcia zmiany rozmiaru kolumny
+        int ChangeColumnResizingStartColumnSize{};
+        // Numer wiersza, którego rozmiar height zmieniamy
+        int ChangeRowIndex{-1};
 
         virtual void CommonInit(int columnCount, int rowCount, bool editable, bool showLeftHeader, bool showTopHeader, bool entireRowSelect, bool entireColumnSelect, bool drawVerticalLines, bool drawHorizontalLines);
 
