@@ -908,7 +908,7 @@ bool Tilc::Gui::TGrid::MoveUp(int count)
 
 bool Tilc::Gui::TGrid::MoveDown(int count)
 {
-    if (m_CoordY < m_MaxRowNumber)
+    if (m_CoordY <= m_MaxRowNumber)
     {
         if (m_CoordY + count <= m_MaxRowNumber)
         {
@@ -1316,12 +1316,38 @@ unsigned int Tilc::Gui::TGrid::GetTotalColumnsWidth()
     return totalWidth;
 }
 
+unsigned int Tilc::Gui::TGrid::GetTotalColumnsWidthFromStartTo(int ToCell)
+{
+    int i;
+    // Inicjalizujemy właściwości komórek nagłówka górnego
+    unsigned int totalWidth = 0;
+    for (i = 0; i < m_MaxColumnNumber && ToCell > 0; ++i, --ToCell)
+    {
+        totalWidth += m_ColData[i].m_Size.x;
+    }
+
+    return totalWidth;
+}
+
 unsigned int Tilc::Gui::TGrid::GetTotalRowsHeight()
 {
     int i;
     // Inicjalizujemy właściwości komórek nagłówka górnego
     unsigned int totalHeight = 0;
     for (i = 0; i < m_MaxRowNumber; ++i)
+    {
+        totalHeight += m_RowData[i].m_Size.y;
+    }
+
+    return totalHeight;
+}
+
+unsigned int Tilc::Gui::TGrid::GetTotalRowsHeightFromStartTo(int ToRow)
+{
+    int i;
+    // Inicjalizujemy właściwości komórek nagłówka górnego
+    unsigned int totalHeight = 0;
+    for (i = 0; i < m_MaxRowNumber && ToRow > 0; ++i, --ToRow)
     {
         totalHeight += m_RowData[i].m_Size.y;
     }
@@ -1428,16 +1454,21 @@ void Tilc::Gui::TGrid::OnEditorShow()
 
 void Tilc::Gui::TGrid::UpdateScrollBars()
 {
-    int pos;
+    int TotalSize, ToCellSize;
+    float percent;
     if (m_VScrollBar)
     {
-        pos = m_StartCellCoordY-1;
-        m_VScrollBar->SetPosition(pos, false, false);
+        TotalSize = GetTotalRowsHeight() - m_Position.h;
+        ToCellSize = GetTotalRowsHeightFromStartTo(m_StartCellCoordY-1);
+        percent = static_cast<float>(ToCellSize) / static_cast<float>(TotalSize);
+        m_VScrollBar->SetPosition(static_cast<int>(m_VScrollBar->GetMinValue() + std::floor(percent * (m_VScrollBar->GetMaxValue() - m_VScrollBar->GetMinValue()))), false, false);
     }
     if (m_HScrollBar)
     {
-        pos = m_StartCellCoordX-1;
-        m_HScrollBar->SetPosition(pos, false, false);
+        TotalSize = GetTotalColumnsWidth() - m_Position.w;
+        ToCellSize = GetTotalColumnsWidthFromStartTo(m_StartCellCoordX-1);
+        percent = static_cast<float>(ToCellSize) / static_cast<float>(TotalSize);
+        m_HScrollBar->SetPosition(static_cast<int>(m_HScrollBar->GetMinValue() + std::floor(percent * (m_HScrollBar->GetMaxValue() - m_HScrollBar->GetMinValue()))), false, false);
     }
 }
 
@@ -1649,13 +1680,18 @@ void Tilc::Gui::TGrid::UpdateGridParameters()
         i -= 1;
     }
 
+    int TopHeaderHeight = 0;
+    if (m_ShowTopHeader)
+    {
+        TopHeaderHeight = m_TopHeaderHeight;
+    }
     size = 0;
     i = m_MaxRowNumber - 1;
     m_MaxAllowableStartCellCoordY = m_MaxRowNumber;
     while (i >= 0)
     {
         TGridCell& hc = m_RowData[i];
-        if (size + hc.m_Size.y <= m_DataCanvasHeight)
+        if (size + hc.m_Size.y + TopHeaderHeight <= m_DataCanvasHeight)
         {
             m_MaxAllowableStartCellCoordY = i + 1;
             size += (hc.m_Size.y - 1); ; // -1 because cells share borders

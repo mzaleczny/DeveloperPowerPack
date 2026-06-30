@@ -82,8 +82,12 @@ namespace Tilc::Gui
 
         // Returns total summary width of all columns
         unsigned int GetTotalColumnsWidth();
+        // Returns total summary width of all columns from first to specified one
+        unsigned int GetTotalColumnsWidthFromStartTo(int ToCell);
         // Returns total summary height of all rows
         unsigned int GetTotalRowsHeight();
+        // Returns total summary height of all rows
+        unsigned int GetTotalRowsHeightFromStartTo(int ToRow);
         // Returns number of visible columns
         int GetVisibleColumnCount();
         // Returns number of fully visible columns (if there is column partialy visible then it is not counted)
