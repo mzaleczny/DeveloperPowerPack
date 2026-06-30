@@ -186,11 +186,6 @@ void Tilc::Gui::TGrid::Draw()
         rc.w = w;
         rc.h = h;
         RenderTiledTexture(TextureMap, &t->grid_left_top_header_inner_bg_rc, &rc);
-        rc2.x = x + m_RealPosition.x + w - t->grid_left_top_header_mark_rc.w - 1;
-        rc2.y = y + m_RealPosition.y + h - t->grid_left_top_header_mark_rc.h - 1;
-        rc2.w = t->grid_left_top_header_mark_rc.w;
-        rc2.h = t->grid_left_top_header_mark_rc.h;
-        RenderTiledTexture(TextureMap, &t->grid_left_top_header_mark_rc, &rc2);
         SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
         SDL_RenderRect(Renderer, &rc);
         x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
@@ -468,6 +463,12 @@ void Tilc::Gui::TGrid::Draw()
         SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
         SDL_RenderFillRect(Renderer, &rc);
         SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
+        rc2 = rc;
+        rc2.x += w - t->grid_left_top_header_mark_rc.w - 1;
+        rc2.y += h - t->grid_left_top_header_mark_rc.h - 1;
+        rc2.w = t->grid_left_top_header_mark_rc.w;
+        rc2.h = t->grid_left_top_header_mark_rc.h;
+        RenderTiledTexture(TextureMap, &t->grid_left_top_header_mark_rc, &rc2);
         rc.w += 2;
         rc.h += 2;
         SDL_RenderRect(Renderer, &rc);
@@ -530,14 +531,20 @@ void Tilc::Gui::TGrid::Draw()
                 rc.y = y;
                 rc.w = w;
                 rc.h = h;
-                // Jesli to aktywna komórka, to ryzujemy na żółto
+                // Jesli to aktywna komórka, to rysujemy na żółto
                 if (xIndex == m_CoordX && yIndex == m_CoordY)
                 {
                     SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
                     SDL_RenderFillRect(Renderer, &rc);
                     SDL_SetRenderDrawColor(Renderer, t->commonGridControlCellBorderColor_Active.r, t->commonGridControlCellBorderColor_Active.g, t->commonGridControlCellBorderColor_Active.b, t->commonGridControlCellBorderColor_Active.a);
+                    rc2 = rc;
+                    rc2.x += w - t->grid_left_top_header_mark_rc.w - 1;
+                    rc2.y += h - t->grid_left_top_header_mark_rc.h - 1;
+                    rc2.w = t->grid_left_top_header_mark_rc.w;
+                    rc2.h = t->grid_left_top_header_mark_rc.h;
+                    RenderTiledTexture(TextureMap, &t->grid_left_top_header_mark_rc, &rc2);
                 }
-                // w przeciwnym razie kolor bieżemy z theme
+                // w przeciwnym razie kolor bierzemy z theme
                 else
                 {
                     if (cellPair != m_Data.end())
