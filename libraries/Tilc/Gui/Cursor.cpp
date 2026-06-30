@@ -27,6 +27,10 @@ void Tilc::Gui::TCursor::SetNormalCursor()
     if (m_Type != CURSOR_TYPE_NORMAL)
     {
         m_Type = CURSOR_TYPE_NORMAL;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceArrow);
         SDL_SetCursor(m_Cursor);
     }
@@ -37,6 +41,10 @@ void Tilc::Gui::TCursor::SetIBeamCursor()
     if (m_Type != CURSOR_TYPE_BEAM)
     {
         m_Type = CURSOR_TYPE_BEAM;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceBeam);
         SDL_SetCursor(m_Cursor);
     }
@@ -47,6 +55,10 @@ void Tilc::Gui::TCursor::SetWaitCursor()
     if (m_Type != CURSOR_TYPE_WAIT)
     {
         m_Type = CURSOR_TYPE_WAIT;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceWait);
         SDL_SetCursor(m_Cursor);
     }
@@ -57,6 +69,10 @@ void Tilc::Gui::TCursor::SetCrossCursor()
     if (m_Type != CURSOR_TYPE_CROSS)
     {
         m_Type = CURSOR_TYPE_CROSS;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceCross);
         SDL_SetCursor(m_Cursor);
     }
@@ -67,6 +83,10 @@ void Tilc::Gui::TCursor::SetArrowUpCursor()
     if (m_Type != CURSOR_TYPE_ARROW_UP)
     {
         m_Type = CURSOR_TYPE_ARROW_UP;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceArrowUp);
         SDL_SetCursor(m_Cursor);
     }
@@ -77,6 +97,10 @@ void Tilc::Gui::TCursor::SetSizeCursor()
     if (m_Type != CURSOR_TYPE_SIZE)
     {
         m_Type = CURSOR_TYPE_SIZE;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceSize);
         SDL_SetCursor(m_Cursor);
     }
@@ -87,6 +111,10 @@ void Tilc::Gui::TCursor::SetSizeAllCursor()
     if (m_Type != CURSOR_TYPE_SIZE_ALL)
     {
         m_Type = CURSOR_TYPE_SIZE_ALL;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceSizeAll);
         SDL_SetCursor(m_Cursor);
     }
@@ -97,6 +125,10 @@ void Tilc::Gui::TCursor::SetSizeNWSECursor()
     if (m_Type != CURSOR_TYPE_NWSE)
     {
         m_Type = CURSOR_TYPE_NWSE;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceNWSE);
         SDL_SetCursor(m_Cursor);
     }
@@ -107,6 +139,10 @@ void Tilc::Gui::TCursor::SetSizeNESWCursor()
     if (m_Type != CURSOR_TYPE_CROSS)
     {
         m_Type = CURSOR_TYPE_CROSS;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceCross);
         SDL_SetCursor(m_Cursor);
     }
@@ -117,6 +153,10 @@ void Tilc::Gui::TCursor::SetSizeWECursor()
     if (m_Type != CURSOR_TYPE_WE)
     {
         m_Type = CURSOR_TYPE_WE;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceWE);
         SDL_SetCursor(m_Cursor);
     }
@@ -127,6 +167,10 @@ void Tilc::Gui::TCursor::SetSizeNSCursor()
     if (m_Type != CURSOR_TYPE_NS)
     {
         m_Type = CURSOR_TYPE_NS;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceNS);
         SDL_SetCursor(m_Cursor);
     }
@@ -137,6 +181,10 @@ void Tilc::Gui::TCursor::SetWinLogoCursor()
     if (m_Type != CURSOR_TYPE_WIN_LOGO)
     {
         m_Type = CURSOR_TYPE_WIN_LOGO;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceWinLogo);
         SDL_SetCursor(m_Cursor);
     }
@@ -147,6 +195,10 @@ void Tilc::Gui::TCursor::SetNoCursor()
     if (m_Type != CURSOR_TYPE_NO)
     {
         m_Type = CURSOR_TYPE_NO;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceNo);
         SDL_SetCursor(m_Cursor);
     }
@@ -157,6 +209,10 @@ void Tilc::Gui::TCursor::SetHandCursor()
     if (m_Type != CURSOR_TYPE_HAND)
     {
         m_Type = CURSOR_TYPE_HAND;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceHand);
         SDL_SetCursor(m_Cursor);
     }
@@ -167,6 +223,10 @@ void Tilc::Gui::TCursor::SetAppStartingCursor()
     if (m_Type != CURSOR_TYPE_APP_STARTING)
     {
         m_Type = CURSOR_TYPE_APP_STARTING;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceAppStarting);
         SDL_SetCursor(m_Cursor);
     }
@@ -177,6 +237,10 @@ void Tilc::Gui::TCursor::SetHelpCursor()
     if (m_Type != CURSOR_TYPE_HELP)
     {
         m_Type = CURSOR_TYPE_HELP;
+        if (m_Cursor)
+        {
+            SDL_DestroyCursor(m_Cursor);
+        }
         m_Cursor = LoadCursorFromResource(CursorResourceHelp);
         SDL_SetCursor(m_Cursor);
     }
