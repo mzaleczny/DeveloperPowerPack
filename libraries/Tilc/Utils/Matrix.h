@@ -279,9 +279,9 @@ namespace Tilc
         TMatrix3<T> ToMat3()
         {
             return {
-                this->a11, this->a12, this->a13,
-                this->a21, this->a22, this->a23,
-                this->a31, this->a32, this->a33
+                this->e11, this->e12, this->e13,
+                this->e21, this->e22, this->e23,
+                this->e31, this->e32, this->e33
             };
         }
 
