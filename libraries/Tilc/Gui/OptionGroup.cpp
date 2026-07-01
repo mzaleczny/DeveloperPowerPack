@@ -1,5 +1,6 @@
 #include "Tilc/Gui/OptionGroup.h"
 #include "Tilc/Gui/Option.h"
+#include <algorithm>
 #include <ranges>
 
 Tilc::Gui::TOptionGroup::TOptionGroup() : m_GroupId(m_GroupIdSequence)

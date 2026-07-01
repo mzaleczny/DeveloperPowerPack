@@ -4,7 +4,7 @@
 
 namespace Tilc
 {
-    constexpr const unsigned int UINT_LONGLONG_MAX = std::numeric_limits<unsigned long long int>::max();
+    constexpr const unsigned long long int UINT_LONGLONG_MAX = std::numeric_limits<unsigned long long int>::max();
 
     template <typename T> concept HasXOR = requires(T a, T b) { a ^ b; };
     template <typename T> concept Assignable = requires(T a, T b) { T(std::move(b)); b = std::move(a); };
