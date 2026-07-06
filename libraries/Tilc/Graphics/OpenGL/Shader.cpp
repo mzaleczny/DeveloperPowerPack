@@ -86,6 +86,7 @@ void Tilc::Graphics::OpenGL::TPipeline::Load(const char* VertexPathOrData, const
         }
 
         // shader Program
+#if FORCE_OPENGL_ES != 1
         glCreateProgramPipelines(1, &m_Pipeline);
         if (HasVertexShader)
         {
@@ -99,6 +100,28 @@ void Tilc::Graphics::OpenGL::TPipeline::Load(const char* VertexPathOrData, const
         {
             glUseProgramStages(m_Pipeline, GL_GEOMETRY_SHADER_BIT, m_GeometryShader);
         }
+#else
+        m_Pipeline = glCreateProgram();
+
+        if (HasVertexShader)
+        {
+            glAttachShader(m_Pipeline, m_VertexShader);
+        }
+        if (HasFragmentShader)
+        {
+            glAttachShader(m_Pipeline, m_FragmentShader);
+        }
+        // Geometry shader is NOT supported in GLES 3.0
+        glLinkProgram(m_Pipeline);
+
+        GLint success = 0;
+        glGetProgramiv(m_Pipeline, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            char infoLog[1024];
+            glGetProgramInfoLog(m_Pipeline, 1024, nullptr, infoLog);
+        }
+#endif
     }
     catch (std::ifstream::failure e)
     {
@@ -114,6 +137,7 @@ void Tilc::Graphics::OpenGL::TPipeline::Reload(const char* VertexPathOrData, con
 
 void Tilc::Graphics::OpenGL::TPipeline::LoadComputeShader(const char* PathOrData)
 {
+#if FORCE_OPENGL_ES != 1
     Tilc::TExtString Code;
     const GLchar* CodePointer = nullptr;
     try
@@ -135,10 +159,36 @@ void Tilc::Graphics::OpenGL::TPipeline::LoadComputeShader(const char* PathOrData
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ::" << e.what() << std::endl;
     }
+#endif
 }
 
 void Tilc::Graphics::OpenGL::TPipeline::Destroy()
 {
+#if FORCE_OPENGL_ES == 1
+    // Delete program (monolithic program in GLES3)
+    if (m_Pipeline)
+    {
+        glDeleteProgram(m_Pipeline);
+        m_Pipeline = 0;
+    }
+
+    // Delete shaders
+    if (m_VertexShader)
+    {
+        glDeleteShader(m_VertexShader);
+        m_VertexShader = 0;
+    }
+
+    if (m_FragmentShader)
+    {
+        glDeleteShader(m_FragmentShader);
+        m_FragmentShader = 0;
+    }
+
+    // Geometry shader is NOT supported in GLES3
+    // Compute shader is NOT supported in GLES3
+
+#else
     if (m_Pipeline)
     {
         glDeleteProgramPipelines(1, &m_Pipeline);
@@ -160,10 +210,12 @@ void Tilc::Graphics::OpenGL::TPipeline::Destroy()
     {
         glDeleteProgram(m_ComputeShader);
     }
+#endif
 }
 
 GLuint Tilc::Graphics::OpenGL::CompileShader(const GLchar* SourceCode, GLenum Stage, const std::string& CompilationMessage)
 {
+#if FORCE_OPENGL_ES != 1
     GLuint ShaderProgram = glCreateShaderProgramv(Stage, 1, &SourceCode);
     std::string CompilationLog;
     CompilationLog.resize(2048);
@@ -173,4 +225,70 @@ GLuint Tilc::Graphics::OpenGL::CompileShader(const GLchar* SourceCode, GLenum St
         std::cout << CompilationMessage << ": " << CompilationLog << std::endl;
     }
     return ShaderProgram;
+
+#else
+    // 1. Create shader object
+    GLuint shader = glCreateShader(Stage);
+
+    // 2. Provide source
+    glShaderSource(shader, 1, &SourceCode, nullptr);
+
+    // 3. Compile
+    glCompileShader(shader);
+
+    // 4. Check shader compilation log
+    GLint success = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    std::string log;
+    log.resize(2048);
+    glGetShaderInfoLog(shader, log.size(), nullptr, log.data());
+
+    if (log[0] != 0)
+    {
+        std::cout << CompilationMessage << ": " << log << std::endl;
+    }
+
+    if (!success)
+    {
+        std::cout << "Shader compilation failed!" << std::endl;
+        glDeleteShader(shader);
+        return 0;
+    }
+
+    // 5. Create program
+    GLuint program = glCreateProgram();
+
+    // 6. Attach shader
+    glAttachShader(program, shader);
+
+    // 7. Link program
+    glLinkProgram(program);
+
+    // 8. Check program link log
+    GLint linkSuccess = 0;
+    glGetProgramiv(program, GL_LINK_STATUS, &linkSuccess);
+
+    std::string linkLog;
+    linkLog.resize(2048);
+    glGetProgramInfoLog(program, linkLog.size(), nullptr, linkLog.data());
+
+    if (linkLog[0] != 0)
+    {
+        std::cout << CompilationMessage << " (link): " << linkLog << std::endl;
+    }
+
+    if (!linkSuccess)
+    {
+        std::cout << "Program linking failed!" << std::endl;
+        glDeleteProgram(program);
+        glDeleteShader(shader);
+        return 0;
+    }
+
+    // 9. Shader can be deleted after linking
+    glDeleteShader(shader);
+
+    return program;
+#endif
 }

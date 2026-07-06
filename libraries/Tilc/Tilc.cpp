@@ -1,3 +1,4 @@
+#include "Tilc/configure.h"
 #include "Tilc/Tilc.h"
 #include "Tilc/Game3D/World/World.h"
 #include "Tilc/Gui/Theme.h"
@@ -71,7 +72,9 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 	if (WithGLContext)
 	{
 		// Load OpenGL entry points using glad
+#if FORCE_OPENGL_ES != 1
 		gladLoadGL();
+#endif
 		// Use Vsync
 		if (!SDL_GL_SetSwapInterval(1))
 		{

@@ -1,6 +1,8 @@
 #include "Tilc/Gui/Cursor.h"
 #include "Tilc/Gui/CursorResources.h"
 #include <stdio.h>
+#include <string>
+#include <sstream>
 
 Tilc::Gui::TCursor::TCursor()
 {
@@ -285,6 +287,12 @@ SDL_Cursor* Tilc::Gui::TCursor::LoadCursorFromResource(const char* image[])
             }
         }
     }
-    sscanf_s(image[4 + row], "%d,%d", &hot_x, &hot_y);
+
+    std::string s = image[4 + row];
+    std::replace(s.begin(), s.end(), ',', ' ');
+
+    std::stringstream ss(s);
+    ss >> hot_x >> hot_y;
+
     return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }

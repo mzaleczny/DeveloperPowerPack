@@ -34,6 +34,7 @@ void Tilc::Graphics::TMesh::Render(GLenum DrawType, bool UseEBO, int InstancesCo
 	{
 		m_Pipeline->Bind();
 
+#if FORCE_OPENGL_ES != 1
 		if (m_Wireframe)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -42,13 +43,19 @@ void Tilc::Graphics::TMesh::Render(GLenum DrawType, bool UseEBO, int InstancesCo
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
+#endif
 
 		glBindVertexArray(m_VAO);
 
 		// Bind textures
 		for (int i = 0; i < m_Textures.size(); ++i)
 		{
-			glBindTextureUnit(m_Textures[i].m_BindingUnit, m_Textures[i].m_Texture);
+#if FORCE_OPENGL_ES == 1
+            glActiveTexture(GL_TEXTURE0 + m_Textures[i].m_BindingUnit);
+            glBindTexture(GL_TEXTURE_2D, m_Textures[i].m_Texture);
+#else
+            glBindTextureUnit(m_Textures[i].m_BindingUnit, m_Textures[i].m_Texture);
+#endif
 		}
 
         if (m_UseAlpha)
@@ -318,7 +325,11 @@ void Tilc::Graphics::TMesh::LoadUnitCubeData()
 GLuint Tilc::Graphics::TMesh::AddExtraBuffer()
 {
 	GLuint buf;
-	glCreateBuffers(1, &buf);
+#if FORCE_OPENGL_ES == 1
+    glGenBuffers(1, &buf);
+#else
+    glCreateBuffers(1, &buf);
+#endif
 	m_ExtraBuffers.push_back(buf);
 	return buf;
 }

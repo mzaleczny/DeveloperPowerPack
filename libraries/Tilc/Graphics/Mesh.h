@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Tilc/configure.h"
+
 #define GLAD_GL_IMPLEMENTATION
 #ifdef APIENTRY
 # undef APIENTRY
@@ -103,7 +105,12 @@ namespace Tilc::Graphics
 		GLuint AddExtraBuffer();
 		void FillBufferWithFloatVector(GLuint Buffer, const std::vector<float>& Data)
 		{
+#if FORCE_OPENGL_ES == 1
+            glBindBuffer(GL_ARRAY_BUFFER, Buffer);
+            glBufferData(GL_ARRAY_BUFFER, Data.size() * sizeof(float), Data.data(), GL_STATIC_DRAW);
+#else
 			glNamedBufferStorage(Buffer, Data.size() * sizeof(float), Data.data(), 0);
+#endif
 		}
         void PushTexturedShape(const std::initializer_list<float>& TexturedShapeData, const std::initializer_list<int>& TexturedShapeIndexData, int StartVertexIndex);
         void PushTexturedShape16(const std::initializer_list<float>& TexturedShapeData, const std::initializer_list<int8_t>& TexturedShapeIndexData, int StartVertexIndex);
@@ -172,6 +179,70 @@ namespace Tilc::Graphics
 		int StrideElemsCount = GetStrideElemsCount();
 		m_VertexCount = VertexCount;
 
+#if FORCE_OPENGL_ES == 1
+        // Create VAO
+        glGenVertexArrays(1, &m_VAO);
+        glBindVertexArray(m_VAO);
+
+        // Create VBO
+        glGenBuffers(1, &m_VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+
+        if (sizeof(T) == 2)
+        {
+            glBufferData(GL_ARRAY_BUFFER, VertexCount * StrideElemsCount * sizeof(Tilc::float16), m_VertexData16.data(), GL_STATIC_DRAW);
+        }
+        else
+        {
+            glBufferData(GL_ARRAY_BUFFER, VertexCount * StrideElemsCount * sizeof(GLfloat), m_VertexData.data(), GL_STATIC_DRAW);
+        }
+
+        // Create EBO
+        if (m_IndexData8.size() > 0 || m_IndexData.size() > 0)
+        {
+            glGenBuffers(1, &m_EBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+
+            if (sizeof(U) == 1)
+            {
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_IndexData8.size() * sizeof(GLubyte), m_IndexData8.data(), GL_STATIC_DRAW);
+                m_IndexCount8 = m_IndexData8.size();
+            }
+            else
+            {
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_IndexData.size() * sizeof(GLuint), m_IndexData.data(), GL_STATIC_DRAW);
+                m_IndexCount = m_IndexData.size();
+            }
+        }
+
+        // Enable vertex attributes
+        for (int i = 0; i < m_VertexComponents.size(); ++i)
+        {
+            const auto& vc = m_VertexComponents[i];
+
+            if (vc.m_Location != -1)
+            {
+                glEnableVertexAttribArray(vc.m_Location);
+
+                GLsizei stride = (sizeof(T) == 2) ? StrideElemsCount * sizeof(Tilc::float16) : StrideElemsCount * sizeof(GLfloat);
+
+                const GLvoid* offset = (sizeof(T) == 2) ? (const GLvoid*)(vc.m_StartIndexInStride * sizeof(Tilc::float16)) : (const GLvoid*)(vc.m_StartIndexInStride * sizeof(GLfloat));
+
+                GLenum type = (sizeof(T) == 2) ? GL_HALF_FLOAT : GL_FLOAT;
+
+                glVertexAttribPointer(vc.m_Location, vc.m_ElemsCount, type, GL_FALSE, stride, offset);
+            }
+        }
+
+        // Bind textures
+        for (int i = 0; i < m_Textures.size(); ++i)
+        {
+            glActiveTexture(GL_TEXTURE0 + m_Textures[i].m_BindingUnit);
+            glBindTexture(GL_TEXTURE_2D, m_Textures[i].m_Texture);
+        }
+
+        glBindVertexArray(0);
+#else
 		// Create VAO
 		glCreateVertexArrays(1, &m_VAO);
 		glBindVertexArray(m_VAO);
@@ -232,6 +303,7 @@ namespace Tilc::Graphics
 			glBindTextureUnit(m_Textures[i].m_BindingUnit, m_Textures[i].m_Texture);
 		}
 		glBindVertexArray(0);
+#endif
 
 		m_VertexData16.clear();
 		m_VertexData.clear();

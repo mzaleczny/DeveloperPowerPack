@@ -66,7 +66,7 @@ void Tilc::Gui::Helpers::TTextLayoutCache::ConvertToUTF32Lines(const Tilc::TExtS
             m_Utf32Lines.back().push_back(static_cast<uint32_t>(cp));
             if (consumed > 1)
             {
-                strncpy_s(LetterBuf, 5, s, consumed);
+                std::copy(s, s + consumed, LetterBuf);
                 LetterBuf[consumed] = '\0';
                 m_LinesContent.back().append(LetterBuf);
             }

@@ -1,3 +1,4 @@
+#include "Tilc/configure.h"
 #include "SDL3_image/SDL_image.h"
 #include "Tilc/Game.h"
 #include "Tilc/Resources/TextureManager.h"
@@ -119,6 +120,8 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const 
         else if (ResourceInfo.m_Type == "GL_Texture")
         {
             SDL_FlipSurface(Surface, SDL_FLIP_VERTICAL);
+
+#if FORCE_OPENGL_ES != 1
             glCreateTextures(GL_TEXTURE_2D, 1, &GLTex);
             glTextureParameteri(GLTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTextureParameteri(GLTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -157,6 +160,59 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const 
             glTextureStorage2D(GLTex, std::floor(std::log2(std::max(TexWidth, TexHeight))), GLInternalFormat, TexWidth, TexHeight);
             glTextureSubImage2D(GLTex, 0, 0, 0, TexWidth, TexHeight, GLFormat, GL_UNSIGNED_BYTE, Surface->pixels);
             glGenerateTextureMipmap(GLTex);
+#else
+            // 1. Tworzenie tekstury
+            glGenTextures(1, &GLTex);
+            glBindTexture(GL_TEXTURE_2D, GLTex);
+
+            // 2. Parametry tekstury
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            // UWAGA: GL_CLAMP_TO_BORDER NIE ISTNIEJE w GLES3
+            // UWAGA: GL_TEXTURE_BORDER_COLOR NIE ISTNIEJE w GLES3
+
+            // 3. Format wewnętrzny i format danych
+            GLenum GLInternalFormat = 0;
+            GLenum GLFormat = 0;
+
+            switch (Format)
+            {
+            case SDL_PIXELFORMAT_ABGR32:
+                GLInternalFormat = GL_RGBA8;   // GLES3 NIE MA GL_ABGR_EXT
+                GLFormat = GL_RGBA;
+                break;
+
+            case SDL_PIXELFORMAT_BGR24:
+                GLInternalFormat = GL_RGB8;
+                GLFormat = GL_RGB;             // GLES3 NIE MA GL_BGR
+                break;
+
+            case SDL_PIXELFORMAT_RGBA32:
+                GLInternalFormat = GL_RGBA8;
+                GLFormat = GL_RGBA;
+                break;
+
+            case SDL_PIXELFORMAT_RGB24:
+                GLInternalFormat = GL_RGB8;
+                GLFormat = GL_RGB;
+                break;
+            default:
+                break;
+            }
+
+            // 4. Wczytanie danych tekstury
+            glTexImage2D(GL_TEXTURE_2D, 0, GLInternalFormat, TexWidth, TexHeight, 0, GLFormat, GL_UNSIGNED_BYTE, Surface->pixels);
+
+            // 5. Generowanie mipmap
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            // 6. Odwiązanie (opcjonalne)
+            glBindTexture(GL_TEXTURE_2D, 0);
+#endif
+
             SDL_DestroySurface(Surface);
             Surface = nullptr;
             ResourcePointer = reinterpret_cast<void*>(static_cast<int64_t>(GLTex));
@@ -227,6 +283,7 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::CreateGLTex
         NumberOfChannels = 0;
         Format = Surface->format;
 
+#if FORCE_OPENGL_ES != 1
         glCreateTextures(GL_TEXTURE_2D, 1, &GLTex);
         glTextureParameteri(GLTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTextureParameteri(GLTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -259,6 +316,60 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::CreateGLTex
         glTextureStorage2D(GLTex, std::floor(std::log2(std::max(TexWidth, TexHeight))), GLInternalFormat, TexWidth, TexHeight);
         glTextureSubImage2D(GLTex, 0, 0, 0, TexWidth, TexHeight, GLFormat, GL_UNSIGNED_BYTE, Surface->pixels);
         glGenerateTextureMipmap(GLTex);
+
+#else
+        // 1. Tworzenie tekstury
+        glGenTextures(1, &GLTex);
+        glBindTexture(GL_TEXTURE_2D, GLTex);
+
+        // 2. Parametry tekstury
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        // UWAGA: GL_CLAMP_TO_BORDER NIE ISTNIEJE w GLES3
+        // UWAGA: GL_TEXTURE_BORDER_COLOR NIE ISTNIEJE w GLES3
+
+        // 3. Format wewnętrzny i format danych
+        GLenum GLInternalFormat = 0;
+        GLenum GLFormat = 0;
+
+        switch (Format)
+        {
+        case SDL_PIXELFORMAT_ABGR32:
+            GLInternalFormat = GL_RGBA8;   // GLES3 NIE MA GL_ABGR_EXT
+            GLFormat = GL_RGBA;
+            break;
+
+        case SDL_PIXELFORMAT_BGR24:
+            GLInternalFormat = GL_RGB8;
+            GLFormat = GL_RGB;             // GLES3 NIE MA GL_BGR
+            break;
+
+        case SDL_PIXELFORMAT_RGBA32:
+            GLInternalFormat = GL_RGBA8;
+            GLFormat = GL_RGBA;
+            break;
+
+        case SDL_PIXELFORMAT_RGB24:
+            GLInternalFormat = GL_RGB8;
+            GLFormat = GL_RGB;
+            break;
+        default:
+            break;
+        }
+
+        // 4. Wczytanie danych tekstury
+        glTexImage2D(GL_TEXTURE_2D, 0, GLInternalFormat, TexWidth, TexHeight, 0, GLFormat, GL_UNSIGNED_BYTE, Surface->pixels);
+
+        // 5. Generowanie mipmap
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        // 6. Odwiązanie (opcjonalne)
+        glBindTexture(GL_TEXTURE_2D, 0);
+#endif
+
         ResourcePointer = reinterpret_cast<void*>(static_cast<int64_t>(GLTex));
         TextureType = Tilc::Resources::ETextureType::GL_Texture;
         Resource = new (std::nothrow) TResourceTexture(ResourcePointer);
