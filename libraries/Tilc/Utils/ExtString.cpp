@@ -504,11 +504,12 @@ void Tilc::TExtString::LTrim(char ch)
 
 	if (start_pos == this->length())
 	{
-		(*this)[0] = '\0';
+		*this = "";
 		return;
 	}
 
-	strcpy(&((*this)[0]), &((*this)[start_pos]));
+    Tilc::TExtString Result{ &((*this)[start_pos]) };
+	*this = Result;
 }
 
 void Tilc::TExtString::LTrimAllChars(const char* StringOfChars)
@@ -522,11 +523,12 @@ void Tilc::TExtString::LTrimAllChars(const char* StringOfChars)
 
 	if (start_pos == this->length())
 	{
-		(*this)[0] = '\0';
-		return;
-	}
+        *this = "";
+        return;
+    }
 
-	strcpy(&((*this)[0]), &((*this)[start_pos]));
+    Tilc::TExtString Result{ &((*this)[start_pos]) };
+    *this = Result;
 }
 
 
@@ -540,7 +542,7 @@ void Tilc::TExtString::CutAtLast(char ch)
 
 	if (pos >= 0)
 	{
-		(*this)[pos] = '\0';
+        *this = substr(0, pos);
 	}
 }
 
@@ -581,7 +583,7 @@ void Tilc::TExtString::CutAtLastchar(const char* StringOfChars)
 
 		if (pos >= 0)
 		{
-			(*this)[pos] = '\0';
+            *this = substr(0, pos);
 		}
 	}
 }
@@ -1623,25 +1625,25 @@ DECLSPEC char32_t Tilc::DecodeUtf8(const char*& p, const char* end)
     if ((c >> 5) == 0x6)
     {
         if (p >= end) return U'?';
-        return ((c & 0x1F) << 6) | (*p++ & 0x3F);
+        return ((c & 0x1F) << 6) | (*(p++) & 0x3F);
     }
 
     if ((c >> 4) == 0xE)
     {
         if (p + 1 >= end) return U'?';
-        char32_t r = ((c & 0x0F) << 12)
-            | ((*p++ & 0x3F) << 6)
-            | (*p++ & 0x3F);
+        char32_t r = ((c & 0x0F) << 12);
+        r |= ((*p++ & 0x3F) << 6);
+        r |= (*p++ & 0x3F);
         return r;
     }
 
     if ((c >> 3) == 0x1E)
     {
         if (p + 2 >= end) return U'?';
-        char32_t r = ((c & 0x07) << 18)
-            | ((*p++ & 0x3F) << 12)
-            | ((*p++ & 0x3F) << 6)
-            | (*p++ & 0x3F);
+        char32_t r = ((c & 0x07) << 18);
+        r |= ((*p++ & 0x3F) << 12);
+        r |= ((*p++ & 0x3F) << 6);
+        r |= (*p++ & 0x3F);
         return r;
     }
 

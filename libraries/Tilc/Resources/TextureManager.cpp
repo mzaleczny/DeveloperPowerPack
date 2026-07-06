@@ -28,6 +28,8 @@ Tilc::Resources::TResourceTexture::~TResourceTexture()
             glDeleteTextures(1, (GLuint*)&m_Resource);
             m_Resource = nullptr;
             break;
+        default:
+            break;
         }
     }
 }
@@ -148,6 +150,8 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const 
                 GLInternalFormat = GL_RGB8;
                 GLFormat = GL_RGB;
                 break;
+            default:
+                break;
             }
             // Second parameter in function belows specifies number of mipmaps (Levels of Detail) to generate
             glTextureStorage2D(GLTex, std::floor(std::log2(std::max(TexWidth, TexHeight))), GLInternalFormat, TexWidth, TexHeight);
@@ -247,6 +251,8 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::CreateGLTex
         case SDL_PIXELFORMAT_RGB24:
             GLInternalFormat = GL_RGB8;
             GLFormat = GL_RGB;
+            break;
+        default:
             break;
         }
         // Second parameter in function belows specifies number of mipmaps (Levels of Detail) to generate

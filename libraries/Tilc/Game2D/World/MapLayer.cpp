@@ -107,7 +107,7 @@ void Tilc::Game2D::TMapLayer::LoadFromStringSimplified(TTileSet& TileSet, const 
 		}
 		else if (m_MapWidth != W)
 		{
-			SDL_Log("Distinct length row found on position %lu", x);
+			SDL_Log("Distinct length row found on position %llu", x);
 			m_MapWidth = 0;
 			break;
 		}

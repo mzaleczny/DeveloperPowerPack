@@ -15,7 +15,7 @@ namespace Tilc {
 
             virtual void SetSize(float width, float height) override;
             virtual void SetSizeRelativeToParent(float parentWidth, float parentHeight) override;
-            virtual void SetThumbSize();
+            virtual void SetThumbSize() override;
             virtual void CalculateThumbLeftTopCorner(float& x, float& y, int position = INT_MIN) override;
             // Wylicza najbliższą pozycję (this->_position) dla podanych współrzędnych suwaka. Jeśli
             // współrzędna y jest równa INT_MIN, to wyliczana jest pozycja dla bieżącego położenia

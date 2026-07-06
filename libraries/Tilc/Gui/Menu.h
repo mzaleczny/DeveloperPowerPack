@@ -53,8 +53,8 @@ namespace Tilc::Gui
         {
             m_MenuItems[AtPos].m_DrawIcon = DrawIcon;
         };
-        inline void Render();
-		inline void Draw() { Draw(m_PosX, m_PosY); }
+        void Render();
+        virtual void Draw() override { Draw(m_PosX, m_PosY); }
 		void Draw(float x, float y, bool CenterHorizontally = false, bool CenterVertically = false);
 		inline void SelectNextItem()
         {
@@ -74,7 +74,7 @@ namespace Tilc::Gui
             m_PosY = y;
             m_NeedRegenerateSurface = false;
         }
-		inline void SetPosition(float x, float y)
+		virtual void SetPosition(float x, float y) override
         {
             m_PosX = x;
             m_PosY = y;
@@ -115,7 +115,7 @@ namespace Tilc::Gui
         virtual bool OnMouseMove(const SDL_Event& Event) override;
 		virtual bool OnMouseButtonDown(const SDL_Event& Event) override;
 		//virtual bool OnMouseButtonUp(const SDL_Event& Event) override;
-		virtual bool OnKeyDown(const SDL_Event& Event);
+		virtual bool OnKeyDown(const SDL_Event& Event) override;
 
         void SetVSpacing(int Value) { m_VSpacing = Value; }
         TMenu* GetParentMenu() const { return m_ParentMenu; }

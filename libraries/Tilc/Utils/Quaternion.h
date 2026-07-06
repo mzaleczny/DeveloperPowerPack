@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-// Plik do przerobienia, bo funkcje kwaternionów nie dzia³aj¹ tak samo jak te w glm
+// Plik do przerobienia, bo funkcje kwaternionÃ³w nie dziaÅ‚ajÄ… tak samo jak te w glm
 
 #include <cmath> // for atan2, which handles signs for us properly
 #include <cstdint>
@@ -21,11 +21,11 @@
 namespace Tilc
 {
 
-    template<typename T =float>
+    template<typename T = float>
     class TQuaternion
     {
     public:
-          /**
+          /-**
            * The type of each component of the 4 components of a Quaternion.
            * See below for allowed types.
            * /
@@ -40,7 +40,7 @@ namespace Tilc
             || std::is_same<T, long double>(),
             "Invalid scalar type for Quaternion");
 
-        /**
+        /-**
         * Construct a Quaternion from at most 4 components of type T.
         * Specifying only a != 0 makes the Quaternion a real.
         * Specifying only a != and b != 0 makes the Quaternion an ordinary complex number.
@@ -50,7 +50,7 @@ namespace Tilc
         {
         }
 
-        /**
+        /-**
          * Construct a Quaternion from at most 4 components of type T1.
          * Specifying only a != 0 makes the Quaternion a real.
          * Specifying only a != and b != 0 makes the Quaternion an ordinary complex number.
@@ -67,7 +67,7 @@ namespace Tilc
         {
         }
 
-        /**
+        /-**
          * Construct a Quaternion from 1 or 2 std::complex<T>.
          * /
         template<typename T1>
@@ -76,7 +76,7 @@ namespace Tilc
         {
         }
 
-        /**
+        /-**
          * Construct from an iterator to a range of 4 elements.
          * The iterator is dereferenced exactly 4 times, and advanced (++)
          * exactly 3 times.
@@ -87,7 +87,7 @@ namespace Tilc
         {
         }
 
-        /**
+        /-**
          * Copy constructor, from a Quaternion with another value type.
          * /
         template<typename T1>
@@ -96,7 +96,7 @@ namespace Tilc
         {
         }
 
-        /**
+        /-**
          * Assignment operator, from a Quaternion with another value type.
          * /
         template<typename T1>
@@ -109,7 +109,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Accessors for all 4 components of the Quaternion.
          * /
         T a() const { return _a; }
@@ -117,13 +117,13 @@ namespace Tilc
         T c() const { return _c; }
         T d() const { return _d; }
 
-        /**
+        /-**
          * The complex components of this Quaternion.
          * /
         std::complex<T> c1() const { return { _a, _b }; }
         std::complex<T> c2() const { return { _c, _d }; }
 
-        /**
+        /-**
          * Ordered list form.
          * /
         std::array<T, 4> ToArray() const
@@ -131,17 +131,17 @@ namespace Tilc
             return { {_a, _b, _c, _d} };
         }
 
-        /**
+        /-**
          * The real part of this Quaternion.
          * /
         T Real() const { return _a; }
 
-        /**
+        /-**
          * The "unreal" part of this Quaternion, which is a Quaternion itself.
          * /
         TQuaternion<T> Unreal() const { return { 0, _b, _c, _d }; }
 
-        /**
+        /-**
          * The square of the norm of the Quaternion.
          * (The square is sometimes useful, and it avoids paying for a sqrt).
          * /
@@ -150,7 +150,7 @@ namespace Tilc
             return _a * _a + _b * _b + _c * _c + _d * _d;
         }
 
-        /**
+        /-**
          * The norm of the Quaternion (the l2 norm).
          * /
         T Abs() const
@@ -158,7 +158,7 @@ namespace Tilc
             return std::sqrt(NormSquared());
         }
 
-        /**
+        /-**
          * The L2 norm of the "unreal" components of the Quaternion,
          * comes back often in computations.
          * /
@@ -172,7 +172,7 @@ namespace Tilc
             _a = std::sqrt((T)1.0 - UnrealNormSquared());
         }
 
-        /**
+        /-**
          * Return true if this Quaternion is zero, false otherwise.
          * /
         template <typename T1 = T>
@@ -181,7 +181,7 @@ namespace Tilc
             return IsScalarZero(_a, eps) && IsScalarZero(_b, eps) && IsScalarZero(_c, eps) && IsScalarZero(_d, eps);
         }
 
-        /**
+        /-**
          * Return true if this Quaternion is not zero, false otherwise.
          * /
         template <typename T1 = T>
@@ -190,7 +190,7 @@ namespace Tilc
             return !IsScalarZero(_a, eps) || !IsScalarZero(_b, eps) || !IsScalarZero(_c, eps) || !IsScalarZero(_d, eps);
         }
 
-        /**
+        /-**
          * Return true if any component of this quaternion is nan, false otherwise.
          * TODO: use "isnan" instead of "is_nan" to keep consistent?
          * /
@@ -199,7 +199,7 @@ namespace Tilc
             return std::isnan(_a) || std::isnan(_b) || std::isnan(_c) || std::isnan(_d);
         }
 
-        /**
+        /-**
         * Return true if any component of this quaternion is inf, false otherwise.
         * /
         bool IsInf() const
@@ -207,7 +207,7 @@ namespace Tilc
             return std::isinf(_a) || std::isinf(_b) || std::isinf(_c) || std::isinf(_d);
         }
 
-        /**
+        /-**
         * Return true if all the components of this quaternion are finite, false otherwise.
         * /
         bool IsFinite() const
@@ -215,7 +215,7 @@ namespace Tilc
             return std::isfinite(_a) && std::isfinite(_b) && std::isfinite(_c) && std::isfinite(_d);
         }
 
-        /**
+        /-**
          * Return true if this Quaternion has norm 1, false otherwise.
          * /
         template<typename T1 = T>
@@ -224,7 +224,7 @@ namespace Tilc
             return IsScalarZero(NormSquared() - T(1), eps);
         }
 
-        /**
+        /-**
          * Return true if this Quaternion is real, false otherwise.
          * /
         template<typename T1 = T>
@@ -233,7 +233,7 @@ namespace Tilc
             return IsScalarZero(_b, eps) && IsScalarZero(_c, eps) && IsScalarZero(_d, eps);
         }
 
-        /**
+        /-**
          * Return true if this Quaternion is complex, false otherwise.
          * /
         template<typename T1 = T>
@@ -242,7 +242,7 @@ namespace Tilc
             return IsScalarZero(_c, eps) && IsScalarZero(_d, eps);
         }
 
-        /**
+        /-**
          * Return true if this Quaternion is real, false otherwise.
          * /
         template<typename T1 = T>
@@ -251,7 +251,7 @@ namespace Tilc
             return IsScalarZero(_a, eps) && !(IsScalarZero(_b, eps) && IsScalarZero(_c, eps) && IsScalarZero(_d, eps));
         }
 
-        /**
+        /-**
          * Unary plus.
          * /
         TQuaternion<T> operator+() const
@@ -259,7 +259,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary minus.
          * /
         TQuaternion<T> operator-() const
@@ -267,7 +267,7 @@ namespace Tilc
             return { -_a, -_b, -_c, -_d };
         }
 
-        /**
+        /-**
          * Unary +=.
          * /
         TQuaternion<T> operator+=(T y)
@@ -276,7 +276,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary -=.
          * /
         TQuaternion<T> operator-=(T y)
@@ -285,7 +285,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Scaling by a constant.
          * /
         TQuaternion<T> operator*=(T k)
@@ -297,7 +297,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Dividing by a constant.
          * /
         TQuaternion<T> operator/=(T k)
@@ -309,7 +309,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary +=.
          * /
         template<typename T1>
@@ -320,7 +320,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary -=.
          * /
         template<typename T1>
@@ -331,7 +331,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary *=.
          * /
         template<typename T1>
@@ -350,7 +350,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary /=.
          * /
         template<typename T1>
@@ -370,7 +370,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary +=.
          * /
         template<typename T1>
@@ -383,7 +383,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary -=.
          * /
         template<typename T1>
@@ -396,20 +396,20 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary multiplication.
          * 28 operations
          * /
         template<typename T1>
         TQuaternion<T> operator*=(const TQuaternion<T1>& y)
         {
-            /* Poni¿szy kod jest wziêty z glm i dostosowany ponizej * /
+            /-* PoniÅ¼szy kod jest wziÄ™ty z glm i dostosowany ponizej * /
             T at = _d * y.a() + _a * y.d() + _b * y.c() - _c * y.b();
             T bt = _d * y.b() + _b * y.d() + _c * y.a() - _a * y.c();
             T ct = _d * y.c() + _c * y.d() + _a * y.b() - _b * y.a();
             T dt = _d * y.d() - _a * y.a() - _b * y.b() - _c * y.c();
-            /* oryginalny kod * /
-            /*
+            /-* oryginalny kod * /
+            /-*
             T at = _a * y.a() - _b * y.b() - _c * y.c() - _d * y.d();
             T bt = _a * y.b() + _b * y.a() + _c * y.d() - _d * y.c();
             T ct = _a * y.c() - _b * y.d() + _c * y.a() + _d * y.b();
@@ -423,7 +423,7 @@ namespace Tilc
             return *this;
         }
 
-        /**
+        /-**
          * Unary division with other Quaternion.
          *
          * Warning: if the norm of y is zero, the result is
@@ -470,7 +470,7 @@ namespace Tilc
         };
     };
 
-    /**
+    /-**
      * Predefined Quaternions on floats.
      * /
     typedef TQuaternion<float> TQf;
@@ -480,7 +480,7 @@ namespace Tilc
     const TQf Qf_j(0, 0, 1);
     const TQf Qf_k(0, 0, 0, 1);
 
-    /**
+    /-**
      * Predefined Quaternions on doubles.
      * /
     typedef TQuaternion<double> TQd;
@@ -490,7 +490,7 @@ namespace Tilc
     const TQd Qd_j(0, 0, 1);
     const TQd Qd_k(0, 0, 0, 1);
 
-    /**
+    /-**
      * Predefined Quaternions on long doubles.
      * /
     typedef TQuaternion<long double> TQld;
@@ -567,13 +567,13 @@ namespace Tilc
         return {a, b, h1, h2};
     }
 
-    /**
+    /-**
      * The polar representation of a Quaternion.
      * /
     template<typename T>
     using TPolarRepresentation = std::array<T, 5>;
 
-    /**
+    /-**
      * The polar representation of a Quaternion.
      * Returns 5 numbers:
      * - the Euclidean norm of the Quaternion,
@@ -597,13 +597,13 @@ namespace Tilc
         return {{n, n == x.a() ? 0 : pi, 0, 0, 0}};
     }
 
-    /**
+    /-**
      * Type used for 2x2 complex matrix representations of Quaternions.
      * /
     template<typename T>
     using TComplexMatrix2D = std::array<std::array<std::complex<T>, 2>, 2>;
 
-    /**
+    /-**
      * Returns a 2x2 complex matrix representation of a Quaternion x:
      * [ a + b i,  c + d i]
      * [ -c + d i, a - b i]
@@ -617,7 +617,7 @@ namespace Tilc
         return cm;
     }
 
-    /**
+    /-**
      * Returns a Quaternion from a 2x2 complex matrix cm:
      * [ a + b i,  c + d i]
      * [ -c + d i, a - b i]
@@ -629,7 +629,7 @@ namespace Tilc
         return { cm[0][0].real(), cm[0][0].imag(), cm[0][1].real(), cm[0][1].imag() };
     }
 
-    /**
+    /-**
      * Returns a 4x4 real matrix representation from a Quaternion x:
      * [ a  b  c  d ]
      * [-b  a -d  c ]
@@ -648,7 +648,7 @@ namespace Tilc
         };
     }
 
-    /**
+    /-**
      * Returns a Quaternion from a 4x4 real matrix rm:
      * [ a  b  c  d ]
      * [-b  a -d  c ]
@@ -661,7 +661,7 @@ namespace Tilc
         return { rm.e11, rm.e12, rm.e13, rm.e14 };
     }
 
-    /**
+    /-**
      * Returns a 3D rotation matrix.
      * This is the "homogeneous" expression to convert to a rotation matrix,
      * which works if the Quaternoin is not a unit Quaternion.
@@ -730,7 +730,7 @@ namespace Tilc
         }
     }
 
-    /**
+    /-**
      * Returns three Euler angles {yaw, pitch, roll} in radians.
      * x is required to be a unit quaternion.
      *
@@ -757,7 +757,7 @@ namespace Tilc
                };
     }
 
-    /**
+    /-**
      * Returns a unit quaternion corresponding to the three Euler angles
      * {yaw, pitch, roll} expressed in radians.
      * The conventions used are with the 3,2,1 convention ??? TODO: verify
@@ -772,7 +772,7 @@ namespace Tilc
       return {c0c1*c2+s0s1*s2,s0s1*c2-c0c1*s2,c0s1*c2+s0c1*s2,c0c1*s2-s0s1*c2};
     }
 
-    /**
+    /-**
      * Hash of a quaternion - that makes it possible to use quaternions
      * as keys in std::set/std::map, if ever needed.
      *
@@ -813,7 +813,7 @@ namespace Tilc
         }
     };
 
-    /**
+    /-**
      * Lexicographic order on quaternions, which is a total order, but not compatible
      * with the field structure.
      *-/
@@ -830,7 +830,7 @@ namespace Tilc
     };
     * /
 
-    /** +
+    /-** +
      * Returns the conjugate of x, as a new Quaternion (x is unchanged).
      * /
     template<typename T>
@@ -839,7 +839,7 @@ namespace Tilc
         return {x.a(), -x.b(), -x.c(), -x.d()};
     }
 
-    /** +
+    /-** +
      * Norms on a Quaternion.
      * /
     template<typename T>
@@ -892,7 +892,7 @@ namespace Tilc
                       max(std::abs(x.c()), std::abs(x.d())));
     }
 
-    /**
+    /-**
      * Quaternion tests.
      * /
 
@@ -950,14 +950,14 @@ namespace Tilc
         return x.IsUnreal(eps);
     }
 
-    /**
+    /-**
      * Equality:
      * - Quaternion <-> real
      * - Quaternion <-> complex
      * - Quaternion <-> quaternion
      * /
 
-    /**
+    /-**
      * Quaternion <-> real
      *
      * For these equality operators, the goal is to allow e.g.
@@ -1005,7 +1005,7 @@ namespace Tilc
         return x.IsReal() && IsNearlyEqual(x.a(), y, eps);
     }
 
-    /**
+    /-**
      * Quaternion <-> std::complex
      *
      * operator== here returns false if the Quaternion is not complex.
@@ -1049,7 +1049,7 @@ namespace Tilc
         return nearly_equal(x, y, eps);
     }
 
-    /**
+    /-**
      * Quaternion <-> Quaternion
      * /
     template<typename T1, typename T2>
@@ -1136,7 +1136,7 @@ namespace Tilc
         return TQuaternion<T>(x) -= y;
     }
 
-    /**
+    /-**
      * SSE operations: tried 2 implementations (SO and vectorclass): not faster.
      * Boost: as fast as boost implementation.
      * /
@@ -1212,7 +1212,7 @@ namespace Tilc
         return x.a() * y.a() + x.b() * y.b() + x.c() * y.c() + x.d() * y.d();
     }
 
-    /**
+    /-**
      * 9 operations
      * /
     template<typename T>
@@ -1287,7 +1287,7 @@ namespace Tilc
         return x / abs(x);
     }
 
-    /**
+    /-**
      * Exponential of a Quaternion.
      * This code seems to be quite a bit faster than boost, while giving
      * the same results. Boost uses a Taylor approximation for sinc,
@@ -1310,7 +1310,7 @@ namespace Tilc
         return {ea * std::cos(n1), n2 * x.b(), n2 * x.c(), n2 * x.d()};
     }
 
-    /**
+    /-**
      * Log of a Quaternion.
      * exp(log(x)) == x always, but log(exp(x)) != x is already not true
      * for complex number, because the log is multi-valued.
@@ -1340,7 +1340,7 @@ namespace Tilc
 
     // TODO: log2, log10
 
-    /**
+    /-**
      * 10 operations:
      * a^2 - b^2 - c^2 - d^2
      * 2 a b
@@ -1359,7 +1359,7 @@ namespace Tilc
                };
     }
 
-    /**
+    /-**
      * 14 operations:
      * a (a^2 - 3 (b^2 + c^2 + d^2))
      * -b (-3 a^2 + b^2 + c^2 + d^2)
@@ -1380,7 +1380,7 @@ namespace Tilc
                };
     }
 
-    /**
+    /-**
      * 18 operations:
      * a^4 - 6 a^2 (b^2 + c^2 + d^2) + (b^2 + c^2 + d^2)^2
      * -4 a b (-a^2 + b^2 + c^2 + d^2)
@@ -1402,7 +1402,7 @@ namespace Tilc
     }
 
     // TODO: this needs to be redone, with powi, powf, and a switcher on type like std::pow
-    /**
+    /-**
      * I benchmarked that method written via the polar representation,
      * and it turned out to be much slower, and lexicographic_order numerically stable,
      * than this implementation. This implementation is also much faster
@@ -1438,7 +1438,7 @@ namespace Tilc
         return y;
     }
 
-    /**
+    /-**
      * Real power of a Quaternion.
      * /
     template <typename T, typename T1, typename std::enable_if<!std::is_same<T1, int>()>::type* = nullptr>
@@ -1450,7 +1450,7 @@ namespace Tilc
         return exp(a * log(xx));
     }
 
-    /**
+    /-**
      * Quaternion power of a Quaternion.
      * (that should cover all the other cases for the exponent...)
      * TODO: test against pow just above
@@ -1488,7 +1488,7 @@ namespace Tilc
         return { std::sin(x.real()) * std::cosh(z), w * x.b(), w * x.c(), w * x.d() };
     }
 
-    /**
+    /-**
      * TODO: optimize instruction count
      * TODO: reciprocals
      * TODO: check /0
@@ -1524,7 +1524,7 @@ namespace Tilc
       return sinh(x) / cosh(x);
     }
 
-    /**
+    /-**
      * result = a*x + b*y
      * TODO: k1,k2 can't be complex!
      * /
@@ -1546,19 +1546,19 @@ namespace Tilc
             Nice,
             Compact
         };
-        /**
+        /-**
          * Facilities to display quaternions for humans as well as facilities to read/write them with C++ streams.
          * /
         struct TQuaternionIO
         {
-            /**
+            /-**
              * Print format control flags.
              * /
             static long double m_ScalarZeroThreshold;
             // if 0, does "hard" equality tests for zero
             static EDisplayStyle m_PrintStyle;
 
-            /**
+            /-**
              * Print a quaternion to a stream in various formats.
              * TODO: introduce eps and make faster with constants?
              * /
@@ -1640,7 +1640,7 @@ namespace Tilc
             return out;
         }
 
-        /**
+        /-**
          * This streaming operator made me wonder if I should sneak "smart" code
          * in the quaternion arithmetic, in order to optimize it for space, but that
          * turned out not worthwhile (see CQuaternion).

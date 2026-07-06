@@ -10,7 +10,7 @@ namespace Tilc::Game2D::Sprite
 {
 	class TCharacter : public TEntityBase
 	{
-		friend class TEntityManager;
+		friend class Tilc::Game2D::TEntityManager;
 	public:
 		TCharacter();
 		virtual ~TCharacter();
@@ -20,9 +20,9 @@ namespace Tilc::Game2D::Sprite
 		void Attack();
 		void GetDamage(const int Damage);
 		void Load(const Tilc::TExtString& FileName);
-		virtual void OnEntityCollision(TEntityBase* Collider, bool CheckAttackBoundingRect) = 0;
-		virtual void Update(float DeltaTime);
-		inline void Draw(SDL_Surface* Destination)
+		virtual void OnEntityCollision(TEntityBase* Collider, bool CheckAttackBoundingRect) override = 0;
+		virtual void Update(float DeltaTime) override;
+		virtual void Draw(SDL_Surface* Destination) override
 		{
 			m_SpriteSheet.Draw(Destination);
 		}

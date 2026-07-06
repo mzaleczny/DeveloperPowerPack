@@ -285,6 +285,6 @@ SDL_Cursor* Tilc::Gui::TCursor::LoadCursorFromResource(const char* image[])
             }
         }
     }
-    sscanf(image[4 + row], "%d,%d", &hot_x, &hot_y);
+    sscanf_s(image[4 + row], "%d,%d", &hot_x, &hot_y);
     return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }

@@ -611,7 +611,7 @@ void get_perspective_matrix(REAL *output_matrix, REAL fovy, REAL aspect, REAL ne
     output_matrix[15] = 0.0f;
 }
 
-/*
+/-*
 void get_lookat_matrix(REAL *output_matrix, REAL eye_x, REAL eye_y, REAL eye_z,
                         REAL center_x, REAL center_y, REAL center_z,
                         REAL up_x, REAL up_y, REAL up_z) {

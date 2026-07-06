@@ -9,7 +9,7 @@ namespace Tilc
     {
         unsigned int m_ProfileInstances;       // # of times profile_begin/profile_end called
         int m_OpenProfiles;                    // # of times profile_begin w/o profile_end
-        Tilc::TExtString m_Name;               // Name of sample
+        char m_Name[256];                      // Name of sample
         time_t m_StartTime;                    // The current open profile start time
         time_t m_Accumulator;                  // All samples this frame added together
         time_t m_ChildrenSampleTime;           // Time taken by all children
@@ -19,7 +19,7 @@ namespace Tilc
 
     struct DECLSPEC TProfileSampleHistory
     {
-        Tilc::TExtString m_Name;               // Name of the sample
+        char m_Name[256];                      // Name of the sample
         time_t m_Ave;                          // Average time per frame (percentage)
         time_t m_Min;                          // Minimum time per frame (percentage)
         time_t m_Max;                          // Maximum time per frame (percentage)

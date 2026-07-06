@@ -45,7 +45,7 @@ namespace Tilc::Gui
         virtual ~TGrid();
         void CleanData();
 
-        virtual void Draw();
+        virtual void Draw() override;
 
         // Funkcje obsługi zdarzeń
         virtual bool OnMouseMove(const SDL_Event& event) override;
@@ -53,7 +53,7 @@ namespace Tilc::Gui
         virtual bool OnMouseButtonUp(const SDL_Event& event) override;
         virtual bool OnKeyDown(const SDL_Event& event) override;
         virtual bool OnTextInput(const SDL_Event& event) override;
-        virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar);
+        virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar) override;
 
         // Move active cell to the next cell to the right and returns TRUE if active cell was changed.
         bool MoveRight(int count = 1);
@@ -102,9 +102,9 @@ namespace Tilc::Gui
         // Returns number of fully visible rows (if there is row partialy visible then it is not counted)
         int GetFullVisibleRowCount();
 
-        virtual void OnEditorShow();
-        virtual Tilc::TExtString GetValue();
-        virtual void SetValue(const Tilc::TExtString& value, bool redraw = true);
+        virtual void OnEditorShow() override;
+        virtual Tilc::TExtString GetValue() override;
+        virtual void SetValue(const Tilc::TExtString& value, bool redraw = true) override;
         void SetCellValue(int cellCoordX, int cellCoordY, const Tilc::TExtString& value, bool redraw = true);
         void SetCurrentCellValue(const Tilc::TExtString& value, bool redraw = true);
         void ClearCellValue(int cellCoordX, int cellCoordY, bool redraw = true);

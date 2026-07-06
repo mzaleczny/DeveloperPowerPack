@@ -27,29 +27,29 @@ namespace Tilc
     /* poniższe dwie funkcje inicjalizują wektor pdanymi wartościami *-/
     vector3 vector3_new(REAL x, REAL y, REAL z);
     void vector3_set(vector3 *v, REAL x, REAL y, REAL z);
-    /* oblicza wartość skalarną wektora *-/
+    /-* oblicza wartość skalarną wektora *-/
     REAL vector3_magnitude(vector3 *v);
-    /* normalizuje podany wektor, czyli zamienia go w wektor tak samo skierowany, ale o wartości skalarnej równej 1 *-/
+    /-* normalizuje podany wektor, czyli zamienia go w wektor tak samo skierowany, ale o wartości skalarnej równej 1 *-/
     void vector3_normalize(vector3 *v);
-    /* zwraca wektor przeciwny do podanego *-/
+    /-* zwraca wektor przeciwny do podanego *-/
     void vector3_reverse(vector3 *v_in, vector3 *v_out);
-    /* dodawanie wektorów *-/
+    /-* dodawanie wektorów *-/
     void vector3_add(vector3 *v1_in, vector3 *v2_in, vector3 *v_out);
-    /* odejmowanie wektorów *-/
+    /-* odejmowanie wektorów *-/
     void vector3_sub(vector3 *v1_in, vector3 *v2_in, vector3 *v_out);
-    /* mnożenie wektora przez skalar *-/
+    /-* mnożenie wektora przez skalar *-/
     void vector3_mul(vector3 *v, REAL s);
-    /* dzielenie wektora przez skalar *-/
+    /-* dzielenie wektora przez skalar *-/
     void vector3_div(vector3 *v, REAL s);
-    /* zmiana znaku wektora *-/
+    /-* zmiana znaku wektora *-/
     void vector3_neg(vector3 *v);
 
-    /* Oblicza iloczyn wektorowy (cross product) podanych wektorów. Wynikowy wektor jest prostopadły do obu wektorów,
+    /-* Oblicza iloczyn wektorowy (cross product) podanych wektorów. Wynikowy wektor jest prostopadły do obu wektorów,
      * a więc prostopadły do płaszczyzny, w której leżą oba mnożone wektory *-/
     void vector3_cross_product(vector3 *v1_in, vector3 *v2_in, vector3 *v_out);
-    /* Oblicza iloczyn skalarny (dot product) wektorów. Jest to skalar *-/
+    /-* Oblicza iloczyn skalarny (dot product) wektorów. Jest to skalar *-/
     REAL vector3_dot_product(vector3 *v1, vector3 *v2);
-    /* Oblicza skalarny iloczyn mieszany trzech wektorów: u * (v x w). Jest to skalar *-/
+    /-* Oblicza skalarny iloczyn mieszany trzech wektorów: u * (v x w). Jest to skalar *-/
     REAL vector3_triple_dot_product(vector3 *u, vector3 *v, vector3 *w);
 
 
@@ -57,35 +57,35 @@ namespace Tilc
     void vector3_set_f(REAL v[3], REAL x, REAL y, REAL z);
     // kopiuje składowe wektora v_source do wektora v
     void vector3_set_fv(REAL v[3], REAL v_source[3]);
-    /* oblicza wartość skalarną wektora *-/
+    /-* oblicza wartość skalarną wektora *-/
     REAL vector3_magnitude_fv(REAL v[3]);
-    /* normalizuje podany wektor, czyli zamienia go w wektor tak samo skierowany, ale o wartości skalarnej równej 1 *-/
+    /-* normalizuje podany wektor, czyli zamienia go w wektor tak samo skierowany, ale o wartości skalarnej równej 1 *-/
     void vector3_normalize_fv(REAL v[3]);
-    /* zwraca wektor przeciwny do podanego *-/
+    /-* zwraca wektor przeciwny do podanego *-/
     void vector3_reverse_fv(REAL v_in[3], REAL v_out[3]);
-    /* dodawanie wektorów *-/
+    /-* dodawanie wektorów *-/
     void vector3_add_fv(REAL v1_in[3], REAL v2_in[3], REAL v_out[3]);
-    /* odejmowanie wektorów *-/
+    /-* odejmowanie wektorów *-/
     void vector3_sub_fv(REAL v1_in[3], REAL v2_in[3], REAL v_out[3]);
-    /* mnożenie wektora przez skalar *-/
+    /-* mnożenie wektora przez skalar *-/
     void vector3_mul_fv(REAL v[3], REAL s);
-    /* dzielenie wektora przez skalar *-/
+    /-* dzielenie wektora przez skalar *-/
     void vector3_div_fv(REAL v[3], REAL s);
-    /* zmiana znaku wektora *-/
+    /-* zmiana znaku wektora *-/
     void vector3_neg_fv(REAL v[3]);
-    /* mnoży oba wektory *-/
+    /-* mnoży oba wektory *-/
     void vector3_mul_vector3_fv(REAL output[3], REAL v1[3], REAL v2[3]);
 
-    /* Oblicza iloczyn wektorowy (cross product) podanych wektorów. Wynikowy wektor jest prostopadły do obu wektorów,
+    /-* Oblicza iloczyn wektorowy (cross product) podanych wektorów. Wynikowy wektor jest prostopadły do obu wektorów,
      * a więc prostopadły do płaszczyzny, w której leżą oba mnożone wektory *-/
     void vector3_cross_product_fv(REAL v1_in[3], REAL v2_in[3], REAL v_out[3]);
-    /* Oblicza iloczyn skalarny (dot product) wektorów. Jest to skalar *-/
+    /-* Oblicza iloczyn skalarny (dot product) wektorów. Jest to skalar *-/
     REAL vector3_dot_product_fv(REAL v1[3], REAL v2[3]);
-    /* Oblicza skalarny iloczyn mieszany trzech wektorów: u * (v x w). Jest to skalar *-/
+    /-* Oblicza skalarny iloczyn mieszany trzech wektorów: u * (v x w). Jest to skalar *-/
     REAL vector3_triple_dot_product_fv(REAL u[3], REAL v[3], REAL w[3]);
 
 
-    /* Ustawia współrzędne z na podaną wartość we wszystkich punktach (x,y,z) tablicy *-/
+    /-* Ustawia współrzędne z na podaną wartość we wszystkich punktach (x,y,z) tablicy *-/
     void set_z_coordinate_of_points_array(REAL z, REAL *coords, unsigned long coords_size);
 
     // **************************** UWAGA **********************************
@@ -152,7 +152,7 @@ namespace Tilc
     // fovy - kąt w stopniach widzenia sceny przez obserwatora
     void get_perspective_matrix(REAL *output_matrix, REAL fovy, REAL aspect, REAL near, REAL far);
 
-    /* -> mało optymalna funkcja
+    /-* -> mało optymalna funkcja
     void get_lookat_matrix(REAL *output_matrix, REAL eye_x, REAL eye_y, REAL eye_z,
                             REAL center_x, REAL center_y, REAL center_z,
                             REAL up_x, REAL up_y, REAL up_z);
@@ -179,7 +179,7 @@ namespace Tilc
     void get_normal(point3 *p1, point3 *p2, point3 *p3, vector3 *v_result);
     void get_normal_fv(const REAL p1[3], const REAL p2[3], const REAL p3[3], REAL result[3]);
 
-    /* Zwraca 1 jeśli odcinek opisany przez punkt początkowy o i wektor kierunkowy d przecina
+    /-* Zwraca 1 jeśli odcinek opisany przez punkt początkowy o i wektor kierunkowy d przecina
      * trójkąt opisany wierzchołkami v0, v1, v2.
      * Uwaga! w aktualnej wersji funkcja ta zwraca nieprawidłowe wyniki, należy ją jeszcze sprawdzić i poprawić.
      *-/

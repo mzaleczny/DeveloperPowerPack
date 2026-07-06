@@ -146,7 +146,7 @@ Tilc::Gui::TMenu::TMenu(TGuiControl* parent, const Tilc::TExtString& name, const
 		a = 255;
 		SetColor(r, g, b, a);
 
-		HexColor = MenuItemColorHover, Byte;
+		HexColor = MenuItemColorHover;
 		if (HexColor[0] == '#') HexColor = HexColor.substr(1);
 		Byte = HexColor.substr(0, 2);
 		r = std::stoi(Byte, 0, 16);

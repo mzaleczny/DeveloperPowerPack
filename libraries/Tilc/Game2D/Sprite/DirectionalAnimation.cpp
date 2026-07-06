@@ -26,14 +26,16 @@ void Tilc::Game2D::Sprite::TDirectionalAnimation::FrameStep()
 
 void Tilc::Game2D::Sprite::TDirectionalAnimation::CropSprite()
 {
-	int FrameStep = 0;
+	int FrameStep;
 	switch (m_SpriteSheet->GetDirection())
 	{
 	case EDirection::Left:
 		FrameStep = -1;
 	case EDirection::Right:
 		FrameStep = 1;
-	}
+    default:
+        FrameStep = 0;
+    }
 	SDL_Rect SpriteRect = m_SpriteSheet->GetSpriteDestRect();
 	SDL_Rect Rect = {
 		SpriteRect.w * m_FrameCurrent,

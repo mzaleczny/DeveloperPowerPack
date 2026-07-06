@@ -13,7 +13,7 @@ namespace Tilc::Game2D::Sprite
 	public:
 		TEnemy();
 		~TEnemy();
-		void OnEntityCollision(TEntityBase* Collider, bool Attack);
+        virtual void OnEntityCollision(TEntityBase* Collider, bool Attack) override;
 		virtual void Update(float DeltaTime) override;
 	private:
 		Tilc::TVector2D<float> m_Destination;

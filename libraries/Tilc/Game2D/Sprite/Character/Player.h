@@ -13,7 +13,7 @@ namespace Tilc::Game2D::Sprite
 	public:
 		TPlayer();
 		~TPlayer();
-		void OnEntityCollision(TEntityBase* Collider, bool Attack);
+		virtual void OnEntityCollision(TEntityBase* Collider, bool Attack) override;
 		void InputHandler(TEventDetails* Details);
 	};
 }

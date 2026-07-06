@@ -153,7 +153,7 @@ void Tilc::TCFile::WriteContent(const Tilc::TExtString& Content)
 
 void Tilc::TCFile::OpenFile(const char* FileName, const char* OpenMode)
 {
-    m_File = fopen(FileName, OpenMode);
+    fopen_s(&m_File, FileName, OpenMode);
     if (!m_File)
     {
         std::cerr << "Error! Could not open file " << FileName << std::endl;
@@ -178,9 +178,10 @@ Tilc::TExtString Tilc::GetAppDataFolder()
 #else
     constexpr const char* HOME = "HOME";
 #endif
-
-    if (!getenv(HOME)) return ".";
-    Tilc::TExtString HomeDir = getenv(HOME);
+    char* buf;
+    size_t bufsize;
+    _dupenv_s(&buf, &bufsize, HOME);
+    Tilc::TExtString HomeDir = buf;
 
 #ifdef _WINDOWS
     HomeDir += "\\AppData\\Local";
@@ -199,8 +200,10 @@ Tilc::TExtString Tilc::GetTmpFolder()
     constexpr const char* HOME = "HOME";
 #endif
 
-    if (!getenv(HOME)) return ".";
-    Tilc::TExtString HomeDir = getenv(HOME);
+    char* buf;
+    size_t bufsize;
+    _dupenv_s(&buf, &bufsize, HOME);
+    Tilc::TExtString HomeDir = buf;
 
 #ifdef _WINDOWS
     HomeDir += "\\AppData\\Local\\Temp";

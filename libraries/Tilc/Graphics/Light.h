@@ -30,6 +30,8 @@ namespace Tilc::Graphics
 			: m_AmbientColor(AmbientColor), m_DiffuseColor(DiffuseColor), m_SpecularColor(SpecularColor)
 		{
 		}
+        virtual ~TLight() {}
+
 		void SetProperties(const TVector3D<float>& AmbientColor, const TVector3D<float>& DiffuseColor, const TVector3D<float>& SpecularColor)
 		{
 			m_AmbientColor = AmbientColor;

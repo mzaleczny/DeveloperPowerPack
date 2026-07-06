@@ -444,11 +444,6 @@ Tilc::TExtString Tilc::TStdObject::toJson(const Tilc::TExtString& quote)
     Tilc::TExtString json = "";
     Tilc::TStdObjectProperty *root;
 
-    if (!this)
-    {
-        return json;
-    }
-
     this->_quote = quote;
     if (this->_properties.size() > 0)
     {

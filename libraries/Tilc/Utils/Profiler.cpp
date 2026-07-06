@@ -63,7 +63,7 @@ void Tilc::TProfiler::Begin(const char* name)
 
     while (i < m_NumProfileSamples  && m_Samples[i].m_Valid == 1)
     {
-        if (m_Samples[i].m_Name == name)
+        if (strcmp(m_Samples[i].m_Name, name) == 0)
         {
             // Found the sample
             ++m_Samples[i].m_OpenProfiles;
@@ -81,7 +81,7 @@ void Tilc::TProfiler::Begin(const char* name)
         return;
     }
 
-    m_Samples[i].m_Name = name;
+    strcpy_s(m_Samples[i].m_Name, 255, name);
     m_Samples[i].m_Valid = 1;
     m_Samples[i].m_OpenProfiles = 1;
     m_Samples[i].m_ProfileInstances = 1;
@@ -99,7 +99,7 @@ void Tilc::TProfiler::End(const char* name)
 
     while (i < m_NumProfileSamples  && m_Samples[i].m_Valid == 1)
     {
-        if (m_Samples[i].m_Name == name)
+        if (strcmp(m_Samples[i].m_Name, name) == 0)
         {
             //Found the sample
             unsigned int Inner = 0;
@@ -140,7 +140,7 @@ void Tilc::TProfiler::End(const char* name)
             m_Samples[i].m_Accumulator += Tm;
 
             // update history
-            UpdateProfileHistory(m_Samples[i].m_Name.c_str(), Tm);
+            UpdateProfileHistory(m_Samples[i].m_Name, Tm);
             return;
         }
         ++i;
@@ -178,7 +178,7 @@ void Tilc::TProfiler::DumpToBuffer(Tilc::TExtString& Buffer)
         total_time = m_EndProfileTime - m_StartProfileTime;
         sample_time = m_Samples[i].m_Accumulator - m_Samples[i].m_ChildrenSampleTime;
         total_sample_time = m_Samples[i].m_Accumulator;
-        GetProfileFromHistory(m_Samples[i].m_Name.c_str(), &ave_time, &min_time, &max_time, &sum_time, &samples_count);
+        GetProfileFromHistory(m_Samples[i].m_Name, &ave_time, &min_time, &max_time, &sum_time, &samples_count);
 
         //Format the data
         os << std::setw(12) << ave_time << " |";
@@ -228,7 +228,7 @@ void Tilc::TProfiler::UpdateProfileHistory(const char* name, time_t Tm)
 
     while (i < m_NumProfileSamples && m_History[i].m_Valid == 1)
     {
-        if (m_History[i].m_Name == name) // Found the sample
+        if (strcmp(m_History[i].m_Name, name) == 0) // Found the sample
         {
             m_History[i].m_Sum += Tm;
             m_History[i].m_SamplesCount += 1;
@@ -251,7 +251,7 @@ void Tilc::TProfiler::UpdateProfileHistory(const char* name, time_t Tm)
 
     if (i < m_NumProfileSamples) // Add to history
     {
-        m_History[i].m_Name = name;
+        strcpy_s(m_History[i].m_Name, 255, name);
         m_History[i].m_Valid = 1;
         m_History[i].m_Sum = m_History[i].m_Ave = m_History[i].m_Min = m_History[i].m_Max = Tm;
         m_History[i].m_SamplesCount = 1;
@@ -267,7 +267,7 @@ void Tilc::TProfiler::GetProfileFromHistory(const char* name, time_t* ave, time_
     unsigned int i = 0;
     while (i < m_NumProfileSamples && m_History[i].m_Valid == 1)
     {
-        if (m_History[i].m_Name == name)  // Found the sample
+        if (strcmp(m_History[i].m_Name, name) == 0)  // Found the sample
         {
             *ave = m_History[i].m_Ave;
             *min = m_History[i].m_Min;

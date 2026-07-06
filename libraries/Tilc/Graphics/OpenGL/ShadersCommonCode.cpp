@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Tilc/Graphics/OpenGL/ShadersCommonCode.h"
 
 unsigned int TextureTypeOffset = 2;
