@@ -47,6 +47,7 @@ namespace Tilc
 
 		static int LettersArray[];
 
+		TExtString(char const * const s) { assign(s); }
 		TExtString(const std::string& s) { assign(s.c_str()); }
 		TExtString(const std::wstring& Source, unsigned int CodePage) { FromWideString(Source, CodePage); }
 		TExtString(const wchar_t* Source, size_t SourceLength, unsigned int CodePage) { FromWideString(Source, SourceLength, CodePage); }
