@@ -305,7 +305,7 @@ Tilc::TExtString Tilc::GetFileExt(const Tilc::TExtString& Path)
 
 unsigned long Tilc::AppendToFile(const TExtString& fname, const TExtString& Content)
 {
-    Tilc::TFile File(fname.c_str(), static_cast<std::ios_base::openmode>(std::ios::binary | std::ios::end));
+    Tilc::TFile File(fname.c_str(), static_cast<std::ios_base::openmode>(std::ios::binary) | static_cast<std::ios_base::openmode>(std::ios::end));
     File.AppendContent(Content);
     return Content.size();
 }

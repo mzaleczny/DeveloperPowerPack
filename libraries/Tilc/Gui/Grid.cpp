@@ -3,18 +3,14 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Game.h"
-#include "Tilc/Gui/Scrollbar.h"
-#include "Tilc/Gui/ScrollbarVertical.h"
-#include "Tilc/Gui/ScrollbarHorizontal.h"
+#include "Tilc/Gui/ScrollBar.h"
+#include "Tilc/Gui/ScrollBarVertical.h"
+#include "Tilc/Gui/ScrollBarHorizontal.h"
 #include "Tilc/Gui/TextField.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/Cursor.h"
 #include "Tilc/Utils/FileUtils.h"
-/*
-#include "mzImageList.h"
-#include "mzMessages.h"
-#include "mzStdDialogs.h"
-*/
+#include <algorithm>
 #include <ranges>
 
 Tilc::Gui::TGridCell::TGridCell(const Tilc::TExtString& value, SDL_Point size, bool isHeader, bool selected)
