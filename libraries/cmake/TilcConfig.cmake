@@ -41,7 +41,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
     set(TilcBuildDir "${CMAKE_CURRENT_LIST_DIR}/../out/build/${BinDir}")
     set(TILC_LIBRARY "${TilcBuildDir}/${LibName}Shared${LibSuffix}.lib")
-    set(ASSIMP_LIBRARY "assimp-vc145-mt${LibSuffix}")
+    set(ASSIMP_LIBRARY "assimp${LibSuffix}")
 endif()
 
 
@@ -89,7 +89,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
     add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
 	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/TilcShared${LibSuffix}.dll"
-	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp-vc145-mt${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/assimp-vc145-mt${LibSuffix}.dll"
+	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/assimp${LibSuffix}.dll"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/SDL3_image.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_image.dll"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/SDL3_mixer.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_mixer.dll"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/SDL3_ttf.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_ttf.dll"
