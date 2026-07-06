@@ -1,0 +1,1 @@
+#cmakedefine FORCE_OPENGL_ES @FORCE_OPENGL_ES@
