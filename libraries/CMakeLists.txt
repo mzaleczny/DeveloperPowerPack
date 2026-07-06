@@ -337,6 +337,8 @@ endif()
 message("***********************************************************************")
 message("Checking for **SDL3_image** and downloading it when no found")
 message("***********************************************************************")
+set(SDLIMAGE_ZLIB_VENDORED ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_AVOID_EXTERNAL_ZLIB OFF CACHE BOOL "" FORCE)
 # Jeśli to Linux, to wymuszamy systemową zlib przed pobraniem sdl3_image, bo z tą sdl_image-src/external są problemy
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(ZLIB_ROOT "/usr" CACHE PATH "" FORCE)
@@ -394,6 +396,11 @@ if(NOT TARGET SDL3_image::SDL3_image)
         # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
         set(ZLIB_INCLUDE_DIR "${external_sdl3_image_BINARY_DIR}/external/zlib" CACHE PATH "" FORCE)
         set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
+        if(NOT TARGET ZLIB::ZLIB)
+            message(STATUS "Fallback: building our own zlib")
+            add_subdirectory("${external_sdl3_image_SOURCE_DIR}/external/zlib")
+            add_library(ZLIB::ZLIB ALIAS zlibstatic)
+        endif()
     endif()
 else()
     # Our own zlib we add/download only if SDL_image was not donloaded because it requires its inner zlib
@@ -635,7 +642,10 @@ set_target_properties(${PROJECT_NAME}_compiler_flags PROPERTIES CXX_EXTENSIONS O
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(SetSubsystem "")
 else()
-    set(SetSubsystem "/SUBSYSTEM:WINDOWS")
+    # if current system is windows and compiler is not clang then set subsystem
+    if (NOT (CLANG_C_COMPILER AND CLANG_CXX_COMPILER))
+        set(SetSubsystem "/SUBSYSTEM:WINDOWS")
+    endif()
 endif()
 
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
