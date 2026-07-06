@@ -3,6 +3,30 @@ cmake_minimum_required(VERSION 3.28.0)
 # set the project name and version
 project(Tilc VERSION 1.0)
 
+
+################################################
+# Include configuration settings
+################################################
+include(TilcConfigure.cmake)
+################################################
+
+################################################
+## Prefer Clang if present
+################################################
+find_program(CLANG_C_COMPILER NAMES clang)
+find_program(CLANG_CXX_COMPILER NAMES clang++)
+
+if (CLANG_C_COMPILER AND CLANG_CXX_COMPILER)
+    message(STATUS "Clang found ${CLANG_C_COMPILER}, ${CLANG_CXX_COMPILER}")
+    set(CMAKE_C_COMPILER "${CLANG_C_COMPILER}" CACHE FILEPATH "" FORCE)
+    set(CMAKE_CXX_COMPILER "${CLANG_CXX_COMPILER}" CACHE FILEPATH "" FORCE)
+else()
+    message(STATUS "Clang not found, using default compiler")
+endif()
+################################################
+################################################
+
+
 set(LOCAL_CACHE_DIR "${CMAKE_SOURCE_DIR}/.cache")
 set(LOCAL_CACHE_DIR_SDL3 "${LOCAL_CACHE_DIR}/SDL3")
 set(LOCAL_CACHE_DIR_SDL3_image "${LOCAL_CACHE_DIR}/SDL3_image")
