@@ -72,6 +72,7 @@ void Tilc::Gui::TOption::Draw()
         }
     }
     Position.x += x;
+    t->DefaultFont->SetColor({ 255, 255, 255, 255 });
     t->DefaultFont->DrawString(GetRenderer(), m_Text.c_str(), &Position, Align_CenterVertical | Align_Left);
     // ================================================================
     // ================================================================
