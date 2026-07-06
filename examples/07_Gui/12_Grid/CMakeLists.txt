@@ -2,6 +2,22 @@ cmake_minimum_required(VERSION 3.29)
 
 project(12_Grid VERSION 1.0)
 
+################################################
+## Prefer Clang if present
+################################################
+find_program(CLANG_C_COMPILER NAMES clang)
+find_program(CLANG_CXX_COMPILER NAMES clang++)
+
+if (CLANG_C_COMPILER AND CLANG_CXX_COMPILER)
+    message(STATUS "Clang found ${CLANG_C_COMPILER}, ${CLANG_CXX_COMPILER}")
+    set(CMAKE_C_COMPILER "${CLANG_C_COMPILER}" CACHE FILEPATH "" FORCE)
+    set(CMAKE_CXX_COMPILER "${CLANG_CXX_COMPILER}" CACHE FILEPATH "" FORCE)
+else()
+    message(STATUS "Clang not found, using default compiler")
+endif()
+################################################
+################################################
+
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../../../libraries/cmake")
 find_package(Tilc REQUIRED)
 
@@ -17,7 +33,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(SetSubsystem "")
 else()
-    set(SetSubsystem "/SUBSYSTEM:CONSOLE")
+    # if current system is windows and compiler is not clang then set subsystem
+    if (NOT (CLANG_C_COMPILER AND CLANG_CXX_COMPILER))
+        set(SetSubsystem "/SUBSYSTEM:CONSOLE")
+    endif()
 endif()
 #set(SetSubsystem "/SUBSYSTEM:WINDOWS")
 
