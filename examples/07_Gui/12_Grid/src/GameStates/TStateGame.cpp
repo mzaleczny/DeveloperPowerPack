@@ -27,11 +27,26 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     float x = 20.0f;
     float y = 30.0f;
     Tilc::Gui::TStyledWindow* wnd = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
-    Tilc::Gui::TGrid* Grid = new Tilc::Gui::TGrid(wnd, "grid", { x, y, 800, 500 }, 25, 25);
+    Tilc::Gui::TGrid* Grid = new Tilc::Gui::TGrid(wnd, "grid", { x, y, 1160, 500 }, 26, 25);
     if (Grid)
     {
         wnd->SetActiveControl(Grid);
     }
+
+    x = 20.0f;
+    y = 540.0f;
+    Tilc::Gui::TCheckbox* chk1 = new Tilc::Gui::TCheckbox(wnd, "chk1", { x, y, 100, 100 }, "Checkbox aligned to left in state CHECKED", "Checkbox aligned to left in state UNCHECKED", true);
+    Tilc::Gui::TCheckbox* chk2 = new Tilc::Gui::TCheckbox(wnd, "chk2", { x, y + 30, 100, 100 }, "Checkbox aligned to right in state CHECKED", "Checkbox aligned to right in state UNCHECKED", false, Tilc::Gui::CONTROL_TEXT_PLACEMENT_LEFT);
+
+    Tilc::Gui::TOption* opt1 = new Tilc::Gui::TOption(wnd, "opt1", { x + 400, y, 100, 100 }, "Option aligned to left in state CHECKED", "Option aligned to left in state UNCHECKED", true, Tilc::Gui::CONTROL_TEXT_PLACEMENT_LEFT);
+    Tilc::Gui::TOption* opt2 = new Tilc::Gui::TOption(wnd, "opt2", { x + 400, y + 30, 100, 100 }, "Option aligned to left in state CHECKED", "Option aligned to left in state UNCHECKED", false, Tilc::Gui::CONTROL_TEXT_PLACEMENT_LEFT);
+    Tilc::Gui::TOption* opt3 = new Tilc::Gui::TOption(wnd, "opt3", { x + 400, y + 60, 100, 100 }, "Option aligned to left in state CHECKED", "Option aligned to left in state UNCHECKED", false, Tilc::Gui::CONTROL_TEXT_PLACEMENT_LEFT);
+    Opts1.AddOptions({ opt1, opt2, opt3 });
+
+    Tilc::Gui::TOption* opt4 = new Tilc::Gui::TOption(wnd, "opt4", { x + 800, y, 100, 100 }, "Option aligned to right in state CHECKED", "Option aligned to right in state UNCHECKED", true, Tilc::Gui::CONTROL_TEXT_PLACEMENT_RIGHT);
+    Tilc::Gui::TOption* opt5 = new Tilc::Gui::TOption(wnd, "opt5", { x + 800, y + 30, 100, 100 }, "Option aligned to right in state CHECKED", "Option aligned to right in state UNCHECKED", false, Tilc::Gui::CONTROL_TEXT_PLACEMENT_RIGHT);
+    Tilc::Gui::TOption* opt6 = new Tilc::Gui::TOption(wnd, "opt6", { x + 800, y + 60, 100, 100 }, "Option aligned to right in state CHECKED", "Option aligned to right in state UNCHECKED", false, Tilc::Gui::CONTROL_TEXT_PLACEMENT_RIGHT);
+    Opts2.AddOptions({ opt4, opt5, opt6 });
 }
 
 TStateGame::~TStateGame()
@@ -79,7 +94,7 @@ void TStateGame::Draw()
 {
 	static Tilc::TWindow* Window = Tilc::GameObject->GetContext()->m_Window;
 	static SDL_Renderer* Renderer = Window->GetRenderer();
-
+    
     SDL_RenderClear(Renderer);
     Window->m_TopmostWindow->Draw();
 }
