@@ -35,11 +35,11 @@ namespace Tilc
 Tilc::TGame::TGame(EGameType GameType)
 	: m_GameType(GameType)
 {
-	WorkingDirectory = std::filesystem::current_path().c_str();
-        if (WorkingDirectory[WorkingDirectory.length()-1] != '/')
-        {
-            WorkingDirectory += "/";
-        }
+	WorkingDirectory = std::filesystem::current_path().string();
+    if (WorkingDirectory[WorkingDirectory.length()-1] != '/')
+    {
+        WorkingDirectory += "/";
+    }
 	Loc = new TLocalization();
 	if (Loc)
 	{
