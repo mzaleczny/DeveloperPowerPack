@@ -18,23 +18,28 @@
 #include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
 #ifdef WIN32
-    #ifndef Emscripten
-        #include "Tilc/OS/Windows/Gui/Clipboard.h"
-    #endif
+#include "Tilc/OS/Windows/Gui/Clipboard.h"
 #endif
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <sstream>
 #include <fstream>
+#include <filesystem>
 
 namespace Tilc
 {
 	DECLSPEC TGame* GameObject = nullptr;
+	DECLSPEC Tilc::TExtString WorkingDirectory = "./";
 }
 
 Tilc::TGame::TGame(EGameType GameType)
 	: m_GameType(GameType)
 {
+	WorkingDirectory = std::filesystem::current_path().c_str();
+        if (WorkingDirectory[WorkingDirectory.length()-1] != '/')
+        {
+            WorkingDirectory += "/";
+        }
 	Loc = new TLocalization();
 	if (Loc)
 	{
@@ -143,7 +148,7 @@ void Tilc::TGame::LoadFontsFromConfig(Tilc::TExtString FontResource)
     std::ifstream FontsConfigFile(FontResource);
     if (!FontsConfigFile.is_open())
     {
-        std::cout << "File data/Fonts.cfg not exists. Skipping..." << std::endl;
+        std::cout << "File " << FontResource << " not exists.Skipping..." << std::endl;
         return;
     }
 

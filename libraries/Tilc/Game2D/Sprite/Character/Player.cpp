@@ -7,7 +7,7 @@
 
 Tilc::Game2D::Sprite::TPlayer::TPlayer()
 {
-	Load("data/Player.char");
+	Load(Tilc::WorkingDirectory + "/data/Player.char");
 	m_Type = EEntityType::Player;
 	TEventManager* EventManager = GameObject->GetContext()->m_EventManager;
 	if (EventManager)

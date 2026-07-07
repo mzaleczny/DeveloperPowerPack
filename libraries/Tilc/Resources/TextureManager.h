@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tilc/DllGlobals.h"
+#include "Tilc/Game.h"
 #include "Tilc/Resources/ResourceManager.h"
 #include <SDL3/SDL.h>
 #define GLAD_GL_IMPLEMENTATION
@@ -61,7 +62,7 @@ namespace Tilc::Resources
 	class DECLSPEC TTextureManager : public TResourceManager<TTextureManager, TResourceTexture>
 	{
 	public:
-		TTextureManager(const std::string& PathsFileName = "data/Resources.cfg") : TResourceManager(PathsFileName) {}
+		TTextureManager(const std::string& PathsFileName = Tilc::WorkingDirectory + "data/Resources.cfg") : TResourceManager(PathsFileName) {}
 		TResourceTexture* Load(const TResourceInfo& ResourceInfo);
         // Rasterization width and height are taken in account for svg files.
 		TResourceTexture* LoadFromFile(const Tilc::TExtString& FileName, const Tilc::TExtString& ResourceType, int RasterizationWidth = -1, int RasterizationHeight = -1);

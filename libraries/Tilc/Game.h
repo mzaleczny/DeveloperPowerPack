@@ -42,6 +42,8 @@ namespace Tilc
         class TTheme;
 	}
 
+	extern DECLSPEC TExtString WorkingDirectory;
+
 	struct DECLSPEC TSharedContext
 	{
 		TSharedContext()
@@ -89,7 +91,7 @@ namespace Tilc
 
 		virtual void OnInitialize()
         {
-            LoadFontsFromConfig("data/Fonts.cfg");
+            LoadFontsFromConfig(WorkingDirectory + "data/Fonts.cfg");
         };
 		void Update();
 		virtual void Render();

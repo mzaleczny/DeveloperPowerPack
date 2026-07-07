@@ -11,12 +11,20 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 		SDL_Log("Error: GameObject is not created!");
 		return SDL_APP_FAILURE;
 	}
+	//else
+	//{
+	//	SDL_Log("GameObject created!");
+	//}
 
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
 		return SDL_APP_FAILURE;
 	}
+	//else
+	//{
+	//	SDL_Log("SDL_Init() succeeded!");
+	//}
 
 	/* Initialize the TTF library */
 	if (!TTF_Init())
@@ -24,12 +32,20 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 		SDL_Log("Couldn't initialize TTF: %s", SDL_GetError());
 		return SDL_APP_FAILURE;
 	}
+	//else
+	//{
+	//	SDL_Log("TTF_Init() succeeded!");
+	//}
 
     if (!MIX_Init())
     {
         SDL_Log("Couldn't init SDL_mixer library: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
+	//else
+	//{
+	//	SDL_Log("MIX_Init() succeeded!");
+	//}
 
 	Tilc::GameObject->m_Window = new Tilc::TWindow(WindowTitle, WindowWidth, WindowHeight, Flags, WithGLContext);
 	if (!Tilc::GameObject->m_Window)
@@ -37,13 +53,19 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 		SDL_Log("Error: Could not create Window");
 		return SDL_APP_FAILURE;
 	}
+	//else
+	//{
+	//	SDL_Log("Window created!");
+	//}
 
     TSharedContext* ctx = Tilc::GameObject->GetContext();
 	ctx->m_Window = Tilc::GameObject->m_Window;
 	ctx->m_EventManager = Tilc::GameObject->m_Window->GetEventManager();
     ctx->m_TextureManager = new Tilc::Resources::TTextureManager(ResourcesDataFile);
-    ctx->m_Theme = new Tilc::Gui::TTheme(DefaultThemeName);
+    SDL_Log("Before theme load, trying to load: %s", DefaultThemeName.c_str());
+	ctx->m_Theme = new Tilc::Gui::TTheme(DefaultThemeName);
     ctx->m_Theme->Load();
+	SDL_Log("After theme load");
 
     /* Create a mixer on the default audio device. Don't care about the specific audio format. */
     ctx->m_MixMixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
@@ -51,6 +73,10 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
     {
         SDL_Log("Couldn't create mixer on default device: %s", SDL_GetError());
     }
+	else
+	{
+		SDL_Log("Mixer created!");
+	}
 
 	if (Tilc::GameObject->m_GameType == Tilc::EGameType::Game2D)
 	{
@@ -83,7 +109,9 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 		}
 	}
 
+	SDL_Log("Calling Game OnInitialize()");
 	Tilc::GameObject->OnInitialize();
+	SDL_Log("After calling Game OnInitialize()");
 
 	return SDL_APP_CONTINUE;
 }

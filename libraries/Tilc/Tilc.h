@@ -82,6 +82,6 @@
 
 namespace Tilc
 {
-	DECLSPEC SDL_AppResult InitTilc(const Tilc::TExtString& WindowTitle, const unsigned int WindowWidth, const unsigned int WindowHeight, int Flags, bool WithGLContext, const Tilc::TExtString& ResourcesDataFile = "data/Resources.cfg", const Tilc::TExtString& DefaultThemeName = "Blue");
+	DECLSPEC SDL_AppResult InitTilc(const Tilc::TExtString& WindowTitle, const unsigned int WindowWidth, const unsigned int WindowHeight, int Flags, bool WithGLContext, const Tilc::TExtString& ResourcesDataFile = Tilc::WorkingDirectory + "data/Resources.cfg", const Tilc::TExtString& DefaultThemeName = "Blue");
 	DECLSPEC void CleanupTilc();
 }

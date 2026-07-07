@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cstring>
 #include <assert.h>
+#include <algorithm>
 #include "Tilc/Utils/Profiler.h"
 
 
@@ -81,7 +82,9 @@ void Tilc::TProfiler::Begin(const char* name)
         return;
     }
 
-    strcpy_s(m_Samples[i].m_Name, 255, name);
+    size_t len = strlen(name);
+    if (len > 255) len = 255;
+    std::copy(name, name + len, m_Samples[i].m_Name);
     m_Samples[i].m_Valid = 1;
     m_Samples[i].m_OpenProfiles = 1;
     m_Samples[i].m_ProfileInstances = 1;
@@ -251,7 +254,9 @@ void Tilc::TProfiler::UpdateProfileHistory(const char* name, time_t Tm)
 
     if (i < m_NumProfileSamples) // Add to history
     {
-        strcpy_s(m_History[i].m_Name, 255, name);
+        size_t len = strlen(name);
+        if (len > 255) len = 255;
+        std::copy(name, name + len, m_History[i].m_Name);
         m_History[i].m_Valid = 1;
         m_History[i].m_Sum = m_History[i].m_Ave = m_History[i].m_Min = m_History[i].m_Max = Tm;
         m_History[i].m_SamplesCount = 1;

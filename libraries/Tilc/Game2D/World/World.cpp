@@ -83,7 +83,7 @@ void Tilc::Game2D::TWorld2D::Update(float DeltaTime)
 		m_LoadNextMap = false;
 		if (m_NextMap != "")
 		{
-			LoadLevel(0, "data/maps/" + m_NextMap);
+			LoadLevel(0, Tilc::WorkingDirectory + "data/maps/" + m_NextMap);
 		}
 		else
 		{

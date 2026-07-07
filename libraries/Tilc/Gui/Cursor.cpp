@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 Tilc::Gui::TCursor::TCursor()
 {

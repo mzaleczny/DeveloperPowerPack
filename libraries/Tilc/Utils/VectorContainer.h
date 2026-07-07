@@ -23,15 +23,15 @@ namespace Tilc
         // Jesli m_KeepSorted==true, to zwracany jest indeks elementu znaleziony metoda BinarySearch.
         // Jesli takiego elementu nie ma, to jesli ReturnInsertionIndex == true, to zwracany jest Indeks, na ktorym nalezy dodac ten element zeby wektor nadal byl posortowany.
         // A wprzciwnym razie zwracana jest wartosc MAX oznaczajaca brak elementu w wektorze.
-        size_t BinarySearch(const T& Elem, bool ReturnInsertionIndex = false) const;
+        unsigned long long BinarySearch(const T& Elem, bool ReturnInsertionIndex = false) const;
         // Zwraca indeks elementu w wektorze lub wartosc MAX jesli go tam nie bylo.
-        size_t IndexOf(const T& Elem) const;
+        unsigned long long IndexOf(const T& Elem) const;
         // zwraca true jesli Element jest w wektorze.
         bool Contains(const T& Elem) const { return IndexOf(Elem) < Tilc::UINT_LONGLONG_MAX; }
         // usuwa pierwszy element w wektorze
         bool Remove(T First)
         {
-            size_t Index = IndexOf(First);
+            unsigned long long Index = IndexOf(First);
             if (Index == Tilc::UINT_LONGLONG_MAX) return false;
             std::vector<T>::erase(std::vector<T>::begin() + Index);
             return true;
@@ -42,7 +42,7 @@ namespace Tilc
             return (*this)[this->size()-1];
         }
         // Usuwa wszystkie wystapienia danej wartosci. Zwraca ilosc usunietych elementow
-        size_t RemoveAll(T Elem);
+        unsigned long long RemoveAll(T Elem);
         // Zwraca string z wszystkimi wartosciami wektora rozdzielonymi przecinkami.
         Tilc::TExtString GetString() const;
         // Ustawia flage czy wektor ma byc posortowany czy nie. Jesli ustawiono ta flage, to dodatkow prewencyjnie sortuje wektor.
@@ -63,7 +63,7 @@ namespace Tilc
     {
         // W przeciwnym razie musimy przejrzec potencjalnie caly wektor
         std::cout << "[";
-        for (size_t i = 0; i < v.size(); ++i)
+        for (unsigned long long i = 0; i < v.size(); ++i)
         {
             if (i > 0) std::cout << " ";
             cout << v[i];
@@ -82,7 +82,7 @@ namespace Tilc
             return;
         }
 
-        size_t Index = BinarySearch(Elem, true);
+        unsigned long long Index = BinarySearch(Elem, true);
         if (Index == Tilc::UINT_LONGLONG_MAX)
         {
             std::vector<T>::push_back(Elem);
@@ -94,7 +94,7 @@ namespace Tilc
     }
 
     template <Tilc::Comparable T>
-    size_t Tilc::TExtVectorContainer<T>::BinarySearch(const T& Elem, bool ReturnInsertionIndex) const
+    unsigned long long Tilc::TExtVectorContainer<T>::BinarySearch(const T& Elem, bool ReturnInsertionIndex) const
     {
         // Jesli wektor nie jest posortowany, to zwracamy wartosc oznaczajaca brak elementu
         if (!m_KeepSorted)
@@ -107,10 +107,10 @@ namespace Tilc
             return 0;
         }
 
-        size_t Size = std::vector<T>::size();
-        size_t Left = 0;
-        size_t Right = Size - 1;
-        size_t Mid;
+        unsigned long long Size = std::vector<T>::size();
+        unsigned long long Left = 0;
+        unsigned long long Right = Size - 1;
+        unsigned long long Mid;
         while (Left <= Right)
         {
             Mid = (Left + Right) / 2;
@@ -151,7 +151,7 @@ namespace Tilc
     }
 
     template <Tilc::Comparable T>
-    size_t Tilc::TExtVectorContainer<T>::IndexOf(const T& Elem) const
+    unsigned long long Tilc::TExtVectorContainer<T>::IndexOf(const T& Elem) const
     {
         // Jesli wektor jest posortowany, to znalezienie elementu jest szybkie
         if (m_KeepSorted)
@@ -160,7 +160,7 @@ namespace Tilc
         }
 
         // W przeciwnym razie musimy przejrzec potencjalnie caly wektor
-        for (size_t i = 0; i < std::vector<T>::size(); ++i)
+        for (unsigned long long i = 0; i < std::vector<T>::size(); ++i)
         {
             if ((*this)[i] == Elem)
             {
@@ -171,12 +171,12 @@ namespace Tilc
     }
 
     template <Tilc::Comparable T>
-    size_t Tilc::TExtVectorContainer<T>::RemoveAll(T Elem)
+    unsigned long long Tilc::TExtVectorContainer<T>::RemoveAll(T Elem)
     {
-        size_t Index = IndexOf(Elem);
+        unsigned long long Index = IndexOf(Elem);
         if (Index == Tilc::UINT_LONGLONG_MAX) return 0;
 
-        size_t Count = 0;
+        unsigned long long Count = 0;
         auto it = std::vector<T>::begin() + Index;
         while (it != std::vector<T>::end())
         {
@@ -194,7 +194,7 @@ namespace Tilc
     Tilc::TExtString Tilc::TExtVectorContainer<T>::GetString() const
     {
         Tilc::TExtString s;
-        for (size_t i = 0; i < std::vector<T>::size(); ++i)
+        for (unsigned long long i = 0; i < std::vector<T>::size(); ++i)
         {
             if (s != "")
             {

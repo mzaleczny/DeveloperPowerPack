@@ -372,10 +372,10 @@ void Tilc::TEventManager::LoadBindings()
 {
 	Tilc::TExtString Delimiter = ":";
 	std::ifstream BindingsFile;
-	BindingsFile.open("data/Keys.cfg");
+	BindingsFile.open(Tilc::WorkingDirectory + "data/Keys.cfg");
 	if (!BindingsFile.is_open())
 	{
-		std::cout << "File data/Keys.cfg not exists. Skipping..." << std::endl;
+		std::cout << "File " << Tilc::WorkingDirectory << "data/Keys.cfg not exists. Skipping..." << std::endl;
 		return;
 	}
 

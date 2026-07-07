@@ -23,25 +23,38 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
         name = m_ThemeName;
     }
 
-    Tilc::TExtString ThemeDir{ "assets/themes/" + name};
+    Tilc::TExtString ThemeDir{ Tilc::WorkingDirectory + "assets/themes/" + name};
     Tilc::TExtString Filename{ "GUI.png"};
+    SDL_Log("Checking for: %s", (ThemeDir + "/" + Filename).c_str());
     if (!FileExists(ThemeDir + "/" + Filename))
     {
-        ThemeDir = "../assets/themes/" + name;
-    }
-    if (!FileExists(ThemeDir + "/" + Filename))
-    {
-        ThemeDir = "../../assets/themes/" + name;
+        SDL_Log("File %s does not extsts.", (ThemeDir + "/" + Filename).c_str());
+        ThemeDir = Tilc::WorkingDirectory + "../assets/themes/" + name;
+        SDL_Log("Checking for: %s", (ThemeDir + "/" + Filename).c_str());
+        if (!FileExists(ThemeDir + "/" + Filename))
+        {
+            ThemeDir = Tilc::WorkingDirectory + "../../assets/themes/" + name;
+            SDL_Log("Checking for: %s", (ThemeDir + "/" + Filename).c_str());
+            if (!FileExists(Filename))
+            {
+                SDL_Log("File %s does not extsts.", (ThemeDir + "/" + Filename).c_str());
+                ThemeDir = "/assets/themes/" + name;
+                SDL_Log("Checking for: %s", (ThemeDir + "/" + Filename).c_str());
+                if (!FileExists(Filename))
+                {
+                    SDL_Log("File %s does not extsts. Stop trying to find theme skin.", (ThemeDir + "/" + Filename).c_str());
+                    return;
+                }
+            }
+        }
     }
     Filename = ThemeDir + "/GUI.png";
-    if (!FileExists(Filename))
-    {
-        return;
-    }
+    SDL_Log("Skin found in %s", Filename.c_str());
 
     m_ThemeDir = ThemeDir;
     m_ThemeName = name;
 
+    /*
     SDL_Renderer* Renderer = Tilc::GameObject->GetContext()->m_Window->GetRenderer();
     GuiTextureMap1_TMP = Tilc::Graphics::LoadTextureFromFileAsRenderTarget(Renderer, Filename.c_str());
     if (!GuiTextureMap1_TMP) return;
@@ -49,7 +62,7 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
 
     SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
     SDL_SetRenderTarget(Renderer, GuiTextureMap1_TMP);
-  
+    */
 
     LayoutInputStream.open(Filename + ".txt", std::ios::in);
     //this->globalStandardFont = new CFont(NULL, RGB(0, 0, 0), "Verdana", 8);
@@ -73,12 +86,17 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
 
     LayoutInputStream.close();
 
+    /*
     SDL_SetRenderTarget(Renderer, OldRenderTarget);
     Tilc::Graphics::SaveTextureToFile(Renderer, GuiTextureMap1_TMP, (Tilc::GetTmpFolder() + "/GUI.png").c_str());
+    */
 
     Tilc::Resources::TTextureManager* tm = GameObject->GetContext()->m_TextureManager;
+    GuiTextureMap1 = tm->LoadFromFile(Filename.c_str(), "SDL_Texture")->AsSDLTexture();
+    /*
     GuiTextureMap1 = tm->LoadFromFile(Tilc::GetTmpFolder() + "/GUI.png", "SDL_Texture")->AsSDLTexture();
     if (!GuiTextureMap1) return;
+    */
 
     LoadFonts();
 }
