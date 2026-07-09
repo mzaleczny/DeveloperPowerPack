@@ -1,3 +1,4 @@
 #pragma once
 
 #cmakedefine FORCE_OPENGL_ES @FORCE_OPENGL_ES@
+#cmakedefine BUILD_WITH_MYSQL @BUILD_WITH_MYSQL@
