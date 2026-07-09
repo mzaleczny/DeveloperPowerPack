@@ -2,6 +2,7 @@
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Utils/Log.h"
 
+/*
 Tilc::TExtString Tilc::Data::TDBMySQLField::toString()
 {
     return Tilc::TExtString("  m_Type: ") + std::to_string(m_Type) +
@@ -16,7 +17,7 @@ Tilc::TExtString Tilc::Data::TDBMySQLField::toString()
 Tilc::Data::TDBMySQL::TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtString& DbName, const Tilc::TExtString& DbUser, const Tilc::TExtString& DbPasswd)
 	: TDB()
 {
-    /* Open database */
+    // Open database
     Conn = mysql_init(NULL);
     if (!mysql_real_connect(Conn, DbHost.c_str(), DbUser.c_str(), DbPasswd.c_str(), DbName.c_str(), 0, NULL, 0))
     {
@@ -75,7 +76,7 @@ int Tilc::Data::TDBMySQL::Select(const char* Sql, const TDBFieldTypes& FieldType
     int Result;
     int ColumnCount;
 
-    /* Execute SQL statement */
+    // Execute SQL statement
     DataRows.clear();
 
     Stmt = mysql_stmt_init(Conn);
@@ -176,7 +177,7 @@ int Tilc::Data::TDBMySQL::ExecQuery(const char* Sql, const TDBFieldTypes& FieldT
     MYSQL_STMT* Stmt;
     int Result;
 
-    /* Execute SQL statement */
+    // Execute SQL statement
     Stmt = mysql_stmt_init(Conn);
     if (!Stmt)
     {
@@ -289,3 +290,4 @@ void Tilc::Data::TDBMySQL::PrepareInputBindings(MYSQL_STMT* Stmt, const TDBField
         InputBinds.push_back(Bind);
 	}
 }
+*/

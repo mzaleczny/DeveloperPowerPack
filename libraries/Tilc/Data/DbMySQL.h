@@ -1,11 +1,11 @@
 #pragma once
 #include "Db.h"
-#include "mariadb/mysql.h"
+//#include "mariadb/mysql.h"
 #include "Tilc/DllGlobals.h"
 
 namespace Tilc::Data
 {
-
+/*
 	struct DECLSPEC TDBMySQLField
 	{
 		int m_Type;
@@ -48,5 +48,5 @@ namespace Tilc::Data
 		void PrepareInputBindings(MYSQL_STMT* Stmt, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues,
 		    std::vector<MYSQL_BIND>& InputBinds, std::vector<Tilc::Data::TDBMySQLField>& InputBindValues);
 	};
-
+*/
 }
