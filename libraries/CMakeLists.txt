@@ -35,8 +35,7 @@ set(LOCAL_CACHE_DIR_SDL3_mixer "${LOCAL_CACHE_DIR}/SDL3_mixer")
 set(LOCAL_CACHE_DIR_zlib "${LOCAL_CACHE_DIR}/zlib")
 set(LOCAL_CACHE_DIR_glm "${LOCAL_CACHE_DIR}/glm")
 set(LOCAL_CACHE_DIR_assimp "${LOCAL_CACHE_DIR}/assimp")
-set(LOCAL_CACHE_DIR_mariadbconnectorc "${LOCAL_CACHE_DIR}/mariadbconnectorc")
-set(LOCAL_CACHE_DIR_mariadbconnectorcpp "${LOCAL_CACHE_DIR}/mariadbconnectorcpp")
+set(LOCAL_CACHE_DIR_mariadbconnectorcpp "${LOCAL_CACHE_DIR}/mariadb-connector-cpp")
 
 set(TAG_SDL3 "release-3.4.10")
 set(TAG_SDL3_image "release-3.4.4")
@@ -45,8 +44,16 @@ set(TAG_SDL3_mixer "release-3.2.4")
 set(TAG_zlib "v1.3.2")
 set(TAG_glm "1.0.3")
 set(TAG_assimp "v6.0.5")
-set(TAG_mariadbconnectorc "v3.4.9")
-set(TAG_mariadbconnectorcpp "1.1.8")
+
+
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CommonBinDir "Debug")
+    set(TilcBinDir "x64-Debug")
+else()
+    set(CommonBinDir "Release")
+    set(TilcBinDir "x64-Release")
+endif()
+
 
 # Create repos cache for the first build
 if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}")
@@ -173,44 +180,6 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_assimp}")
     execute_process(
         COMMAND git submodule update --init --recursive
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_assimp}"
-    )
-endif()
-#[=[
-if(NOT EXISTS "${LOCAL_CACHE_DIR_mariadbconnectorc}")
-    message(STATUS "Cache mariadb-connector-c not found — cloning...")
-    execute_process(
-        COMMAND git clone --recurse-submodules
-                https://github.com/mariadb-corporation/mariadb-connector-c.git
-                "${LOCAL_CACHE_DIR_mariadbconnectorc}"
-    )
-
-    execute_process(
-        COMMAND git checkout tags/${TAG_mariadbconnectorc}
-        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_mariadbconnectorc}"
-    )
-
-    execute_process(
-        COMMAND git submodule update --init --recursive
-        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_mariadbconnectorc}"
-    )
-endif()
-#]=]
-if(NOT EXISTS "${LOCAL_CACHE_DIR_mariadbconnectorcpp}")
-    message(STATUS "Cache mariadb-connector-cpp not found — cloning...")
-    execute_process(
-        COMMAND git clone --recurse-submodules
-                https://github.com/mariadb-corporation/mariadb-connector-cpp.git
-                "${LOCAL_CACHE_DIR_mariadbconnectorcpp}"
-    )
-
-    execute_process(
-        COMMAND git checkout tags/${TAG_mariadbconnectorcpp}
-        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_mariadbconnectorcpp}"
-    )
-
-    execute_process(
-        COMMAND git submodule update --init --recursive
-        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_mariadbconnectorcpp}"
     )
 endif()
 
@@ -610,116 +579,8 @@ endif()
 
 
 
-#[=[
-message("***********************************************************************")
-message("Checking for **mariadbc** and downloading it when no found")
-message("***********************************************************************")
-FetchContent_Declare(external_mariadbc
-    GIT_REPOSITORY https://github.com/mariadb-corporation/mariadb-connector-c.git
-    GIT_TAG        v3.4.8
-    FIND_PACKAGE_ARGS NAMES mariadbc
-)
-set(WITH_UNIT_TESTS OFF CACHE BOOL "" FORCE)
-set(WITH_SSL OFF CACHE BOOL "" FORCE)
-set(WITH_MSI OFF CACHE BOOL "" FORCE)
-set(WITH_PV OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(external_mariadbc)
-]=]#
 
-if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
-    message("***********************************************************************")
-    message("Checking for **mariadb-connector-cpp** and downloading it when no found")
-    message("***********************************************************************")
-    find_package(MariaDBConnector CONFIG QUIET)
-    if(NOT TARGET MariaDB::mariadbcpp)
-        if(EXISTS "${LOCAL_CACHE_DIR_mariadbconnectorcpp}/CMakeLists.txt")
-            set(FETCHCONTENT_SOURCE_DIR_external_mariadbconnectorcpp "${LOCAL_CACHE_DIR_mariadbconnectorcpp}" CACHE PATH "" FORCE)
-        endif()
-        if(EXISTS "${LOCAL_CACHE_DIR_mariadbconnectorcpp}/CMakeLists.txt")
-            # Użyj cache — bez GIT_REPOSITORY
-            set(external_mariadbconnectorcpp_SOURCE_DIR "${LOCAL_CACHE_DIR_mariadbconnectorcpp}")
-            set(external_mariadbconnectorcpp_BINARY_DIR "${CMAKE_BINARY_DIR}/external_mariadbconnectorcpp-build")
-        else()
-            # Pobierz z internetu
-            FetchContent_Populate(external_mariadbconnectorcpp
-                GIT_REPOSITORY https://github.com/mariadb-corporation/mariadb-connector-cpp.git
-                GIT_TAG        ${TAG_mariadbconnectorcpp}
-            )
-        endif()
-        # Teraz dopiero konfiguruj
-        set(WITH_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
-        set(WITH_MSI OFF CACHE BOOL "" FORCE)
-        set(MARIADB_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-        set(MARIADB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-        set(WITH_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 
-        #Patch
-        set(_mariadb_cmake "${external_mariadbconnectorcpp_SOURCE_DIR}/cmake/connector_c.cmake")
-        set(_mariadb_cmake_bak "${external_mariadbconnectorcpp_SOURCE_DIR}/cmake/connector_c.cmake.bak")
-        file(READ "${_mariadb_cmake}" _content)
-        file(WRITE "${_mariadb_cmake_bak}" "${_content}")
-        string(REPLACE
-            "GET_PROPERTY(ZLIB_LIBRARY_LOCATION TARGET zlib PROPERTY LOCATION)"
-            "get_target_property(ZLIB_LIBRARY_LOCATION zlib IMPORTED_LOCATION)"
-            _content
-            "${_content}"
-        )
-        file(WRITE "${_mariadb_cmake}" "${_content}")
-
-        add_subdirectory(
-            ${external_mariadbconnectorcpp_SOURCE_DIR}
-            ${external_mariadbconnectorcpp_BINARY_DIR}
-        )
-    endif()
-endif()
-
-#[=[
-if(NOT TARGET )
-    # Patch MariaDB connector to greater version as its original value fails during configuration
-    FetchContent_Declare(external_mariadbcpp
-        GIT_REPOSITORY https://github.com/mariadb-corporation/mariadb-connector-cpp.git
-        GIT_TAG 1.1.7
-        FIND_PACKAGE_ARGS NAMES mariadbcpp
-    )
-
-    # 1. Pobierz źródła, ale NIE konfiguruj projektu
-    FetchContent_Populate(external_mariadbcpp)
-    # 2. Patch: podnieś minimalną wersję CMake
-    set(_mariadb_cmake "${external_mariadbcpp_SOURCE_DIR}/CMakeLists.txt")
-
-    file(READ "${_mariadb_cmake}" _content)
-    string(REPLACE
-        "CMAKE_MINIMUM_REQUIRED(VERSION 3.1)"
-        "CMAKE_MINIMUM_REQUIRED(VERSION 3.28)"
-        _content
-        "${_content}"
-    )
-    # Patch 2: usuń wininstall
-#    string(REPLACE
-#        "add_subdirectory(wininstall)"
-#        "# patched out: add_subdirectory(wininstall)"
-#        _content
-#        "${_content}"
-#    )
-    file(WRITE "${_mariadb_cmake}" "${_content}")
-
-    set(WITH_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
-    set(WITH_MSI OFF CACHE BOOL "" FORCE)
-    set(MARIADB_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(MARIADB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
-    # 3. Dodaj projekt ręcznie
-    add_subdirectory(
-        ${external_mariadbcpp_SOURCE_DIR}
-        ${external_mariadbcpp_BINARY_DIR}
-    )
-    FetchContent_MakeAvailable(external_mariadbcpp)
-    # 4. Dodaj alias, żeby mieć spójny target
-    if(NOT TARGET MariaDB::mariadbcpp)
-        add_library(MariaDB::mariadbcpp ALIAS mariadbcpp)
-    endif()
-endif()
-#]=]
 
 
 add_library(${PROJECT_NAME}_compiler_flags INTERFACE)
@@ -740,7 +601,6 @@ add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
 
 
-
 add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
 
 target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags)
@@ -754,17 +614,29 @@ target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINAR
 	"$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/harfbuzz/src>"
 	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
 )
-if("${BUILD_WITH_MYSQL}" STREQUAL "1")
-    target_include_directories("${PROJECT_NAME}Shared" PRIVATE
-	    "$<BUILD_INTERFACE:${external_mariadbconnectorcpp_SOURCE_DIR}/include>"
-    )
-endif()
 target_link_options("${PROJECT_NAME}Shared" PRIVATE "${SetSubsystem}")
 #target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp MariaDB::MariaDB MariaDB::mariadbcpp glm::glm ZLIB::ZLIB)
 target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB harfbuzz)
+
+
+# If with mariadb connector
 if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
-    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32)
+    target_include_directories("${PROJECT_NAME}Shared" PRIVATE
+	    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/out/Release/mariadb>"
+    )
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${PROJECT_SOURCE_DIR}/out/Release/mariadb/mariadbcpp.lib)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libmariadbcpp.so"
+        )
+    else()
+        add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadbcpp.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/mariadbcpp.dll"
+        )
+    endif()
 endif()
+
+
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
     EXPORT_LINK_INTERFACE_LIBRARIES OFF
 )
