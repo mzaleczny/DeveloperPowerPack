@@ -26,9 +26,11 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Tilc DEFAULT_MSG TILC_INCLUDE_DIR)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    set(CommonBinDir "Release")
     set(BinDir "x64-Release")
     set(LibSuffix "")
 else()
+    set(CommonBinDir "Debug")
     set(BinDir "x64-Debug")
     set(LibSuffix "d")
 endif()
@@ -77,23 +79,38 @@ add_library(Tilc::Tilc ALIAS Tilc)
 
 
 function(TilcCopyRuntimeDlls TARGET_NAME)
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libTilcShared.so"
-	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/libassimp.so" "${PROJECT_SOURCE_DIR}/out/libassimp.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/libSDL3_image.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_image.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/libSDL3_mixer.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_mixer.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/libSDL3_ttf.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_ttf.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/libSDL3.so" "${PROJECT_SOURCE_DIR}/out/libSDL3.so"
-    )
-else()
-    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/TilcShared${LibSuffix}.dll"
-	    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/assimp${LibSuffix}.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/SDL3_image.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_image.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/SDL3_mixer.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_mixer.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/SDL3_ttf.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_ttf.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/SDL3.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3.dll"
-    )
-endif()
+    message("TilcCopyRuntimeDlls")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libTilcShared.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/libassimp.so" "${PROJECT_SOURCE_DIR}/out/libassimp.so"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/libSDL3_image.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_image.so"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/libSDL3_mixer.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_mixer.so"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/libSDL3_ttf.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_ttf.so"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/libSDL3.so" "${PROJECT_SOURCE_DIR}/out/libSDL3.so"
+        )
+    else()
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/TilcShared${LibSuffix}.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/assimp${LibSuffix}.dll"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/SDL3_image.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_image.dll"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/SDL3_mixer.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_mixer.dll"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/SDL3_ttf.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_ttf.dll"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/SDL3.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3.dll"
+        )
+    endif()
+endfunction()
+
+function(MariaDBCopyRuntimeDlls TARGET_NAME)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        message("MariaDBCopyRuntimeDlls for Linux, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadbcpp.so => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadbcpp.so")
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadbcpp.so"
+        )
+    else()
+        message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll")
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll"
+        )
+    endif()
 endfunction()
