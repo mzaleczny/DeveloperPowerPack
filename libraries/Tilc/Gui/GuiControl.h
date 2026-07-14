@@ -5,6 +5,7 @@
 #include "Tilc/Utils/StdObject.h"
 #include "Tilc/Game.h"
 #include "SDL3/SDL.h"
+#include <vector>
 #include <list>
 #include <unordered_map>
 
@@ -61,7 +62,8 @@ namespace Tilc {
             ECT_MultilineTextField,
             ECT_Checkbox,
             ECT_Option,
-            ECT_Grid
+            ECT_Grid,
+            ECT_Listbox
         };
 
         enum class EControlBorderType
@@ -81,8 +83,9 @@ namespace Tilc {
             bool m_Checked;
             int m_ImageIndex;
             long long m_Data;
-            size_t m_Size;
+            SDL_FPoint m_Size;
         };
+        using TGuiControlItemList = std::vector<TGuiControlItem*>;
 
         class DECLSPEC TGuiControl
         {

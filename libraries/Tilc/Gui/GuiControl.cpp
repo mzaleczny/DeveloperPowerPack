@@ -1,5 +1,4 @@
 #include "Tilc/Gui/GuiControl.h"
-#include "Tilc/Gui/GuiControl.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Cursor.h"
