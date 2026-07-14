@@ -1,217 +1,223 @@
 #include "Tilc/Data/DbMySQL.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Utils/Log.h"
-
-/*
-Tilc::TExtString Tilc::Data::TDBMySQLField::toString()
-{
-    return Tilc::TExtString("  m_Type: ") + std::to_string(m_Type) +
-        Tilc::TExtString("  m_Integer: ") + std::to_string(m_Integer) +
-        Tilc::TExtString("  m_Float: ") + std::to_string(m_Float) +
-        Tilc::TExtString("  m_Double: ") + std::to_string(m_Double) +
-        Tilc::TExtString("  m_Length: ") + std::to_string(m_Length) +
-        Tilc::TExtString("  m_ReadLength: ") + std::to_string(m_ReadLength) +
-        Tilc::TExtString("  m_String: ") + m_String;
-}
+#include <iostream>
+#include <sstream>
 
 Tilc::Data::TDBMySQL::TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtString& DbName, const Tilc::TExtString& DbUser, const Tilc::TExtString& DbPasswd)
-	: TDB()
+	: Tilc::Data::TDB()
 {
     // Open database
-    Conn = mysql_init(NULL);
-    if (!mysql_real_connect(Conn, DbHost.c_str(), DbUser.c_str(), DbPasswd.c_str(), DbName.c_str(), 0, NULL, 0))
+    m_Conn.reset(GetConnection(nullptr, DbHost.c_str(), DbName.c_str(), DbUser.c_str(), DbPasswd.c_str()));
+    if (m_Conn)
     {
-        LastError = mysql_error(Conn);
-        return;
+        IsOpenDB = true;
     }
-
-    IsOpenDB = true;
 }
 
 Tilc::Data::TDBMySQL::~TDBMySQL()
 {
     if (IsOpenDB)
     {
-        mysql_close(Conn);
+        m_Conn.reset();
         IsOpenDB = false;
+    }
+}
+
+sql::Connection* Tilc::Data::TDBMySQL::GetConnection(sql::Driver* driver,
+    const char* Host,
+    const char* DbName,
+    const char* User,
+    const char* Passwd,
+    sql::ConnectOptionsMap* additional_options)
+{
+    if (driver == nullptr)
+    {
+        driver = sql::mariadb::get_driver_instance();
+    }
+
+    sql::ConnectOptionsMap connection_properties;
+    connection_properties["user"] = User;
+    connection_properties["password"] = Passwd;
+
+    connection_properties["useTls"] = "false";
+    //connection_properties["metadataUseInfoSchema"] = "1";
+
+    if (additional_options != nullptr)
+    {
+        for (sql::ConnectOptionsMap::const_iterator cit = additional_options->cbegin(); cit != additional_options->cend(); ++cit)
+        {
+            connection_properties[cit->first] = cit->second;
+        }
+    }
+
+    std::string url = std::string("jdbc:mariadb") + "://" + Host + ":3306/" + DbName;
+    std::cout << url << std::endl;
+    sql::Connection* Conn{};
+    try
+    {
+        Conn = sql::DriverManager::getConnection(url.c_str(), connection_properties);
+    }
+    catch (sql::SQLWarning& e)
+    {
+        std::cerr << "SQL warning: " << e.getMessage().c_str() << std::endl;
+        std::cerr << "SQLState: " + std::string(e.getSQLState()) << std::endl;
+    }
+    catch (sql::InvalidArgumentException& e)
+    {
+        std::cerr << "Invalid argument: " << e.what() << std::endl;
+    }
+    catch (sql::SQLException& e)
+    {
+        std::cerr << "SQL error: " << e.what() << std::endl;
+        std::cerr << "SQLState: " + std::string(e.getSQLState()) << std::endl;
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "Connection error: " << e.what() << std::endl;
+    }
+    return Conn;
+}
+
+void Tilc::Data::TDBMySQL::ShowWarningsForStatement(Tilc::Data::TDBMySQL::Statement& stmt)
+{
+    int count = 0;
+    std::stringstream msg;
+    for (const sql::SQLWarning* warn = stmt->getWarnings(); warn; warn = warn->getNextWarning())
+    {
+        ++count;
+        msg.str("");
+        msg << "... ErrorCode = '" << warn->getErrorCode() << "', ";
+        msg << "SQLState = '" << warn->getSQLState() << "', ";
+        msg << "ErrorMessage = '" << warn->getMessage() << "'";
+        std::cerr << msg.str();
+    }
+}
+
+int Tilc::Data::TDBMySQL::ExecuteQuery(ResultSet& res, Statement& stmt, const char* query)
+{
+    try
+    {
+        res.reset(stmt->executeQuery(query));
+        return 0;
+    }
+    catch (sql::SQLWarning& e)
+    {
+        std::cerr << "SQL warning: " << e.getMessage().c_str() << std::endl;
+        std::cerr << "SQLState: " + std::string(e.getSQLState()) << std::endl;
+        return e.getErrorCode();
+    }
+    catch (sql::InvalidArgumentException& e)
+    {
+        std::cerr << "Invalid argument: " << e.what() << std::endl;
+        return e.getErrorCode();
+    }
+    catch (sql::SQLException& e)
+    {
+        std::cerr << "SQL error: " << e.what() << std::endl;
+        std::cerr << "SQLState: " + std::string(e.getSQLState()) << std::endl;
+        return e.getErrorCode();
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "Connection error: " << e.what() << std::endl;
+        return -1;
     }
 }
 
 int Tilc::Data::TDBMySQL::CreateTable(const char* CreateQuery)
 {
-    int Result = mysql_query(Conn, CreateQuery);
-    LastError = mysql_error(Conn);
+    Statement stmt;
+    ResultSet res;
+    stmt.reset(m_Conn->createStatement());
+    int Result = ExecuteQuery(res, stmt, CreateQuery);
+    res->close();
     return Result;
 }
 
 int Tilc::Data::TDBMySQL::Select(const char* Sql, TDBDataRows& DataRows)
 {
-    MYSQL_RES *res;
-    MYSQL_ROW row;
+    Statement stmt;
+    ResultSet res;
+    stmt.reset(m_Conn->createStatement());
 
     DataRows.clear();
 
-    mysql_query(Conn, Sql);
-    LastError = mysql_error(Conn);
-    if (LastError != "") return -1;
-    res = mysql_use_result(Conn);
-    while ((row = mysql_fetch_row(res)) != NULL)
+    int Result = ExecuteQuery(res, stmt, Sql);
+    if (Result)
     {
-        TDBDataRow Row;
-        for (int i = 0; i < mysql_num_fields(res); ++i)
+        return Result;
+    }
+
+    sql::ResultSetMetaData* meta = res->getMetaData();
+    while (res->next())
+    {
+        Tilc::Data::TDBDataRow Row;
+        for (int i = 1; i <= meta->getColumnCount(); ++i)
         {
-            Row.push_back(row[i]);
+            Row.push_back(res->getString(i).c_str());
         }
         DataRows.push_back(std::move(Row));
     }
-    mysql_free_result(res);
+    res->close();
     return static_cast<int>(DataRows.size());
 }
 
 int Tilc::Data::TDBMySQL::Select(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues, TDBDataRows& DataRows)
 {
-    MYSQL_STMT* Stmt;
-    MYSQL_RES *res;
-    MYSQL_FIELD *Fields;
+    PreparedStatement pstmt;
+    ResultSet res;
     int Result;
     int ColumnCount;
 
     // Execute SQL statement
     DataRows.clear();
 
-    Stmt = mysql_stmt_init(Conn);
-    if (!Stmt)
-    {
-        LastError = mysql_error(Conn);
-        return -1;
-    }
+    std::string StringSql{ Sql };
+    ColumnCount = std::count(StringSql.begin(), StringSql.end(), '?');
 
-    Result = mysql_stmt_prepare(Stmt, Sql, strlen(Sql));
-    if (Result != 0)
+    pstmt.reset(m_Conn->prepareStatement(Sql));
+    for (int i = 1; i <= ColumnCount; ++i)
     {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return Result;
+        pstmt->setString(i, FieldValues[i-1]);
     }
-
-    res = mysql_stmt_result_metadata(Stmt);
-    if (!res)
+    res.reset(pstmt->executeQuery());
+    sql::ResultSetMetaData* meta = res->getMetaData();
+    while (res->next())
     {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return Result;
-    }
-    ColumnCount = mysql_num_fields(res);
-    Fields = mysql_fetch_fields(res);
-    if (!Fields || ColumnCount < 1)
-    {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return Result;
-    }
-    std::vector<Tilc::Data::TDBMySQLField> OutputBindValues;
-    for (int i = 0; i < ColumnCount; ++i)
-    {
-        Tilc::Data::TDBMySQLField OutputBindValue;
-        OutputBindValue.m_Type = Fields[i].type;
-        OutputBindValue.m_Length = Fields[i].length;
-        OutputBindValue.m_String.reserve(Fields[i].length);
-        memcpy(OutputBindValue.m_String.data(), 0, OutputBindValue.m_String.size());
-        OutputBindValues.push_back(std::move(OutputBindValue));
-    }
-
-    // We prepare input bindings. For that are required vector of MYSQL_BINDS which stores configuration
-    // of bindings and vector of TDBMySQLField which stores actual values for configured above bindings.
-    std::vector<MYSQL_BIND> InputBinds;
-    std::vector<Tilc::Data::TDBMySQLField> InputBindValues;
-    PrepareInputBindings(Stmt, FieldTypes, FieldValues, InputBinds, InputBindValues);
-    Result = mysql_stmt_bind_param(Stmt, InputBinds.data());
-    if (Result != 0)
-    {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return Result;
-    }
-
-    Result = mysql_stmt_execute(Stmt);
-    if (Result != 0)
-    {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return Result;
-    }
-
-    // We prepare output bindings
-    std::vector<MYSQL_BIND> OutputBinds;
-    OutputBinds.reserve(OutputBindValues.size());
-    for (int i = 0; i < OutputBindValues.size(); ++i)
-    {
-        MYSQL_BIND Bind{};
-        Bind.buffer_type = MYSQL_TYPE_STRING;
-        Bind.buffer = OutputBindValues[i].m_String.data();
-        Bind.buffer_length = OutputBindValues[i].m_Length;
-        Bind.length = &OutputBindValues[i].m_ReadLength;
-        OutputBinds.push_back(Bind);
-    }
-    mysql_stmt_bind_result(Stmt, OutputBinds.data());
-
-    while (mysql_stmt_fetch(Stmt) == 0)
-    {
-        TDBDataRow Row;
-        for (int i = 0; i < OutputBindValues.size(); ++i)
+        Tilc::Data::TDBDataRow Row;
+        for (int i = 1; i <= meta->getColumnCount(); ++i)
         {
-            unsigned long Len = OutputBindValues[i].m_ReadLength;
-            OutputBindValues[i].m_String[Len] = 0;
-            Row.push_back(OutputBindValues[i].m_String);
+            Row.push_back(res->getString(i).c_str());
         }
         DataRows.push_back(std::move(Row));
     }
-    mysql_free_result(res);
-    mysql_stmt_close(Stmt);
+    res->close();
 
     return static_cast<int>(DataRows.size());
 }
 
 int Tilc::Data::TDBMySQL::ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues)
 {
-    MYSQL_STMT* Stmt;
+    PreparedStatement pstmt;
     int Result;
+    int ColumnCount;
 
-    // Execute SQL statement
-    Stmt = mysql_stmt_init(Conn);
-    if (!Stmt)
+    Tilc::TExtString StringSql{ Sql };
+    ColumnCount = std::count(StringSql.begin(), StringSql.end(), '?');
+
+    pstmt.reset(m_Conn->prepareStatement(Sql));
+    for (int i = 1; i <= ColumnCount; ++i)
     {
-        LastError = mysql_error(Conn);
-        return -1;
+        pstmt->setString(i, FieldValues[i - 1]);
     }
-
-    Result = mysql_stmt_prepare(Stmt, Sql, strlen(Sql));
-    if (Result != 0)
+    if (StringSql.StartsWith("SELECT"))
     {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return -2;
+        pstmt->executeQuery();
     }
-
-    // We prepare input bindings. For that are required vector of MYSQL_BINDS which stores configuration
-    // of bindings and vector of TDBMySQLField which stores actual values for configured above bindings.
-    std::vector<MYSQL_BIND> InputBinds;
-    std::vector<Tilc::Data::TDBMySQLField> InputBindValues;
-    PrepareInputBindings(Stmt, FieldTypes, FieldValues, InputBinds, InputBindValues);
-    Result = mysql_stmt_bind_param(Stmt, InputBinds.data());
-    if (Result != 0)
+    else
     {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return -3;
-    }
-
-    Result = mysql_stmt_execute(Stmt);
-    if (Result != 0)
-    {
-        LastError = mysql_error(Conn);
-        mysql_stmt_close(Stmt);
-        return -4;
+        pstmt->executeUpdate();
     }
 
     return 0;
@@ -219,75 +225,19 @@ int Tilc::Data::TDBMySQL::ExecQuery(const char* Sql, const TDBFieldTypes& FieldT
 
 int Tilc::Data::TDBMySQL::Insert(const char* InsertSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues)
 {
-    int Result = 0;
-    LastError = mysql_error(Conn);
-    if (LastError != "")
-    {
-        LastError = mysql_error(Conn);
-        return -5;
-    }
-    if ((Result = ExecQuery(InsertSql, FieldTypes, FieldValues)) == 0)
-    {
-        Tilc::TExtString TableName = InsertSql;
-        size_t pos = 0;
-        // get table name from sql of form "INSERT INTO TableName..."
-        // Find first space after "INSERT"
-        if ((pos = TableName.find(" ", pos)) != Tilc::TExtString::npos)
-        {
-            // Find first space after "INTO"
-            if ((pos = TableName.find(" ", pos + 1)) != Tilc::TExtString::npos)
-            {
-                // Copy table name
-                TableName = TableName.substr(pos+1);
-                pos = 0;
-                // Find first space after table name
-                if ((pos = TableName.find(" ", pos)) != Tilc::TExtString::npos)
-                {
-                    // And Truncate string to table name
-                    TableName = TableName.substr(0, pos);
-                }
-            }
-        }
+    PreparedStatement pstmt;
+    int Result;
+    int ColumnCount;
 
-        // get id of newly inserted row
-        Tilc::TExtString Sql = "SELECT id FROM " + TableName + " ORDER BY id DESC LIMIT 1";
-        Tilc::Data::TDBDataRows Rows;
-        Select(Sql.c_str(), Rows);
-        Result = 0;
-        if (Rows.size() != 1)
-        {
-            Result = -6;
-        }
-        if (Result == 0)
-        {
-            return std::stoi(Rows[0][0]);
-        }
-        return Result;
+    std::string StringSql{ InsertSql };
+    ColumnCount = std::count(StringSql.begin(), StringSql.end(), '?');
+
+    pstmt.reset(m_Conn->prepareStatement(InsertSql));
+    for (int i = 1; i <= ColumnCount; ++i)
+    {
+        pstmt->setString(i, FieldValues[i - 1]);
     }
-    return Result;
+    pstmt->executeUpdate();
+
+    return 0;
 };
-
-void Tilc::Data::TDBMySQL::PrepareInputBindings(MYSQL_STMT* Stmt, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues,
-    std::vector<MYSQL_BIND>& InputBinds, std::vector<Tilc::Data::TDBMySQLField>& InputBindValues)
-{
-    InputBinds.reserve(FieldValues.size());
-    InputBinds.clear();
-    InputBindValues.reserve(FieldValues.size());
-    InputBindValues.clear();
-    for (int i = 0; i < FieldValues.size(); ++i)
-    {
-        MYSQL_BIND Bind{};
-        Tilc::Data::TDBMySQLField v{};
-
-        v.m_Type = EDBFT_STRING;
-        v.m_String = FieldValues[i];
-        v.m_Length = FieldValues[i].size();
-        InputBindValues.push_back(std::move(v));
-        Bind.buffer_type = MYSQL_TYPE_STRING;
-        Bind.buffer = InputBindValues[InputBindValues.size()-1].m_String.data();
-        Bind.buffer_length = FieldValues[i].size();
-
-        InputBinds.push_back(Bind);
-	}
-}
-*/
