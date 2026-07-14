@@ -75,6 +75,10 @@ endfunction()
 
 
 AddAndConfigureProgram(MariaDB_01_Connection "src/MariaDB_01_Connection.cpp")
+AddAndConfigureProgram(MariaDB_02_Select_And_Statement "src/MariaDB_02_Select_And_Statement.cpp")
+AddAndConfigureProgram(MariaDB_03_CreateTable_InsertQuery_And_DropTable "src/MariaDB_03_CreateTable_InsertQuery_And_DropTable.cpp")
+AddAndConfigureProgram(MariaDB_04_PreparedStatement "src/MariaDB_04_PreparedStatement.cpp")
+AddAndConfigureProgram(MariaDB_05_Update_And_Delete "src/MariaDB_05_Update_And_Delete.cpp")
 
 
 # Dlls can be copied once for one target as all targets sits in the same directory
