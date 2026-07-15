@@ -2,13 +2,12 @@
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/StyledWindow.h"
-#include "Tilc/Gui/ScrollbarVertical.h"
-#include "Tilc/Gui/ScrollbarHorizontal.h"
+#include "Tilc/Gui/ScrollBarVertical.h"
+#include "Tilc/Gui/ScrollBarHorizontal.h"
 #include "Tilc/Utils/StdObject.h"
 #include <algorithm>
 #include <ranges>
 
-/*
 Tilc::Gui::TListbox::TListbox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, std::initializer_list<const char*> items)
     : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Listbox)
 {
@@ -44,7 +43,7 @@ void Tilc::Gui::TListbox::SetItems(std::initializer_list<const char*> items, boo
     }
 }
 
-void Tilc::Gui::TListbox::SetItems(Tilc::TExtString& items, bool redraw = true)
+void Tilc::Gui::TListbox::SetItems(Tilc::TExtString& items, bool redraw)
 {
     DeleteItems();
     Tilc::TStringVector Lst;
@@ -105,11 +104,18 @@ void Tilc::Gui::TListbox::SetItems(const Tilc::TStringVector& items, bool redraw
         }
     }
     m_TopItemIndex = 0;
-    RemoveVerticalScrollbar();
-    RemoveHorizontalScrollbar();
+
     bool addVScr = allowedTextAreaHeight < summaryItemHeight;
     bool addHScr = allowedTextAreaWidth < maxItemWidth;
-    AddScrollBars(addVScr, addHScr, 0, m_Items.size() - m_VisibleItems, 0, maxItemWidth - allowedTextAreaWidth);
+    if (!m_HScrollBar)
+    {
+        AddScrollBars(addVScr, addHScr, 0, m_Items.size() - m_VisibleItems, 0, maxItemWidth - allowedTextAreaWidth);
+    }
+    else
+    {
+        m_HScrollBar->SetMinMaxValues(0, maxItemWidth - allowedTextAreaWidth);
+        m_VScrollBar->SetMinMaxValues(0, m_Items.size() - m_VisibleItems);
+    }
 
     if (redraw)
     {
@@ -132,7 +138,7 @@ Tilc::TExtString Tilc::Gui::TListbox::GetText()
     return result;
 }
 
-Tilc::TExtString Tilc::Gui::TListbox::GetTextExt(int selected, int checked, int imageIndex, int data)
+Tilc::TExtString Tilc::Gui::TListbox::GetTextExt(int selected, int checked, int imageIndex, long long data)
 {
     Tilc::TExtString result;
 
@@ -178,362 +184,357 @@ Tilc::TExtString Tilc::Gui::TListbox::GetTextExt(int selected, int checked, int 
     return result;
 }
 
-CGuiControlItem* Tilc::Gui::TListbox::getItem(int item) {
-    CGuiControlItem* result = NULL;
-
-    if (this->_items) {
-        result = (CGuiControlItem*)this->_items->getAt(item);
+Tilc::TExtString Tilc::Gui::TListbox::GetItemValue(int item)
+{
+    if (m_Items[item])
+    {
+        return m_Items[item]->m_Value;
     }
-
-    return result;
+    return "";
 }
 
-Tilc::TExtString Tilc::Gui::TListbox::getItemValue(int item) {
-    CGuiControlItem* result = this->getItem(item);
-    if (result) {
-        return result->value;
-    }
-    return COMMON_EMPTY_STRING;
-}
-
-bool Tilc::Gui::TListbox::isItemSelected(int item) {
-    if (this->_isMultiselect) {
-        CGuiControlItem* result = this->getItem(item);
-        if (result) {
-            return result->selected;
+bool Tilc::Gui::TListbox::IsItemSelected(int item)
+{
+    if (m_IsMultiselect)
+    {
+        if (m_Items[item])
+        {
+            return m_Items[item]->m_Selected;
         }
-    } else {
-        return this->_selectedItem == item;
+    }
+    else
+    {
+        return m_SelectedItem == item;
     }
 
     return false;
 }
 
-bool Tilc::Gui::TListbox::isItemChecked(int item) {
-    CGuiControlItem* result = this->getItem(item);
-    if (result) {
-        return result->checked;
+bool Tilc::Gui::TListbox::IsItemChecked(int item)
+{
+    if (m_Items[item])
+    {
+        return m_Items[item]->m_Checked;
     }
     return false;
 }
 
-int Tilc::Gui::TListbox::getItemImageIndex(int item) {
-    CGuiControlItem* result = this->getItem(item);
-    if (result) {
-        return result->imageIndex;
+int Tilc::Gui::TListbox::GetItemImageIndex(int item)
+{
+    if (m_Items[item])
+    {
+        return m_Items[item]->m_ImageIndex;
+    }
+    return -1;
+}
+
+long long Tilc::Gui::TListbox::GetItemData(int item)
+{
+    if (m_Items[item])
+    {
+        return m_Items[item]->m_Data;
     }
     return 0;
 }
 
-int Tilc::Gui::TListbox::getItemData(int item) {
-    CGuiControlItem* result = this->getItem(item);
-    if (result) {
-        return result->data;
-    }
-    return 0;
-}
+Tilc::Gui::TGuiControlItemList Tilc::Gui::TListbox::GetSelectedItems()
+{
+    Tilc::Gui::TGuiControlItemList lst;
+    lst.reserve(50);
 
-CObjectList* Tilc::Gui::TListbox::getSelectedItems() {
-    // create object list that does not deletes its items in destructor
-    CObjectList* lst = new CObjectList(50, false);
-    if (!lst) {
-        return NULL;
-    }
-
-    if (this->_items) {
-        CGuiControlItem* item;
-        for (int i = 0; i < this->_items->size(); i++) {
-            item = (CGuiControlItem*)this->_items->getAt(i);
-            if (item && item->selected) {
-                lst->append(item);
-            }
+    std::ranges::for_each(m_Items, [&lst](TGuiControlItem* Item) {
+        if (Item->m_Selected)
+        {
+            lst.push_back(Item);
         }
-    }
+    });
 
     return lst;
 }
 
-int Tilc::Gui::TListbox::getSelectedIndex() {
-    if (!this->_isMultiselect) {
-        return this->_selectedItem;
+int Tilc::Gui::TListbox::GetSelectedIndex()
+{
+    if (!m_IsMultiselect)
+    {
+        return m_SelectedItem;
     }
 
     return -1;
 }
 
-Tilc::TExtString Tilc::Gui::TListbox::getSelectedItemValue() {
-    if (this->_isMultiselect) {
-        return this->getTextExt(1);
+Tilc::TExtString Tilc::Gui::TListbox::GetSelectedItemValue()
+{
+    if (m_IsMultiselect)
+    {
+        return GetTextExt(1);
     }
-    return this->getItemValue(this->_selectedItem);
+    return GetItemValue(m_SelectedItem);
 }
 
-bool Tilc::Gui::TListbox::getSelectedItemCheckedState() {
-    if (!this->_isMultiselect) {
-        if (this->_selectedItem >= 0) {
-            return this->isItemChecked(this->_selectedItem);
+bool Tilc::Gui::TListbox::GetSelectedItemCheckedState()
+{
+    if (!m_IsMultiselect)
+    {
+        if (m_SelectedItem >= 0)
+        {
+            return IsItemChecked(m_SelectedItem);
         }
     }
 
     return false;
 }
 
-int Tilc::Gui::TListbox::getSelectedItemImageIndex() {
-    if (!this->_isMultiselect) {
-        if (this->_selectedItem >= 0) {
-            return this->getItemImageIndex(this->_selectedItem);
+int Tilc::Gui::TListbox::GetSelectedItemImageIndex()
+{
+    if (!m_IsMultiselect)
+    {
+        if (m_SelectedItem >= 0)
+        {
+            return GetItemImageIndex(m_SelectedItem);
         }
     }
 
     return -1;
 }
 
-int Tilc::Gui::TListbox::getSelectedItemData() {
-    if (!this->_isMultiselect) {
-        if (this->_selectedItem >= 0) {
-            return this->getItemData(this->_selectedItem);
+int Tilc::Gui::TListbox::GetSelectedItemData()
+{
+    if (!m_IsMultiselect)
+    {
+        if (m_SelectedItem >= 0)
+        {
+            return GetItemData(m_SelectedItem);
         }
     }
 
     return 0;
 }
 
-void Tilc::Gui::TListbox::selectItem(int item) {
-    if (this->_isMultiselect) {
-        CGuiControlItem* gcItem = this->getItem(item);
-        if (gcItem) {
-            gcItem->selected = true;
+void Tilc::Gui::TListbox::SelectItem(int item)
+{
+    if (m_IsMultiselect)
+    {
+        Tilc::Gui::TGuiControlItem* gcItem = GetItem(item);
+        if (gcItem)
+        {
+            gcItem->m_Selected = true;
         }
-    } else {
-        this->_selectedItem = item;
+    }
+    else
+    {
+        m_SelectedItem = item;
     }
 
-    this->redraw();
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::selectItem(Tilc::TExtString item) {
-    if (this->_items) {
-        CGuiControlItem* gcItem;
-        for (int i = 0; i < this->_items->size(); i++) {
-            gcItem = (CGuiControlItem*)this->_items->getAt(i);
-            if (gcItem && gcItem->value == item) {
-                gcItem->selected = true;
-                if (!this->_isMultiselect) {
-                    break;
-                }
+void Tilc::Gui::TListbox::SelectItem(const Tilc::TExtString& item)
+{
+    for (auto it = m_Items.begin(); it != m_Items.end(); ++it)
+    {
+        if ((*it)->m_Value == item)
+        {
+            (*it)->m_Selected = true;
+            if (!m_IsMultiselect)
+            {
+                break;
             }
         }
     }
+    Invalidate();
+ }
 
-    this->redraw();
+void Tilc::Gui::TListbox::SetItemChecked(int item)
+{
+    m_Items[item]->m_Checked = true;
+
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::setItemChecked(int item) {
-    CGuiControlItem* gcItem = this->getItem(item);
-    if (gcItem) {
-        gcItem->checked = true;
-    }
-
-    this->redraw();
-}
-
-void Tilc::Gui::TListbox::setItemChecked(Tilc::TExtString item) {
-    if (this->_items) {
-        CGuiControlItem* gcItem;
-        for (int i = 0; i < this->_items->size(); i++) {
-            gcItem = (CGuiControlItem*)this->_items->getAt(i);
-            if (gcItem && gcItem->value == item) {
-                gcItem->checked = true;
-            }
+void Tilc::Gui::TListbox::SetItemChecked(const Tilc::TExtString& item)
+{
+    for (auto it = m_Items.begin(); it != m_Items.end(); ++it)
+    {
+        if ((*it)->m_Value == item)
+        {
+            (*it)->m_Checked = true;
         }
     }
-
-    this->redraw();
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::setItemData(int item, int data) {
-    CGuiControlItem* gcItem = this->getItem(item);
-    if (gcItem) {
-        gcItem->data = data;
-    }
-
-    this->redraw();
+void Tilc::Gui::TListbox::SetItemData(int item, long long data)
+{
+    m_Items[item]->m_Data = data;
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::setItemData(Tilc::TExtString item, int data) {
-    if (this->_items) {
-        CGuiControlItem* gcItem;
-        for (int i = 0; i < this->_items->size(); i++) {
-            gcItem = (CGuiControlItem*)this->_items->getAt(i);
-            if (gcItem && gcItem->value == item) {
-                gcItem->data = data;
-            }
+void Tilc::Gui::TListbox::SetItemData(const Tilc::TExtString& item, long long data)
+{
+    for (auto it = m_Items.begin(); it != m_Items.end(); ++it)
+    {
+        if ((*it)->m_Value == item)
+        {
+            (*it)->m_Data = data;
         }
     }
-
-    this->redraw();
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::setItemImageIndex(int item, int imageIndex) {
-    CGuiControlItem* gcItem = this->getItem(item);
-    if (gcItem) {
-        gcItem->imageIndex = imageIndex;
-    }
-
-    this->redraw();
+void Tilc::Gui::TListbox::SetItemImageIndex(int item, int imageIndex)
+{
+    m_Items[item]->m_ImageIndex = imageIndex;
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::setItemImageIndex(Tilc::TExtString item, int imageIndex) {
-    if (this->_items) {
-        CGuiControlItem* gcItem;
-        for (int i = 0; i < this->_items->size(); i++) {
-            gcItem = (CGuiControlItem*)this->_items->getAt(i);
-            if (gcItem && gcItem->value == item) {
-                gcItem->imageIndex = imageIndex;
-            }
+void Tilc::Gui::TListbox::SetItemImageIndex(const Tilc::TExtString& item, int imageIndex)
+{
+    for (auto it = m_Items.begin(); it != m_Items.end(); ++it)
+    {
+        if ((*it)->m_Value == item)
+        {
+            (*it)->m_ImageIndex = imageIndex;
         }
     }
-
-    this->redraw();
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::setItemAttributes(int item, bool selected, bool checked, int imageIndex, int data) {
-    CGuiControlItem* gcItem = this->getItem(item);
-    if (gcItem) {
-        gcItem->selected = selected;
-        gcItem->checked = checked;
-        gcItem->data = data;
-        gcItem->imageIndex = imageIndex;
+void Tilc::Gui::TListbox::SetItemAttributes(int item, bool selected, bool checked, int imageIndex, long long data)
+{
+    Tilc::Gui::TGuiControlItem* gcItem = GetItem(item);
+    if (gcItem)
+    {
+        gcItem->m_Selected = selected;
+        gcItem->m_Checked = checked;
+        gcItem->m_Data = data;
+        gcItem->m_ImageIndex = imageIndex;
     }
-
-    this->redraw();
+    Invalidate();
 }
 
-void Tilc::Gui::TListbox::setItemAttributes(Tilc::TExtString item, bool selected, bool checked, int imageIndex, int data) {
-    if (this->_items) {
-        CGuiControlItem* gcItem;
-        for (int i = 0; i < this->_items->size(); i++) {
-            gcItem = (CGuiControlItem*)this->_items->getAt(i);
-            if (gcItem && gcItem->value == item) {
-                gcItem->selected = selected;
-                gcItem->checked = checked;
-                gcItem->imageIndex = imageIndex;
-                gcItem->data = data;
-            }
+void Tilc::Gui::TListbox::SetItemAttributes(const Tilc::TExtString& item, bool selected, bool checked, int imageIndex, long long data)
+{
+    Tilc::Gui::TGuiControlItem* gcItem;
+    for (auto it = m_Items.begin(); it != m_Items.end(); ++it)
+    {
+        gcItem = *it;
+        if (gcItem->m_Value == item)
+        {
+            gcItem->m_Selected = selected;
+            gcItem->m_Checked = checked;
+            gcItem->m_ImageIndex = imageIndex;
+            gcItem->m_Data = data;
         }
     }
-
-    this->redraw();
+    Invalidate();
 }
 
 
-CFont* Tilc::Gui::TListbox::getFont() {
-    CFont* font = this->_theme->commonCheckboxControlFont;
-    if (this->_font) {
-        font = this->_font;
-    }
-    return font;
+int Tilc::Gui::TListbox::GetInnerTopLeftX()
+{
+	Tilc::Gui::TTheme* t = GetTheme();
+    return m_Padding + t->listbox_frame_top_left_rc.w;
 }
 
-int Tilc::Gui::TListbox::_getInnerTopLeftX() {
-	CTheme *t = this->_theme;
-    int x = this->_padding;
-    if (t && t->TListbox_frame_top_left) {
-        x += t->TListbox_frame_top_left->width();
-    }
-    return x;
+int Tilc::Gui::TListbox::GetInnerTopLeftY()
+{
+    Tilc::Gui::TTheme* t = GetTheme();
+    return m_Padding + t->listbox_frame_top_left_rc.h;
 }
 
-int Tilc::Gui::TListbox::_getInnerTopLeftY() {
-	CTheme *t = this->_theme;
-    int y = this->_padding;
-    if (t && t->TListbox_frame_top_left) {
-        y += t->TListbox_frame_top_left->height();
-    }
-    return y;
-}
-
-SIZE Tilc::Gui::TListbox::_getInnerSize() {
-    SIZE size;
-    size.cx = this->width;
-    size.cy = this->height;
-	CTheme *t = this->_theme;
+SDL_FPoint Tilc::Gui::TListbox::GetInnerSize()
+{
+    Tilc::Gui::TTheme* t = GetTheme();
+    SDL_FPoint size{};
+    size.x = m_Position.w;
+    size.y = m_Position.h;
     if (t) {
-        if (t && t->TListbox_frame_top_left) {
-            size.cx -= t->TListbox_frame_top_left->width();
-            size.cy -= t->TListbox_frame_top_left->height();
-        }
-        if (t && t->TListbox_frame_top_right) {
-            size.cx -= t->TListbox_frame_top_right->width();
-        }
-        if (t && t->TListbox_frame_bottom_left) {
-            size.cy -= t->TListbox_frame_bottom_left->height();
-        }
+        size.x -= t->listbox_frame_top_left_rc.w;
+        size.y -= t->listbox_frame_top_left_rc.h;
+
+        size.x -= t->listbox_frame_top_right_rc.w;
+
+        size.y -= t->listbox_frame_bottom_left_rc.h;
     }
     return size;
 }
 
-void Tilc::Gui::TListbox::_updateCanvas() {
-    this->_needUpdate = false;
-    if (!this->canvas) {
-		return;
+void Tilc::Gui::TListbox::Draw()
+{
+    if (!m_Visible) return;
+    Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    SDL_Texture* OldRenderTarget{ nullptr };
+    Tilc::Gui::TFont* font = t->DefaultFont;
+
+    if (m_Canvas)
+    {
+        OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, m_Canvas);
     }
 
-	int x = 0;
+    int x = 0;
     int y = 0;
-    HDC hdc = GetDC(0);
-	CTheme *t = this->_theme;
-    CBitmap* bg = t->TListbox_bg_fullscreen;
-    CBitmap* frame_tl = t->TListbox_frame_top_left;
-    CBitmap* frame_t = t->TListbox_frame_top;
-    CBitmap* frame_tr = t->TListbox_frame_top_right;
 
-    CBitmap* frame_bl = t->TListbox_frame_bottom_left;
-    CBitmap* frame_b = t->TListbox_frame_bottom;
-    CBitmap* frame_br = t->TListbox_frame_bottom_right;
+    SDL_FRect bg = t->listbox_bg_fullscreen_rc;
+    SDL_FRect frame_tl = t->listbox_frame_top_left_rc;
+    SDL_FRect frame_t = t->listbox_frame_top_rc;
+    SDL_FRect frame_tr = t->listbox_frame_top_right_rc;
 
-    CBitmap* frame_l = t->TListbox_frame_left;
-    CBitmap* frame_r = t->TListbox_frame_right;
-    CFont* font = this->getFont();
+    SDL_FRect frame_bl = t->listbox_frame_bottom_left_rc;
+    SDL_FRect frame_b = t->listbox_frame_bottom_rc;
+    SDL_FRect frame_br = t->listbox_frame_bottom_right_rc;
 
-	this->canvas->beginPaint(hdc);
+    SDL_FRect frame_l = t->listbox_frame_left_rc;
+    SDL_FRect frame_r = t->listbox_frame_right_rc;
+
     // ================================================================
     // Draw TListbox
     // ================================================================
-    this->draw(x, y, frame_tl, frame_t, frame_tr, frame_bl, frame_b, frame_br, frame_l, frame_r, bg);
-    // ================================================================
-    // ================================================================
-
-    // ================================================================
-    // Draw focus if applied
-    // ================================================================
+    DrawCommonComplex(
+        GetRealPosition(),
+        frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
+        frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
+        frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
+        frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
+        frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
+        frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
+        frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br
+    );
     // ================================================================
     // ================================================================
 
     // ================================================================
     // Draw items
     // ================================================================
-    if (this->_items && this->_items->size() > 0) {
-        CGuiControlItem* item;
-        CFont* font = this->getFont();
-        if (font) {
-            SIZE innerSize = this->_getInnerSize();
-            SIZE size = font->measureString(COMMON_MEASURE_STRING, this->canvas->getDC());
-            x = this->_getInnerTopLeftX();
-            y = this->_getInnerTopLeftY();
-            RECT itemRect = {x, y, x + innerSize.cx, y + size.cy};
-            for (int i = 0; i < this->_items->size(); i++) {
-                if (itemRect.top >= this->height - this->_padding) {
+    if (m_Items.size() > 0)
+    {
+        Tilc::Gui::TGuiControlItem* item;
+        if (font)
+        {
+            SDL_FPoint innerSize = GetInnerSize();
+            if (m_SpaceWidth == 0)
+            {
+                font->GetTextSize("", m_SpaceWidth, m_SpaceHeight);
+            }
+            SDL_FPoint size{ static_cast<float>(m_SpaceWidth), static_cast<float>(m_SpaceHeight) };
+            x = GetInnerTopLeftX();
+            y = GetInnerTopLeftY();
+            SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(x + innerSize.x), static_cast<float>(y + size.y)};
+            for (int i = 0; i < m_Items.size(); ++i)
+            {
+                if (itemRect.y >= m_Position.h - m_Padding)
+                {
                     break;
                 }
-                if (itemRect.bottom >= this->height - this->_padding) {
-                    itemRect.bottom = this->height - this->_padding - 1;
+                if (itemRect.y + itemRect.h  >= m_Position.h - m_Padding)
+                {
+                    itemRect.h = m_Position.h - m_Padding - itemRect.y;
                 }
-                item = (CGuiControlItem*)this->_items->getAt(i);
-                if (item) {
-                    this->canvas->drawText(font, item->value, itemRect, true, DT_LEFT | DT_NOPREFIX);
-                    itemRect.top += size.cy;
-                    itemRect.bottom += size.cy;
+                item = m_Items[i];
+                if (item)
+                {
+                    font->DrawString(Renderer, item->m_Value.c_str(), &itemRect);
+                    itemRect.y += size.y;
                 }
             }
         }
@@ -541,153 +542,9 @@ void Tilc::Gui::TListbox::_updateCanvas() {
     // ================================================================
     // ================================================================
 
-    this->canvas->endPaint();
-
-	ReleaseDC(0, hdc);
-}
-
-void Tilc::Gui::TListbox::onDraw(CBitmap *dest) {
-	CSprite::onDraw(dest);
-}
-
-void Tilc::Gui::TListbox::focus() {
-    CStyledWindow* swnd = this->getParentWindow();
-    if (swnd && swnd->getActiveControl() != this) {
-        swnd->setActiveControl(this);
-        return;
+    if (m_Canvas)
+    {
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
-    this->addState(CONTROL_STATE_FOCUSED);
+    m_NeedUpdate = ENeedUpdate::ENU_None;
 }
-
-void Tilc::Gui::TListbox::looseFocus() {
-    CStyledWindow* wnd = this->getParentWindow();
-    int x = MININT, y = MININT;
-    wnd->setOnlyActiveControlPointer(NULL);
-    this->getCurrentMousePosition(x, y);
-
-    if (x != MININT && y != MININT) {
-        if (this->pointIn(x, y)) {
-            this->addState(CONTROL_STATE_HOVER);
-        } else {
-            this->removeState(CONTROL_STATE_HOVER);
-        }
-    } else {
-        this->removeState(CONTROL_STATE_HOVER);
-    }
-}
-
-bool Tilc::Gui::TListbox::onMouseMove(int x, int y) {
-    if (!this->_visible) return false;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return false;
-    }
-
-    if (this->pointIn(x, y)) {
-        this->addState(CONTROL_STATE_HOVER);
-        return true;
-    } else {
-        this->removeState(CONTROL_STATE_HOVER);
-    }
-
-    return false;
-}
-
-bool Tilc::Gui::TListbox::onMouseDown(int x, int y) {
-    if (!this->_visible) return false;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return false;
-    }
-
-    if (this->pointIn(x, y)) {
-        this->_lMouseButtonPressed = true;
-        CStyledWindow* wnd = this->getParentWindow();
-        wnd->captureMouse(this);
-
-        if (wnd->getActiveControl() != this) {
-            wnd->setActiveControl(this);
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-bool Tilc::Gui::TListbox::onMouseUp(int x, int y) {
-    if (!this->_visible) return false;
-    CSprite* spriteThatCapturedMouse = this->getParentWindow()->getSpriteThatCapturedMouse();
-    if (spriteThatCapturedMouse != NULL && spriteThatCapturedMouse != this) {
-        return false;
-    }
-
-    bool mouseWasPressed = this->_lMouseButtonPressed;
-    this->_lMouseButtonPressed = false;
-    CStyledWindow* wnd = this->getParentWindow();
-    wnd->captureMouse(NULL);
-
-    if (this->pointIn(x, y)) {
-        if (wnd->getActiveControl() == this) {
-            this->setState(CONTROL_STATE_FOCUSED);
-        } else {
-            this->setState(CONTROL_STATE_HOVER);
-        }
-
-        if (mouseWasPressed) {
-            this->onClick();
-        }
-        return true;
-    }
-
-
-    return false;
-}
-
-void Tilc::Gui::TListbox::onClick() {
-    __super::onClick();
-}
-
-bool Tilc::Gui::TListbox::_commonKeyProcessing(bool vkAlt, bool vkShift, bool vkControl,
-            bool vkLAlt, bool vkRAlt,
-            bool vkLShift, bool vkRShift,
-            bool vkLControl, bool vkRControl,
-            bool systemKey,
-            Uint virtualCode, Uint scanCode, WCHAR ch, bool& redraw) {
-    redraw = false;
-
-    CKeyboard* kbd = this->getKbd();
-
-    return true;
-}
-
-bool Tilc::Gui::TListbox::onKeyDown(bool vkAlt, bool vkShift, bool vkControl,
-        bool vkLAlt, bool vkRAlt,
-        bool vkLShift, bool vkRShift,
-        bool vkLControl, bool vkRControl,
-        bool systemKey,
-        Uint virtualCode, Uint scanCode, WCHAR ch) {
-
-    bool redraw = false;
-
-    // wciśnięte pojedyńczo klawisze systemowe ignorujemy
-    if (!systemKey) {
-        bool process = !this->_commonKeyProcessing(vkAlt, vkShift, vkControl, vkLAlt, vkRAlt, vkLShift, vkRShift,
-                                    vkLControl, vkRControl, systemKey, virtualCode, scanCode, ch, redraw);
-        if (process) {
-            CKeyboard* kbd = this->getKbd();
-            bool processed = false;
-            if (kbd) {
-                if (virtualCode == VK_SPACE) {
-                }
-            }
-        }
-    }
-
-    if (redraw) {
-        this->redraw();
-    }
-
-    return true;
-}
-*/

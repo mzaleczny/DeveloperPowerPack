@@ -8,7 +8,6 @@
 
 namespace Tilc {
     namespace Gui {
-/*
         class DECLSPEC TListbox : public TGuiControl
         {
         public:
@@ -21,13 +20,15 @@ namespace Tilc {
 
             // zwraca przechowywany w kontrolce tekst
             virtual Tilc::TExtString GetText() override;
-            Tilc::TExtString GetTextExt(int selected = -1, int checked = -1, int imageIndex = -1, int data = 0);
-            TGuiControlItem* GetItem(int item);
+            Tilc::TExtString GetTextExt(int selected = -1, int checked = -1, int imageIndex = -1, long long data = 0);
+            inline TGuiControlItem* GetItem(int item) {
+                return m_Items[item];
+            }
             Tilc::TExtString GetItemValue(int item);
             bool IsItemSelected(int item);
             bool IsItemChecked(int item);
             int GetItemImageIndex(int item);
-            int GetItemData(int item);
+            long long GetItemData(int item);
 
             Tilc::TExtString GetSelectedItemValue();
             bool GetSelectedItemCheckedState();
@@ -38,49 +39,40 @@ namespace Tilc {
             int GetSelectedIndex();
             inline size_t GetItemsCount()
             {
-                if (m_Items)
-                {
-                    return m_Items->size();
-                }
-                return 0;
+                return m_Items.size();
             };
 
             void SelectItem(int item);
-            void SelectItem(Tilc::TExtString& item);
+            void SelectItem(const Tilc::TExtString& item);
             void SetItemChecked(int item);
-            void SetItemChecked(Tilc::TExtString& item);
-            void SetItemData(int item, int data);
-            void SetItemData(Tilc::TExtString& item, int data);
+            void SetItemChecked(const Tilc::TExtString& item);
+            void SetItemData(int item, long long data);
+            void SetItemData(const Tilc::TExtString& item, long long data);
             void SetItemImageIndex(int item, int imageIndex);
-            void SetItemImageIndex(Tilc::TExtString& item, int imageIndex);
-            void SetItemAttributes(int item, bool selected, bool checked, int imageIndex, int data);
-            void SetItemAttributes(Tilc::TExtString& item, bool selected, bool checked, int imageIndex, int data);
+            void SetItemImageIndex(const Tilc::TExtString& item, int imageIndex);
+            void SetItemAttributes(int item, bool selected, bool checked, int imageIndex, long long data);
+            void SetItemAttributes(const Tilc::TExtString& item, bool selected, bool checked, int imageIndex, long long data);
 
             // Funkcje obsługi zdarzeń
             virtual void Draw() override;
-            virtual bool OnMouseMove(const SDL_Event& event) override;
-            virtual bool OnMouseButtonDown(const SDL_Event& event) override;
-            virtual bool OnMouseButtonUp(const SDL_Event& event) override;
-
-            virtual bool OnKeyDown(const SDL_Event& event) override;
-            virtual bool OnTextInput(const SDL_Event& event) override;
 
         protected:
             TGuiControlItemList m_Items;
             //CImageList* _imageList;
-            bool m_IsCheckedList; //if checkbox near items are drawed and item.checked attribute is applied
-            bool m_IsMultiselect;
-            int m_SelectedItem; // used if this->_isMultiselect is false
-            int m_TopItemIndex; // index item displayed at top
-            int m_FullVisibleItems; // count of fully visible items
-            int m_VisibleItems;     // count of all visible items (including the last one)
-            int m_Padding;
+            bool m_IsCheckedList{}; //if checkbox near items are drawed and item.checked attribute is applied
+            bool m_IsMultiselect{};
+            int m_SelectedItem{}; // used if this->_isMultiselect is false
+            int m_TopItemIndex{}; // index item displayed at top
+            int m_FullVisibleItems{}; // count of fully visible items
+            int m_VisibleItems{};     // count of all visible items (including the last one)
+            int m_Padding{};
+            int m_SpaceWidth{};
+            int m_SpaceHeight{};
 
             int GetInnerTopLeftX();
             int GetInnerTopLeftY();
             SDL_FPoint GetInnerSize();
             void DeleteItems();
         };
-*/
     }
 }

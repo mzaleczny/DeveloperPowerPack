@@ -69,6 +69,13 @@ void Tilc::Gui::TScrollBar::SetMaxValue(int value)
     SetThumbSize();
 }
 
+void Tilc::Gui::TScrollBar::SetMinMaxValues(int MinValue, int MaxValue)
+{
+    m_MinValue = MinValue;
+    m_MaxValue = MaxValue;
+    SetThumbSize();
+}
+
 void Tilc::Gui::TScrollBar::OnPositionChanged(int oldPosition)
 {
     if (!OnPositionChangeCallback && m_ControlsToNotify.empty())
