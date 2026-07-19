@@ -1,5 +1,5 @@
 # DeveloperPowerPack
-<img src="/mzaleczny/Resources/blob/main/raw/Images/Tealc.png" width="400" align="right" />
+<img src="https://github.com/mzaleczny/Resources/blob/main/raw/Images/Tealc.png?raw=true" width="400" align="right" />
 Engine 2D/3D for creating games and applications that can compiled for Windows / Linux / Android and use one code base.
 
 Library and examples at current state are designed for advanced developers who manage to build them.
