@@ -2,7 +2,7 @@
 <img src="https://github.com/mzaleczny/Resources/blob/main/raw/Images/Tealc.png?raw=true" width="400" align="right" />
 Engine 2D/3D for creating games and applications that can compiled for Windows / Linux / Android and use one code base.
 
-Library and examples at current state are designed for advanced developers who manage to build them.
+Tilc library and examples at current state are designed for advanced developers who manage to build them.
 
 You can download sources and use it as you wish for private, public and commercial purposes without any fee to me provided that:
 1. you place my name and homepage:
