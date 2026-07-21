@@ -487,6 +487,7 @@ void Tilc::Gui::TListbox::Draw()
     SDL_FRect frame_l = t->listbox_frame_left_rc;
     SDL_FRect frame_r = t->listbox_frame_right_rc;
 
+    SDL_FRect rc;
     // ================================================================
     // Draw TListbox
     // ================================================================
@@ -500,6 +501,16 @@ void Tilc::Gui::TListbox::Draw()
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br
     );
+
+    rc = GetRealPosition();
+    rc.x += t->listbox_frame_left_rc.w;
+    rc.y += t->listbox_frame_top_rc.h;
+    rc.w -= t->listbox_frame_left_rc.w + t->listbox_frame_right_rc.w;
+    rc.h -= t->listbox_frame_top_rc.h + t->listbox_frame_bottom_rc.h;
+    // Line below eats much much much memory, I do not know why
+    //RenderTiledTexture(t->GuiTextureMap1, &t->listbox_bg_rc, &rc);
+    SDL_SetRenderDrawColor(Renderer, t->listbox_bg.r, t->listbox_bg.g, t->listbox_bg.b, t->listbox_bg.a);
+    SDL_RenderFillRect(Renderer, &rc);
     // ================================================================
     // ================================================================
 
@@ -514,12 +525,14 @@ void Tilc::Gui::TListbox::Draw()
             SDL_FPoint innerSize = GetInnerSize();
             if (m_SpaceWidth == 0)
             {
-                font->GetTextSize("", m_SpaceWidth, m_SpaceHeight);
+                font->GetTextSize("Testing A string qjy", m_SpaceWidth, m_SpaceHeight);
+                m_MeasuredTextSize.x = m_SpaceWidth;
+                m_MeasuredTextSize.y = m_SpaceHeight;
             }
             SDL_FPoint size{ static_cast<float>(m_SpaceWidth), static_cast<float>(m_SpaceHeight) };
-            x = GetInnerTopLeftX();
-            y = GetInnerTopLeftY();
-            SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(x + innerSize.x), static_cast<float>(y + size.y)};
+            x = GetInnerTopLeftX() + m_RealPosition.x;
+            y = GetInnerTopLeftY() + m_RealPosition.y;
+            SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x - t->listbox_frame_left_rc.w - t->listbox_frame_right_rc.w), static_cast<float>(size.y)};
             for (int i = 0; i < m_Items.size(); ++i)
             {
                 if (itemRect.y >= m_Position.h - m_Padding)
@@ -533,6 +546,24 @@ void Tilc::Gui::TListbox::Draw()
                 item = m_Items[i];
                 if (item)
                 {
+                    if (m_IsMultiselect)
+                    {
+                        if (item->m_Selected)
+                        {
+                            //RenderTiledTexture(t->GuiTextureMap1, &t->listbox_bg_selected_rc, &itemRect);
+                            SDL_SetRenderDrawColor(Renderer, t->listbox_bg_selected.r, t->listbox_bg_selected.g, t->listbox_bg_selected.b, t->listbox_bg_selected.a);
+                            SDL_RenderFillRect(Renderer, &itemRect);
+                        }
+                    }
+                    else
+                    {
+                        if (m_SelectedItem == i)
+                        {
+                            //RenderTiledTexture(t->GuiTextureMap1, &t->listbox_bg_selected_rc, &itemRect);
+                            SDL_SetRenderDrawColor(Renderer, t->listbox_bg_selected.r, t->listbox_bg_selected.g, t->listbox_bg_selected.b, t->listbox_bg_selected.a);
+                            SDL_RenderFillRect(Renderer, &itemRect);
+                        }
+                    }
                     font->DrawString(Renderer, item->m_Value.c_str(), &itemRect);
                     itemRect.y += size.y;
                 }
@@ -547,4 +578,28 @@ void Tilc::Gui::TListbox::Draw()
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }
     m_NeedUpdate = ENeedUpdate::ENU_None;
+}
+
+bool Tilc::Gui::TListbox::OnMouseButtonDown(const SDL_Event& event)
+{
+    if (!m_Visible) return false;
+    if (OtherControlCapturedMouse())
+    {
+        return false;
+    }
+
+    TGuiControl::OnMouseButtonDown(event);
+
+    if (PointIn(event.button.x, event.button.y))
+    {
+        CaptureMouse(this);
+
+        Tilc::Gui::TTheme* t = GetTheme();
+        int ClickedItem = (event.button.y - m_RealPosition.y - t->listbox_frame_top_rc.h) / m_MeasuredTextSize.y;
+        SelectItem(ClickedItem);
+
+        return true;
+    }
+
+    return false;
 }

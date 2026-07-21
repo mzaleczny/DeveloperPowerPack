@@ -370,6 +370,10 @@ namespace Tilc {
             SDL_FRect listbox_frame_right_rc;
             SDL_FRect listbox_bg_rc;
             SDL_FRect listbox_bg_selected_rc;
+            // fill colors for use by SDL_RenderFilledRect, because SDL_RenderTextureTiled cause much much much memory use from one pixel source rect and large destination rect
+            // no idea why
+            SDL_Color listbox_bg{0x52, 0x90, 0xfb, 0xff};
+            SDL_Color listbox_bg_selected{0xb0, 0xcd, 0xfe, 0xff};
 
             // Grid
             SDL_FRect grid_cell_inner_bg_normal_rc;

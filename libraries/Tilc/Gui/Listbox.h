@@ -55,9 +55,11 @@ namespace Tilc {
 
             // Funkcje obsługi zdarzeń
             virtual void Draw() override;
+            virtual bool OnMouseButtonDown(const SDL_Event& event) override;
 
         protected:
             TGuiControlItemList m_Items;
+            SDL_FPoint m_MeasuredTextSize;
             //CImageList* _imageList;
             bool m_IsCheckedList{}; //if checkbox near items are drawed and item.checked attribute is applied
             bool m_IsMultiselect{};
