@@ -133,8 +133,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     AddX(4, 0);
     RenderButtonsByNamesHorizontal({ "listbox_frame_top_left", "listbox_frame_top_right", "listbox_frame_bottom_left", "listbox_frame_bottom_right"}, 2, 2, 10);
     AddX(4*2, 0);
-    RenderButtonsByNamesHorizontal({ "listbox_frame_left", "listbox_frame_right", "listbox_frame_top", "listbox_frame_bottom" }, 1, 1, 10);
-    AddY(1, 0);
+    RenderButtonsByNamesHorizontal({ "listbox_frame_left", "listbox_frame_right" }, 2, 1, 10);
+    AddX(2 * 2, 0);
+    RenderButtonsByNamesHorizontal({ "listbox_frame_top", "listbox_frame_bottom" }, 1, 2, 10);
+    AddX(2*1, 0);
     RenderButtonsByNamesHorizontal({ "listbox_bg", "listbox_bg_selected" }, 1, 1, 10);
 
     SDL_SetRenderTarget(renderer, nullptr);
