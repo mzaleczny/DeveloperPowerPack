@@ -130,7 +130,12 @@ SDL_AppResult SDL_AppIterate(void *appstate)
         "grid_left_header_inner_bg_selected_cell", "grid_left_top_header_inner_bg", "grid_top_header_inner_bg_normal_cell", "grid_top_header_inner_bg_selected_cell" }, 4, 30, 8);
     AddX(8 * 4, 0);
     RenderButtonsByNamesHorizontal({ "grid_left_top_header_mark" }, 4, 4, 1);
-    AddY(30, 0);
+    AddX(4, 0);
+    RenderButtonsByNamesHorizontal({ "listbox_frame_top_left", "listbox_frame_top_right", "listbox_frame_bottom_left", "listbox_frame_bottom_right"}, 2, 2, 10);
+    AddX(4*2, 0);
+    RenderButtonsByNamesHorizontal({ "listbox_frame_left", "listbox_frame_right", "listbox_frame_top", "listbox_frame_bottom" }, 1, 1, 10);
+    AddY(1, 0);
+    RenderButtonsByNamesHorizontal({ "listbox_bg", "listbox_bg_selected" }, 1, 1, 10);
 
     SDL_SetRenderTarget(renderer, nullptr);
 
