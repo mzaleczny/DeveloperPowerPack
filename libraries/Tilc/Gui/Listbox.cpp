@@ -535,13 +535,13 @@ void Tilc::Gui::TListbox::Draw()
             SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x - t->listbox_frame_left_rc.w - t->listbox_frame_right_rc.w), static_cast<float>(size.y)};
             for (int i = 0; i < m_Items.size(); ++i)
             {
-                if (itemRect.y >= m_Position.h - m_Padding)
+                if (itemRect.y >= m_RealPosition.y + m_RealPosition.h - m_Padding)
                 {
                     break;
                 }
-                if (itemRect.y + itemRect.h  >= m_Position.h - m_Padding)
+                if (itemRect.y + itemRect.h  >= m_RealPosition.y + m_RealPosition.h - m_Padding)
                 {
-                    itemRect.h = m_Position.h - m_Padding - itemRect.y;
+                    itemRect.h = m_RealPosition.y + m_RealPosition.h - m_Padding - itemRect.y;
                 }
                 item = m_Items[i];
                 if (item)
