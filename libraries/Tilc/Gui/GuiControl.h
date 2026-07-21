@@ -239,6 +239,7 @@ namespace Tilc {
                 m_Position.w = width;
                 m_Position.h = height;
             }
+            void SetMaxAvailableSizeOfScrollBars();
             bool IsPlaying() const;
             void Stop();
             void Loop();
