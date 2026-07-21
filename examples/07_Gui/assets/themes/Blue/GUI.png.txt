@@ -184,9 +184,9 @@ listbox_frame_top_left_rc: 36, 1036, 2, 2
 listbox_frame_top_right_rc: 38, 1036, 2, 2
 listbox_frame_bottom_left_rc: 40, 1036, 2, 2
 listbox_frame_bottom_right_rc: 42, 1036, 2, 2
-listbox_frame_left_rc: 44, 1036, 1, 1
-listbox_frame_right_rc: 45, 1036, 1, 1
-listbox_frame_top_rc: 46, 1036, 1, 1
-listbox_frame_bottom_rc: 47, 1036, 1, 1
-listbox_bg_rc: 44, 1037, 1, 1
-listbox_bg_selected_rc: 45, 1037, 1, 1
+listbox_frame_left_rc: 44, 1036, 2, 1
+listbox_frame_right_rc: 46, 1036, 2, 1
+listbox_frame_top_rc: 48, 1036, 1, 2
+listbox_frame_bottom_rc: 49, 1036, 1, 2
+listbox_bg_rc: 50, 1036, 1, 1
+listbox_bg_selected_rc: 51, 1036, 1, 1
