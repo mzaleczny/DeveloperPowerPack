@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "13_Listbox.exe",
+      "name": "13_Listbox.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}
