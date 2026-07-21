@@ -475,7 +475,7 @@ void Tilc::Gui::TListbox::Draw()
     int x = 0;
     int y = 0;
 
-    SDL_FRect bg = t->listbox_bg_fullscreen_rc;
+    SDL_FRect bg = t->listbox_bg_rc;
     SDL_FRect frame_tl = t->listbox_frame_top_left_rc;
     SDL_FRect frame_t = t->listbox_frame_top_rc;
     SDL_FRect frame_tr = t->listbox_frame_top_right_rc;

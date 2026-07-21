@@ -360,16 +360,16 @@ namespace Tilc {
             SDL_FRect option_checked_hover_rc;
 
             // listbox bitmaps
-            SDL_FRect listbox_bg_fullscreen_rc;
-            SDL_FRect listbox_bg_rc;
             SDL_FRect listbox_frame_top_left_rc;
             SDL_FRect listbox_frame_top_rc;
             SDL_FRect listbox_frame_top_right_rc;
             SDL_FRect listbox_frame_bottom_left_rc;
-            SDL_FRect listbox_frame_bottom_rc;
+             SDL_FRect listbox_frame_bottom_rc;
             SDL_FRect listbox_frame_bottom_right_rc;
             SDL_FRect listbox_frame_left_rc;
             SDL_FRect listbox_frame_right_rc;
+            SDL_FRect listbox_bg_rc;
+            SDL_FRect listbox_bg_selected_rc;
 
             // Grid
             SDL_FRect grid_cell_inner_bg_normal_rc;
