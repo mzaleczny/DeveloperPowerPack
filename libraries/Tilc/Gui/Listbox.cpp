@@ -85,48 +85,7 @@ void Tilc::Gui::TListbox::SetScrollBars()
         }
     }
 
-
-    // jeśli mamy scrollbara poziomego
-    if (m_HScrollBar && m_HScrollBar->IsVisible())
-    {
-        // i mamy scrollbara pionowego, to ustawiamy mu mniejsza wysokosc
-        if (m_VScrollBar)
-        {
-            m_VScrollBar->m_RealPosition.h = m_RealPosition.h;
-            m_VScrollBar->m_Position.h = m_VScrollBar->m_RealPosition.h;
-        }
-    }
-    // jesli nie mamy widocznego scrollbara poziomego
-    else
-    {
-        // i mamy scrollbara pionowego, to ustawiamy mu wysokosc na cala wyskosc kontrolki
-        if (m_VScrollBar)
-        {
-            m_VScrollBar->m_RealPosition.h = m_RealPosition.h;
-            m_VScrollBar->m_Position.h = m_VScrollBar->m_RealPosition.h;
-        }
-    }
-
-    // jeśli mamy scrollbara pionowego
-    if (m_VScrollBar && m_VScrollBar->IsVisible())
-    {
-        // i mamy scrollbara poziomego, to ustawiamy mu mniejsza szerokosc
-        if (m_HScrollBar)
-        {
-            m_HScrollBar->m_RealPosition.w = m_RealPosition.w - m_VScrollBar->m_RealPosition.w;
-            m_HScrollBar->m_Position.w = m_HScrollBar->m_RealPosition.w;
-        }
-    }
-    // jesli nie mamy widocznego scrollbara poziomego
-    else
-    {
-        // i mamy scrollbara pionowego, to ustawiamy mu wysokosc na cala wyskosc kontrolki
-        if (m_HScrollBar)
-        {
-            m_HScrollBar->m_RealPosition.w = m_RealPosition.w;
-            m_HScrollBar->m_Position.w = m_HScrollBar->m_RealPosition.w;
-        }
-    }
+    SetMaxAvailableSizeOfScrollBars();
 }
 
 void Tilc::Gui::TListbox::SetItems(std::initializer_list<const char*> items, bool redraw)
