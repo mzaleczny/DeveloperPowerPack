@@ -180,3 +180,13 @@ grid_left_top_header_inner_bg_rc: 20, 1036, 4, 30
 grid_top_header_inner_bg_normal_cell_rc: 24, 1036, 4, 30
 grid_top_header_inner_bg_selected_cell_rc: 28, 1036, 4, 30
 grid_left_top_header_mark_rc: 32, 1036, 4, 4
+listbox_frame_top_left_rc: 36, 1036, 2, 2
+listbox_frame_top_right_rc: 38, 1036, 2, 2
+listbox_frame_bottom_left_rc: 40, 1036, 2, 2
+listbox_frame_bottom_right_rc: 42, 1036, 2, 2
+listbox_frame_left_rc: 44, 1036, 1, 1
+listbox_frame_right_rc: 45, 1036, 1, 1
+listbox_frame_top_rc: 46, 1036, 1, 1
+listbox_frame_bottom_rc: 47, 1036, 1, 1
+listbox_bg_rc: 44, 1037, 1, 1
+listbox_bg_selected_rc: 45, 1037, 1, 1
