@@ -24,7 +24,8 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     float x = 20.0f;
     float y = 30.0f;
     Tilc::Gui::TStyledWindow* wnd = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
-    Tilc::Gui::TListbox* lst = new Tilc::Gui::TListbox(wnd, "listbox", { x, y, 1160, 500 }, {
+    //Tilc::Gui::TListbox* lst = new Tilc::Gui::TListbox(wnd, "listbox", { x, y, 1160, 500 }, {
+    Tilc::Gui::TListbox* lst = new Tilc::Gui::TListbox(wnd, "listbox", { x, y, 460, 200 }, {
         "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
         "Stargate SG1 - Richard Dean Anderson",
         "Matrix - Keanu Reeves",
@@ -35,7 +36,39 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
         "Lord of the Rings",
         "Vikings",
         "Vikings Valhalla",
-        "Marco Polo"
+        "Marco Polo",
+        "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "Marco Polo",
+        "Ostatnia pozycja"
         });
 }
 
