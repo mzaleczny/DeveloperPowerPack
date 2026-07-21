@@ -14,6 +14,16 @@ Tilc::Gui::TListbox::TListbox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtSt
     m_TopItemIndex = -1;
     m_TabStop = true;
     m_Padding = 2;
+
+    Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    Tilc::Gui::TFont* font = t->DefaultFont;
+    if (m_SpaceWidth == 0)
+    {
+        font->GetTextSize("Testing A string qjy", m_SpaceWidth, m_SpaceHeight);
+        m_MeasuredTextSize.x = m_SpaceWidth;
+        m_MeasuredTextSize.y = m_SpaceHeight;
+    }
+
     SetItems(items);
 }
 
@@ -26,6 +36,97 @@ void Tilc::Gui::TListbox::DeleteItems()
 {
     std::ranges::for_each(m_Items, [](TGuiControlItem* Item) { delete Item; });
     m_Items.clear();
+}
+
+void Tilc::Gui::TListbox::SetScrollBars()
+{
+    float AllItemsHeight = m_Items.size() * m_MeasuredTextSize.y;
+    bool addVScr = m_RealPosition.h < AllItemsHeight;
+    bool addHScr = false;//allowedTextAreaWidth < maxItemWidth;
+
+    if (addVScr)
+    {
+        if (!m_VScrollBar)
+        {
+            AddVerticalScrollBar(0, m_Items.size() - m_VisibleItems, 0, false);
+        }
+        else
+        {
+            m_VScrollBar->SetMinMaxValues(0, m_Items.size() - m_VisibleItems);
+        }
+        m_VScrollBar->Show();
+    }
+    else
+    {
+        if (m_VScrollBar)
+        {
+            m_VScrollBar->Hide();
+        }
+    }
+
+
+    if (addHScr)
+    {
+        if (!m_HScrollBar)
+        {
+    //        AddHorizontalScrollBar(0, maxItemWidth - allowedTextAreaWidth, 0, false);
+        }
+        else
+        {
+      //      m_HScrollBar->SetMinMaxValues(0, m_Items.size() - m_VisibleItems);
+        }
+        m_HScrollBar->Show();
+    }
+    else
+    {
+        if (m_HScrollBar)
+        {
+            m_HScrollBar->Hide();
+        }
+    }
+
+
+    // jeśli mamy scrollbara poziomego
+    if (m_HScrollBar && m_HScrollBar->IsVisible())
+    {
+        // i mamy scrollbara pionowego, to ustawiamy mu mniejsza wysokosc
+        if (m_VScrollBar)
+        {
+            m_VScrollBar->m_RealPosition.h = m_RealPosition.h;
+            m_VScrollBar->m_Position.h = m_VScrollBar->m_RealPosition.h;
+        }
+    }
+    // jesli nie mamy widocznego scrollbara poziomego
+    else
+    {
+        // i mamy scrollbara pionowego, to ustawiamy mu wysokosc na cala wyskosc kontrolki
+        if (m_VScrollBar)
+        {
+            m_VScrollBar->m_RealPosition.h = m_RealPosition.h;
+            m_VScrollBar->m_Position.h = m_VScrollBar->m_RealPosition.h;
+        }
+    }
+
+    // jeśli mamy scrollbara pionowego
+    if (m_VScrollBar && m_VScrollBar->IsVisible())
+    {
+        // i mamy scrollbara poziomego, to ustawiamy mu mniejsza szerokosc
+        if (m_HScrollBar)
+        {
+            m_HScrollBar->m_RealPosition.w = m_RealPosition.w - m_VScrollBar->m_RealPosition.w;
+            m_HScrollBar->m_Position.w = m_HScrollBar->m_RealPosition.w;
+        }
+    }
+    // jesli nie mamy widocznego scrollbara poziomego
+    else
+    {
+        // i mamy scrollbara pionowego, to ustawiamy mu wysokosc na cala wyskosc kontrolki
+        if (m_HScrollBar)
+        {
+            m_HScrollBar->m_RealPosition.w = m_RealPosition.w;
+            m_HScrollBar->m_Position.w = m_HScrollBar->m_RealPosition.w;
+        }
+    }
 }
 
 void Tilc::Gui::TListbox::SetItems(std::initializer_list<const char*> items, bool redraw)
@@ -41,6 +142,10 @@ void Tilc::Gui::TListbox::SetItems(std::initializer_list<const char*> items, boo
     {
         SetItems(Lst, redraw);
     }
+    else
+    {
+        SetScrollBars();
+    }
 }
 
 void Tilc::Gui::TListbox::SetItems(Tilc::TExtString& items, bool redraw)
@@ -51,6 +156,10 @@ void Tilc::Gui::TListbox::SetItems(Tilc::TExtString& items, bool redraw)
     if (Lst.size() > 0)
     {
         SetItems(Lst, redraw);
+    }
+    else
+    {
+        SetScrollBars();
     }
 }
 
@@ -105,17 +214,7 @@ void Tilc::Gui::TListbox::SetItems(const Tilc::TStringVector& items, bool redraw
     }
     m_TopItemIndex = 0;
 
-    bool addVScr = allowedTextAreaHeight < summaryItemHeight;
-    bool addHScr = allowedTextAreaWidth < maxItemWidth;
-    if (!m_HScrollBar)
-    {
-        AddScrollBars(addVScr, addHScr, 0, m_Items.size() - m_VisibleItems, 0, maxItemWidth - allowedTextAreaWidth);
-    }
-    else
-    {
-        m_HScrollBar->SetMinMaxValues(0, maxItemWidth - allowedTextAreaWidth);
-        m_VScrollBar->SetMinMaxValues(0, m_Items.size() - m_VisibleItems);
-    }
+    SetScrollBars();
 
     if (redraw)
     {
@@ -448,13 +547,23 @@ SDL_FPoint Tilc::Gui::TListbox::GetInnerSize()
     SDL_FPoint size{};
     size.x = m_Position.w;
     size.y = m_Position.h;
-    if (t) {
+    if (t)
+    {
+        size.x -= m_Padding;
         size.x -= t->listbox_frame_top_left_rc.w;
-        size.y -= t->listbox_frame_top_left_rc.h;
-
         size.x -= t->listbox_frame_top_right_rc.w;
+        if (m_VScrollBar && m_VScrollBar->IsVisible())
+        {
+            size.x -= m_VScrollBar->m_RealPosition.w;
+        }
 
+        size.y -= m_Padding;
+        size.y -= t->listbox_frame_top_left_rc.h;
         size.y -= t->listbox_frame_bottom_left_rc.h;
+        if (m_HScrollBar && m_HScrollBar->IsVisible())
+        {
+            size.y -= m_HScrollBar->m_RealPosition.h;
+        }
     }
     return size;
 }
@@ -523,25 +632,19 @@ void Tilc::Gui::TListbox::Draw()
         if (font)
         {
             SDL_FPoint innerSize = GetInnerSize();
-            if (m_SpaceWidth == 0)
-            {
-                font->GetTextSize("Testing A string qjy", m_SpaceWidth, m_SpaceHeight);
-                m_MeasuredTextSize.x = m_SpaceWidth;
-                m_MeasuredTextSize.y = m_SpaceHeight;
-            }
             SDL_FPoint size{ static_cast<float>(m_SpaceWidth), static_cast<float>(m_SpaceHeight) };
             x = GetInnerTopLeftX() + m_RealPosition.x;
             y = GetInnerTopLeftY() + m_RealPosition.y;
-            SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x - t->listbox_frame_left_rc.w - t->listbox_frame_right_rc.w), static_cast<float>(size.y)};
-            for (int i = 0; i < m_Items.size(); ++i)
+            SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x), static_cast<float>(size.y)};
+            for (int i = m_TopItemIndex; i < m_Items.size(); ++i)
             {
-                if (itemRect.y >= m_RealPosition.y + m_RealPosition.h - m_Padding)
+                if (itemRect.y >= m_RealPosition.y + innerSize.y)
                 {
                     break;
                 }
-                if (itemRect.y + itemRect.h  >= m_RealPosition.y + m_RealPosition.h - m_Padding)
+                if (itemRect.y + itemRect.h  >= m_RealPosition.y + innerSize.y)
                 {
-                    itemRect.h = m_RealPosition.y + m_RealPosition.h - m_Padding - itemRect.y;
+                    itemRect.h = m_RealPosition.y + innerSize.y - itemRect.y;
                 }
                 item = m_Items[i];
                 if (item)
@@ -573,6 +676,8 @@ void Tilc::Gui::TListbox::Draw()
     // ================================================================
     // ================================================================
 
+    DrawChildren(false);    
+
     if (m_Canvas)
     {
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
@@ -602,4 +707,9 @@ bool Tilc::Gui::TListbox::OnMouseButtonDown(const SDL_Event& event)
     }
 
     return false;
+}
+
+void Tilc::Gui::TListbox::OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar)
+{
+    m_TopItemIndex = curPosition;
 }

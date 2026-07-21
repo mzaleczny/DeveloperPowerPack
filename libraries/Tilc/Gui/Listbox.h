@@ -56,6 +56,7 @@ namespace Tilc {
             // Funkcje obsługi zdarzeń
             virtual void Draw() override;
             virtual bool OnMouseButtonDown(const SDL_Event& event) override;
+            virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar) override;
 
         protected:
             TGuiControlItemList m_Items;
@@ -75,6 +76,7 @@ namespace Tilc {
             int GetInnerTopLeftY();
             SDL_FPoint GetInnerSize();
             void DeleteItems();
+            void SetScrollBars();
         };
     }
 }
