@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <ranges>
 
-Tilc::Gui::TListbox::TListbox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, std::initializer_list<const char*> items)
-    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Listbox)
+
+void Tilc::Gui::TListbox::CommonInit(const std::initializer_list<const char*>& items)
 {
     m_TopItemIndex = -1;
     m_TabStop = true;
@@ -25,6 +25,30 @@ Tilc::Gui::TListbox::TListbox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtSt
     }
 
     SetItems(items);
+}
+
+Tilc::Gui::TListbox::TListbox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Listbox)
+{
+    CommonInit({});
+}
+
+Tilc::Gui::TListbox::TListbox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType)
+    : Tilc::Gui::TGuiControl(parent, name, position, ControlType)
+{
+    CommonInit({});
+}
+
+Tilc::Gui::TListbox::TListbox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, std::initializer_list<const char*> items)
+    : Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_Listbox)
+{
+    CommonInit(items);
+}
+
+Tilc::Gui::TListbox::TListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, std::initializer_list<const char*> items)
+    : Tilc::Gui::TGuiControl(parent, name, position, ControlType)
+{
+    CommonInit(items);
 }
 
 Tilc::Gui::TListbox::~TListbox()
@@ -592,18 +616,25 @@ void Tilc::Gui::TListbox::Draw()
         {
             SDL_FPoint innerSize = GetInnerSize();
             SDL_FPoint size{ static_cast<float>(m_SpaceWidth), static_cast<float>(m_SpaceHeight) };
+
             x = GetInnerTopLeftX() + m_RealPosition.x;
             y = GetInnerTopLeftY() + m_RealPosition.y;
             SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x), static_cast<float>(size.y)};
+            SDL_Rect OrigClipRect, ControlClipRect;
             for (int i = m_TopItemIndex; i < m_Items.size(); ++i)
             {
-                if (itemRect.y >= m_RealPosition.y + innerSize.y)
+                if (itemRect.y >= m_RealPosition.y + m_Padding + innerSize.y)
                 {
                     break;
                 }
                 if (itemRect.y + itemRect.h  >= m_RealPosition.y + innerSize.y)
                 {
-                    itemRect.h = m_RealPosition.y + innerSize.y - itemRect.y;
+                    itemRect.h = m_RealPosition.y + m_Padding + innerSize.y - itemRect.y;
+                }
+                if (i - m_TopItemIndex + 1 == m_VisibleItems)
+                {
+                    ControlClipRect = FRectToRectFloor(&itemRect);
+                    SDL_SetRenderClipRect(Renderer, &ControlClipRect);
                 }
                 item = m_Items[i];
                 if (item)
@@ -628,6 +659,11 @@ void Tilc::Gui::TListbox::Draw()
                     }
                     font->DrawString(Renderer, item->m_Value.c_str(), &itemRect);
                     itemRect.y += size.y;
+                }
+                if (i - m_TopItemIndex + 1 == m_VisibleItems)
+                {
+                    OrigClipRect = FRectToRectFloor(&GetParentWindow()->m_Position);
+                    SDL_SetRenderClipRect(Renderer, &OrigClipRect);
                 }
             }
         }

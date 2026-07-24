@@ -11,7 +11,10 @@ namespace Tilc {
         class DECLSPEC TListbox : public TGuiControl
         {
         public:
+            TListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position);
+            TListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType);
             TListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, std::initializer_list<const char*> items);
+            TListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, std::initializer_list<const char*> items);
             virtual  ~TListbox();
 
             void SetItems(std::initializer_list<const char*> items, bool redraw = true);
@@ -75,8 +78,10 @@ namespace Tilc {
             int GetInnerTopLeftX();
             int GetInnerTopLeftY();
             SDL_FPoint GetInnerSize();
-            void DeleteItems();
-            void SetScrollBars();
+            virtual void DeleteItems();
+            virtual void SetScrollBars();
+
+            void CommonInit(const std::initializer_list<const char*>& items);
         };
     }
 }
