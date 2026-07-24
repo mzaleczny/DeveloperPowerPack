@@ -5,6 +5,7 @@
 #include "Tilc/Gui/TextBox.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/Listbox.h"
+#include "Tilc/Gui/MultiColumnListbox.h"
 #include "Tilc/Gui/Option.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Theme.h"
@@ -21,12 +22,13 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     );
     Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow->SetText("Przykładowe okienko");
 
-    float x = 20.0f;
-    float y = 30.0f;
+    float x = 0.0f;
+    float y = 25.0f;
+    float w = 598.0f;
+    float h = 774.0f;
     Tilc::Gui::TStyledWindow* wnd = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
-    //Tilc::Gui::TListbox* lst = new Tilc::Gui::TListbox(wnd, "listbox", { x, y, 1160, 500 }, {
-    Tilc::Gui::TListbox* lst = new Tilc::Gui::TListbox(wnd, "listbox", { x, y, 460, 200 }, {
-        "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
+    Tilc::Gui::TListbox* lst = new Tilc::Gui::TListbox(wnd, "listbox", { x, y, w, h }, {
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
         "Stargate SG1 - Richard Dean Anderson",
         "Matrix - Keanu Reeves",
         "Stargate Atlantis",
@@ -37,7 +39,7 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
         "Vikings",
         "Vikings Valhalla",
         "Marco Polo",
-        "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
         "Stargate SG1 - Richard Dean Anderson",
         "Matrix - Keanu Reeves",
         "Stargate Atlantis",
@@ -47,7 +49,7 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
         "Lord of the Rings",
         "Vikings",
         "Vikings Valhalla",
-        "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
         "Stargate SG1 - Richard Dean Anderson",
         "Matrix - Keanu Reeves",
         "Stargate Atlantis",
@@ -57,7 +59,7 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
         "Lord of the Rings",
         "Vikings",
         "Vikings Valhalla",
-        "(Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
         "Stargate SG1 - Richard Dean Anderson",
         "Matrix - Keanu Reeves",
         "Stargate Atlantis",
@@ -70,6 +72,58 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
         "Marco Polo",
         "Ostatnia pozycja"
         });
+
+    Tilc::Gui::TMultiColumnListbox* mclst = new Tilc::Gui::TMultiColumnListbox(wnd, "listbox", { x + w + 2, y, w, h }, {
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+        { "Ostatnia pozycja", "---", "123" }
+    });
+    mclst->SetColumnWidths({ 200, 200, 50 });
 }
 
 TStateGame::~TStateGame()
