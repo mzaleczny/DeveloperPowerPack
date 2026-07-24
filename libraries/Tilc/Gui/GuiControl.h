@@ -63,7 +63,8 @@ namespace Tilc {
             ECT_Checkbox,
             ECT_Option,
             ECT_Grid,
-            ECT_Listbox
+            ECT_Listbox,
+            ECT_MultiColumnListbox
         };
 
         enum class EControlBorderType
@@ -84,6 +85,7 @@ namespace Tilc {
             int m_ImageIndex;
             long long m_Data;
             SDL_FPoint m_Size;
+            TStringVector m_Columns;
         };
         using TGuiControlItemList = std::vector<TGuiControlItem*>;
 
