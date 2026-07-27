@@ -21,7 +21,7 @@ namespace Tilc
 
         TXMLElement(std::string_view name, std::string_view text) : m_Name(name), m_Text(text) {}
 
-        template <typename... Children>
+        template <std::derived_from<TXMLElement>... Children>
         TXMLElement(std::string_view name, std::string_view text, Children&&... children)
             : m_Name(name), m_Text(text), m_Children{ std::forward<Children>(children)... }
         {}
