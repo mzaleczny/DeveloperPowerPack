@@ -155,6 +155,8 @@ void Tilc::TCFile::OpenFile(const char* FileName, const char* OpenMode)
 {
 #ifdef __EMSCRIPTEN__
     m_File = fopen(FileName, OpenMode);
+#elif defined(__linux__)
+    m_File = fopen(FileName, OpenMode);
 #else
     fopen_s(&m_File, FileName, OpenMode);
 #endif
@@ -185,6 +187,8 @@ Tilc::TExtString Tilc::GetAppDataFolder()
 
 #ifdef __EMSCRIPTEN__
     Tilc::TExtString HomeDir = getenv(HOME);
+#elif defined(__linux__)
+    Tilc::TExtString HomeDir = getenv(HOME);
 #else
     char* buf;
     size_t bufsize;
@@ -210,6 +214,8 @@ Tilc::TExtString Tilc::GetTmpFolder()
 #endif
 
 #ifdef __EMSCRIPTEN__
+    Tilc::TExtString HomeDir = getenv(HOME);
+#elif defined(__linux__)
     Tilc::TExtString HomeDir = getenv(HOME);
 #else
     char* buf;
