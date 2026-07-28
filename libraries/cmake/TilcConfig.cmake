@@ -114,3 +114,12 @@ function(MariaDBCopyRuntimeDlls TARGET_NAME)
         )
     endif()
 endfunction()
+
+function(CurlCopyRuntimeDlls TARGET_NAME)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        message("libcurl-x64.dll for Windows, SET: ${TilcBuildDir}/../../../.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libcurl-x64.dll")
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../../.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libcurl-x64.dll"
+        )
+    endif()
+endfunction()
