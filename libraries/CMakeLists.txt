@@ -36,6 +36,8 @@ set(LOCAL_CACHE_DIR_zlib "${LOCAL_CACHE_DIR}/zlib")
 set(LOCAL_CACHE_DIR_glm "${LOCAL_CACHE_DIR}/glm")
 set(LOCAL_CACHE_DIR_assimp "${LOCAL_CACHE_DIR}/assimp")
 set(LOCAL_CACHE_DIR_mariadbconnectorcpp "${LOCAL_CACHE_DIR}/mariadb-connector-cpp")
+set(LOCAL_CACHE_DIR_CURL_ZIP "${LOCAL_CACHE_DIR}/curl.zip")
+set(LOCAL_CACHE_DIR_CURL_DIRECTORY "${LOCAL_CACHE_DIR}/${CURL_VERSION}")
 
 set(TAG_SDL3 "release-3.4.10")
 set(TAG_SDL3_image "release-3.4.4")
@@ -54,6 +56,23 @@ else()
     set(TilcBinDir "x64-Release")
 endif()
 
+
+# In Windows we downloading precompiled binaries of curl as it has many dependencies and is hard to compile in windows.
+# Some dependencies has no CMakeLists building system and requires old autotools way of building what explodes this configuration.
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if(NOT EXISTS "${LOCAL_CACHE_DIR_CURL_ZIP}")
+        # Pobranie pliku
+        file(DOWNLOAD "${URL_CURL_PRECOMPILED_BINARIES}" "${LOCAL_CACHE_DIR_CURL_ZIP}"
+             SHOW_PROGRESS
+             EXPECTED_HASH SHA256="${URL_CURL_EXPECTED_HASH}")
+
+        # Rozpakowanie ZIP
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xzf "${LOCAL_CACHE_DIR_CURL_ZIP}"
+            WORKING_DIRECTORY "${LOCAL_CACHE_DIR}"
+        )
+    endif()
+endif()
 
 # Create repos cache for the first build
 if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}")
@@ -298,6 +317,7 @@ AddSourcesRecurse(Tilc/Game2D)
 AddSourcesRecurse(Tilc/Game3D)
 AddSourcesRecurse(Tilc/Graphics)
 AddSourcesRecurse(Tilc/Gui)
+AddSourcesRecurse(Tilc/Net)
 AddSourcesRecurse(Tilc/Resources)
 AddSourcesRecurse(Tilc/Thread)
 AddSourcesRecurse(Tilc/Utils)
@@ -636,6 +656,24 @@ if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
     endif()
 endif()
 
+# Config for curl in windows
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_include_directories("${PROJECT_NAME}Shared" PRIVATE
+        "$<BUILD_INTERFACE:${LOCAL_CACHE_DIR}/${CURL_VERSION}/include>"
+    )
+    execute_process(
+        COMMAND "${VS_BINARIES}/lib.exe" /def:${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.def /out:${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.lib /machine:x64
+    )
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.lib)
+    add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
+	    COMMAND ${CMAKE_COMMAND} -E copy "${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libcurl-x64.dll"
+    )
+    # Remove zlib related files inside curl include folder as they collides with our zlib
+    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zconf.h")
+    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zdict.h")
+    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib.h")
+    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib_name_mangling.h")
+endif()
 
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
     EXPORT_LINK_INTERFACE_LIBRARIES OFF
