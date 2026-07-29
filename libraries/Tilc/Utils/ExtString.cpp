@@ -1753,7 +1753,7 @@ DECLSPEC Tilc::TExtString Tilc::Utf32ToUtf8(const std::u32string& s)
     return Utf16ToUtf8(Utf32ToUtf16(s));
 }
 
-DECLSPEC Tilc::TExtString SlowTrzy(int i)
+DECLSPEC Tilc::TExtString Tilc::SlowTrzy(int i)
 {
     Tilc::TExtString tmp;
     Tilc::TExtString licz;
@@ -1786,61 +1786,61 @@ DECLSPEC Tilc::TExtString SlowTrzy(int i)
     tmp = "";
 
     // Ustal ilość setek i wpisz odpowiednią nazwę do zmiennej tmp
-    if (licz[1] == '1')   tmp = "sto";
-    else if (licz[1] == '2')   tmp = "dwieście";
-    else if (licz[1] == '3')   tmp = "trzysta";
-    else if (licz[1] == '4')   tmp = "czterysta";
-    else if (licz[1] == '5')   tmp = "pięćset";
-    else if (licz[1] == '6')   tmp = "sześćset";
-    else if (licz[1] == '7')   tmp = "siedemset";
-    else if (licz[1] == '8')   tmp = "osiemset";
-    else if (licz[1] == '9')   tmp = "dziewięćset";
-    else if (licz[1] == '0')   tmp = "";
+    if (licz[0] == '1')   tmp = "sto";
+    else if (licz[0] == '2')   tmp = "dwieście";
+    else if (licz[0] == '3')   tmp = "trzysta";
+    else if (licz[0] == '4')   tmp = "czterysta";
+    else if (licz[0] == '5')   tmp = "pięćset";
+    else if (licz[0] == '6')   tmp = "sześćset";
+    else if (licz[0] == '7')   tmp = "siedemset";
+    else if (licz[0] == '8')   tmp = "osiemset";
+    else if (licz[0] == '9')   tmp = "dziewięćset";
+    else if (licz[0] == '0')   tmp = "";
     // Jeśli tmp nie jest już puste, to na końcu dopisz spację
     if (tmp != "") tmp += " ";
 
     // Ustal ilość dziesiątek i dopisz odpowiednią ilość dziesiątek do tmp
-    if (licz[2] == '1')
+    if (licz[1] == '1')
     {
         //dla 1 dziesiątki będą brzmieć inaczej :
-        if (licz[3] == '0') tmp += "dziesięć";
-        else if (licz[3] == '1') tmp += "jedenaście";
-        else if (licz[3] == '2') tmp += "dwanaście";
-        else if (licz[3] == '3') tmp += "trzynaście";
-        else if (licz[3] == '4') tmp += "czternaście";
-        else if (licz[3] == '5') tmp += "piętnaście";
-        else if (licz[3] == '6') tmp += "szesnaście";
-        else if (licz[3] == '7') tmp += "siedemnaście";
-        else if (licz[3] == '8') tmp += "osiemnaście";
-        else if (licz[3] == '9') tmp += "dziewiętnaście";
+        if (licz[2] == '0') tmp += "dziesięć";
+        else if (licz[2] == '1') tmp += "jedenaście";
+        else if (licz[2] == '2') tmp += "dwanaście";
+        else if (licz[2] == '3') tmp += "trzynaście";
+        else if (licz[2] == '4') tmp += "czternaście";
+        else if (licz[2] == '5') tmp += "piętnaście";
+        else if (licz[2] == '6') tmp += "szesnaście";
+        else if (licz[2] == '7') tmp += "siedemnaście";
+        else if (licz[2] == '8') tmp += "osiemnaście";
+        else if (licz[2] == '9') tmp += "dziewiętnaście";
         return tmp;
     }//if
-    else if (licz[2] == '2') tmp += "dwadzieścia";
-    else if (licz[2] == '3') tmp += "trzydzieści";
-    else if (licz[2] == '4') tmp += "czterdzieści";
-    else if (licz[2] == '5') tmp += "pięćdziesiąt";
-    else if (licz[2] == '6') tmp += "sześćdziesiąt";
-    else if (licz[2] == '7') tmp += "siedemdziesiąt";
-    else if (licz[2] == '8') tmp += "osiemdziesiąt";
-    else if (licz[2] == '9') tmp += "dziewięćdziesiąt";
-    else if (licz[2] == '0') tmp += "";
+    else if (licz[1] == '2') tmp += "dwadzieścia";
+    else if (licz[1] == '3') tmp += "trzydzieści";
+    else if (licz[1] == '4') tmp += "czterdzieści";
+    else if (licz[1] == '5') tmp += "pięćdziesiąt";
+    else if (licz[1] == '6') tmp += "sześćdziesiąt";
+    else if (licz[1] == '7') tmp += "siedemdziesiąt";
+    else if (licz[1] == '8') tmp += "osiemdziesiąt";
+    else if (licz[1] == '9') tmp += "dziewięćdziesiąt";
+    else if (licz[1] == '0') tmp += "";
 
     // Jeśli tmp nie jest puste i nie kończy się spacją, to dopisz spację
-    if (tmp != "" && tmp[3] != '0')
+    if (tmp != "" && tmp[2] != '0')
     {
         tmp += " ";
     }
     // Ustal cyfrę jedności
-    if (licz[3] == '1')  tmp += "jeden";
-    else if (licz[3] == '2')  tmp += "dwa";
-    else if (licz[3] == '3')  tmp += "trzy";
-    else if (licz[3] == '4')  tmp += "cztery";
-    else if (licz[3] == '5')  tmp += "pięć";
-    else if (licz[3] == '6')  tmp += "sześć";
-    else if (licz[3] == '7')  tmp += "siedem";
-    else if (licz[3] == '8')  tmp += "osiem";
-    else if (licz[3] == '9')  tmp += "dziewięć";
-    else if (licz[3] == '0')  tmp += "";
+    if (licz[2] == '1')  tmp += "jeden";
+    else if (licz[2] == '2')  tmp += "dwa";
+    else if (licz[2] == '3')  tmp += "trzy";
+    else if (licz[2] == '4')  tmp += "cztery";
+    else if (licz[2] == '5')  tmp += "pięć";
+    else if (licz[2] == '6')  tmp += "sześć";
+    else if (licz[2] == '7')  tmp += "siedem";
+    else if (licz[2] == '8')  tmp += "osiem";
+    else if (licz[2] == '9')  tmp += "dziewięć";
+    else if (licz[2] == '0')  tmp += "";
 
     // Usuń początkowe i końcowe spacje
     tmp.Trim();
@@ -1850,7 +1850,7 @@ DECLSPEC Tilc::TExtString SlowTrzy(int i)
 
 //---------------------------------------------------------------------------
 // Zamienia ona liczbę na jej wyrażenie słowne
-DECLSPEC Tilc::TExtString SlowSzesc(int i)
+DECLSPEC Tilc::TExtString Tilc::SlowSzesc(int i)
 {
     Tilc::TExtString tmp;
     Tilc::TExtString licz;
@@ -1931,7 +1931,7 @@ DECLSPEC Tilc::TExtString SlowSzesc(int i)
 }// SlowSzesc
 
 //---------------------------------------------------------------------------
-DECLSPEC Tilc::TExtString SlowDziewiec(int i)
+DECLSPEC Tilc::TExtString Tilc::SlowDziewiec(int i)
 {
     Tilc::TExtString tmp;
     Tilc::TExtString licz;
@@ -2003,7 +2003,7 @@ DECLSPEC Tilc::TExtString SlowDziewiec(int i)
         }
         else
         {
-            tmp += " milionˇw";
+            tmp += " milionów";
         }
     }
 
@@ -2023,7 +2023,7 @@ DECLSPEC Tilc::TExtString SlowDziewiec(int i)
     }
     else
     {
-        if (pom[2] != '1' && (pom[3] == '2' || pom[3] == '3' || pom[3] == '4'))
+        if (pom[1] != '1' && (pom[2] == '2' || pom[2] == '3' || pom[2] == '4'))
         {
             tmp += " tysiące";
         }
