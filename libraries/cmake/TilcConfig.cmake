@@ -28,11 +28,15 @@ find_package_handle_standard_args(Tilc DEFAULT_MSG TILC_INCLUDE_DIR)
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(CommonBinDir "Release")
     set(BinDir "x64-Release")
-    set(LibSuffix "")
+    if (NOT DEFINED LibSuffix)
+        set(LibSuffix "")
+    endif()
 else()
     set(CommonBinDir "Debug")
     set(BinDir "x64-Debug")
-    set(LibSuffix "d")
+    if (NOT DEFINED LibSuffix)
+        set(LibSuffix "d")
+    endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -73,10 +77,28 @@ add_library(${LibName}_compiler_flags INTERFACE)
 target_compile_features(${LibName}_compiler_flags INTERFACE cxx_std_23)
 set_target_properties(${LibName}_compiler_flags PROPERTIES CXX_EXTENSIONS OFF)
 
-target_link_libraries(${LibName} INTERFACE ${LibName}_compiler_flags ${TILC_LIBRARY} SDL3 SDL3_image SDL3_ttf SDL3_mixer ${ASSIMP_LIBRARY})
+if ("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+    target_link_libraries(${LibName} INTERFACE ${LibName}_compiler_flags ${TILC_LIBRARY} SDL3 SDL3_image SDL3_ttf SDL3_mixer ${ASSIMP_LIBRARY})
+else()
+    target_link_libraries(${LibName} INTERFACE ${LibName}_compiler_flags ${TILC_LIBRARY})
+endif()
 
 add_library(Tilc::Tilc ALIAS Tilc)
 
+
+function(TilcNonGraphicsCopyRuntimeDlls TARGET_NAME)
+    message("TilcCopyRuntimeDlls")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libTilcShared.so"
+        )
+    else()
+        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/TilcShared${LibSuffix}.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/.cache/zlib/zd.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/zd.dll"
+        )
+    endif()
+endfunction()
 
 function(TilcCopyRuntimeDlls TARGET_NAME)
     message("TilcCopyRuntimeDlls")
