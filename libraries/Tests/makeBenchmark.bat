@@ -1,0 +1,2 @@
+cl -MD -EHsc -std:c++latest -DBENCHMARK_STATIC_DEFINE -I f:/libs/google/benchmark/include/ f:/libs/google/googletest/out/build/x64-Release/lib/gtest.lib f:/libs/google/googletest/out/build/x64-Release/lib/gtest_main.lib f:/libs/google/benchmark/out/build/x64-Release/src/benchmark_main.lib f:/libs/google/benchmark/out/build/x64-Release/src/benchmark.lib f:\libs\google\benchmark\out\build\x64-Release\lib\gmock_main.lib Shlwapi.lib %*
+del *.obj
