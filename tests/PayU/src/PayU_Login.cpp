@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Tilc/Commerce/PayU.h"
+#include "Tilc/Utils/ExtString.h"
 #include "Tilc/Utils/JsonParser.h"
 #include "Tilc/Utils/StdObject.h"
 
@@ -22,13 +23,7 @@ int main(int argc, char* argv[])
     });
 
     Tilc::TExtString JsonString = p.Login();
-    std::cout << "Bearer: " << JsonString << std::endl << std::endl;
-    if (JsonString.find("access_token") != std::string::npos)
-    {
-        Tilc::TJsonParser Parser;
-        Tilc::TStdObject Json;
-        Parser.parse(JsonString, &Json);
-        std::cout << Json.toJson() << std::endl;
-    }
+    std::cout << "Bearer: " << p.GetBearer() << std::endl << std::endl;
+
     return 0;
 }
