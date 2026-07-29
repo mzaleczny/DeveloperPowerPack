@@ -36,10 +36,14 @@ namespace Tilc
                     m_PaymentType = ConfigType;
                 }
                 Tilc::TExtString Login(const char* GrantType = "client_credentials");
+                Tilc::TExtString GetBearer() const {
+                    return m_Bearer;
+                }
 
-            //protected:
+            protected:
                 std::vector<TPaymentConfig> m_Config;
                 Tilc::Net::THttp m_Http;
+                Tilc::TExtString m_Bearer;
                 EPaymentConfigType m_PaymentType{PaymentTypeSandbox};
         };
     }

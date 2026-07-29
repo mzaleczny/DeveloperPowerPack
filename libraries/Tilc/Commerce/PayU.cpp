@@ -1,4 +1,6 @@
 #include "Tilc/Commerce/PayU.h"
+#include "Tilc/Utils/JsonParser.h"
+#include "Tilc/Utils/StdObject.h"
 #include <iostream>
 
 Tilc::Commerce::TPayU::TPayU()
@@ -22,11 +24,20 @@ Tilc::TExtString Tilc::Commerce::TPayU::Login(const char* GrantType)
     Variables = Tilc::TExtString("grant_type=") + GrantType;
     Variables += Tilc::TExtString("&client_id=") + m_Config[m_PaymentType].ClientId;
     Variables += Tilc::TExtString("&client_secret=") + m_Config[m_PaymentType].ClientSecret;
-    Tilc::TExtString Result = m_Http.DoPost(m_Config[m_PaymentType].Url + "/pl/standard/user/oauth/authorize", Variables, ResultCode);
+    Tilc::TExtString ResultJson = m_Http.DoPost(m_Config[m_PaymentType].Url + "/pl/standard/user/oauth/authorize", Variables, ResultCode);
     if (ResultCode != "OK")
     {
         std::cerr << ResultCode << std::endl;
-        Result = "";
+        ResultJson = "";
     }
-    return Result;
+
+    if (ResultJson.find("access_token") != std::string::npos)
+    {
+        Tilc::TJsonParser Parser;
+        Tilc::TStdObject Json;
+        Parser.parse(ResultJson, &Json);
+        m_Bearer = Json.getAsObject("root")->getAsString("access_token");
+    }
+
+    return ResultJson;
 }
