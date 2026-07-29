@@ -1,7 +1,7 @@
 #include "Tilc/Data/DbSQLite.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/OS/SystemUtils.h"
-#include "SDL3/SDL.h"
+#include <iostream>
 
 Tilc::Data::TDBSQLite::TDBSQLite(const char* Filename)
 	: TDB()
@@ -11,7 +11,7 @@ Tilc::Data::TDBSQLite::TDBSQLite(const char* Filename)
     if (RC)
     {
         DB = nullptr;
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Błąd otwarcia bazy danych: (%s)", Filename);
+        std::cerr << "Błąd otwarcia bazy danych: (" << Filename << ")" << std::endl;
         return;
     }
 
@@ -49,7 +49,7 @@ int Tilc::Data::TDBSQLite::Select(const char* Sql, TDBDataRows& DataRows)
     RC = sqlite3_exec(DB, Sql, DBCallback, reinterpret_cast<void*>(this), &ErrMsg);
     if (RC != SQLITE_OK)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SQL error: (%s)", ErrMsg);
+        std::cerr << "SQL error: (" << ErrMsg << ")" << std::endl;
         sqlite3_free(ErrMsg);
     }
     this->FieldNames = nullptr;
@@ -71,7 +71,7 @@ int Tilc::Data::TDBSQLite::Select(const char* Sql, const TDBFieldTypes& FieldTyp
     RC = sqlite3_prepare_v2(DB, Sql, -1, &Stmt, NULL);
     if (RC != SQLITE_OK)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SQL error: (%s)", ErrMsg);
+        std::cerr << "SQL error: (" << ErrMsg << ")" << std::endl;
         sqlite3_free(ErrMsg);
         return -1;
     }
@@ -161,7 +161,7 @@ int Tilc::Data::TDBSQLite::ExecQuery(const char* Sql, const TDBFieldTypes& Field
     RC = sqlite3_prepare_v2(DB, Sql, -1, &Stmt, 0);
     if (RC != SQLITE_OK)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SQL error: (%s)", sqlite3_errmsg(DB));
+        std::cerr << "SQL error: (" << sqlite3_errmsg(DB) << ")" << std::endl;
         return -1;
     }
     for (int i = 0; i < FieldValues.size(); i++)

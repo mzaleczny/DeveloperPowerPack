@@ -1,13 +1,10 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
+#include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Utils/ExtString.h"
 #include <Tilc/OS/SystemUtils.h>
 #include <Tilc/Utils/FileUtils.h>
 #include <Tilc/Utils/Crypto.h>
-#include "Tilc/Data/DataDbResources.h"
+#include <iostream>
 #include <filesystem>
-#include "SDL3/SDL.h"
 
 static char CryptoKeyPhrase[] = "+=The Vulkan API is a low-overhead, explicit, cross-platform graphics API that provides applications with direct control over the GPU, maximizing application performance.";
 
@@ -47,7 +44,7 @@ int Tilc::Data::TDataDBResources::AddResource(const char* DbFname, const char* F
 
     if (!Tilc::FileExists(DbFname))
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Plik projektu nie istnieje.");
+        std::cerr << "Plik projektu nie istnieje." << std::endl;
         return -1;
     }
 
@@ -58,7 +55,7 @@ int Tilc::Data::TDataDBResources::AddResource(const char* DbFname, const char* F
     {
         if (!Tilc::FileExists(Fname))
         {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Plik projektu nie istnieje.");
+            std::cerr << "Plik projektu nie istnieje." << std::endl;
             return -2;
         }
 
@@ -67,7 +64,7 @@ int Tilc::Data::TDataDBResources::AddResource(const char* DbFname, const char* F
 			DataSize = Tilc::GetFileSize(Fname);
             if (DataSize > MaxResourceFileSize)
             {
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Zbyt duży plik z zasobem.");
+                std::cerr << "Zbyt duży plik z zasobem." << std::endl;
                 return -3;
 			}
 		}
@@ -113,13 +110,13 @@ int Tilc::Data::TDataDBResources::SetResource(const char* DbFname, const char* F
 
     if (!Tilc::FileExists(DbFname))
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Plik projektu nie istnieje.");
+        std::cerr << "Plik projektu nie istnieje." << std::endl;
         return -1;
     }
 
     if (strlen(Fname) > 0 && !Tilc::FileExists(Fname))
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Plik z zasobem nie istnieje.");
+        std::cerr << "Plik z zasobem nie istnieje." << std::endl;
         return -2;
     }
 
@@ -142,7 +139,7 @@ int Tilc::Data::TDataDBResources::SetResource(const char* DbFname, const char* F
             DataSize = Tilc::GetFileSize(Fname);
             if (DataSize > MaxResourceFileSize)
             {
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Zbyt duży plik z zasobem.");
+                std::cerr << "Zbyt duży plik z zasobem." << std::endl;
                 return -3;
             }
         }
