@@ -1,7 +1,17 @@
 #pragma once
 
+#include "Tilc/configure.h"
 #include <Tilc/Utils/ExtString.h>
+
+
+#if !defined(BUILD_WITHOUT_GRAPHICS)
+#define BUILD_WITHOUT_GRAPHICS 0
+#endif
+
+#if BUILD_WITHOUT_GRAPHICS == 0
 #include <SDL3/SDL.h>
+#endif
+
 #include <vector>
 #include <sys/types.h>
 #include <cstring>
@@ -52,6 +62,7 @@ namespace Tilc
 
     extern std::default_random_engine RandomGenerator;
 
+#if BUILD_WITHOUT_GRAPHICS == 0
     inline SDL_Rect FRectToRectFloor(SDL_FRect* Rect)
     {
         SDL_Rect r;
@@ -71,5 +82,6 @@ namespace Tilc
         r.h = static_cast<int>(std::round(Rect->h));
         return r;
     }
+#endif
 
 }
