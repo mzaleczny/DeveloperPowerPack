@@ -308,6 +308,13 @@ namespace Tilc
     DECLSPEC TExtString Utf16ToUtf8(const std::u16string& s);
     DECLSPEC TExtString Utf32ToUtf8(const std::u32string& s);
 
+    //Zamienia liczbę trzycyfrową na string
+    DECLSPEC TExtString SlowTrzy(int i);
+    //Zamienia liczbę szesciocyfrową na string
+    DECLSPEC TExtString SlowSzesc(int i);
+    //Zamienia liczbę dziewieciocyfrową na string
+    DECLSPEC TExtString SlowDziewiec(int i);
+
     /*
     struct TConcatProxy
     {

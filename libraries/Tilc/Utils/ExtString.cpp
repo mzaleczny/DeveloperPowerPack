@@ -1752,3 +1752,303 @@ DECLSPEC Tilc::TExtString Tilc::Utf32ToUtf8(const std::u32string& s)
 {
     return Utf16ToUtf8(Utf32ToUtf16(s));
 }
+
+DECLSPEC Tilc::TExtString SlowTrzy(int i)
+{
+    Tilc::TExtString tmp;
+    Tilc::TExtString licz;
+
+    //Jeśli błędna wartość nic nie rób
+    if (i > 999 || i < 0)
+    {
+        return "";
+    }
+
+    //jeśli zero, to zwróć >>zero<<
+    if (i == 0)
+    {
+        return "zero";
+    }
+
+    licz = std::to_string(i);
+    // Ustaw tak wartość zmiennej licz, aby zawsze była 3-cyfrowa
+    switch (licz.length())
+    {
+        case 1:
+            licz = "00" + licz;
+            break;
+        case 2:
+            licz = "0" + licz;
+            break;
+        default:
+            break;
+    }//switch
+    tmp = "";
+
+    // Ustal ilość setek i wpisz odpowiednią nazwę do zmiennej tmp
+    if (licz[1] == '1')   tmp = "sto";
+    else if (licz[1] == '2')   tmp = "dwieście";
+    else if (licz[1] == '3')   tmp = "trzysta";
+    else if (licz[1] == '4')   tmp = "czterysta";
+    else if (licz[1] == '5')   tmp = "pięćset";
+    else if (licz[1] == '6')   tmp = "sześćset";
+    else if (licz[1] == '7')   tmp = "siedemset";
+    else if (licz[1] == '8')   tmp = "osiemset";
+    else if (licz[1] == '9')   tmp = "dziewięćset";
+    else if (licz[1] == '0')   tmp = "";
+    // Jeśli tmp nie jest już puste, to na końcu dopisz spację
+    if (tmp != "") tmp += " ";
+
+    // Ustal ilość dziesiątek i dopisz odpowiednią ilość dziesiątek do tmp
+    if (licz[2] == '1')
+    {
+        //dla 1 dziesiątki będą brzmieć inaczej :
+        if (licz[3] == '0') tmp += "dziesięć";
+        else if (licz[3] == '1') tmp += "jedenaście";
+        else if (licz[3] == '2') tmp += "dwanaście";
+        else if (licz[3] == '3') tmp += "trzynaście";
+        else if (licz[3] == '4') tmp += "czternaście";
+        else if (licz[3] == '5') tmp += "piętnaście";
+        else if (licz[3] == '6') tmp += "szesnaście";
+        else if (licz[3] == '7') tmp += "siedemnaście";
+        else if (licz[3] == '8') tmp += "osiemnaście";
+        else if (licz[3] == '9') tmp += "dziewiętnaście";
+        return tmp;
+    }//if
+    else if (licz[2] == '2') tmp += "dwadzieścia";
+    else if (licz[2] == '3') tmp += "trzydzieści";
+    else if (licz[2] == '4') tmp += "czterdzieści";
+    else if (licz[2] == '5') tmp += "pięćdziesiąt";
+    else if (licz[2] == '6') tmp += "sześćdziesiąt";
+    else if (licz[2] == '7') tmp += "siedemdziesiąt";
+    else if (licz[2] == '8') tmp += "osiemdziesiąt";
+    else if (licz[2] == '9') tmp += "dziewięćdziesiąt";
+    else if (licz[2] == '0') tmp += "";
+
+    // Jeśli tmp nie jest puste i nie kończy się spacją, to dopisz spację
+    if (tmp != "" && tmp[3] != '0')
+    {
+        tmp += " ";
+    }
+    // Ustal cyfrę jedności
+    if (licz[3] == '1')  tmp += "jeden";
+    else if (licz[3] == '2')  tmp += "dwa";
+    else if (licz[3] == '3')  tmp += "trzy";
+    else if (licz[3] == '4')  tmp += "cztery";
+    else if (licz[3] == '5')  tmp += "pięć";
+    else if (licz[3] == '6')  tmp += "sześć";
+    else if (licz[3] == '7')  tmp += "siedem";
+    else if (licz[3] == '8')  tmp += "osiem";
+    else if (licz[3] == '9')  tmp += "dziewięć";
+    else if (licz[3] == '0')  tmp += "";
+
+    // Usuń początkowe i końcowe spacje
+    tmp.Trim();
+
+    return tmp;
+}// SlowTrzy
+
+//---------------------------------------------------------------------------
+// Zamienia ona liczbę na jej wyrażenie słowne
+DECLSPEC Tilc::TExtString SlowSzesc(int i)
+{
+    Tilc::TExtString tmp;
+    Tilc::TExtString licz;
+    Tilc::TExtString result;
+    Tilc::TExtString pom;
+
+    if (i < 0 || i > 999999)
+    {
+        return "";
+    }
+
+    if (i == 0)
+    {
+        return "zero";
+    }
+
+    licz = std::to_string(i);
+    // zadbaj, aby liczba była sześciocyfrowa
+    switch (licz.length())
+    {
+    case 1:
+        licz = "00000" + licz;
+        break;
+    case 2:
+        licz = "0000" + licz;
+        break;
+    case 3:
+        licz = "000" + licz;
+        break;
+    case 4:
+        licz = "00" + licz;
+        break;
+    case 5:
+        licz = "0" + licz;
+        break;
+    default:
+        break;
+    }//switch
+
+    // Ustal ilość tysięcy
+    pom = licz.substr(0, 3);
+    tmp = SlowTrzy(std::atoi(pom.c_str()));
+    if (tmp == "" || tmp == "zero")
+    {
+        tmp = "";
+    }
+    else
+    {
+        if (pom[1] != '1' && (pom[2] == '2' || pom[2] == '3' || pom[2] == '4'))
+        {
+            tmp += " tysiące";
+        }
+        else if (tmp == "jeden")
+        {
+            tmp = "tysiąc";
+        }//else if
+        else
+        {
+            tmp += " tysięcy";
+        }
+    }//else
+
+    result = tmp;
+    // Jeśli result nie jest pusty, to dodaj spację na końcu
+    if (result != "")
+    {
+        result += " ";
+    }
+    // Ustal pozostałą ilość
+    tmp = SlowTrzy(std::atoi(licz.substr(3, 3).c_str()));
+    if (tmp == "" || tmp == "zero")
+    {
+        tmp = "";
+    }
+    result += tmp;
+    result.Trim();
+    return result;
+}// SlowSzesc
+
+//---------------------------------------------------------------------------
+DECLSPEC Tilc::TExtString SlowDziewiec(int i)
+{
+    Tilc::TExtString tmp;
+    Tilc::TExtString licz;
+    Tilc::TExtString result;
+    Tilc::TExtString pom;
+
+    if (i < 0 || i > 999999999)
+    {
+        return "";
+    }
+
+    if (i == 0)
+    {
+        return "zero";
+    }
+
+    result = "";
+    tmp = "";
+    licz = std::to_string(i);
+
+    // zadbaj, aby liczba była dziewięciocyfrowa
+    switch (licz.length())
+    {
+    case 1:
+        licz = "00000000" + licz;
+        break;
+    case 2:
+        licz = "0000000" + licz;
+        break;
+    case 3:
+        licz = "000000" + licz;
+        break;
+    case 4:
+        licz = "00000" + licz;
+        break;
+    case 5:
+        licz = "0000" + licz;
+        break;
+    case 6:
+        licz = "000" + licz;
+        break;
+    case 7:
+        licz = "00" + licz;
+        break;
+    case 8:
+        licz = "0" + licz;
+        break;
+    default:
+        break;
+    }//switch
+
+    // Ustal ilość tysięcy
+    pom = licz.substr(0, 3);
+    tmp = SlowTrzy(std::atoi(pom.c_str()));
+
+    if (tmp == "" || tmp == "zero")
+    {
+        tmp = "";
+    }
+    else
+    {
+        if (pom[1] != '1' && (pom[2] == '2' || pom[2] == '3' || pom[2] == '4'))
+        {
+            tmp += " miliony";
+        }
+        else if (tmp == "jeden")
+        {
+            tmp = "milion";
+        }
+        else
+        {
+            tmp += " milionˇw";
+        }
+    }
+
+    result = tmp;
+    // Jeśli result nie jest pusty, to dodaj spację na końcu
+    if (result != "")
+    {
+        result += " ";
+    }
+    // Ustal pozostałą ilość
+    pom = licz.substr(3, 3);
+    tmp = SlowTrzy(std::atoi(pom.c_str()));
+
+    if (tmp == "" || tmp == "zero")
+    {
+        tmp = "";
+    }
+    else
+    {
+        if (pom[2] != '1' && (pom[3] == '2' || pom[3] == '3' || pom[3] == '4'))
+        {
+            tmp += " tysiące";
+        }
+        else if (tmp == "jeden")
+        {
+            tmp = "tysiąc";
+        }//else if
+        else
+            tmp += " tysięcy";
+    }
+    result += tmp;
+
+    // Jeśli result nie jest pusty, to dodaj spację na końcu
+    if (result != "")
+    {
+        result += " ";
+    }
+
+    // Ustal pozostałą ilość
+    tmp = SlowTrzy(std::atoi(licz.substr(6, 3).c_str()));
+    if (tmp == "" || tmp == "zero")
+    {
+        tmp = "";
+    }
+    result += tmp;
+    result.Trim();
+    return result;
+}// SlowDziewiec
