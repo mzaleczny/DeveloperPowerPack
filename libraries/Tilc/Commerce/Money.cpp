@@ -6,7 +6,8 @@ Tilc::Commerce::TMoney& Tilc::Commerce::TMoney::operator=(double Total)
 {
     if (Total < 0)
     {
-        return;
+        SetTotal(Total);
+        return *this;
     }//if
 
     int a, d;
@@ -54,7 +55,7 @@ Tilc::Commerce::TMoney& Tilc::Commerce::TMoney::operator=(Tilc::TExtString str)
         {
             m_Amount = -1;
             m_Decimals = -1;
-            return;
+            return *this;
         }
     }
     // tmp zawiera teraz z│ote
