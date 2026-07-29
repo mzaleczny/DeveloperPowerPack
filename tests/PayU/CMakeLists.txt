@@ -19,6 +19,8 @@ endif()
 ################################################
 
 
+set(BUILD_WITHOUT_GRAPHICS "1")
+set(LibSuffix "")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../../libraries/cmake")
 find_package(Tilc REQUIRED)
 
@@ -83,5 +85,5 @@ AddAndConfigureProgram(PayU_Login "src/PayU_Login.cpp")
 
 
 # Dlls can be copied once for one target as all targets sits in the same directory
-TilcCopyRuntimeDlls(PayU_Login)
+TilcNonGraphicsCopyRuntimeDlls(PayU_Login)
 CurlCopyRuntimeDlls(PayU_Login)
