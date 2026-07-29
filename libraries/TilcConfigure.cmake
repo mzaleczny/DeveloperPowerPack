@@ -1,13 +1,13 @@
 set(FORCE_OPENGL_ES "0")
 set(BUILD_WITH_MYSQL "0")
-set(BUILD_FOR_SERVER "0")
+set(BUILD_WITHOUT_GRAPHICS "1")
 
 set_property(GLOBAL PROPERTY Tilc_HEADERS_Property "")
 set_property(GLOBAL PROPERTY Tilc_SOURCES_Property "")
 set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property "")
 set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_SOURCES_Property "")
 set_property(GLOBAL PROPERTY BuildWithMySQL BUILD_WITH_MYSQL)
-set_property(GLOBAL PROPERTY BuildForServer BUILD_FOR_SERVER)
+set_property(GLOBAL PROPERTY BuildWithoutGraphics BUILD_WITHOUT_GRAPHICS)
 
 set(CURL_VERSION "curl-8.21.0_5-win64-mingw")
 set(URL_CURL_PRECOMPILED_BINARIES "https://curl.se/windows/dl-8.21.0_5/${CURL_VERSION}.zip")

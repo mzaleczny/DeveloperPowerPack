@@ -1,3 +1,5 @@
 #pragma once
 
-#define FORCE_OPENGL_ES 1
+/* #undef FORCE_OPENGL_ES */
+/* #undef BUILD_WITH_MYSQL */
+#define BUILD_WITHOUT_GRAPHICS 1

@@ -75,7 +75,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif()
 
 # Create repos cache for the first build
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
     message(STATUS "Cache SDL3 not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -93,7 +93,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}")
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_image}")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_image}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
     message(STATUS "Cache SDL3_image not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -111,7 +111,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_image}")
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_image}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
     message(STATUS "Cache SDL3_ttf not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -129,7 +129,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}")
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_ttf}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
     message(STATUS "Cache SDL3_mixer not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -165,7 +165,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_zlib}")
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_zlib}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_glm}")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_glm}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
     message(STATUS "Cache glm not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -183,7 +183,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_glm}")
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_glm}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_assimp}")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_assimp}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
     message(STATUS "Cache assimp not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -218,6 +218,63 @@ function(CheckIfDiscard FILE)
         set(f ${FILE} PARENT_SCOPE)
     endif()
 endfunction()
+
+
+macro(BuildZLIB)
+    # Our own zlib we add/download only if SDL_image was not donloaded because it requires its inner zlib
+    message("***********************************************************************")
+    message("Checking for **zlib** and downloading it when no found")
+    message("***********************************************************************")
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_STATIC ON  CACHE BOOL "" FORCE)
+    if(EXISTS "${LOCAL_CACHE_DIR_zlib}/CMakeLists.txt")
+        set(FETCHCONTENT_SOURCE_DIR_external_zlib "${LOCAL_CACHE_DIR_zlib}" CACHE PATH "" FORCE)
+    endif()
+    if(EXISTS "${LOCAL_CACHE_DIR_zlib}/CMakeLists.txt")
+        # Użyj cache — bez GIT_REPOSITORY
+        set(external_zlib_SOURCE_DIR "${LOCAL_CACHE_DIR_zlib}")
+        set(external_zlib_BINARY_DIR "${CMAKE_BINARY_DIR}/external_zlib-build")
+    else()
+        # Pobierz z internetu
+        FetchContent_Declare(external_zlib
+            GIT_REPOSITORY https://github.com/madler/zlib.git
+            GIT_TAG ${TAG_zlib}
+            FIND_PACKAGE_ARGS NAMES zlib
+        )
+        FetchContent_MakeAvailable(external_zlib)
+    endif()
+    if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    elseif(TARGET zlib AND NOT TARGET ZLIB::ZLIB)
+        add_library(ZLIB::ZLIB ALIAS zlib)
+    endif()
+    # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
+    set(ZLIB_INCLUDE_DIR "${external_zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
+    set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
+endmacro()
+
+
+function(AddSourcesLists LIST_SOURCES LIST_HEADERS)
+    get_property(FileList GLOBAL PROPERTY Tilc_HEADERS_Property)
+    foreach (f ${LIST_HEADERS})
+        CheckIfDiscard(${f})
+        if (NOT "${f}" STREQUAL "")
+            list(APPEND FileList ${f})
+        endif()
+    endforeach()
+    set_property(GLOBAL PROPERTY Tilc_HEADERS_Property ${FileList})
+
+    get_property(FileList GLOBAL PROPERTY Tilc_SOURCES_Property)
+    foreach (f ${LIST_SOURCES})
+        CheckIfDiscard(${f})
+        if (NOT "${f}" STREQUAL "")
+            list(APPEND FileList ${f})
+        endif()
+    endforeach()
+    set_property(GLOBAL PROPERTY Tilc_SOURCES_Property ${FileList})
+endfunction()
+
 
 function(AddSources DIR)
     file(GLOB _SOURCES LIST_DIRECTORIES false "${DIR}/*.c*")
@@ -309,19 +366,29 @@ function(AddPlatformSpecificSourcesRecurse DIR)
     set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_SOURCES_Property ${FileList})
 endfunction()
 
-AddSources(Tilc)
-AddSourcesRecurse(Tilc/Audio)
-AddSourcesRecurse(Tilc/Commerce)
-AddSourcesRecurse(Tilc/Data)
-AddSourcesRecurse(Tilc/Game2D)
-AddSourcesRecurse(Tilc/Game3D)
-AddSourcesRecurse(Tilc/Graphics)
-AddSourcesRecurse(Tilc/Gui)
-AddSourcesRecurse(Tilc/Net)
-AddSourcesRecurse(Tilc/Resources)
-AddSourcesRecurse(Tilc/Thread)
-AddSourcesRecurse(Tilc/Utils)
-AddPlatformSpecificSourcesRecurse(Tilc/OS)
+if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+    AddSources(Tilc)
+    AddSourcesRecurse(Tilc/Audio)
+    AddSourcesRecurse(Tilc/Commerce)
+    AddSourcesRecurse(Tilc/Data)
+    AddSourcesRecurse(Tilc/Game2D)
+    AddSourcesRecurse(Tilc/Game3D)
+    AddSourcesRecurse(Tilc/Graphics)
+    AddSourcesRecurse(Tilc/Gui)
+    AddSourcesRecurse(Tilc/Net)
+    AddSourcesRecurse(Tilc/Resources)
+    AddSourcesRecurse(Tilc/Thread)
+    AddSourcesRecurse(Tilc/Utils)
+    AddPlatformSpecificSourcesRecurse(Tilc/OS)
+else()
+    AddSourcesLists("Tilc/Globals.cpp" "Tilc/configure.h;Tilc/Globals.h;Tilc/DllGlobals.h")
+    AddSourcesRecurse(Tilc/Commerce)
+    AddSourcesRecurse(Tilc/Data)
+    AddSourcesRecurse(Tilc/Net)
+    AddSourcesRecurse(Tilc/Thread)
+    AddSourcesRecurse(Tilc/Utils)
+endif()
+
 get_property(Tilc_HEADERS GLOBAL PROPERTY Tilc_HEADERS_Property)
 get_property(Tilc_SOURCES GLOBAL PROPERTY Tilc_SOURCES_Property)
 get_property(Tilc_HEADERS_OS GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property)
@@ -334,269 +401,248 @@ list(REMOVE_DUPLICATES Tilc_SOURCES_OS)
 include(FetchContent)
 
 
-message("***********************************************************************")
-message("Checking for **SDL3** and downloading it when no found")
-message("***********************************************************************")
-find_package(sdl3 CONFIG QUIET)
-if(NOT TARGET SDL3::SDL3)
-    unset(FETCHCONTENT_SOURCE_DIR_external_sdl3 CACHE)
-    unset(FETCHCONTENT_UPDATES_DISCONNECTED_external_sdl3 CACHE)
-    unset(FETCHCONTENT_FULLY_POPULATED_external_sdl3 CACHE)
-    unset(external_sdl3_SOURCE_DIR CACHE)
-    unset(external_sdl3_BINARY_DIR CACHE)
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3}/CMakeLists.txt")
-        set(FETCHCONTENT_SOURCE_DIR_external_sdl3 "${LOCAL_CACHE_DIR_SDL3}" CACHE PATH "" FORCE)
-    endif()
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3}/CMakeLists.txt")
-        # Użyj cache — bez GIT_REPOSITORY
-        set(external_sdl3_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3}")
-        set(external_sdl3_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3-build")
-    else()
-        # Pobierz z internetu
-        FetchContent_Populate(external_sdl3
-            GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-            GIT_TAG ${TAG_SDL3}
+if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+    message("***********************************************************************")
+    message("Checking for **SDL3** and downloading it when no found")
+    message("***********************************************************************")
+    find_package(sdl3 CONFIG QUIET)
+    if(NOT TARGET SDL3::SDL3)
+        unset(FETCHCONTENT_SOURCE_DIR_external_sdl3 CACHE)
+        unset(FETCHCONTENT_UPDATES_DISCONNECTED_external_sdl3 CACHE)
+        unset(FETCHCONTENT_FULLY_POPULATED_external_sdl3 CACHE)
+        unset(external_sdl3_SOURCE_DIR CACHE)
+        unset(external_sdl3_BINARY_DIR CACHE)
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_external_sdl3 "${LOCAL_CACHE_DIR_SDL3}" CACHE PATH "" FORCE)
+        endif()
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3}/CMakeLists.txt")
+            # Użyj cache — bez GIT_REPOSITORY
+            set(external_sdl3_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3}")
+            set(external_sdl3_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3-build")
+        else()
+            # Pobierz z internetu
+            FetchContent_Populate(external_sdl3
+                GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+                GIT_TAG ${TAG_SDL3}
+            )
+        endif()
+        # Teraz dopiero konfiguruj
+        add_subdirectory(
+            ${external_sdl3_SOURCE_DIR}
+            ${external_sdl3_BINARY_DIR}
         )
     endif()
-    # Teraz dopiero konfiguruj
-    add_subdirectory(
-        ${external_sdl3_SOURCE_DIR}
-        ${external_sdl3_BINARY_DIR}
-    )
-endif()
 
-message("***********************************************************************")
-message("Checking for **SDL3_image** and downloading it when no found")
-message("***********************************************************************")
-set(SDLIMAGE_ZLIB_VENDORED ON CACHE BOOL "" FORCE)
-set(SDLIMAGE_AVOID_EXTERNAL_ZLIB OFF CACHE BOOL "" FORCE)
-set(SDLIMAGE_TESTS OFF CACHE BOOL "" FORCE)
-set(SDLIMAGE_SAMPLES OFF CACHE BOOL "" FORCE)
-# Jeśli to Linux, to wymuszamy systemową zlib przed pobraniem sdl3_image, bo z tą sdl_image-src/external są problemy
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(ZLIB_ROOT "/usr" CACHE PATH "" FORCE)
-    set(ZLIB_INCLUDE_DIR "/usr/include" CACHE PATH "" FORCE)
-    set(ZLIB_LIBRARY "/usr/lib/x86_64-linux-gnu/libz.so" CACHE FILEPATH "" FORCE)
-    find_package(ZLIB REQUIRED)
-endif()
-
-find_package(sdl3_image CONFIG QUIET)
-if(NOT TARGET SDL3_image::SDL3_image)
-    set(SDLIMAGE_PNG_LIBPNG ON CACHE BOOL "" FORCE)
-    set(SDLIMAGE_PNG_VENDORED OFF CACHE BOOL "" FORCE)
-    set(SDLIMAGE_ZLIB_VENDORED OFF CACHE BOOL "" FORCE)
-    # Uncomment line below if you does not have nasm installed and do not want to install it. It required to compile avif image format support
-    set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
-
+    message("***********************************************************************")
+    message("Checking for **SDL3_image** and downloading it when no found")
+    message("***********************************************************************")
+    set(SDLIMAGE_ZLIB_VENDORED ON CACHE BOOL "" FORCE)
+    set(SDLIMAGE_AVOID_EXTERNAL_ZLIB OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_TESTS OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_SAMPLES OFF CACHE BOOL "" FORCE)
+    # Jeśli to Linux, to wymuszamy systemową zlib przed pobraniem sdl3_image, bo z tą sdl_image-src/external są problemy
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        set(SDLIMAGE_AVOID_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
+        set(ZLIB_ROOT "/usr" CACHE PATH "" FORCE)
+        set(ZLIB_INCLUDE_DIR "/usr/include" CACHE PATH "" FORCE)
+        set(ZLIB_LIBRARY "/usr/lib/x86_64-linux-gnu/libz.so" CACHE FILEPATH "" FORCE)
+        find_package(ZLIB REQUIRED)
+    endif()
+
+    find_package(sdl3_image CONFIG QUIET)
+    if(NOT TARGET SDL3_image::SDL3_image)
+        set(SDLIMAGE_PNG_LIBPNG ON CACHE BOOL "" FORCE)
+        set(SDLIMAGE_PNG_VENDORED OFF CACHE BOOL "" FORCE)
         set(SDLIMAGE_ZLIB_VENDORED OFF CACHE BOOL "" FORCE)
-        set(SDLIMAGE_BACKEND_ZLIB OFF CACHE BOOL "" FORCE)
+        # Uncomment line below if you does not have nasm installed and do not want to install it. It required to compile avif image format support
+        set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
+
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            set(SDLIMAGE_AVOID_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
+            set(SDLIMAGE_ZLIB_VENDORED OFF CACHE BOOL "" FORCE)
+            set(SDLIMAGE_BACKEND_ZLIB OFF CACHE BOOL "" FORCE)
+        endif()
+
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3_image}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_external_sdl3_image "${LOCAL_CACHE_DIR_SDL3_image}" CACHE PATH "" FORCE)
+        endif()
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3_image}/CMakeLists.txt")
+            # Użyj cache — bez GIT_REPOSITORY
+            set(external_sdl3_image_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_image}")
+            set(external_sdl3_image_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_image-build")
+        else()
+            # Pobierz z internetu
+            FetchContent_Populate(external_sdl3_image
+                GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+                GIT_TAG ${TAG_SDL3_image}
+            )
+        endif()
+
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            file(WRITE ${external_sdl3_image_SOURCE_DIR}/external/zlib/CMakeLists.txt "")
+        endif()
+
+        # Teraz dopiero konfiguruj SDL_image
+        add_subdirectory(
+            ${external_sdl3_image_SOURCE_DIR}
+            ${external_sdl3_image_BINARY_DIR}
+        )
+        # SDL_image buduje vendored zlib i libpng.
+        # Wystawiamy je jako globalne targety, żeby cały projekt mógł ich używać.
+
+        # Jeśli to Windows, to konfigurujemy ZLIB
+        if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+            if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
+                add_library(ZLIB::ZLIB ALIAS zlibstatic)
+            endif()
+            # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
+            set(ZLIB_INCLUDE_DIR "${external_sdl3_image_BINARY_DIR}/external/zlib" CACHE PATH "" FORCE)
+            set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
+            if(NOT TARGET ZLIB::ZLIB)
+                message(STATUS "Fallback: building our own zlib")
+                add_subdirectory("${external_sdl3_image_SOURCE_DIR}/external/zlib")
+                add_library(ZLIB::ZLIB ALIAS zlibstatic)
+            endif()
+        endif()
+    else()
+        BuildZLIB()
     endif()
 
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_image}/CMakeLists.txt")
-        set(FETCHCONTENT_SOURCE_DIR_external_sdl3_image "${LOCAL_CACHE_DIR_SDL3_image}" CACHE PATH "" FORCE)
-    endif()
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_image}/CMakeLists.txt")
-        # Użyj cache — bez GIT_REPOSITORY
-        set(external_sdl3_image_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_image}")
-        set(external_sdl3_image_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_image-build")
-    else()
-        # Pobierz z internetu
-        FetchContent_Populate(external_sdl3_image
-            GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-            GIT_TAG ${TAG_SDL3_image}
+
+
+
+    message("***********************************************************************")
+    message("Checking for **SDL3_mixer** and downloading it when no found")
+    message("***********************************************************************")
+    find_package(sdl3_mixer CONFIG QUIET)
+    if(NOT TARGET SDL3_mixer::SDL3_mixer)
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_external_sdl3_mixer "${LOCAL_CACHE_DIR_SDL3_mixer}" CACHE PATH "" FORCE)
+        endif()
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}/CMakeLists.txt")
+            # Użyj cache — bez GIT_REPOSITORY
+            set(external_sdl3_mixer_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_mixer}")
+            set(external_sdl3_mixer_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_mixer-build")
+        else()
+            # Pobierz z internetu
+            FetchContent_Populate(external_sdl3_mixer
+                GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+                GIT_TAG ${TAG_SDL3_mixer}
+            )
+        endif()
+        # Teraz dopiero konfiguruj
+        add_subdirectory(
+            ${external_sdl3_mixer_SOURCE_DIR}
+            ${external_sdl3_mixer_BINARY_DIR}
         )
     endif()
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        file(WRITE ${external_sdl3_image_SOURCE_DIR}/external/zlib/CMakeLists.txt "")
+
+
+    message("***********************************************************************")
+    message("Checking for **SDL3_ttf** and downloading it when no found")
+    message("***********************************************************************")
+    find_package(sdl3_ttf CONFIG QUIET)
+    if(NOT TARGET SDL3_ttf::SDL3_ttf)
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_external_sdl3_ttf "${LOCAL_CACHE_DIR_SDL3_ttf}" CACHE PATH "" FORCE)
+        endif()
+        if(EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}/CMakeLists.txt")
+            # Użyj cache — bez GIT_REPOSITORY
+            set(external_sdl3_ttf_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_ttf}")
+            set(external_sdl3_ttf_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_ttf-build")
+        else()
+            # Pobierz z internetu
+            FetchContent_Populate(external_sdl3_ttf
+                GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+                GIT_TAG ${TAG_SDL3_ttf}
+            )
+        endif()
+        # Teraz dopiero konfiguruj
+        add_subdirectory(
+            ${external_sdl3_ttf_SOURCE_DIR}
+            ${external_sdl3_ttf_BINARY_DIR}
+        )
     endif()
 
-    # Teraz dopiero konfiguruj SDL_image
-    add_subdirectory(
-        ${external_sdl3_image_SOURCE_DIR}
-        ${external_sdl3_image_BINARY_DIR}
-    )
-    # SDL_image buduje vendored zlib i libpng.
-    # Wystawiamy je jako globalne targety, żeby cały projekt mógł ich używać.
 
-    # Jeśli to Windows, to konfigurujemy ZLIB
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
-            add_library(ZLIB::ZLIB ALIAS zlibstatic)
+
+    message("***********************************************************************")
+    message("Checking for **glm** and downloading it when no found")
+    message("***********************************************************************")
+    find_package(glm CONFIG QUIET)
+    # Wymuś, że glm NIE buduje biblioteki, nawet jeśli coś (np. Assimp) to zmienia
+    set(GLM_BUILD_LIBRARY OFF CACHE BOOL "" FORCE)
+    set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
+    if(NOT TARGET glm::glm)
+        if(EXISTS "${LOCAL_CACHE_DIR_glm}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_external_glm "${LOCAL_CACHE_DIR_glm}" CACHE PATH "" FORCE)
         endif()
-        # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
-        set(ZLIB_INCLUDE_DIR "${external_sdl3_image_BINARY_DIR}/external/zlib" CACHE PATH "" FORCE)
-        set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
-        if(NOT TARGET ZLIB::ZLIB)
-            message(STATUS "Fallback: building our own zlib")
-            add_subdirectory("${external_sdl3_image_SOURCE_DIR}/external/zlib")
-            add_library(ZLIB::ZLIB ALIAS zlibstatic)
+        if(EXISTS "${LOCAL_CACHE_DIR_glm}/CMakeLists.txt")
+            # Użyj cache — bez GIT_REPOSITORY
+            set(external_glm_SOURCE_DIR "${LOCAL_CACHE_DIR_glm}")
+            set(external_glm_BINARY_DIR "${CMAKE_BINARY_DIR}/external_glm-build")
+        else()
+            # Pobierz z internetu
+            FetchContent_Populate(external_glm
+                GIT_REPOSITORY https://github.com/g-truc/glm.git
+                GIT_TAG ${TAG_glm}
+            )
         endif()
+        # Teraz dopiero konfiguruj
+        add_subdirectory(
+            ${external_glm_SOURCE_DIR}
+            ${external_glm_BINARY_DIR}
+        )
+    endif()
+    # KEY CONDITION — alias for Assimp to not broke our config
+    if(TARGET glm::glm AND NOT TARGET glm)
+        add_library(glm INTERFACE)
+        target_link_libraries(glm INTERFACE glm::glm)
+    endif()
+
+
+
+    message("***********************************************************************")
+    message("Checking for **assimp** and downloading it when no found")
+    message("***********************************************************************")
+    find_package(assimp CONFIG QUIET)
+    if(NOT TARGET assimp::assimp)
+        if(EXISTS "${LOCAL_CACHE_DIR_assimp}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_external_assimp "${LOCAL_CACHE_DIR_assimp}" CACHE PATH "" FORCE)
+        endif()
+        if(EXISTS "${LOCAL_CACHE_DIR_assimp}/CMakeLists.txt")
+            # Użyj cache — bez GIT_REPOSITORY
+            set(external_assimp_SOURCE_DIR "${LOCAL_CACHE_DIR_assimp}")
+            set(external_assimp_BINARY_DIR "${CMAKE_BINARY_DIR}/external_assimp-build")
+        else()
+            # Pobierz z internetu
+            FetchContent_Populate(external_assimp
+                GIT_REPOSITORY https://github.com/assimp/assimp.git
+                GIT_TAG        ${TAG_assimp}
+            )
+        endif()
+        # Teraz dopiero konfiguruj
+        set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+        set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
+        set(ASSIMP_USE_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
+        set(ASSIMP_USE_EXTERNAL_GLM ON CACHE BOOL "" FORCE)
+        # KLUCZOWE: wyłącz instalację/export assimp
+        set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+        add_subdirectory(
+            ${external_assimp_SOURCE_DIR}
+            ${external_assimp_BINARY_DIR}
+        )
     endif()
 else()
-    # Our own zlib we add/download only if SDL_image was not donloaded because it requires its inner zlib
-    message("***********************************************************************")
-    message("Checking for **zlib** and downloading it when no found")
-    message("***********************************************************************")
-    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-    set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
-    set(ZLIB_BUILD_STATIC ON  CACHE BOOL "" FORCE)
-    if(EXISTS "${LOCAL_CACHE_DIR_zlib}/CMakeLists.txt")
-        set(FETCHCONTENT_SOURCE_DIR_external_zlib "${LOCAL_CACHE_DIR_zlib}" CACHE PATH "" FORCE)
+    # Jeśli to Windows, to konfigurujemy ZLIB
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        if(NOT TARGET ZLIB::ZLIB)
+            message(STATUS "Fallback: building our own zlib")
+            add_subdirectory(${LOCAL_CACHE_DIR_zlib})
+        endif()
     endif()
-    if(EXISTS "${LOCAL_CACHE_DIR_zlib}/CMakeLists.txt")
-        # Użyj cache — bez GIT_REPOSITORY
-        set(external_zlib_SOURCE_DIR "${LOCAL_CACHE_DIR_zlib}")
-        set(external_zlib_BINARY_DIR "${CMAKE_BINARY_DIR}/external_zlib-build")
-    else()
-        # Pobierz z internetu
-        FetchContent_Declare(external_zlib
-            GIT_REPOSITORY https://github.com/madler/zlib.git
-            GIT_TAG ${TAG_zlib}
-            FIND_PACKAGE_ARGS NAMES zlib
-        )
-        FetchContent_MakeAvailable(external_zlib)
-    endif()
-    if(TARGET zlibstatic AND NOT TARGET ZLIB::ZLIB)
-        add_library(ZLIB::ZLIB ALIAS zlibstatic)
-    elseif(TARGET zlib AND NOT TARGET ZLIB::ZLIB)
-        add_library(ZLIB::ZLIB ALIAS zlib)
-    endif()
-    # 2 lines below are required for assimp to find zlib available in our library. Without it assimp fails.
-    set(ZLIB_INCLUDE_DIR "${external_zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
-    set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
 endif()
-
-
-
-
-message("***********************************************************************")
-message("Checking for **SDL3_mixer** and downloading it when no found")
-message("***********************************************************************")
-find_package(sdl3_mixer CONFIG QUIET)
-if(NOT TARGET SDL3_mixer::SDL3_mixer)
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}/CMakeLists.txt")
-        set(FETCHCONTENT_SOURCE_DIR_external_sdl3_mixer "${LOCAL_CACHE_DIR_SDL3_mixer}" CACHE PATH "" FORCE)
-    endif()
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}/CMakeLists.txt")
-        # Użyj cache — bez GIT_REPOSITORY
-        set(external_sdl3_mixer_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_mixer}")
-        set(external_sdl3_mixer_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_mixer-build")
-    else()
-        # Pobierz z internetu
-        FetchContent_Populate(external_sdl3_mixer
-            GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-            GIT_TAG ${TAG_SDL3_mixer}
-        )
-    endif()
-    # Teraz dopiero konfiguruj
-    add_subdirectory(
-        ${external_sdl3_mixer_SOURCE_DIR}
-        ${external_sdl3_mixer_BINARY_DIR}
-    )
-endif()
-
-
-
-message("***********************************************************************")
-message("Checking for **SDL3_ttf** and downloading it when no found")
-message("***********************************************************************")
-find_package(sdl3_ttf CONFIG QUIET)
-if(NOT TARGET SDL3_ttf::SDL3_ttf)
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}/CMakeLists.txt")
-        set(FETCHCONTENT_SOURCE_DIR_external_sdl3_ttf "${LOCAL_CACHE_DIR_SDL3_ttf}" CACHE PATH "" FORCE)
-    endif()
-    if(EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}/CMakeLists.txt")
-        # Użyj cache — bez GIT_REPOSITORY
-        set(external_sdl3_ttf_SOURCE_DIR "${LOCAL_CACHE_DIR_SDL3_ttf}")
-        set(external_sdl3_ttf_BINARY_DIR "${CMAKE_BINARY_DIR}/external_sdl3_ttf-build")
-    else()
-        # Pobierz z internetu
-        FetchContent_Populate(external_sdl3_ttf
-            GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
-            GIT_TAG ${TAG_SDL3_ttf}
-        )
-    endif()
-    # Teraz dopiero konfiguruj
-    add_subdirectory(
-        ${external_sdl3_ttf_SOURCE_DIR}
-        ${external_sdl3_ttf_BINARY_DIR}
-    )
-endif()
-
-
-
-message("***********************************************************************")
-message("Checking for **glm** and downloading it when no found")
-message("***********************************************************************")
-find_package(glm CONFIG QUIET)
-# Wymuś, że glm NIE buduje biblioteki, nawet jeśli coś (np. Assimp) to zmienia
-set(GLM_BUILD_LIBRARY OFF CACHE BOOL "" FORCE)
-set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
-if(NOT TARGET glm::glm)
-    if(EXISTS "${LOCAL_CACHE_DIR_glm}/CMakeLists.txt")
-        set(FETCHCONTENT_SOURCE_DIR_external_glm "${LOCAL_CACHE_DIR_glm}" CACHE PATH "" FORCE)
-    endif()
-    if(EXISTS "${LOCAL_CACHE_DIR_glm}/CMakeLists.txt")
-        # Użyj cache — bez GIT_REPOSITORY
-        set(external_glm_SOURCE_DIR "${LOCAL_CACHE_DIR_glm}")
-        set(external_glm_BINARY_DIR "${CMAKE_BINARY_DIR}/external_glm-build")
-    else()
-        # Pobierz z internetu
-        FetchContent_Populate(external_glm
-            GIT_REPOSITORY https://github.com/g-truc/glm.git
-            GIT_TAG ${TAG_glm}
-        )
-    endif()
-    # Teraz dopiero konfiguruj
-    add_subdirectory(
-        ${external_glm_SOURCE_DIR}
-        ${external_glm_BINARY_DIR}
-    )
-endif()
-# KEY CONDITION — alias for Assimp to not broke our config
-if(TARGET glm::glm AND NOT TARGET glm)
-    add_library(glm INTERFACE)
-    target_link_libraries(glm INTERFACE glm::glm)
-endif()
-
-
-
-message("***********************************************************************")
-message("Checking for **assimp** and downloading it when no found")
-message("***********************************************************************")
-find_package(assimp CONFIG QUIET)
-if(NOT TARGET assimp::assimp)
-    if(EXISTS "${LOCAL_CACHE_DIR_assimp}/CMakeLists.txt")
-        set(FETCHCONTENT_SOURCE_DIR_external_assimp "${LOCAL_CACHE_DIR_assimp}" CACHE PATH "" FORCE)
-    endif()
-    if(EXISTS "${LOCAL_CACHE_DIR_assimp}/CMakeLists.txt")
-        # Użyj cache — bez GIT_REPOSITORY
-        set(external_assimp_SOURCE_DIR "${LOCAL_CACHE_DIR_assimp}")
-        set(external_assimp_BINARY_DIR "${CMAKE_BINARY_DIR}/external_assimp-build")
-    else()
-        # Pobierz z internetu
-        FetchContent_Populate(external_assimp
-            GIT_REPOSITORY https://github.com/assimp/assimp.git
-            GIT_TAG        ${TAG_assimp}
-        )
-    endif()
-    # Teraz dopiero konfiguruj
-    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-    set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "" FORCE)
-    set(ASSIMP_USE_EXTERNAL_ZLIB ON CACHE BOOL "" FORCE)
-    set(ASSIMP_USE_EXTERNAL_GLM ON CACHE BOOL "" FORCE)
-    # KLUCZOWE: wyłącz instalację/export assimp
-    set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
-    add_subdirectory(
-        ${external_assimp_SOURCE_DIR}
-        ${external_assimp_BINARY_DIR}
-    )
-endif()
-
 
 
 
@@ -622,6 +668,7 @@ add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
 
 add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
+file(COPY "${CMAKE_CURRENT_BINARY_DIR}/configure.h" DESTINATION "${PROJECT_SOURCE_DIR}/Tilc")
 
 target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags)
 target_link_directories("${PROJECT_NAME}Shared" PRIVATE
@@ -635,9 +682,12 @@ target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINAR
 	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
 )
 target_link_options("${PROJECT_NAME}Shared" PRIVATE "${SetSubsystem}")
-#target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp MariaDB::MariaDB MariaDB::mariadbcpp glm::glm ZLIB::ZLIB)
-target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB harfbuzz)
-
+if ("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+    #target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp MariaDB::MariaDB MariaDB::mariadbcpp glm::glm ZLIB::ZLIB)
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB harfbuzz)
+else()
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags ZLIB::ZLIB)
+endif()
 
 # If with mariadb connector
 if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
