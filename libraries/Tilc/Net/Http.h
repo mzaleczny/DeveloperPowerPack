@@ -20,8 +20,8 @@ namespace Tilc
                 ~THttp();
 
                 TVariables m_Variables;
-                Tilc::TExtString& DoPost(Tilc::TExtString Url, Tilc::TExtString Variables, Tilc::TExtString& ResultCode);
-                Tilc::TExtString& DoPost(Tilc::TExtString Url, Tilc::TExtString& ResultCode);
+                Tilc::TExtString& DoPost(Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode);
+                Tilc::TExtString& DoPost(Tilc::TExtString Url, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode);
 
             protected:
                 CURL *m_Curl;

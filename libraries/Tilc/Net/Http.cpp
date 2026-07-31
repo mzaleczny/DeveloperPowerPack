@@ -24,8 +24,10 @@ Tilc::Net::THttp::~THttp()
     curl_global_cleanup();
 }
 
-Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtString Variables, Tilc::TExtString& ResultCode)
+Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode)
 {
+    struct curl_slist* headers = nullptr;
+
     m_ResponseData = "";
     if (m_InitResult != CURLE_OK)
     {
@@ -37,12 +39,21 @@ Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtStrin
     if (m_Curl)
     {
         curl_easy_setopt(m_Curl, CURLOPT_URL, Url.c_str());
+        curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, this);
+
+        for (size_t i = 0; i < Headers.size(); ++i)
+        {
+            headers = curl_slist_append(headers, Headers[i].c_str());
+        }
+        if (headers)
+        {
+            curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, headers);
+        }
         if (Variables.length() > 0)
         {
             curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, Variables.c_str());
         }
-        curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, this);
 
         m_Result = curl_easy_perform(m_Curl);
         if(m_Result != CURLE_OK)
@@ -59,7 +70,7 @@ Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtStrin
     return m_ResponseData;
 }
 
-Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtString& ResultCode)
+Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode)
 {
     return m_ResponseData;
 }
