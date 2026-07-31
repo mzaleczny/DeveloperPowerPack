@@ -15,7 +15,6 @@ namespace Tilc
         {
         public:
             virtual void update(TProduct* product) = 0;
-        protected:
             static std::vector<TProduct*> products;
         };
 
@@ -69,6 +68,14 @@ namespace Tilc
 
             // Constructor
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
+                    Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
+                    Tilc::TExtString created = "", Tilc::TExtString modified = "")
+                : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
+                  created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
+            {
+            }
+
+            TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price, int inventoryLevel,
                     Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
                     Tilc::TExtString created = "", Tilc::TExtString modified = "")
                 : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),

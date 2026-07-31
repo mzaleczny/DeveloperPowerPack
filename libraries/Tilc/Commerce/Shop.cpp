@@ -1,4 +1,5 @@
 #include "Tilc/Commerce/Shop.h"
+#include <iostream>
 
 std::vector<Tilc::Commerce::TProduct*> Tilc::Commerce::TObserver::products;
 
@@ -61,7 +62,7 @@ void Tilc::Commerce::TCheckout::update(TProduct* product)
     // This assumes that the cart is already populated with products
     for (auto product : products)
     {
-        totalPrice = totalPrice + product->price;
+        totalPrice = totalPrice + product->price * product->inventoryLevel;
     }
 }
 
