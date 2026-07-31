@@ -63,6 +63,7 @@ namespace Tilc
             TMoney operator+(TMoney m);
             TMoney operator-(Tilc::TExtString str);
             TMoney operator-(TMoney m);
+            TMoney operator*(int i);
             TMoney operator/(int i);
             // zwraca procent z aktualnej kwoty w formie łańcucha i równoczeťnie zmienia zawartość obiektu
             Tilc::TExtString Procent(double i);

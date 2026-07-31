@@ -140,6 +140,11 @@ Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator-(TMoney m)
     return TMoney(GetTotalAmountInt() - m.GetTotalAmountInt());
 }
 
+Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator*(int i)
+{
+    return Tilc::Commerce::TMoney(GetTotalAmountInt() * i);
+}
+
 Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator/(int i)
 {
     double x;
