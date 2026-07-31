@@ -2,6 +2,7 @@
 
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/ExtString.h"
+#include "Tilc/Commerce/Money.h"
 #include <vector>
 
 namespace Tilc
@@ -17,7 +18,6 @@ namespace Tilc
         protected:
             static std::vector<TProduct*> products;
         };
-        std::vector<TProduct*> TObserver::products;
 
         class DECLSPEC TReview
         {
@@ -33,9 +33,8 @@ namespace Tilc
             double score;
 
             TUserReview(Tilc::TExtString username, double score)
+                : username(username), score(score)
             {
-                this->username = username;
-                this->score = score;
             }
             Tilc::TExtString getUsername() const
             {
@@ -45,7 +44,7 @@ namespace Tilc
             {
                 return score;
             }
-            void update(TProduct* product);
+            void update(TProduct* product) {};
         };
 
         class DECLSPEC TProduct
@@ -54,70 +53,67 @@ namespace Tilc
             Tilc::TExtString name;
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
-            double price;
+            TMoney price;
+            TMoney price1;
+            TMoney price2;
+            TMoney price3;
             Tilc::TExtString mini_map_file;
             Tilc::TExtString css_class;
             Tilc::TExtString code;
-
+            Tilc::TExtString created;
+            Tilc::TExtString modified;
+            int inventoryLevel;
+            std::vector<TObserver*> observers;
+            std::vector<TReview*> reviews;
+            double averageReviewScore;
 
             // Constructor
-            TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price,
-                    Tilc::TExtString mini_map_file, Tilc::TExtString css_class, Tilc::TExtString code)
+            TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
+                    Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
+                    Tilc::TExtString created = "", Tilc::TExtString modified = "")
+                : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
+                  created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
             {
-                this->name = name;
-                this->slug = slug;
-                this->short_description = short_description;
-                this->price = price;
-                this->mini_map_file = mini_map_file;
-                this->css_class = css_class;
-                this->code = code;
             }
 
             // Observer pattern methods
-            void attach(Observer* observer) {
+            void attach(TObserver* observer)
+            {
                 observers.push_back(observer);
                 observer->update(this);
             }
-            void detach(Observer* observer) {
+
+            void detach(TObserver* observer)
+            {
                 observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
             }
-            void notify() {
-                for (auto observer : observers) {
+
+            void notify()
+            {
+                for (auto observer : observers)
+                {
                     observer->update(this);
                 }
             }
 
             // Review methods
-            void addReview(UserReview* review) {
-                reviews.push_back(review);
+            void addReview(TUserReview* review);
+            void removeReview(TUserReview* review);
 
-                // Update the average review score
-                double totalScore = averageReviewScore * (reviews.size() - 1) + review->getScore();
-                averageReviewScore = totalScore / reviews.size();
-
-                // Notify all reviews of the updated average review score
-                notifyReviews();
-            }
-            void removeReview(UserReview* review) {
-                reviews.erase(std::remove(reviews.begin(), reviews.end(), review), reviews.end());
-
-                // Update the average review score
-                averageReviewScore = getTotalScore() / reviews.size();
-                // Notify all reviews of the updated average review score
-                notifyReviews();
-            }
-            void notifyReviews() {
-                for (auto review : reviews) {
+            inline void notifyReviews()
+            {
+                for (auto review : reviews)
+                {
                     review->update(this);
                 }
             }
-            double getTotalScore()
+
+            double getTotalScore();
+
+            inline void setInventoryLevel(int inventoryLevel)
             {
-                double total = 0.0;
-                for (auto review : reviews) {
-                    total += (reinterpret_cast<UserReview*>(review))->getScore();
-                }
-                return total;
+                this->inventoryLevel = inventoryLevel;
+                notify();
             }
         };
 
@@ -129,38 +125,21 @@ namespace Tilc
             double price_1;
             double price_2;
             double price_3;
-            double price_eur;
-            double price_dol;
             std::vector<Tilc::TExtString> pictures;
-            Tilc::TExtString created;
-            Tilc::TExtString modified;
-            int inventoryLevel;
-            std::vector<Observer*> observers;
-            std::vector<Review*> reviews;
-            double averageReviewScore;
 
             // Constructor
-            TProductFull(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price,
-                Tilc::TExtString mini_map_file, Tilc::TExtString css_class, Tilc::TExtString code,
-                Tilc::TExtString name_en, Tilc::TExtString description, double price_1, double price_2, double price_3, double price_eur, double price_dol,
-                Tilc::TExtString created, Tilc::TExtString modified, int inventoryLevel
-            ) : TProduct(name, slug, short_description, price, mini_map_file, css_class, code)
+            TProductFull(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price, int inventoryLevel,
+                Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
+                Tilc::TExtString created = "", Tilc::TExtString modified = "",
+                Tilc::TExtString name_en = "", Tilc::TExtString description = "", int price_1 = 0, int price_2 = 0, int price_3 = 0
+                
+            ) : TProduct(name, slug, short_description, price, inventoryLevel, mini_map_file, css_class, code, created, modified),
+                name_en(name_en), description(description), price_1(price_1), price_2(price_2), price_3(price_3)
             {
-                this->name_en = name_en;
-                this->description = description;
-                this->price_1 = price_1;
-                this->price_2 = price_2;
-                this->price_3 = price_3;
-                this->price_eur = price_eur;
-                this->price_dol = price_dol;
-                this->created = created;
-                this->modified = modified;
-                this->inventoryLevel = inventoryLevel;
-                this->averageReviewScore = 0.0;
             }
         };
 
-        class DECLSPEC Cart : public TObserver
+        class DECLSPEC TCart : public TObserver
         {
         public:
             void addProduct(TProduct* product)
@@ -168,47 +147,26 @@ namespace Tilc
                 products.push_back(product);
                 product->attach(this);
             }
-            void update(TProduct* product)
-            {
-                // Check if the product is in the cart and remove it if inventory level reaches zero
-                for (auto it = products.begin(); it != products.end(); it++)
-                {
-                    if ((*it) == product && product->getInventoryLevel() == 0)
-                    {
-                        products.erase(it);
-                        break;
-                    }
-                }
-            }
+            void update(TProduct* product);
             size_t size()
             {
                 return products.size();
             }
         };
 
-        class TCheckout : public TObserver
+        class DECLSPEC TCheckout : public TObserver
         {
         private:
-            double totalPrice;
+            TMoney totalPrice;
         public:
-            void update(TProduct* product)
-            {
-                // Recalculate total price when inventory level changes
-                totalPrice = 0;
-                // Loop through all products in the cart and recalculate the total price
-                // This assumes that the cart is already populated with products
-                for (auto product : products)
-                {
-                    totalPrice += product->getPrice();
-                }
-            }
+            void update(TProduct* product);
             void addProduct(TProduct* product)
             {
                 products.push_back(product);
                 product->attach(this);
                 update(product);
             }
-            double getTotalPrice()
+            TMoney getTotalPrice()
             {
                 return totalPrice;
             }
