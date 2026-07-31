@@ -1,5 +1,5 @@
 set(FORCE_OPENGL_ES "0")
-set(BUILD_WITH_MYSQL "0")
+set(BUILD_WITH_MYSQL "1")
 set(BUILD_WITHOUT_GRAPHICS "1")
 
 set_property(GLOBAL PROPERTY Tilc_HEADERS_Property "")
