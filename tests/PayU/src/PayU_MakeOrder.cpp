@@ -1,0 +1,69 @@
+#include <iostream>
+#include "Tilc/Commerce/PayU.h"
+#include "Tilc/Commerce/Shop.h"
+#include "Tilc/Utils/ExtString.h"
+#include "Tilc/Utils/JsonParser.h"
+#include "Tilc/Utils/StdObject.h"
+
+
+int main(int argc, char* argv[])
+{
+    Tilc::Commerce::TPayU p;
+    p.SetShopDescription("Tilc Mega Store");
+    
+    p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeSandbox, {
+        "https://merch-prod.snd.payu.com",
+        "475138", // PosId
+        "a427cabc4ae80f928b7fef9e24778459", // Md5Sum
+        "475138", // OAuth ClientId
+        "7f5b563529b8e9dd9dff796d4fdcdbb0" // OAuth ClientSecret
+        });
+    p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeProduction, {
+        "https://secure.payu.com",
+        "", // PosId
+        "", // Md5Sum
+        "", // OAuth ClientId
+        "" // OAuth ClientSecret
+        });
+
+
+
+    // Create a product with an initial inventory level of 10
+    std::vector<Tilc::Commerce::TProduct> products{
+        Tilc::Commerce::TProduct("TV", "tv", "A 55-inch 4K smart TV.", 200.00, 1),
+        Tilc::Commerce::TProduct("Computer", "computer", "A gaming machine", 300.00, 1),
+        Tilc::Commerce::TProduct("Keyborad", "keyboard", "A keyboard for computer", 100.00, 1),
+    };
+
+    // Create a shopping cart and add the product to the cart
+    Tilc::Commerce::TCart cart = Tilc::Commerce::TCart();
+    cart.addProduct(&products[0]);
+    cart.addProduct(&products[1]);
+    cart.addProduct(&products[2]);
+
+    // Create a checkout object and add it as an observer of the product
+    Tilc::Commerce::TCheckout checkout = Tilc::Commerce::TCheckout();
+    // products vector in cart and checkout is shared by both classes: TCart and TCheckout sa here we only attach observer and not add products to it
+    for (auto& p : products)
+    {
+        p.attach(&checkout);
+    }
+
+    // Reduce the inventory level of the product and observe the effect on the cart and checkout
+    products[2].setInventoryLevel(5);
+    std::cout << "Cart size: " << cart.size() << std::endl;
+    std::cout << "Checkout Total price: " << checkout.getTotalPrice().ToString() << std::endl;
+
+    // Reduce the inventory level of the product to zero and observe the effect on the cart and checkout
+    products[2].setInventoryLevel(0);
+    std::cout << "Cart size: " << cart.size() << std::endl;
+    std::cout << "Checkout Total price: " << checkout.getTotalPrice().ToString() << std::endl;
+
+
+    Tilc::TExtString JsonString = p.Login();
+    std::cout << "Bearer: " << p.GetBearer() << std::endl << std::endl;
+    JsonString = p.MakeOrder(&cart, &checkout, "127.0.0.1");
+    std::cout << JsonString << std::endl;
+
+    return 0;
+}

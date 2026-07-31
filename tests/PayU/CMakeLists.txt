@@ -82,8 +82,12 @@ endfunction()
 
 
 AddAndConfigureProgram(PayU_Login "src/PayU_Login.cpp")
+AddAndConfigureProgram(PayU_MakeOrder "src/PayU_MakeOrder.cpp")
 
 
 # Dlls can be copied once for one target as all targets sits in the same directory
 TilcNonGraphicsCopyRuntimeDlls(PayU_Login)
 CurlCopyRuntimeDlls(PayU_Login)
+
+TilcNonGraphicsCopyRuntimeDlls(PayU_MakeOrder)
+CurlCopyRuntimeDlls(PayU_MakeOrder)
