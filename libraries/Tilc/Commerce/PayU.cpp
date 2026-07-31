@@ -82,8 +82,8 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
 
     Tilc::TExtString ResultJson = m_Http.DoPost(m_Config[m_PaymentType].Url + "/api/v2_1/orders", JsonData,
         {
-            "Content-type: application/json\r\n",
-            Tilc::TExtString("Authorization: Bearer ") + m_Bearer + "\r\n"
+            "Content-type: application/json",
+            Tilc::TExtString("Authorization: Bearer ") + m_Bearer
         },
         ResultCode);
     if (ResultCode != "OK")
