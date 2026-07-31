@@ -2,6 +2,14 @@
 #include "Tilc/Utils/Log.h"
 #include <fstream>
 
+Tilc::Commerce::TMoney& Tilc::Commerce::TMoney::operator=(Tilc::Commerce::TMoney Total)
+{
+    m_Amount = Total.m_Amount;
+    m_Decimals = Total.m_Decimals;
+    m_Separator = Total.m_Separator;
+    return *this;
+}
+
 Tilc::Commerce::TMoney& Tilc::Commerce::TMoney::operator=(double Total)
 {
     if (Total < 0)
@@ -105,6 +113,11 @@ Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator+(Tilc::TExtString str)
     return m;
 }
 
+Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator+(TMoney m)
+{
+    return TMoney(GetTotalAmountInt() + m.GetTotalAmountInt());
+}
+
 Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator-(Tilc::TExtString str)
 {
     int a = m_Amount;
@@ -120,6 +133,11 @@ Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator-(Tilc::TExtString str)
     int Total = GetTotalAmountInt() - m.GetTotalAmountInt();
     m.SetTotal(Total);
     return m;
+}
+
+Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator-(TMoney m)
+{
+    return TMoney(GetTotalAmountInt() - m.GetTotalAmountInt());
 }
 
 Tilc::Commerce::TMoney Tilc::Commerce::TMoney::operator/(int i)
@@ -161,7 +179,7 @@ Tilc::TExtString Tilc::Commerce::TMoney::ToString() const
     {
         tmp += "0";
     }
-    tmp += std::to_string(m_Amount);
+    tmp += std::to_string(m_Decimals);
 
     return tmp;
 }

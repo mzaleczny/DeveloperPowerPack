@@ -12,7 +12,9 @@ namespace Tilc
         {
         public:
             TMoney() {};
-            TMoney(int Amount, int Decimals = 0, char Separator = ',') : m_Amount(Amount), m_Decimals(Decimals), m_Separator(Separator) {};
+            TMoney(int TotalAmount) { SetTotal(TotalAmount); };
+            TMoney(double TotalAmount) { SetTotal(TotalAmount); };
+            TMoney(int Amount, int Decimals, char Separator = ',') : m_Amount(Amount), m_Decimals(Decimals), m_Separator(Separator) {};
             ~TMoney() {}
 
             inline int GetAmount() const {
@@ -28,7 +30,7 @@ namespace Tilc
             }
 
             inline int GetTotalAmountInt() const {
-                return m_Amount * 100 + +m_Decimals;
+                return m_Amount * 100 + m_Decimals;
             }
 
             inline double GetTotalAmount() const {
@@ -54,10 +56,13 @@ namespace Tilc
                 m_Decimals = Decimals;
             }
 
+            TMoney& operator=(TMoney Total);
             TMoney& operator=(double Total);
             TMoney& operator=(Tilc::TExtString str);
             TMoney operator+(Tilc::TExtString str);
+            TMoney operator+(TMoney m);
             TMoney operator-(Tilc::TExtString str);
+            TMoney operator-(TMoney m);
             TMoney operator/(int i);
             // zwraca procent z aktualnej kwoty w formie łańcucha i równoczeťnie zmienia zawartość obiektu
             Tilc::TExtString Procent(double i);
@@ -91,12 +96,4 @@ inline bool operator<(const Tilc::Commerce::TMoney& m1, const Tilc::Commerce::TM
 inline bool operator>(const Tilc::Commerce::TMoney& m1, const Tilc::Commerce::TMoney& m2)
 {
     return m1.GetAmount() * 100 + m1.GetDecimals() > m2.GetAmount() * 100 + m2.GetDecimals();
-}
-inline Tilc::Commerce::TMoney operator+(const Tilc::Commerce::TMoney& m1, const Tilc::Commerce::TMoney& m2)
-{
-    return m1 + m2;
-}
-inline Tilc::Commerce::TMoney operator-(const Tilc::Commerce::TMoney& m1, const Tilc::Commerce::TMoney& m2)
-{
-    return m1 - m2;
 }
