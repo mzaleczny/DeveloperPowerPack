@@ -12,11 +12,11 @@ int main(int argc, char* argv[])
     p.SetShopDescription("Tilc Mega Store");
     
     p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeSandbox, {
-        "https://merch-prod.snd.payu.com",
-        "475138", // PosId
-        "a427cabc4ae80f928b7fef9e24778459", // Md5Sum
-        "475138", // OAuth ClientId
-        "7f5b563529b8e9dd9dff796d4fdcdbb0" // OAuth ClientSecret
+        "",
+        "", // PosId
+        "", // Md5Sum
+        "", // OAuth ClientId
+        "" // OAuth ClientSecret
         });
     p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeProduction, {
         "https://secure.payu.com",
