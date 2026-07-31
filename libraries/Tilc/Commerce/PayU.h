@@ -10,6 +10,9 @@ namespace Tilc
 {
     namespace Commerce
     {
+        class TCart;
+        class TCheckout;
+
         class DECLSPEC TPayU
         {
             public:
@@ -39,11 +42,16 @@ namespace Tilc
                 Tilc::TExtString GetBearer() const {
                     return m_Bearer;
                 }
+                Tilc::TExtString MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp);
+                void SetShopDescription(Tilc::TExtString Description) {
+                    m_ShopDescription = Description;
+                }
 
             protected:
                 std::vector<TPaymentConfig> m_Config;
                 Tilc::Net::THttp m_Http;
                 Tilc::TExtString m_Bearer;
+                Tilc::TExtString m_ShopDescription;
                 EPaymentConfigType m_PaymentType{PaymentTypeSandbox};
         };
     }
