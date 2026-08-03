@@ -83,6 +83,7 @@ endfunction()
 
 AddAndConfigureProgram(PayU_Login "src/PayU_Login.cpp")
 AddAndConfigureProgram(PayU_MakeOrder "src/PayU_MakeOrder.cpp")
+AddAndConfigureProgram(PayU_RetrieveOrder "src/PayU_RetrieveOrder.cpp")
 
 
 # Dlls can be copied once for one target as all targets sits in the same directory
@@ -93,3 +94,7 @@ CurlCopyRuntimeDlls(PayU_Login)
 TilcNonGraphicsCopyRuntimeDlls(PayU_MakeOrder)
 MariaDBCopyRuntimeDlls(PayU_MakeOrder)
 CurlCopyRuntimeDlls(PayU_MakeOrder)
+
+TilcNonGraphicsCopyRuntimeDlls(PayU_RetrieveOrder)
+MariaDBCopyRuntimeDlls(PayU_RetrieveOrder)
+CurlCopyRuntimeDlls(PayU_RetrieveOrder)
