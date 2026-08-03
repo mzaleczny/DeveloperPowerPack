@@ -45,7 +45,7 @@ Tilc::TExtString Tilc::Commerce::TPayU::Login(const char* GrantType)
 
 Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp,
     Tilc::TExtString ContinueUrl, Tilc::TExtString NotifyUrl, Tilc::TExtString ExtOrderId,
-    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedOrderId
+    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedPayUOrderId
 )
 {
     Tilc::TExtString ResultCode;
@@ -98,10 +98,11 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
     {
         std::cerr << ResultCode << std::endl;
         ResultJson = "";
+        return ResultJson;
     }
-    std::cout << ResultJson << std::endl;
+    //std::cout << ResultJson << std::endl;
     RedirectUri = "";
-    CreatedOrderId = "";
+    CreatedPayUOrderId = "";
     p.parse(ResultJson, &o);
     if (o.getAsObject("root"))
     {
@@ -112,12 +113,63 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
             if (StatusCode == "SUCCESS")
             {
                 RedirectUri = o.getAsObject("root")->getAsString("redirectUri");
-                CreatedOrderId = o.getAsObject("root")->getAsString("orderId");
+                CreatedPayUOrderId = o.getAsObject("root")->getAsString("orderId");
                 ResultJson = "OK";
+                return ResultJson;
             }
             else if (StatusCode == "UNAUTHORIZED")
             {
                 ResultJson = "ERROR:" + Result->getAsString("code") + "-" + Result->getAsString("codeLiteral") + ":" + Result->getAsString("statusDesc");
+                return ResultJson;
+            }
+        }
+    }
+    return ResultJson;
+}
+
+Tilc::TExtString Tilc::Commerce::TPayU::RetrieveOrder(const Tilc::TExtString& PayUOrderId, Tilc::TStdObject** OrderData)
+{
+    TJsonParser p;
+    TStdObject o;
+    Tilc::TExtString ResultCode;
+    Tilc::TExtString ResultJson = m_Http.DoPost(m_Config[m_PaymentType].Url + "/api/v2_1/orders/" + PayUOrderId, "",
+        {
+            "Content-type: application/json",
+            Tilc::TExtString("Authorization: Bearer ") + m_Bearer
+        },
+        ResultCode);
+
+    if (ResultCode != "OK")
+    {
+        std::cerr << ResultCode << std::endl;
+        ResultJson = "";
+        *OrderData = nullptr;
+        return ResultJson;
+    }
+
+    //std::cout << ResultJson << std::endl;
+    p.parse(ResultJson, &o);
+    if (o.getAsObject("root"))
+    {
+        TStdObject* Result = o.getAsObject("root")->getAsObject("status");
+        if (Result)
+        {
+            Tilc::TExtString StatusCode = Result->getAsString("statusCode");
+            if (StatusCode == "UNAUTHORIZED")
+            {
+                ResultJson = "ERROR:" + Result->getAsString("code") + "-" + Result->getAsString("codeLiteral") + ":" + Result->getAsString("statusDesc");
+                *OrderData = nullptr;
+                return ResultJson;
+            }
+        }
+        if (o.getAsObject("root")->getAsArray("orders")->size() == 1)
+        {
+            *OrderData = nullptr;
+            TStdObjectProperty* FirstArrayValue = static_cast<TStdObjectProperty*>((*o.getAsObject("root")->getAsArray("orders"))[0]);
+            if (FirstArrayValue)
+            {
+                *OrderData = FirstArrayValue->oValue->cloneIntoCleanRoot();
+                return "OK";
             }
         }
     }

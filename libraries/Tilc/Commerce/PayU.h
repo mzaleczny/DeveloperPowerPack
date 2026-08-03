@@ -8,6 +8,8 @@
 
 namespace Tilc
 {
+    class TStdObject;
+
     namespace Commerce
     {
         class TCart;
@@ -44,8 +46,9 @@ namespace Tilc
                 }
                 Tilc::TExtString MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp,
                     Tilc::TExtString ContinueUrl, Tilc::TExtString NotifyUrl, Tilc::TExtString ExtOrderId, // ExtOrderId - id zamówienia w naszym sklepie
-                    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedOrderId // CreatedOrderId - id zamówienia w PayU
+                    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedPayUOrderId // CreatedPayUOrderId - id zamówienia w PayU
                 );
+                Tilc::TExtString RetrieveOrder(const Tilc::TExtString& PayUOrderId, Tilc::TStdObject** OrderData);
                 void SetShopDescription(Tilc::TExtString Description) {
                     m_ShopDescription = Description;
                 }
