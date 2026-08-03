@@ -38,6 +38,7 @@ set(LOCAL_CACHE_DIR_assimp "${LOCAL_CACHE_DIR}/assimp")
 set(LOCAL_CACHE_DIR_mariadbconnectorcpp "${LOCAL_CACHE_DIR}/mariadb-connector-cpp")
 set(LOCAL_CACHE_DIR_CURL_ZIP "${LOCAL_CACHE_DIR}/curl.zip")
 set(LOCAL_CACHE_DIR_CURL_DIRECTORY "${LOCAL_CACHE_DIR}/${CURL_VERSION}")
+set(LOCAL_CACHE_DIR_libfcgi "${LOCAL_CACHE_DIR}/fcgi2")
 
 set(TAG_SDL3 "release-3.4.10")
 set(TAG_SDL3_image "release-3.4.4")
@@ -727,6 +728,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zdict.h")
     file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib.h")
     file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib_name_mangling.h")
+endif()
+
+
+# Config for LibFCGI in windows
+if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        target_include_directories("${PROJECT_NAME}Shared" PRIVATE
+            "$<BUILD_INTERFACE:${LOCAL_CACHE_DIR_libfcgi}/include>"
+        )
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${LOCAL_CACHE_DIR_libfcgi}/libfcgi/${CommonBinDir}/libfcgi.lib)
+        add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${LOCAL_CACHE_DIR_libfcgi}/libfcgi/${CommonBinDir}/libfcgi.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libfcgi.dll"
+        )
+    endif()
 endif()
 
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
