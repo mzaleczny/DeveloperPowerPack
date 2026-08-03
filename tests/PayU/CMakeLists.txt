@@ -53,7 +53,7 @@ endif()
 
 
 function(AddAndConfigureProgram TARGET_NAME PROGRAM_FILES)
-    add_executable(${TARGET_NAME} ${PROGRAM_FILES} "${CMAKE_SOURCE_DIR}/../../libraries/Glad/src/glad.c")
+    add_executable(${TARGET_NAME} ${PROGRAM_FILES})
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
