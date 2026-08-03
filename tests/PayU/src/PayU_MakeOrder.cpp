@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     p.SetShopDescription("Tilc Mega Store");
     
     p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeSandbox, {
-        "",
+        "https://merch-prod.snd.payu.com",
         "", // PosId
         "", // Md5Sum
         "", // OAuth ClientId
@@ -51,19 +51,26 @@ int main(int argc, char* argv[])
 
     // Reduce the inventory level of the product and observe the effect on the cart and checkout
     products[2].setInventoryLevel(5);
-    std::cout << "Cart size: " << cart.size() << std::endl;
-    std::cout << "Checkout Total price: " << checkout.getTotalPrice().ToString() << std::endl;
+    //std::cout << "Cart size: " << cart.size() << std::endl;
+    //std::cout << "Checkout Total price: " << checkout.getTotalPrice().ToString() << std::endl;
 
     // Reduce the inventory level of the product to zero and observe the effect on the cart and checkout
     products[2].setInventoryLevel(0);
-    std::cout << "Cart size: " << cart.size() << std::endl;
-    std::cout << "Checkout Total price: " << checkout.getTotalPrice().ToString() << std::endl;
+    //std::cout << "Cart size: " << cart.size() << std::endl;
+    //std::cout << "Checkout Total price: " << checkout.getTotalPrice().ToString() << std::endl;
 
 
-    Tilc::TExtString JsonString = p.Login();
-    std::cout << "Bearer: " << p.GetBearer() << std::endl << std::endl;
-    JsonString = p.MakeOrder(&cart, &checkout, "127.0.0.1");
-    std::cout << JsonString << std::endl;
+    Tilc::TExtString Result, JsonString, RedirectUri, PayUOrderId;
+    JsonString = p.Login();
+    //std::cout << "Bearer: " << p.GetBearer() << std::endl << std::endl;
+    Result = p.MakeOrder(&cart, &checkout, "127.0.0.1", "https://appsoft.cc/shop/pl/order-placed", "https://appsoft.cc/shop/pl/notify", std::to_string(time(nullptr)), RedirectUri, PayUOrderId);
+    if (Result.StartsWith("ERROR:"))
+    {
+        std::cout << Result << std::endl;
+        return -1;
+    }
 
+    std::cout << "Redirecting to: " << RedirectUri << std::endl;
+    std::cout << "PayU order id: " << PayUOrderId << std::endl;
     return 0;
 }
