@@ -42,7 +42,10 @@ namespace Tilc
                 Tilc::TExtString GetBearer() const {
                     return m_Bearer;
                 }
-                Tilc::TExtString MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp);
+                Tilc::TExtString MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp,
+                    Tilc::TExtString ContinueUrl, Tilc::TExtString NotifyUrl, Tilc::TExtString ExtOrderId, // ExtOrderId - id zamówienia w naszym sklepie
+                    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedOrderId // CreatedOrderId - id zamówienia w PayU
+                );
                 void SetShopDescription(Tilc::TExtString Description) {
                     m_ShopDescription = Description;
                 }

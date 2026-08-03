@@ -43,12 +43,18 @@ Tilc::TExtString Tilc::Commerce::TPayU::Login(const char* GrantType)
     return ResultJson;
 }
 
-Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp)
+Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp,
+    Tilc::TExtString ContinueUrl, Tilc::TExtString NotifyUrl, Tilc::TExtString ExtOrderId,
+    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedOrderId
+)
 {
     Tilc::TExtString ResultCode;
     Tilc::TExtString JsonData;
     JsonData.reserve(512);
     JsonData += "{";
+        JsonData += "\"continueUrl\": \"" + ContinueUrl + "\",";
+        JsonData += "\"notifyUrl\": \"" + NotifyUrl + "\",";
+        JsonData += "\"extOrderId\": \"" + ExtOrderId + "\",";
         JsonData += "\"customerIp\": \"" + ClientIp + "\",";
         JsonData += "\"merchantPosId\": \"" + m_Config[m_PaymentType].PosId + "\",";
         JsonData += "\"description\": \"" + m_ShopDescription + "\",";
@@ -78,18 +84,42 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
     TJsonParser p;
     TStdObject o;
     p.parse(JsonData, &o);
-    std::cout << o.toJson() << std::endl;
-
+    //std::cout << o.toJson() << std::endl;
+    o.clean();
+    
     Tilc::TExtString ResultJson = m_Http.DoPost(m_Config[m_PaymentType].Url + "/api/v2_1/orders", JsonData,
         {
             "Content-type: application/json",
             Tilc::TExtString("Authorization: Bearer ") + m_Bearer
         },
         ResultCode);
+    
     if (ResultCode != "OK")
     {
         std::cerr << ResultCode << std::endl;
         ResultJson = "";
+    }
+    std::cout << ResultJson << std::endl;
+    RedirectUri = "";
+    CreatedOrderId = "";
+    p.parse(ResultJson, &o);
+    if (o.getAsObject("root"))
+    {
+        TStdObject* Result = o.getAsObject("root")->getAsObject("status");
+        if (Result)
+        {
+            Tilc::TExtString StatusCode = Result->getAsString("statusCode");
+            if (StatusCode == "SUCCESS")
+            {
+                RedirectUri = o.getAsObject("root")->getAsString("redirectUri");
+                CreatedOrderId = o.getAsObject("root")->getAsString("orderId");
+                ResultJson = "OK";
+            }
+            else if (StatusCode == "UNAUTHORIZED")
+            {
+                ResultJson = "ERROR:" + Result->getAsString("code") + "-" + Result->getAsString("codeLiteral") + ":" + Result->getAsString("statusDesc");
+            }
+        }
     }
     return ResultJson;
 }
