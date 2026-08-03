@@ -84,6 +84,7 @@ namespace Tilc {
         bool loadFromFile(const Tilc::TExtString& fname);
         inline size_t itemsCount() const { return this->_properties.size(); }
         TStdObject* clone();
+        TStdObject* cloneIntoCleanRoot();
         void clean();
     
         // przeciążone operatory

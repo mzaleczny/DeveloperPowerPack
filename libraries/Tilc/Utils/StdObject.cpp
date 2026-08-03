@@ -47,11 +47,12 @@ Tilc::TStdObjectProperty::TStdObjectProperty(const Tilc::TStdObjectProperty& cop
     this->type = copyObj.type;
     this->name = copyObj.name;
     this->value = copyObj.value;
-    size_t size = copyObj.aValue->size();
+    size_t size = (copyObj.aValue) ? copyObj.aValue->size() : 0UL;
     if (size > 0)
     {
         FreeAValue();
-        aValue->resize(size);
+        aValue = new TPointersVector();
+        aValue->reserve(size);
         Tilc::TStdObjectProperty* copyItem;
         for (size_t i = 0; i < size; ++i)
         {
@@ -210,12 +211,12 @@ Tilc::TStdObject::TStdObject(const Tilc::TStdObject& copyObj)
 {
     size_t size = copyObj.itemsCount();
     FreeProperties();
-    this->_properties.resize(size);
+    this->_properties.reserve(size);
 
     Tilc::TStdObjectProperty* copyItem;
     for (size_t i = 0; i < size; ++i)
     {
-        copyItem = (TStdObjectProperty*)_properties[i];
+        copyItem = (TStdObjectProperty*)copyObj._properties[i];
         this->_properties.push_back(copyItem->clone());
     }
 }
@@ -229,6 +230,18 @@ Tilc::TStdObject* Tilc::TStdObject::clone()
 {
     Tilc::TStdObject* newValue = new Tilc::TStdObject(*this);
     return newValue;
+}
+
+Tilc::TStdObject* Tilc::TStdObject::cloneIntoCleanRoot()
+{
+    // podczas klonowania musim klona zawrzeć w węźle głównym o nazwie root, bo inaczej nie wypiszemy zawartości sklonowanego obiektu
+    Tilc::TStdObject* newObjectWithRoot = new Tilc::TStdObject();
+    if (newObjectWithRoot)
+    {
+        Tilc::TStdObject* ClonedObject = new Tilc::TStdObject(*this);
+        newObjectWithRoot->set("root", ClonedObject);
+    }
+    return newObjectWithRoot;
 }
 
 void Tilc::TStdObject::set(const Tilc::TExtString& name, const Tilc::TExtString& value)
