@@ -16,6 +16,9 @@ IF EXIST "%OUT_MARIADB_DEBUG%" (
 mkdir %OUT_MARIADB_DEBUG%
 
 
+REM **************************************************************************************************************************************************************************
+REM Buid libmaridb Debug and Release
+REM **************************************************************************************************************************************************************************
 cd .cache
 git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-cpp.git
 cd mariadb-connector-cpp
@@ -29,3 +32,18 @@ cmake --build "..\..\%OUT_MARIADB_DEBUG%" --config Debug
 cmake --build "..\..\%OUT_MARIADB_DEBUG%" --target install
 
 cd ..\..
+
+
+REM **************************************************************************************************************************************************************************
+REM Buid fcgi Release
+REM **************************************************************************************************************************************************************************
+cd .cache
+git clone --recurse-submodules -j4 https://github.com/FastCGI-Archives/fcgi2.git
+cd fcgi2
+REM lib will be created in libfcgi/Release
+nmake -f Makefile.nt CFG=release
+REM lib will be created in libfcgi/Debug
+nmake -f Makefile.nt CFG=debug
+
+cd ..\..
+
