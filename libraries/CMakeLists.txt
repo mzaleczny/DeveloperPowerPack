@@ -667,7 +667,11 @@ add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
 
 
-add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS}  ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
+if ("${BUILD_WITH_OPENGL}" STREQUAL "1")
+    list(ADD Tilc_SOURCES ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
+endif()
+
+add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS})
 file(COPY "${CMAKE_CURRENT_BINARY_DIR}/configure.h" DESTINATION "${PROJECT_SOURCE_DIR}/Tilc")
 
 target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags)
