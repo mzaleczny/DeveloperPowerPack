@@ -110,3 +110,10 @@ namespace Tilc
 // use of macro below:
 //     ON_SCOPE_EXIT_WITH_VALUE(12) { S.finalize(); };
 #define ON_SCOPE_EXIT_WITH_VALUE(Value) auto UNIQUE_ANON_VAR(SCOPE_EXIT_STATE) = Tilc::TScopeGuardOnExit<decltype(Value)>({Value}) + [&](decltype(Value) arg)
+
+// use of macro below:
+//     ON_SCOPE_EXIT { S.finalize(); };
+#define NAMED_ON_SCOPE_EXIT(NAME) auto NAME = Tilc::TScopeGuardOnExit<int>() + [&](int arg)
+// use of macro below:
+//     ON_SCOPE_EXIT_WITH_VALUE(12) { S.finalize(); };
+#define NAMED_ON_SCOPE_EXIT_WITH_VALUE(NAME, Value) auto NAME = Tilc::TScopeGuardOnExit<decltype(Value)>({Value}) + [&](decltype(Value) arg)

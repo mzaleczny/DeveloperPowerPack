@@ -46,7 +46,8 @@ TEST_F(TestSuite, ScopeGuard)
         SG.Commit();
 
         ON_SCOPE_EXIT{ std::cout << "FINALIZED with default value: " << arg << std::endl; };
-        ON_SCOPE_EXIT_WITH_VALUE(12) { std::cout << "FINALIZED with value: " << arg << std::endl; };
+        NAMED_ON_SCOPE_EXIT_WITH_VALUE(TwelveDisarmed, 12) { std::cout << "FINALIZED with value: " << arg << std::endl; };
+        TwelveDisarmed.Commit();
     }
     catch (std::exception& e)
     {
