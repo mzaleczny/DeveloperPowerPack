@@ -44,7 +44,15 @@ namespace Tilc
         }
         ~TScopeGuard()
         {
-            if (!m_Commit) m_RollbackFunc(m_Arg);
+            if (!m_Commit)
+            {
+                try {
+                    m_RollbackFunc(m_Arg);
+                }
+                catch (...)
+                {
+                }
+            }
         }
     private:
         const RollbackFunc m_RollbackFunc;
@@ -78,7 +86,15 @@ namespace Tilc
         }
         ~TScopeGuardObj()
         {
-            if (!m_Commit) m_Obj.*m_RollbackMemberFunc(m_Arg);
+            if (!m_Commit)
+            {
+                try
+                {
+                    m_Obj.*m_RollbackMemberFunc(m_Arg);
+                }
+                catch (...)
+                {
+                }
         }
     private:
         const RollbackMemberFunc m_RollbackMemberFunc;
