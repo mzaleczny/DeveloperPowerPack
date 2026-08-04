@@ -177,9 +177,15 @@ Tilc::TExtString Tilc::Commerce::TMoney::Procent(double i)
 
 Tilc::TExtString Tilc::Commerce::TMoney::ToString() const
 {
+    return ToString(m_Separator);
+}
+
+Tilc::TExtString Tilc::Commerce::TMoney::ToString(char Separator) const
+{
     Tilc::TExtString tmp;
 
-    tmp = std::to_string(m_Amount) + m_Separator;
+    tmp = std::to_string(m_Amount);
+    tmp.push_back(Separator);
     if (m_Decimals < 10)
     {
         tmp += "0";

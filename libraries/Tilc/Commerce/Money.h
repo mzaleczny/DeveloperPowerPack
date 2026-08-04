@@ -69,6 +69,7 @@ namespace Tilc
             Tilc::TExtString Procent(double i);
 
             Tilc::TExtString ToString() const;
+            Tilc::TExtString ToString(char Separator) const;
             Tilc::TExtString ToSpeech() const;
             Tilc::TExtString GetFormattedKasa(Tilc::TExtString format = "") const;
 
