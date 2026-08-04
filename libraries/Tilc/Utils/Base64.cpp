@@ -12,7 +12,7 @@ long Tilc::TBase64::Encode(const unsigned char*inData, long dataLength, TExtStri
 
 	// output buffer which holds code during conversation
 	long len = GetCodeLength(dataLength);
-	outCode.reserve(len + 1);
+	outCode.resize(len + 1);
 
 	// charachers used by Base64
 	static const char alpha[] = 
