@@ -22,7 +22,7 @@ namespace Tilc
                 virtual Tilc::TExtString Login(const char* GrantType = "client_credentials") override;
                 virtual Tilc::TExtString MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp,
                     Tilc::TExtString ContinueUrl, Tilc::TExtString NotifyUrl, Tilc::TExtString ExtOrderId, // ExtOrderId - id zamówienia w naszym sklepie
-                    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedPayUOrderId // CreatedPayUOrderId - id zamówienia w PayU
+                    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedOrderId // CreatedPayUOrderId - id zamówienia w PayU
                 ) override;
                 virtual Tilc::TExtString RetrieveOrder(const Tilc::TExtString& PayUOrderId, Tilc::TStdObject** OrderData) override;
         };

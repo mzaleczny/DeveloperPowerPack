@@ -39,7 +39,7 @@ Tilc::TExtString Tilc::Commerce::TPayU::Login(const char* GrantType)
 
 Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checkout, Tilc::TExtString ClientIp,
     Tilc::TExtString ContinueUrl, Tilc::TExtString NotifyUrl, Tilc::TExtString ExtOrderId,
-    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedPayUOrderId
+    Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedOrderId
 )
 {
     Tilc::TExtString ResultCode;
@@ -114,7 +114,7 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
         return ResultJson;
     }
     RedirectUri = "";
-    CreatedPayUOrderId = "";
+    CreatedOrderId = "";
     p.parse(ResultJson, &o);
     if (o.getAsObject("root"))
     {
@@ -125,7 +125,7 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
             if (StatusCode == "SUCCESS")
             {
                 RedirectUri = o.getAsObject("root")->getAsString("redirectUri");
-                CreatedPayUOrderId = o.getAsObject("root")->getAsString("orderId");
+                CreatedOrderId = o.getAsObject("root")->getAsString("orderId");
                 ResultJson = "OK";
                 return ResultJson;
             }
