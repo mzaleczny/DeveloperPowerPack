@@ -6,16 +6,10 @@
 
 Tilc::Commerce::TPayU::TPayU()
 {
-    m_Config.resize(2);
 }
 
 Tilc::Commerce::TPayU::~TPayU()
 {
-}
-
-void Tilc::Commerce::TPayU::AddConfig(EPaymentConfigType ConfigType, TPaymentConfig Config)
-{
-    m_Config[ConfigType] = Config;
 }
 
 Tilc::TExtString Tilc::Commerce::TPayU::Login(const char* GrantType)
@@ -76,9 +70,27 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
         JsonData += "],";
         JsonData += "\"payMethods\": {";
             JsonData += "\"payMethod\": {";
+            JsonData += "\"type\": \"PAYMENT_WALL\"";
+            JsonData += "}";
+            /*
+            JsonData += "\"payMethod\": {";
+            JsonData += "\"type\": \"BLIK_AUTHORIZATION_CODE\"";
+            JsonData += "}";
+            JsonData += "\"payMethod\": {";
+            JsonData += "\"type\": \"BLIK_TOKEN\"";
+            JsonData += "}";
+            JsonData += "\"payMethod\": {";
+            JsonData += "\"type\": \"TRANSPARENT\"";
+            JsonData += "}";
+            JsonData += "\"payMethod\": {";
+            JsonData += "\"type\": \"CARD_TOKEN\",";
+            JsonData += "\"value\" : \"c\"";
+            JsonData += "}";
+            JsonData += "\"payMethod\": {";
             JsonData += "\"type\": \"PBL\",";
             JsonData += "\"value\" : \"c\"";
             JsonData += "}";
+            */
         JsonData += "}";
     JsonData += "}";
     TJsonParser p;
@@ -93,14 +105,14 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
             Tilc::TExtString("Authorization: Bearer ") + m_Bearer
         },
         ResultCode);
-    
+    //std::cout << ResultJson << std::endl;
+
     if (ResultCode != "OK")
     {
         std::cerr << ResultCode << std::endl;
         ResultJson = "";
         return ResultJson;
     }
-    //std::cout << ResultJson << std::endl;
     RedirectUri = "";
     CreatedPayUOrderId = "";
     p.parse(ResultJson, &o);
@@ -117,7 +129,7 @@ Tilc::TExtString Tilc::Commerce::TPayU::MakeOrder(TCart* cart, TCheckout* checko
                 ResultJson = "OK";
                 return ResultJson;
             }
-            else if (StatusCode == "UNAUTHORIZED")
+            else if (!StatusCode.empty())
             {
                 ResultJson = "ERROR:" + Result->getAsString("code") + "-" + Result->getAsString("codeLiteral") + ":" + Result->getAsString("statusDesc");
                 return ResultJson;
@@ -162,7 +174,7 @@ Tilc::TExtString Tilc::Commerce::TPayU::RetrieveOrder(const Tilc::TExtString& Pa
                 return ResultJson;
             }
         }
-        if (o.getAsObject("root")->getAsArray("orders")->size() == 1)
+        if (o.getAsObject("root")->getAsArray("orders") && o.getAsObject("root")->getAsArray("orders")->size() == 1)
         {
             *OrderData = nullptr;
             TStdObjectProperty* FirstArrayValue = static_cast<TStdObjectProperty*>((*o.getAsObject("root")->getAsArray("orders"))[0]);
