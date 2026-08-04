@@ -7,14 +7,14 @@
 int main(int argc, char* argv[])
 {
     Tilc::Commerce::TPayU p;
-    p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeSandbox, {
+    p.AddConfig(Tilc::Commerce::TPayment::PaymentTypeSandbox, {
         "https://merch-prod.snd.payu.com",
         "", // PosId
         "", // Md5Sum
         "", // OAuth ClientId
         "" // OAuth ClientSecret
     });
-    p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeProduction, {
+    p.AddConfig(Tilc::Commerce::TPayment::PaymentTypeProduction, {
         "https://secure.payu.com",
         "", // PosId
         "", // Md5Sum
