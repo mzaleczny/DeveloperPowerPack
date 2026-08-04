@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Tilc/Globals.h"
+
 namespace Tilc
 {
     class TScopeGuardBase
@@ -29,6 +31,9 @@ namespace Tilc
         TScopeGuard(RollbackFunc& func, Arg& arg) : m_RollbackFunc(func), m_Arg(arg)
         {
         }
+        TScopeGuard(RollbackFunc&& func, Arg&& arg) : m_RollbackFunc(std::move(func)), m_Arg(std::move(arg))
+        {
+        }
         TScopeGuard(TScopeGuard& other) : TScopeGuardBase(other), m_RollbackFunc(other.m_RollbackFunc), m_Arg(other.m_Arg)
         {
         }
@@ -42,8 +47,8 @@ namespace Tilc
             if (!m_Commit) m_RollbackFunc(m_Arg);
         }
     private:
-        const RollbackFunc& m_RollbackFunc;
-        Arg& m_Arg;
+        const RollbackFunc m_RollbackFunc;
+        Arg m_Arg;
     };
 
     template <typename RollbackFunc, typename Arg>
@@ -51,4 +56,57 @@ namespace Tilc
     {
         return TScopeGuard<RollbackFunc, Arg>(func, arg);
     }
+
+    template <typename RollbackMemberFunc, typename Obj, typename Arg>
+    class TScopeGuardObj : public TScopeGuardBase
+    {
+    public:
+        TScopeGuardObj(RollbackMemberFunc& func, Obj& obj, Arg& arg) : m_RollbackMemberFunc(func), m_Obj(obj), m_Arg(arg)
+        {
+        }
+        TScopeGuardObj(RollbackMemberFunc&& func, Obj&& obj, Arg&& arg) : m_RollbackMemberFunc(std::move(func)), m_Obj(std::move(obj)), m_Arg(std::move(arg))
+        {
+        }
+        TScopeGuardObj(TScopeGuardObj& other) : TScopeGuardBase(other), m_RollbackMemberFunc(other.m_RollbackMemberFunc), m_Obj(other.m_Obj), m_Arg(other.m_Arg)
+        {
+        }
+        TScopeGuardObj(TScopeGuardObj&& other) : TScopeGuardBase(other), m_RollbackMemberFunc(other.m_RollbackMemberFunc), m_Obj(other.m_Obj), m_Arg(other.m_Arg)
+        {
+            other.m_RollbackMemberFunc = {};
+            other.m_Obj = {};
+            other.m_Arg = {};
+        }
+        ~TScopeGuardObj()
+        {
+            if (!m_Commit) m_Obj.*m_RollbackMemberFunc(m_Arg);
+        }
+    private:
+        const RollbackMemberFunc m_RollbackMemberFunc;
+        Obj m_Obj;
+        Arg m_Arg;
+    };
+
+    template <typename RollbackMemberFunc, typename Obj, typename Arg>
+    TScopeGuardObj<RollbackMemberFunc, Obj, Arg> MakeGuard(RollbackMemberFunc func, Obj& obj, Arg& arg)
+    {
+        return TScopeGuardObj<RollbackMemberFunc, Obj, Arg>(func, obj, arg);
+    }
+
+
+    template <typename Arg>
+    struct TScopeGuardOnExit {
+        Arg m_Arg{};
+    };
+    template <typename Func, typename Arg>
+    TScopeGuard<Func, Arg> operator+(TScopeGuardOnExit<Arg> s, Func&& func) {
+        return TScopeGuard<Func, Arg>(std::forward<Func>(func), std::move(s.m_Arg));
+    }
 }
+
+
+// use of macro below:
+//     ON_SCOPE_EXIT { S.finalize(); };
+#define ON_SCOPE_EXIT auto UNIQUE_ANON_VAR(SCOPE_EXIT_STATE) = Tilc::TScopeGuardOnExit<int>() + [&](int arg)
+// use of macro below:
+//     ON_SCOPE_EXIT_WITH_VALUE(12) { S.finalize(); };
+#define ON_SCOPE_EXIT_WITH_VALUE(Value) auto UNIQUE_ANON_VAR(SCOPE_EXIT_STATE) = Tilc::TScopeGuardOnExit<decltype(Value)>({Value}) + [&](decltype(Value) arg)

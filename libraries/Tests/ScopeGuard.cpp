@@ -5,6 +5,8 @@
 #include <sstream>
 
 #define DECLSPEC
+#define BUILD_WITHOUT_GRAPHICS 1
+#include "../Tilc/Globals.h"
 #include "../Tilc/Utils/ScopeGuard.h"
 
 class TestSuite : public ::testing::Test
@@ -42,6 +44,9 @@ TEST_F(TestSuite, ScopeGuard)
         if (!Operation2_Success) throw std::exception("Operation2 exception");
 
         SG.Commit();
+
+        ON_SCOPE_EXIT{ std::cout << "FINALIZED with default value: " << arg << std::endl; };
+        ON_SCOPE_EXIT_WITH_VALUE(12) { std::cout << "FINALIZED with value: " << arg << std::endl; };
     }
     catch (std::exception& e)
     {

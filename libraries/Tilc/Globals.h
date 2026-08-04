@@ -21,12 +21,20 @@
 #define STRING2(x)  #x
 #define STRING(x)   STRING2(x)
 
+#define CONCAT2(x, y) x##y
+    #define CONCAT(x, y) CONCAT2(x, y)
+#ifdef __COUNTER__
+    #define UNIQUE_ANON_VAR(x) CONCAT(x, __COUNTER__)
+#else
+    #define UNIQUE_ANON_VAR(x) CONCAT(x, __LINE__)
+#endif
+
 #ifndef COMMON_MEASURE_STRING
-#define COMMON_MEASURE_STRING   L"~!@#$%^&*()_+|`1234567890-=\\QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm{}[]:\";'<>?,./ĄŚĘŁÓŃŹŻąśęłóńćźż"
+#define COMMON_MEASURE_STRING   "~!@#$%^&*()_+|`1234567890-=\\QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm{}[]:\";'<>?,./ĄŚĘŁÓŃŹŻąśęłóńćźż"
 #endif
 
 #ifndef COMMON_EMPTY_STRING
-#define COMMON_EMPTY_STRING   L""
+#define COMMON_EMPTY_STRING   ""
 #endif
 
 namespace Tilc
