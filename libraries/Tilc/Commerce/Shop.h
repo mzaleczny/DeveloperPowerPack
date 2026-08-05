@@ -4,6 +4,7 @@
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Commerce/Money.h"
 #include <vector>
+#include <algorithm>
 
 namespace Tilc
 {

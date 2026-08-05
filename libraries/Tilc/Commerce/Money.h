@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/ExtString.h"
 
@@ -43,8 +44,8 @@ namespace Tilc
             }
 
             inline void SetTotal(double Total) {
-                m_Amount = floor(Total);
-                m_Decimals = floor((Total-m_Amount) * 100);
+                m_Amount = std::floor(Total);
+                m_Decimals = std::floor((Total-m_Amount) * 100);
             }
 
             inline void SetAmount(int Amount) {

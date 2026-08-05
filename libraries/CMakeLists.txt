@@ -636,12 +636,10 @@ if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
         )
     endif()
 else()
-    # Jeśli to Windows, to konfigurujemy ZLIB
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        if(NOT TARGET ZLIB::ZLIB)
-            message(STATUS "Fallback: building our own zlib")
-            add_subdirectory(${LOCAL_CACHE_DIR_zlib})
-        endif()
+    # konfigurujemy ZLIB
+    if(NOT TARGET ZLIB::ZLIB)
+        message(STATUS "Fallback: building our own zlib")
+        add_subdirectory(${LOCAL_CACHE_DIR_zlib})
     endif()
 endif()
 
@@ -699,12 +697,13 @@ if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
     target_include_directories("${PROJECT_NAME}Shared" PRIVATE
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/.cache/mariadb-connector-cpp/include>"
     )
-    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadbcpp.lib)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadbcpp.so)
         add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
 	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libmariadbcpp.so"
         )
     else()
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadbcpp.lib)
         add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
 	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadbcpp.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/mariadbcpp.dll"
         )
