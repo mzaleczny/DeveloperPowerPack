@@ -18,8 +18,8 @@ int main(int argc, char* argv[])
         "https://api-m.sandbox.paypal.com",
         "", // PosId
         "", // Md5Sum
-        "AWn13j_q0RA6kJDWBBecDPX7uiv5YDaCd9ecVF8Pb8esnRmzAzmBjFb7o_GDB7HTK5JqEAxfzdck4Ll9", // OAuth ClientId
-        "ECwsm_HWAZgRLJQALLfWO5bPEzv80AT0Ie4rmHHrIiBT6_vh8jwpL8Ijte-1JICL2anniIzY0cw89V8B" // OAuth ClientSecret
+        "", // OAuth ClientId
+        "" // OAuth ClientSecret
     });
     p.AddConfig(Tilc::Commerce::TPayment::PaymentTypeProduction, {
         "https://api-m.paypal.com",
