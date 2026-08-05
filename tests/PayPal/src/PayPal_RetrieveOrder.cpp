@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Tilc/Commerce/PayU.h"
+#include "Tilc/Commerce/PayPal.h"
 #include "Tilc/Commerce/Shop.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Utils/JsonParser.h"
@@ -8,28 +8,28 @@
 
 int main(int argc, char* argv[])
 {
-    Tilc::Commerce::TPayU p;
+    Tilc::Commerce::TPayPal p;
     p.SetShopDescription("Tilc Mega Store");
     
-    p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeSandbox, {
+    p.AddConfig(Tilc::Commerce::TPayment::PaymentTypeSandbox, {
         "https://api-m.sandbox.paypal.com",
         "", // PosId
         "", // Md5Sum
         "", // OAuth ClientId
         "" // OAuth ClientSecret
     });
-    p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeProduction, {
+    p.AddConfig(Tilc::Commerce::TPayment::PaymentTypeProduction, {
         "https://api-m.paypal.com",
         "", // PosId
         "", // Md5Sum
         "", // OAuth ClientId
         "" // OAuth ClientSecret
     });
-    /*
-    Tilc::TExtString Result, PayUOrderId = "H5BZFR854L260803GUEST000P01";
+
+    Tilc::TExtString Result, PayPalOrderId = "58P286432E6901128";
     Result = p.Login();
     Tilc::TStdObject* Order = nullptr;
-    Result = p.RetrieveOrder(PayUOrderId, &Order);
+    Result = p.RetrieveOrder(PayPalOrderId, &Order);
     if (Result == "OK")
     {
         std::cout << Order->toJson() << std::endl;
@@ -40,5 +40,4 @@ int main(int argc, char* argv[])
         Order = nullptr;
     }
     return 0;
-    */
 }
