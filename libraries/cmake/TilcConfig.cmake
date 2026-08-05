@@ -90,7 +90,7 @@ function(TilcNonGraphicsCopyRuntimeDlls TARGET_NAME)
     message("TilcCopyRuntimeDlls")
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libTilcShared.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared.so"
         )
     else()
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
@@ -104,7 +104,7 @@ function(TilcCopyRuntimeDlls TARGET_NAME)
     message("TilcCopyRuntimeDlls")
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libTilcShared.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared.so"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/libassimp.so" "${PROJECT_SOURCE_DIR}/out/libassimp.so"
 	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/libSDL3_image.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_image.so"
 	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/libSDL3_mixer.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_mixer.so"
@@ -125,9 +125,9 @@ endfunction()
 
 function(MariaDBCopyRuntimeDlls TARGET_NAME)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        message("MariaDBCopyRuntimeDlls for Linux, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadbcpp.so => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadbcpp.so")
+        message("MariaDBCopyRuntimeDlls for Linux, SET: ${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so => ${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadbcpp.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so"
         )
     else()
         message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll")
