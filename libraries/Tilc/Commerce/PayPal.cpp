@@ -188,33 +188,15 @@ Tilc::TExtString Tilc::Commerce::TPayPal::RetrieveOrder(const Tilc::TExtString& 
         return ResultJson;
     }
 
-    //std::cout << ResultJson << std::endl;
-    /*
+    std::cout << ResultJson << std::endl << std::endl;
     p.parse(ResultJson, &o);
     if (o.getAsObject("root"))
     {
-        TStdObject* Result = o.getAsObject("root")->getAsObject("status");
-        if (Result)
+        if (!o.getAsObject("root")->getAsString("id").empty())
         {
-            Tilc::TExtString StatusCode = Result->getAsString("statusCode");
-            if (StatusCode == "UNAUTHORIZED")
-            {
-                ResultJson = "ERROR:" + Result->getAsString("code") + "-" + Result->getAsString("codeLiteral") + ":" + Result->getAsString("statusDesc");
-                *OrderData = nullptr;
-                return ResultJson;
-            }
-        }
-        if (o.getAsObject("root")->getAsArray("orders") && o.getAsObject("root")->getAsArray("orders")->size() == 1)
-        {
-            *OrderData = nullptr;
-            TStdObjectProperty* FirstArrayValue = static_cast<TStdObjectProperty*>((*o.getAsObject("root")->getAsArray("orders"))[0]);
-            if (FirstArrayValue)
-            {
-                *OrderData = FirstArrayValue->oValue->cloneIntoCleanRoot();
-                return "OK";
-            }
+            *OrderData = o.clone();
+            return "OK";
         }
     }
-    */
     return ResultJson;
 }
