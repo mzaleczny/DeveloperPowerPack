@@ -59,7 +59,9 @@ function(AddAndConfigureProgram TARGET_NAME PROGRAM_FILES)
         target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
             "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
             "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/mariadb-connector-cpp/include>"
-            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/curl-8.21.0_5-win64-mingw/include>"
+        )
+        target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}_compiler_flags Tilc::Tilc curl
+            ${PROJECT_SOURCE_DIR}/../../libraries/out/${CommonBinDir}/mariadb/libmariadbcpp.so
         )
     else()
         target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
@@ -67,12 +69,12 @@ function(AddAndConfigureProgram TARGET_NAME PROGRAM_FILES)
             "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/mariadb-connector-cpp/include>"
             "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/curl-8.21.0_5-win64-mingw/include>"
         )
+        target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}_compiler_flags Tilc::Tilc ws2_32
+            ${PROJECT_SOURCE_DIR}/../../libraries/out/${CommonBinDir}/mariadb/mariadbcpp.lib
+            ${PROJECT_SOURCE_DIR}/../../libraries/.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.lib
+        )
     endif()
 
-    target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}_compiler_flags Tilc::Tilc ws2_32
-        ${PROJECT_SOURCE_DIR}/../../libraries/out/${CommonBinDir}/mariadb/mariadbcpp.lib
-        ${PROJECT_SOURCE_DIR}/../../libraries/.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.lib
-    )
     target_link_options(${TARGET_NAME} PRIVATE "${SetSubsystem}")
     set_target_properties(${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
     set_property(TARGET ${TARGET_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
