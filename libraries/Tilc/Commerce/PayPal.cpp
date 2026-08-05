@@ -72,7 +72,7 @@ Tilc::TExtString Tilc::Commerce::TPayPal::MakeOrder(TCart* cart, TCheckout* chec
                 JsonData += "\"amount\": {";
                     JsonData += "\"currency_code\": \"PLN\",";
                     JsonData += "\"value\": \"" + checkout->getTotalPrice().ToString('.') + "\",";
-                    JsonData += "\"break_down\": {";
+                    JsonData += "\"breakdown\": {";
                         JsonData += "\"item_total\": {";
                             JsonData += "\"currency_code\": \"PLN\",";
                             JsonData += "\"value\": \"" + checkout->getTotalPrice().ToString('.') + "\"";
@@ -136,40 +136,44 @@ Tilc::TExtString Tilc::Commerce::TPayPal::MakeOrder(TCart* cart, TCheckout* chec
     if (o.getAsObject("root"))
     {
         Tilc::TExtString Value = o.getAsObject("root")->getAsString("name");
-        if (Value.find("INVALID") != std::string::npos)
+        if (!Value.empty())
         {
-            return "ERROR:INVALID_REQUEST: " + o.getAsObject("root")->getAsString("message");
-        }
-        /*
-        TStdObject* Result = o.getAsObject("root")->getAsObject("status");
-        if (Result)
-        {
-            Tilc::TExtString StatusCode = Result->getAsString("statusCode");
-            if (StatusCode == "SUCCESS")
+            Value = "ERROR:" + Value + ": " + o.getAsObject("root")->getAsString("message");
+            if (o.getAsObject("root")->getAsArray("details"))
             {
-                RedirectUri = o.getAsObject("root")->getAsString("redirectUri");
-                CreatedOrderId = o.getAsObject("root")->getAsString("orderId");
-                ResultJson = "OK";
-                return ResultJson;
-            }
-            else if (!StatusCode.empty())
-            {
-                ResultJson = "ERROR:" + Result->getAsString("code") + "-" + Result->getAsString("codeLiteral") + ":" + Result->getAsString("statusDesc");
-                return ResultJson;
+                Tilc::TStdObjectProperty* Details = reinterpret_cast<Tilc::TStdObjectProperty*>((*o.getAsObject("root")->getAsArray("details"))[0]);
+                Value += ": DETAILS: " + Details->oValue->getAsString("description");
+                return Value;
             }
         }
-        */
+        if (o.getAsObject("root")->getAsString("status") == "PAYER_ACTION_REQUIRED")
+        {
+            Tilc::TPointersVector* Links = o.getAsObject("root")->getAsArray("links");
+            for (size_t i = 0; i < Links->size(); ++i)
+            {
+                Tilc::TStdObjectProperty* Link = reinterpret_cast<Tilc::TStdObjectProperty*>((*Links)[i]);
+                if (Link && Link->oValue->getAsString("rel") == "payer-action")
+                {
+                    RedirectUri = Link->oValue->getAsString("href");
+                }
+            }
+        }
+
+        Value = o.getAsObject("root")->getAsString("id");
+        if (!RedirectUri.empty() && !Value.empty())
+        {
+            CreatedOrderId = Value;
+        }
     }
     return ResultJson;
 }
 
 Tilc::TExtString Tilc::Commerce::TPayPal::RetrieveOrder(const Tilc::TExtString& PayPalOrderId, Tilc::TStdObject** OrderData)
 {
-    /*
     TJsonParser p;
     TStdObject o;
     Tilc::TExtString ResultCode;
-    Tilc::TExtString ResultJson = m_Http.DoPost(m_Config[m_PaymentType].Url + "/api/v2_1/orders/" + PayPalOrderId, "",
+    Tilc::TExtString ResultJson = m_Http.DoPost(m_Config[m_PaymentType].Url + "/v2/checkout/orders/" + PayPalOrderId, "",
         {
             "Content-type: application/json",
             Tilc::TExtString("Authorization: Bearer ") + m_Bearer
@@ -185,6 +189,7 @@ Tilc::TExtString Tilc::Commerce::TPayPal::RetrieveOrder(const Tilc::TExtString& 
     }
 
     //std::cout << ResultJson << std::endl;
+    /*
     p.parse(ResultJson, &o);
     if (o.getAsObject("root"))
     {
@@ -210,7 +215,6 @@ Tilc::TExtString Tilc::Commerce::TPayPal::RetrieveOrder(const Tilc::TExtString& 
             }
         }
     }
-    return ResultJson;
     */
-    return "";
+    return ResultJson;
 }
