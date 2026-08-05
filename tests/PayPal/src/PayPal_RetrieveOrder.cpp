@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     p.SetShopDescription("Tilc Mega Store");
     
     p.AddConfig(Tilc::Commerce::TPayU::PaymentTypeSandbox, {
-        ""https://api-m.sandbox.paypal.com",",
+        "https://api-m.sandbox.paypal.com",
         "", // PosId
         "", // Md5Sum
         "", // OAuth ClientId
