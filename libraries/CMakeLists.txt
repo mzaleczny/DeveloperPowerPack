@@ -390,6 +390,10 @@ else()
     AddSourcesRecurse(Tilc/Utils)
 endif()
 
+if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
+    AddSourcesRecurse(Tilc/Apps/Www)
+endif()
+
 get_property(Tilc_HEADERS GLOBAL PROPERTY Tilc_HEADERS_Property)
 get_property(Tilc_SOURCES GLOBAL PROPERTY Tilc_SOURCES_Property)
 get_property(Tilc_HEADERS_OS GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_HEADERS_Property)
