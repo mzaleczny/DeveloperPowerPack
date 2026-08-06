@@ -284,6 +284,7 @@ namespace Tilc
 	DECLSPEC bool IsDouble(const wchar_t* str);
 	// if Chars is specified then it is used as character from which new string will be consisted of
 	DECLSPEC TExtString GetRandomString(int DesiredLength, const char* Chars = "");
+    TExtString Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items);
 
 
     // Below code and struct speeds up comparison a + b == c, wheere a, b, c are TExtString

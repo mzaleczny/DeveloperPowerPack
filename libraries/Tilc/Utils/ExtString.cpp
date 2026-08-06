@@ -1450,6 +1450,20 @@ Tilc::TExtString Tilc::GetRandomString(int DesiredLength, const char* Chars)
     return Result;
 }
 
+Tilc::TExtString Tilc::Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items)
+{
+    Tilc::TExtString Result;
+    for (int i = 0; i < Items.size(); ++i)
+    {
+        Result.append(Items[i]);
+        if (i < Items.size() - 1)
+        {
+            Result.push_back(ImplodeChar);
+        }
+    }
+    return Result;
+}
+
 DECLSPEC Tilc::TExtString Tilc::IntToHex(uint64_t num, size_t minHexNumberLength, bool useSmallAlpha, bool prependx0)
 {
     Tilc::TExtString retval;
