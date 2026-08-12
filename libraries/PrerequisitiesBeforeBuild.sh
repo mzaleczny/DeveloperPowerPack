@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir .cache
+
 OUT_MARIADB_RELEASE=./out/Release/mariadb
 if [ -d "$OUT_MARIADB_RELEASE" ]; then
     rm -rf "$OUT_MARIADB_RELEASE"
