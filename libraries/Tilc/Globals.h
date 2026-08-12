@@ -4,7 +4,7 @@
 #include <Tilc/Utils/ExtString.h>
 
 
-#if !defined(BUILD_WITHOUT_GRAPHICS)
+#if BUILD_WITH_SDL3 == 0
 #define BUILD_WITHOUT_GRAPHICS 0
 #endif
 
