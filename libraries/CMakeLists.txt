@@ -60,7 +60,7 @@ endif()
 
 # In Windows we downloading precompiled binaries of curl as it has many dependencies and is hard to compile in windows.
 # Some dependencies has no CMakeLists building system and requires old autotools way of building what explodes this configuration.
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows" AND "${BUILD_WITH_CURL}" STREQUAL "1")
     if(NOT EXISTS "${LOCAL_CACHE_DIR_CURL_ZIP}")
         # Pobranie pliku
         file(DOWNLOAD "${URL_CURL_PRECOMPILED_BINARIES}" "${LOCAL_CACHE_DIR_CURL_ZIP}"
@@ -76,7 +76,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif()
 
 # Create repos cache for the first build
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}" AND "${BUILD_WITH_SDL3}" STREQUAL "1")
     message(STATUS "Cache SDL3 not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -94,7 +94,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_image}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_image}" AND "${BUILD_WITH_SDL3_IMAGE}" STREQUAL "1")
     message(STATUS "Cache SDL3_image not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -112,7 +112,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_image}" AND "${BUILD_WITHOUT_GRAPHICS}" ST
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_image}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}" AND "${BUILD_WITH_SDL3_TTF}" STREQUAL "1")
     message(STATUS "Cache SDL3_ttf not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -130,7 +130,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_ttf}" AND "${BUILD_WITHOUT_GRAPHICS}" STRE
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_SDL3_ttf}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_SDL3_mixer}" AND "${BUILD_WITH_SDL3_MIXER}" STREQUAL "1")
     message(STATUS "Cache SDL3_mixer not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -166,7 +166,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_zlib}")
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_zlib}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_glm}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_glm}" AND "${BUILD_WITH_GLM}" STREQUAL "1")
     message(STATUS "Cache glm not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -184,7 +184,7 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_glm}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL 
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_glm}"
     )
 endif()
-if(NOT EXISTS "${LOCAL_CACHE_DIR_assimp}" AND "${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if(NOT EXISTS "${LOCAL_CACHE_DIR_assimp}" AND "${BUILD_WITH_ASSIMP}" STREQUAL "1")
     message(STATUS "Cache assimp not found — cloning...")
     execute_process(
         COMMAND git clone --recurse-submodules
@@ -367,32 +367,52 @@ function(AddPlatformSpecificSourcesRecurse DIR)
     set_property(GLOBAL PROPERTY Tilc_PLATFORM_SPECIFIC_SOURCES_Property ${FileList})
 endfunction()
 
-if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+
+
+#################################################################################################
+# Add files of Tilc library to the project to be compiled
+#################################################################################################
+if("${BUILD_GAME_STUFF}" STREQUAL "1")
     AddSources(Tilc)
-    AddSourcesRecurse(Tilc/Audio)
-    AddSourcesRecurse(Tilc/Commerce)
-    AddSourcesRecurse(Tilc/Data)
     AddSourcesRecurse(Tilc/Game2D)
-    AddSourcesRecurse(Tilc/Game3D)
-    AddSourcesRecurse(Tilc/Graphics)
-    AddSourcesRecurse(Tilc/Gui)
-    AddSourcesRecurse(Tilc/Net)
-    AddSourcesRecurse(Tilc/Resources)
-    AddSourcesRecurse(Tilc/Thread)
-    AddSourcesRecurse(Tilc/Utils)
-    AddPlatformSpecificSourcesRecurse(Tilc/OS)
 else()
     AddSourcesLists("Tilc/Globals.cpp" "Tilc/configure.h;Tilc/Globals.h;Tilc/DllGlobals.h")
-    AddSourcesRecurse(Tilc/Commerce)
-    AddSourcesRecurse(Tilc/Data)
-    AddSourcesRecurse(Tilc/Net)
-    AddSourcesRecurse(Tilc/Thread)
-    AddSourcesRecurse(Tilc/Utils)
 endif()
+
+if("${BUILD_WITH_SDL3_MIXER}" STREQUAL "1")
+    AddSourcesRecurse(Tilc/Audio)
+endif()
+
+AddSourcesRecurse(Tilc/Commerce)
+AddSourcesRecurse(Tilc/Data)
+
+if("${BUILD_WITH_OPENGL}" STREQUAL "1")
+    AddSourcesRecurse(Tilc/Game3D)
+    AddSourcesRecurse(Tilc/Graphics)
+endif()
+
+if("${BUILD_WITH_GUI}" STREQUAL "1")
+    AddSourcesRecurse(Tilc/Gui)
+endif()
+
+if("${BUILD_WITH_CRL}" STREQUAL "1")
+    AddSourcesRecurse(Tilc/Net)
+endif()
+
+if("${BUILD_WITH_SDL3}" STREQUAL "1" AND "${BUILD_WITH_SDL3_IMAGE}" STREQUAL "1" AND "${BUILD_WITH_SDL3_TTF}" STREQUAL "1" AND "${BUILD_WITH_SDL3_MIXER}" STREQUAL "1" AND "${BUILD_WITH_OPENGL}" STREQUAL "1")
+    AddSourcesRecurse(Tilc/Resources)
+endif()
+
+AddSourcesRecurse(Tilc/Thread)
+AddSourcesRecurse(Tilc/Utils)
+AddPlatformSpecificSourcesRecurse(Tilc/OS)
 
 if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
     AddSourcesRecurse(Tilc/Apps/Www)
 endif()
+#################################################################################################
+#################################################################################################
+
 
 get_property(Tilc_HEADERS GLOBAL PROPERTY Tilc_HEADERS_Property)
 get_property(Tilc_SOURCES GLOBAL PROPERTY Tilc_SOURCES_Property)
@@ -406,7 +426,7 @@ list(REMOVE_DUPLICATES Tilc_SOURCES_OS)
 include(FetchContent)
 
 
-if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if("${BUILD_WITH_SDL3}" STREQUAL "1")
     message("***********************************************************************")
     message("Checking for **SDL3** and downloading it when no found")
     message("***********************************************************************")
@@ -437,7 +457,10 @@ if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
             ${external_sdl3_BINARY_DIR}
         )
     endif()
+endif()
 
+
+if("${BUILD_WITH_SDL3_IMAGE}" STREQUAL "1")
     message("***********************************************************************")
     message("Checking for **SDL3_image** and downloading it when no found")
     message("***********************************************************************")
@@ -511,10 +534,11 @@ if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
     else()
         BuildZLIB()
     endif()
+endif()
 
 
 
-
+if("${BUILD_WITH_SDL3_MIXER}" STREQUAL "1")
     message("***********************************************************************")
     message("Checking for **SDL3_mixer** and downloading it when no found")
     message("***********************************************************************")
@@ -540,9 +564,10 @@ if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
             ${external_sdl3_mixer_BINARY_DIR}
         )
     endif()
+endif()
 
 
-
+if("${BUILD_WITH_SDL3_TTF}" STREQUAL "1")
     message("***********************************************************************")
     message("Checking for **SDL3_ttf** and downloading it when no found")
     message("***********************************************************************")
@@ -568,9 +593,10 @@ if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
             ${external_sdl3_ttf_BINARY_DIR}
         )
     endif()
+endif()
 
 
-
+if("${BUILD_WITH_GLM}" STREQUAL "1")
     message("***********************************************************************")
     message("Checking for **glm** and downloading it when no found")
     message("***********************************************************************")
@@ -604,9 +630,10 @@ if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
         add_library(glm INTERFACE)
         target_link_libraries(glm INTERFACE glm::glm)
     endif()
+endif()
 
 
-
+if("${BUILD_WITH_ASSIMP}" STREQUAL "1")
     message("***********************************************************************")
     message("Checking for **assimp** and downloading it when no found")
     message("***********************************************************************")
@@ -639,12 +666,12 @@ if("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
             ${external_assimp_BINARY_DIR}
         )
     endif()
-else()
-    # konfigurujemy ZLIB
-    if(NOT TARGET ZLIB::ZLIB)
-        message(STATUS "Fallback: building our own zlib")
-        add_subdirectory(${LOCAL_CACHE_DIR_zlib})
-    endif()
+endif()
+
+# konfigurujemy ZLIB
+if(NOT TARGET ZLIB::ZLIB)
+    message(STATUS "Fallback: building our own zlib")
+    add_subdirectory(${LOCAL_CACHE_DIR_zlib})
 endif()
 
 
@@ -653,7 +680,7 @@ endif()
 
 
 add_library(${PROJECT_NAME}_compiler_flags INTERFACE)
-target_compile_features(${PROJECT_NAME}_compiler_flags INTERFACE cxx_std_23)
+target_compile_features(${PROJECT_NAME}_compiler_flags INTERFACE cxx_std_26)
 set_target_properties(${PROJECT_NAME}_compiler_flags PROPERTIES CXX_EXTENSIONS OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -678,22 +705,49 @@ add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Til
 file(COPY "${CMAKE_CURRENT_BINARY_DIR}/configure.h" DESTINATION "${PROJECT_SOURCE_DIR}/Tilc")
 
 target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags)
-target_link_directories("${PROJECT_NAME}Shared" PRIVATE
-	"$<BUILD_INTERFACE:${external_sdl3_ttf_BINARY_DIR}/external/harfbuzz>"
-)
+
+if("${BUILD_WITH_SDL3_TTF}" STREQUAL "1")
+    target_link_directories("${PROJECT_NAME}Shared" PRIVATE
+        "$<BUILD_INTERFACE:${external_sdl3_ttf_BINARY_DIR}/external/harfbuzz>"
+    )
+endif()
+
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
-	"$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/freetype/include>"
-	"$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/harfbuzz/src>"
-	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
-)
+
+if ("${BUILD_WITH_OPENGL}" STREQUAL "1")
+    target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+    )
+endif()
+
+if ("${BUILD_WITH_SDL3_TTF}" STREQUAL "1")
+    target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+        "$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/freetype/include>"
+        "$<BUILD_INTERFACE:${external_sdl3_ttf_SOURCE_DIR}/external/harfbuzz/src>"
+    )
+endif()
+
 target_link_options("${PROJECT_NAME}Shared" PRIVATE "${SetSubsystem}")
-if ("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
-    #target_link_libraries(Tilc PUBLIC Tilc_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp MariaDB::MariaDB MariaDB::mariadbcpp glm::glm ZLIB::ZLIB)
-    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer assimp::assimp glm::glm ZLIB::ZLIB harfbuzz)
-else()
-    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags ZLIB::ZLIB)
+target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_NAME}_compiler_flags ZLIB::ZLIB)
+
+if ("${BUILD_WITH_SDL3}" STREQUAL "1")
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE SDL3::SDL3)
+endif()
+if ("${BUILD_WITH_SDL3_IMAGE}" STREQUAL "1")
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE SDL3_image::SDL3_image)
+endif()
+if ("${BUILD_WITH_SDL3_TTF}" STREQUAL "1")
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE SDL3_ttf::SDL3_ttf harfbuzz)
+endif()
+if ("${BUILD_WITH_SDL3_MIXER}" STREQUAL "1")
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE SDL3_mixer::SDL3_mixer)
+endif()
+if ("${BUILD_WITH_GLM}" STREQUAL "1")
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE glm::glm)
+endif()
+if ("${BUILD_WITH_ASSIMP}" STREQUAL "1")
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE assimp::assimp)
 endif()
 
 # If with mariadb connector
@@ -714,25 +768,29 @@ if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
     endif()
 endif()
 
-# Config for curl in windows
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    target_include_directories("${PROJECT_NAME}Shared" PRIVATE
-        "$<BUILD_INTERFACE:${LOCAL_CACHE_DIR}/${CURL_VERSION}/include>"
-    )
-    execute_process(
-        COMMAND "${VS_BINARIES}/lib.exe" /def:${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.def /out:${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.lib /machine:x64
-    )
-    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.lib)
-    add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
-	    COMMAND ${CMAKE_COMMAND} -E copy "${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libcurl-x64.dll"
-    )
-    # Remove zlib related files inside curl include folder as they collides with our zlib
-    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zconf.h")
-    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zdict.h")
-    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib.h")
-    file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib_name_mangling.h")
+if ("${BUILD_WITH_CURL}" STREQUAL "1")
+    # Config for curl in windows
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        target_include_directories("${PROJECT_NAME}Shared" PRIVATE
+            "$<BUILD_INTERFACE:${LOCAL_CACHE_DIR}/${CURL_VERSION}/include>"
+        )
+        execute_process(
+            COMMAND "${VS_BINARIES}/lib.exe" /def:${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.def /out:${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.lib /machine:x64
+        )
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.lib)
+        add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${LOCAL_CACHE_DIR}/${CURL_VERSION}/bin/libcurl-x64.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libcurl-x64.dll"
+        )
+        # Remove zlib related files inside curl include folder as they collides with our zlib
+        file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zconf.h")
+        file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zdict.h")
+        file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib.h")
+        file(REMOVE "${LOCAL_CACHE_DIR}/${CURL_VERSION}/include/zlib_name_mangling.h")
+    else()
+        find_package(curl REQUIRED)
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE curl)
+    endif()
 endif()
-
 
 # Config for LibFCGI in windows
 if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
@@ -744,6 +802,9 @@ if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
         add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
 	        COMMAND ${CMAKE_COMMAND} -E copy "${LOCAL_CACHE_DIR_libfcgi}/libfcgi/${CommonBinDir}/libfcgi.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libfcgi.dll"
         )
+    else()
+        find_package(fcgi REQUIRED)
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE fcgi)
     endif()
 endif()
 
