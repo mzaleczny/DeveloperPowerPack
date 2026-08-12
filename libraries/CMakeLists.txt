@@ -395,7 +395,7 @@ if("${BUILD_WITH_GUI}" STREQUAL "1")
     AddSourcesRecurse(Tilc/Gui)
 endif()
 
-if("${BUILD_WITH_CRL}" STREQUAL "1")
+if("${BUILD_WITH_CURL}" STREQUAL "1")
     AddSourcesRecurse(Tilc/Net)
 endif()
 
@@ -807,7 +807,8 @@ if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
         )
     else()
         find_library(FCGI_LIBRARY fcgi REQUIRED)
-        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${FCGI_LIBRARY})
+        find_library(FCGIXX_LIBRARY fcgi++ REQUIRED)
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${FCGI_LIBRARY} ${FCGIXX_LIBRARY})
     endif()
 endif()
 
