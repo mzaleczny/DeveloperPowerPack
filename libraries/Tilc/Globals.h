@@ -5,7 +5,9 @@
 
 
 #if BUILD_WITH_SDL3 == 0
-#define BUILD_WITHOUT_GRAPHICS 0
+    #define BUILD_WITHOUT_GRAPHICS 1
+#else
+    #define BUILD_WITHOUT_GRAPHICS 0
 #endif
 
 #if BUILD_WITHOUT_GRAPHICS == 0
