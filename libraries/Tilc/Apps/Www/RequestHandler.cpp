@@ -108,7 +108,7 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
         auto Found = m_RequestHandlers.find(Url);
         if (Found != m_RequestHandlers.end())
         {
-            Found->second(Url);
+            Found->second(*this, Url);
         }
     }
 }

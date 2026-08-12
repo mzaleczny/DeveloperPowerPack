@@ -73,7 +73,7 @@ namespace Tilc
 
                 FCGX_Request* GetRequest() const { return request; };
 
-                std::unordered_map<Tilc::TExtString, std::function<void(const Tilc::TExtString&)>> m_RequestHandlers;
+                std::unordered_map<Tilc::TExtString, std::function<void(TRequestHandler&, const Tilc::TExtString&)>> m_RequestHandlers;
 
             protected:
                 FCGX_Request* request = nullptr;
