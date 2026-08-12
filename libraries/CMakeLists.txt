@@ -714,10 +714,13 @@ endif()
 
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES LINKER_LANGUAGE CXX)
 
+target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+)
+
 if ("${BUILD_WITH_OPENGL}" STREQUAL "1")
     target_include_directories("${PROJECT_NAME}Shared" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glad/include>"
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
     )
 endif()
 
