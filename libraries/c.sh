@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cmake --build out --config Debug
+cmake --build out --config Release
