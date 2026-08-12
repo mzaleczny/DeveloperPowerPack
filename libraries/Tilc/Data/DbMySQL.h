@@ -45,6 +45,5 @@ namespace Tilc {
             void ShowWarningsForStatement(Statement& stmt);
             int ExecuteQuery(ResultSet& res, Statement& stmt, const char* query);
         };
-
     }
 }

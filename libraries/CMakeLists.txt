@@ -206,7 +206,7 @@ endif()
 
 function(CheckIfDiscard FILE)
     get_filename_component(_dir ${FILE} PATH)
-    get_property(CheckOption GLOBAL PROPERTY BuildWithMySQL)
+    get_property(CheckOption GLOBAL PROPERTY BuildWithMariaDb)
     get_filename_component(fn ${FILE} NAME)
     string(REGEX MATCH ".*MySQL.*" CHECK_FN ${fn})
     if ("${CHECK_FN}" STREQUAL "${fn}")
@@ -754,14 +754,16 @@ if ("${BUILD_WITH_ASSIMP}" STREQUAL "1")
 endif()
 
 # If with mariadb connector
-if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
+#Connectr cpp
+if ("${BUILD_WITH_MARIADB}" STREQUAL "1")
     target_include_directories("${PROJECT_NAME}Shared" PRIVATE
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/.cache/mariadb-connector-cpp/include>"
     )
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadbcpp.so)
         add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libmariadbcpp.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/libmariadbcpp.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/libTilcShared.so"
         )
     else()
         target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadbcpp.lib)
@@ -770,6 +772,33 @@ if ("${BUILD_WITH_MYSQL}" STREQUAL "1")
         )
     endif()
 endif()
+#Connectr c is disabled
+#if ("${BUILD_WITH_MARIADB}" STREQUAL "1")
+#    target_include_directories("${PROJECT_NAME}Shared" PRIVATE
+#        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/.cache/mariadb-connector-c/include>"
+#    )
+#    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+#        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadb/libmariadb.so)
+#        add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadb/libmariadb.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/libmariadb.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadb/libmariadb.so.3" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/libmariadb.so.3"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/auth_gssapi_client.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/auth_gssapi_client.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/caching_sha2_password.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/caching_sha2_password.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/client_ed25519.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/client_ed25519.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/dialog.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/dialog.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mysql_clear_password.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mysql_clear_password.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/parsec.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/parsec.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/sha256_password.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/sha256_password.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/zstd.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/std.so"
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/libTilcShared.so"
+#        )
+#    else()
+#        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadb.lib)
+#        add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
+#	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadb.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/mariadb.dll"
+#        )
+#    endif()
+#endif()
 
 if ("${BUILD_WITH_CURL}" STREQUAL "1")
     # Config for curl in windows
