@@ -1,8 +1,12 @@
+#include "Tilc/Globals.h"
 #include "Tilc/OS/SystemUtils.h"
 #include "Tilc/Utils/ExtString.h"
 #include <sstream>
 #include <iostream>
-#include "SDL3/SDL.h"
+
+#if BUILD_WITHOUT_GRAPHICS == 0
+#include <SDL3/SDL.h>
+#endif
 
 #ifdef _WINDOWS
 #include <Windows.h>
