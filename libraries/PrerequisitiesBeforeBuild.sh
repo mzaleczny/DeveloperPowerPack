@@ -20,10 +20,10 @@ if grep -q "BUILD_WITH_MARIADB \"1\"" ./TilcConfigure.cmake; then
 # Buid libmaridb Debug and Release
 # **************************************************************************************************************************************************************************
     cd .cache
-    git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-cpp.git
-#    git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-c.git
-    cd mariadb-connector-cpp
-#    cd mariadb-connector-c
+#    git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-cpp.git
+    git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-c.git
+#    cd mariadb-connector-cpp
+    cd mariadb-connector-c
 
     cmake -DWITH_MSI=NO \
       -DWITH_WININSTALL=NO \

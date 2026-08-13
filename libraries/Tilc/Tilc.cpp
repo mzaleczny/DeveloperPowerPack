@@ -1,9 +1,13 @@
-#include "Tilc/configure.h"
 #include "Tilc/Tilc.h"
-#include "Tilc/Game3D/World/World.h"
-#include "Tilc/Gui/Theme.h"
-#include "Tilc/Globals.h"
+#if (BUILD_WITH_SDL3 == 1) && (BUILD_WITH_SDL3_IMAGE == 1) && (BUILD_WITH_OPENGL == 1)
+	#include "Tilc/Game3D/World/World.h"
+#endif
+#if BUILD_WITH_GUI == 1
+	#include "Tilc/Gui/Theme.h"
+#endif
+#include "Tilc/Data/DbMySQL.h"
 
+#if BUILD_WITH_SDL3 == 1
 SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned int WindowWidth, const unsigned int WindowHeight, int Flags, bool WithGLContext, const Tilc::TExtString& ResourcesDataFile, const Tilc::TExtString& DefaultThemeName)
 {
 	if (!Tilc::GameObject)
@@ -115,9 +119,21 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 
 	return SDL_APP_CONTINUE;
 }
+#endif
+
+#if BUILD_WITH_SDL3 == 0
+SDL_AppResult Tilc::InitTilc()
+{
+	#if BUILD_WITH_MARIADB
+	Tilc::Data::TDBMySQL::LoadSharedMariaDbLibrary();
+	#endif
+	return 1;
+}
+#endif
 
 void Tilc::CleanupTilc()
 {
+#if BUILD_WITH_SDL3 == 1
     TSharedContext* ctx = Tilc::GameObject->GetContext();
 	if (ctx->m_Theme)
 	{
@@ -144,4 +160,9 @@ void Tilc::CleanupTilc()
     MIX_Quit();
 	TTF_Quit();
 	SDL_Quit();
+#endif
+
+#if BUILD_WITH_MARIADB == 1
+	Tilc::Data::TDBMySQL::CloseSharedMariaDbLibrary();
+#endif
 }

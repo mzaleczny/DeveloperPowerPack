@@ -1,19 +1,13 @@
 #pragma once
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Data/Db.h"
-#include "conncpp.hpp"
+#include "mysql.h"
 
 namespace Tilc {
     namespace Data {
         class DECLSPEC TDBMySQL : public TDB
         {
         public:
-            using Connection = std::unique_ptr<sql::Connection>;
-            using PreparedStatement = std::unique_ptr<sql::PreparedStatement>;
-            using ParameterMetaData = std::unique_ptr<sql::ParameterMetaData>;
-            using Statement = std::unique_ptr<sql::Statement>;
-            using ResultSet = std::unique_ptr<sql::ResultSet>;
-
             TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtString& DbName, const Tilc::TExtString& DbUser, const Tilc::TExtString& DbPasswd);
             virtual ~TDBMySQL();
 
@@ -34,16 +28,12 @@ namespace Tilc {
                 return ExecQuery(UpdateSql, FieldTypes, FieldValues);
             }
 
+            static void LoadSharedMariaDbLibrary();
+            static void CloseSharedMariaDbLibrary();
+
         protected:
-            Connection m_Conn{ nullptr };
-            sql::Connection* GetConnection(sql::Driver* driver,
-                const char* Host,
-                const char* DbName,
-                const char* User,
-                const char* Passwd,
-                sql::ConnectOptionsMap* additional_options = nullptr);
-            void ShowWarningsForStatement(Statement& stmt);
-            int ExecuteQuery(ResultSet& res, Statement& stmt, const char* query);
+            static void* m_MariaDbHandle;
+            MYSQL* m_Conn{ nullptr };
         };
     }
 }
