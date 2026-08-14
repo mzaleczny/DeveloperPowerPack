@@ -429,6 +429,16 @@ list(REMOVE_DUPLICATES Tilc_SOURCES_OS)
 
 include(FetchContent)
 
+# konfigurujemy ZLIB
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(ZLIB REQUIRED)
+
+    set_target_properties(ZLIB::ZLIB PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_INCLUDE_DIRS}"
+        INTERFACE_LINK_LIBRARIES "${ZLIB_LIBRARIES}"
+    )
+endif()
+
 
 if("${BUILD_WITH_SDL3}" STREQUAL "1")
     message("***********************************************************************")
@@ -672,15 +682,10 @@ if("${BUILD_WITH_ASSIMP}" STREQUAL "1")
     endif()
 endif()
 
-# konfigurujemy ZLIB
 if(NOT TARGET ZLIB::ZLIB)
     message(STATUS "Fallback: building our own zlib")
     add_subdirectory(${LOCAL_CACHE_DIR_zlib})
 endif()
-
-
-
-
 
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
