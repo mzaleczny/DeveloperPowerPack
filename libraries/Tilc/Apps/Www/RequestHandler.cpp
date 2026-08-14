@@ -11,7 +11,6 @@ Tilc::Apps::Www::TRequestHandler::TRequestHandler(FCGX_Request* Request)
         os{&cout_fcgi_streambuf},
         errs{&cerr_fcgi_streambuf},
         is{&cin_fcgi_streambuf}
-
 {
     Init();
 }
@@ -69,6 +68,14 @@ void Tilc::Apps::Www::TRequestHandler::Cleanup()
 {
 }
 
+void Tilc::Apps::Www::TRequestHandler::OutputHeaders()
+{
+	std::for_each(Headers.begin(), Headers.end(), [this](Tilc::TExtString hdr) {
+		os << hdr << "\r\n";
+	});
+    os << "\r\n";
+}
+
 void Tilc::Apps::Www::TRequestHandler::HandleRequest()
 {
     Headers.push_back("Content-type: text/html; charset=utf-8");
@@ -85,6 +92,8 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
     {
         return;
     }
+
+    OutputHeaders();
     // os << "OK";
 //    for (size_t i = 0; i < UriParts.size(); ++i)
 //    {
@@ -98,18 +107,15 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
             ReadPostData();
             break;
         default:
-            os << "\r\n";
-            break;
+           break;
     }
     
-    if (UriParts[0] == "api")
+    Tilc::TExtString Url = "/" + Tilc::Implode('/', UriParts);
+    os << "Url: " << Url << "<br/>";
+    auto Found = m_RequestHandlers.find(Url);
+    if (Found != m_RequestHandlers.end())
     {
-        Tilc::TExtString Url = Tilc::Implode('/', UriParts);
-        auto Found = m_RequestHandlers.find(Url);
-        if (Found != m_RequestHandlers.end())
-        {
-            Found->second(*this, Url);
-        }
+        Found->second(*this, Url);
     }
 }
 
@@ -119,6 +125,7 @@ void Tilc::Apps::Www::TRequestHandler::ReadPostData()
     Body.assign( (std::istreambuf_iterator<char>(is)),
                  (std::istreambuf_iterator<char>())
     );
+
     // check if body is ascii-encoded or if it has non printable (binary) characters. If the first case
     // then do urldecode on it
     /*

@@ -134,3 +134,10 @@ Tilc::Apps::Www::TWwwApp::TWwwApp(const Tilc::TExtString& AllowedRootDir, const 
 Tilc::Apps::Www::TWwwApp::~TWwwApp()
 {
 }
+
+void Tilc::Apps::Www::TWwwApp::AddAvailableLanguages(const std::initializer_list<const char*>& Languages)
+{
+	std::for_each(Languages.begin(), Languages.end(), [this](Tilc::TExtString lang) {
+		m_Languages.push_back(lang);
+	});
+}

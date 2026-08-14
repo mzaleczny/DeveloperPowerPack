@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <initializer_list>
 #include "Tilc/Utils/ExtString.h"
 
 namespace Tilc
@@ -50,6 +51,8 @@ namespace Tilc
                 const Tilc::TExtString& GetAppSlug() const { return m_AppSlug; }
                 const std::vector<Tilc::TExtString>& GetLanguages() const { return m_Languages; }
                 const Tilc::TExtString& GetAllowOrigin() const { return m_AllowOrigin; }
+
+                void AddAvailableLanguages(const std::initializer_list<const char*>& Languages);
 
             protected:
                 Tilc::TExtString m_AllowedRootDir;

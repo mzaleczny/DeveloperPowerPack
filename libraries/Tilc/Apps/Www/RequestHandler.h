@@ -34,6 +34,7 @@ namespace Tilc
                 void Init();
                 void Cleanup();
 
+                void OutputHeaders();
                 void ReadPostData();
 
                 fcgi_streambuf cin_fcgi_streambuf;
