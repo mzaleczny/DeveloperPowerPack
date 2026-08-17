@@ -7,8 +7,9 @@ namespace Tilc {
 
         enum EDBFieldType
         {
-            EDBFT_TYPE_DATE,
-            EDBFT_TYPE_DATETIME,
+            EDBFT_DATE,
+            EDBFT_TIME,
+            EDBFT_DATETIME,
             EDBFT_TINYINT,
             EDBFT_INT,
             EDBFT_FLOAT,

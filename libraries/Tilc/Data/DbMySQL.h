@@ -18,7 +18,10 @@ namespace Tilc {
             // FieldTypes. This apply three functions below.
             virtual int Select(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues, TDBDataRows& DataRows) override;
             virtual int ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override;
-            virtual int Insert(const char* InsertSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override;
+            virtual int Insert(const char* InsertSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override
+            {
+                return ExecQuery(InsertSql, FieldTypes, FieldValues);
+            }
             virtual int Delete(const char* DeleteSql, int Id) override
             {
                 return ExecQuery(DeleteSql, Tilc::Data::TDBFieldTypes({ Tilc::Data::EDBFieldType::EDBFT_INT }),
@@ -27,6 +30,8 @@ namespace Tilc {
             virtual int Update(const char* UpdateSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override {
                 return ExecQuery(UpdateSql, FieldTypes, FieldValues);
             }
+            void PrintError();
+            void PrintStmtError(MYSQL_STMT* stmt);
 
             static void LoadSharedMariaDbLibrary();
             static void CloseSharedMariaDbLibrary();
@@ -34,6 +39,8 @@ namespace Tilc {
         protected:
             static void* m_MariaDbHandle;
             MYSQL* m_Conn{ nullptr };
+
+            int Select(MYSQL_STMT* stmt, TDBDataRows& DataRows);
         };
     }
 }
