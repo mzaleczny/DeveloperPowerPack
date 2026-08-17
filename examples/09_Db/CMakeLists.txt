@@ -25,10 +25,6 @@ find_package(Tilc REQUIRED)
 add_library(${PROJECT_NAME}_compiler_flags INTERFACE)
 target_compile_features(${PROJECT_NAME}_compiler_flags INTERFACE cxx_std_23)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(SetSubsystem "")
 else()
@@ -51,23 +47,27 @@ endif()
 
 
 function(AddAndConfigureProgram TARGET_NAME PROGRAM_FILES)
-    add_executable(${TARGET_NAME} ${PROGRAM_FILES} "${CMAKE_SOURCE_DIR}/../../libraries/Glad/src/glad.c")
+    add_executable(${TARGET_NAME} ${PROGRAM_FILES})
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
             "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/mariadb-connector-cpp/include>"
+            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/mariadb-connector-c/include>"
+            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/out/${CommonBinDir}/mariadb/install/include/mariadb>"
         )
     else()
         target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
             "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/mariadb-connector-cpp/include>"
+            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/.cache/mariadb-connector-c/include>"
+            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/../../libraries/out/${CommonBinDir}/mariadb/install/include/mariadb>"
         )
     endif()
 
-    target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}_compiler_flags Tilc::Tilc ws2_32 ${PROJECT_SOURCE_DIR}/../../libraries/out/${CommonBinDir}/mariadb/mariadbcpp.lib)
+    target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}_compiler_flags Tilc::Tilc ws2_32 ${PROJECT_SOURCE_DIR}/../../libraries/out/${CommonBinDir}/mariadb/libmariadb/libmariadb.lib)
     target_link_options(${TARGET_NAME} PRIVATE "${SetSubsystem}")
     set_target_properties(${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+    # Turn off optimizations
+    #set_source_files_properties(${TARGET_NAME} PROPERTIES COMPILE_FLAGS "/Od")
     set_property(TARGET ${TARGET_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 endfunction()
 
@@ -85,26 +85,26 @@ AddAndConfigureProgram(MariaDB_22_PreparedStatement_From_Tilc "src/MariaDB_22_Pr
 
 
 # Dlls can be copied once for one target as all targets sits in the same directory
-TilcCopyRuntimeDlls(MariaDB_01_Connection)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_01_Connection)
 MariaDBCopyRuntimeDlls(MariaDB_01_Connection)
 
-TilcCopyRuntimeDlls(MariaDB_02_Select_And_Statement)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_02_Select_And_Statement)
 MariaDBCopyRuntimeDlls(MariaDB_02_Select_And_Statement)
 
-TilcCopyRuntimeDlls(MariaDB_03_CreateTable_InsertQuery_And_DropTable)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_03_CreateTable_InsertQuery_And_DropTable)
 MariaDBCopyRuntimeDlls(MariaDB_03_CreateTable_InsertQuery_And_DropTable)
 
-TilcCopyRuntimeDlls(MariaDB_04_PreparedStatement)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_04_PreparedStatement)
 MariaDBCopyRuntimeDlls(MariaDB_04_PreparedStatement)
 
-TilcCopyRuntimeDlls(MariaDB_05_Update_And_Delete)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_05_Update_And_Delete)
 MariaDBCopyRuntimeDlls(MariaDB_05_Update_And_Delete)
 
-TilcCopyRuntimeDlls(MariaDB_20_Select_And_Statement_From_Tilc)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_20_Select_And_Statement_From_Tilc)
 MariaDBCopyRuntimeDlls(MariaDB_20_Select_And_Statement_From_Tilc)
 
-TilcCopyRuntimeDlls(MariaDB_21_CreateTable_InsertQuery_And_DropTable_From_Tilc)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_21_CreateTable_InsertQuery_And_DropTable_From_Tilc)
 MariaDBCopyRuntimeDlls(MariaDB_21_CreateTable_InsertQuery_And_DropTable_From_Tilc)
 
-TilcCopyRuntimeDlls(MariaDB_22_PreparedStatement_From_Tilc)
+TilcNonGraphicsCopyRuntimeDlls(MariaDB_22_PreparedStatement_From_Tilc)
 MariaDBCopyRuntimeDlls(MariaDB_22_PreparedStatement_From_Tilc)
