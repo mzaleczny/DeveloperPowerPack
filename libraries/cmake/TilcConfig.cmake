@@ -46,6 +46,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(${TilcBuildDir})
 else()
     set(TilcBuildDir "${CMAKE_CURRENT_LIST_DIR}/../out/build/${BinDir}")
+
+    if(EXISTS "${TilcBuildDir}/${LibName}Shared.lib")
+        if (${LibSuffix} STREQUAL "d")
+            set(LibSuffix "")
+        endif()
+    endif()
+
     set(TILC_LIBRARY "${TilcBuildDir}/${LibName}Shared${LibSuffix}.lib")
     set(ASSIMP_LIBRARY "assimp${LibSuffix}")
 endif()
@@ -125,14 +132,26 @@ endfunction()
 
 function(MariaDBCopyRuntimeDlls TARGET_NAME)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # Disable MariaDB cpp connector
+        #message("MariaDBCopyRuntimeDlls for Linux, SET: ${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so => ${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so")
+        #add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	    #    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so"
+        #)
+        # Use Mariadb c connector - update it TODO
         message("MariaDBCopyRuntimeDlls for Linux, SET: ${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so => ${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so"
         )
     else()
-        message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll")
+        # Disable MariaDB cpp connector
+        #message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll")
+        #add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	    #    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll"
+        #)
+        # Use Mariadb c connector
+        message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadb/libmariadb.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadb/mariadb.dll")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadb/libmariadb.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadb.dll"
         )
     endif()
 endfunction()
