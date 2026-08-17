@@ -8,7 +8,7 @@
 #include <SDL3/SDL.h>
 #endif
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 #include <Windows.h>
 #include <errno.h>
 #endif
@@ -16,7 +16,7 @@
 
 DECLSPEC void* Tilc::OS::GetActiveWindowSystemHandle()
 {
-#ifdef _WINDOWS
+#ifdef _WIN32
     return ::GetActiveWindow();
 #elif ANDROID
     return nullptr;
@@ -29,7 +29,7 @@ DECLSPEC void* Tilc::OS::GetActiveWindowSystemHandle()
 
 DECLSPEC int Tilc::OS::nanosleep(const timespec* req, timespec* rem)
 {
-#ifdef _WINDOWS
+#ifdef _WIN32
     if (!req || req->tv_nsec < 0 || req->tv_nsec >= 1000000000L)
     {
         return EINVAL;

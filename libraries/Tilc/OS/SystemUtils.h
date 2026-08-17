@@ -1,13 +1,13 @@
 #pragma once
 #include "Tilc/DllGlobals.h"
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 #include <time.h>
 #endif
 
 namespace Tilc::OS
 {
-#ifdef _WINDOWS
+#ifdef _WIN32
     struct timespec
     {
         time_t tv_sec; // sekundy

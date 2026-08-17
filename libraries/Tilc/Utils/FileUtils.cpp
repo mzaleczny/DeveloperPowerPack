@@ -179,7 +179,7 @@ bool Tilc::FileExists(const Tilc::TExtString& Path)
 
 Tilc::TExtString Tilc::GetAppDataFolder()
 {
-#ifdef _WINDOWS
+#ifdef _WIN32
     constexpr const char* HOME = "USERPROFILE";
 #else
     constexpr const char* HOME = "HOME";
@@ -196,7 +196,7 @@ Tilc::TExtString Tilc::GetAppDataFolder()
     Tilc::TExtString HomeDir = buf;
 #endif
 
-#ifdef _WINDOWS
+#ifdef _WIN32
     HomeDir += "\\AppData\\Local";
 #else
     HomeDir += "/.local/bin";
@@ -207,7 +207,7 @@ Tilc::TExtString Tilc::GetAppDataFolder()
 
 Tilc::TExtString Tilc::GetTmpFolder()
 {
-#ifdef _WINDOWS
+#ifdef _WIN32
     constexpr const char* HOME = "USERPROFILE";
 #else
     constexpr const char* HOME = "HOME";
@@ -224,7 +224,7 @@ Tilc::TExtString Tilc::GetTmpFolder()
     Tilc::TExtString HomeDir = buf;
 #endif
 
-#ifdef _WINDOWS
+#ifdef _WIN32
     HomeDir += "\\AppData\\Local\\Temp";
 #else
     HomeDir += "/tmp";

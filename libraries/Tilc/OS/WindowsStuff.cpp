@@ -1,7 +1,7 @@
 #include "Tilc/OS/WindowsStuff.h"
 #include <iostream>
 
-#ifndef _WINDOWS
+#ifndef _WIN32
 int GetActiveWindow() { return 0; }
 int GetLastError() { return 0; }
 

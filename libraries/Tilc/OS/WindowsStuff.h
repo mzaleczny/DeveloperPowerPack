@@ -1,7 +1,7 @@
 #pragma once
 #include "Tilc/DllGlobals.h"
 
-#ifndef _WINDOWS
+#ifndef _WIN32
     #define MB_OK 0
     #define MB_YESNO 0
     #define MB_YESNOCANCEL 0
