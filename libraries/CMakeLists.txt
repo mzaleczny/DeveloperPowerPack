@@ -803,9 +803,12 @@ if ("${BUILD_WITH_MARIADB}" STREQUAL "1")
 	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/libTilcShared.so"
         )
     else()
-        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadb.lib)
+        target_include_directories("${PROJECT_NAME}Shared" PRIVATE
+            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/install/include/mariadb>"
+        )
+        target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ws2_32 ${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadb/libmariadb.lib)
         add_custom_command(TARGET "${PROJECT_NAME}Shared" POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/mariadb.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/mariadb.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/out/${CommonBinDir}/mariadb/libmariadb/libmariadb.dll" "${PROJECT_SOURCE_DIR}/out/build/${TilcBinDir}/libmariadb.dll"
         )
     endif()
 endif()

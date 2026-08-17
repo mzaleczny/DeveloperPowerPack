@@ -72,7 +72,8 @@ DECLSPEC int Tilc::OS::nanosleep(const timespec* req, timespec* rem)
     return -1;
 #elif ANDROID
     return 0;
-#else
+#elifdef __linux__
     return ::nanosleep(req, rem);
 #endif
+    return 0;
 }

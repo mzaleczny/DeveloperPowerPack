@@ -22,8 +22,10 @@ REM ****************************************************************************
 REM Buid libmaridb Debug and Release
 REM **************************************************************************************************************************************************************************
 cd .cache
-git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-cpp.git
-cd mariadb-connector-cpp
+REM git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-cpp.git
+REM cd mariadb-connector-cpp
+git clone --recurse-submodules -j4 https://github.com/mariadb-corporation/mariadb-connector-c.git
+cd mariadb-connector-c
 
 cmake -DWITH_MSI=NO -DWITH_WININSTALL=NO -DWITH_PACKAGE=NO -DWITH_INSTALL=NO -DWITH_DOCS=NO -DWITH_EXAMPLES=NO -DWITH_TESTS=NO -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-I./libmariadb/include" -DCMAKE_INSTALL_PREFIX="..\..\%OUT_MARIADB_RELEASE%\install" -S . -B "..\..\%OUT_MARIADB_RELEASE%"
 cmake --build "..\..\%OUT_MARIADB_RELEASE%" --config Release
