@@ -387,7 +387,9 @@ if("${BUILD_WITH_SDL3_MIXER}" STREQUAL "1")
     AddSourcesRecurse(Tilc/Audio)
 endif()
 
+if("${BUILD_WITH_CURL}" STREQUAL "1")
 AddSourcesRecurse(Tilc/Commerce)
+endif()
 AddSourcesRecurse(Tilc/Data)
 
 if("${BUILD_WITH_OPENGL}" STREQUAL "1")
@@ -707,6 +709,8 @@ if ("${BUILD_WITH_OPENGL}" STREQUAL "1")
 endif()
 
 add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS})
+# Turn off optimizations
+#set_source_files_properties("${PROJECT_NAME}Shared" PROPERTIES COMPILE_FLAGS "/Od")
 file(COPY "${CMAKE_CURRENT_BINARY_DIR}/configure.h" DESTINATION "${PROJECT_SOURCE_DIR}/Tilc")
 
 
