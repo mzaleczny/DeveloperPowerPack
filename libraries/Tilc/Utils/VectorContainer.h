@@ -2,12 +2,17 @@
 
 #include <iostream>
 #include <vector>
+#include <initializer_list>
 #include <algorithm>
+#include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/Utils.h"
 #include "Tilc/Utils/ExtString.h"
+#include "Tilc/Data/Db.h"
 
 namespace Tilc
 {
+
+    DECLSPEC std::ostream& PrintVectorAsJsonArray(std::ostream& os, std::initializer_list<const char*> FieldNames, const Tilc::Data::TDBDataRows& Items);
 
     template <Tilc::Comparable T>
     class TExtVectorContainer : public std::vector<T>
