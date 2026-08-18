@@ -13,7 +13,11 @@ DECLSPEC std::ostream& Tilc::PrintVectorAsJsonArray(std::ostream& os, std::initi
         size_t j = 0;
         for (auto it = FieldNames.begin(); it != FieldNames.end(); ++it)
         {
-            os << "\"" << *it << "\":\"" << Items[i][j] << "\",";
+            os << "\"" << *it << "\":\"" << Items[i][j] << "\"";
+            if (j < Items[i].size() - 1)
+            {
+                os << ",";
+            }
             ++j;
         }
         os << "}";
