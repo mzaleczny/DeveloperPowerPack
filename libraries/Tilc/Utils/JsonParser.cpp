@@ -705,10 +705,10 @@ int Tilc::TJsonParser::_onExpectObjectValueInQuote(char quoteType, char ch)
 void Tilc::TJsonParser::_onBeginArray()
 {
     TJsonParserEntity* entity = reinterpret_cast<TJsonParserEntity*>(this->_current_object[this->_current_object.size() - 1]);
-    TPointerList* newA = new TPointerList();
+    TPropertiesVector* newA = new TPropertiesVector();
     if (entity->entity_type == JSONPARSER_CURRENT_ITEM_ARRAY)
     {
-        TPointerList *a = (TPointerList*)entity->entity;
+        TPropertiesVector *a = (TPropertiesVector*)entity->entity;
         TStdObjectProperty *p = new TStdObjectProperty(Tilc::TExtString(std::to_string(a->size())), newA);
         a->push_back(p);
     }

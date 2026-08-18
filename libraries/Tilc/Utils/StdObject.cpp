@@ -26,7 +26,7 @@ Tilc::TStdObjectProperty::TStdObjectProperty(const Tilc::TExtString& name, doubl
 	this->fValue = value;
 }
 
-Tilc::TStdObjectProperty::TStdObjectProperty(const Tilc::TExtString& name, TPointersVector* value_array)
+Tilc::TStdObjectProperty::TStdObjectProperty(const Tilc::TExtString& name, TPropertiesVector* value_array)
 {
     this->type = PROPERTY_ARRAY;
     this->name = name;
@@ -51,7 +51,7 @@ Tilc::TStdObjectProperty::TStdObjectProperty(const Tilc::TStdObjectProperty& cop
     if (size > 0)
     {
         FreeAValue();
-        aValue = new TPointersVector();
+        aValue = new TPropertiesVector();
         aValue->reserve(size);
         Tilc::TStdObjectProperty* copyItem;
         for (size_t i = 0; i < size; ++i)
@@ -298,7 +298,7 @@ void Tilc::TStdObject::set(const Tilc::TExtString& name, double value)
     }
 }
 
-void Tilc::TStdObject::set(const Tilc::TExtString& name, TPointersVector* aValue)
+void Tilc::TStdObject::set(const Tilc::TExtString& name, TPropertiesVector* aValue)
 {
     Tilc::TStdObjectProperty *p;
 
@@ -404,7 +404,7 @@ double Tilc::TStdObject::getAsDouble(const Tilc::TExtString& name)
     return 0.0;
 }
 
-Tilc::TPointersVector* Tilc::TStdObject::getAsArray(const Tilc::TExtString& name)
+Tilc::TPropertiesVector* Tilc::TStdObject::getAsArray(const Tilc::TExtString& name)
 {
     Tilc::TStdObjectProperty* property = this->get(name);
     if (property && property->type == PROPERTY_ARRAY)
@@ -601,7 +601,7 @@ Tilc::TExtString Tilc::TStdObject::_objectToJson(Tilc::TStdObjectProperty *p, co
     {
         json = indent + "{";
     }
-    TPointersVector& a = p->oValue->_properties;
+    TPropertiesVector& a = p->oValue->_properties;
     size_t len = a.size();
     if (len == 0)
     {

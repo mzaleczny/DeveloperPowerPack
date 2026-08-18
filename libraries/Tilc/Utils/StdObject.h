@@ -19,6 +19,8 @@ namespace Tilc {
     const constexpr int PROPERTY_ARRAY			= 4;
     const constexpr int PROPERTY_OBJECT			= 5;
 
+    using TPropertiesVector = std::vector<TStdObjectProperty*>;
+
 
     class DECLSPEC TStdObjectProperty {
     public:
@@ -33,14 +35,14 @@ namespace Tilc {
         Tilc::TExtString value;
 	    int64_t iValue{};
 	    double fValue{};
-        TPointersVector* aValue{};
+        TPropertiesVector* aValue{};
         TStdObject* oValue{};
 	    TStdObject* extraData{};
 
         TStdObjectProperty(const Tilc::TExtString& name, const Tilc::TExtString& value);
         TStdObjectProperty(const Tilc::TExtString& name, int64_t value);
         TStdObjectProperty(const Tilc::TExtString& name, double value);
-        TStdObjectProperty(const Tilc::TExtString& name, TPointersVector* value_array);
+        TStdObjectProperty(const Tilc::TExtString& name, TPropertiesVector* value_array);
         TStdObjectProperty(const Tilc::TExtString& name, TStdObject *value_object);
         TStdObjectProperty(const TStdObjectProperty& copyObj);
         ~TStdObjectProperty();
@@ -60,7 +62,6 @@ namespace Tilc {
 
 
 
-
     class DECLSPEC TStdObject {
     public:
         TStdObject();
@@ -70,13 +71,13 @@ namespace Tilc {
         void set(const Tilc::TExtString& name, const Tilc::TExtString& value);
         void set(const Tilc::TExtString& name, int64_t value);
         void set(const Tilc::TExtString& name, double value);
-        void set(const Tilc::TExtString& name, TPointersVector* aValue);
+        void set(const Tilc::TExtString& name, TPropertiesVector* aValue);
         void set(const Tilc::TExtString& name, TStdObject* oValue);
         TStdObjectProperty* get(const Tilc::TExtString& name);
         Tilc::TExtString getAsString(const Tilc::TExtString& name);
         int64_t getAsInt(const Tilc::TExtString& name);
         double getAsDouble(const Tilc::TExtString& name);
-        TPointersVector* getAsArray(const Tilc::TExtString& name);
+        TPropertiesVector* getAsArray(const Tilc::TExtString& name);
         TStdObject* getAsObject(const Tilc::TExtString& name);
         // Below Path is of format ex. "Person/Data/Age" relative to current/calling StdObject
         TStdObject* getSubObject(const Tilc::TExtString& Path);
@@ -92,7 +93,7 @@ namespace Tilc {
         void FreeProperties();
 
     protected:
-        TPointersVector _properties;
+        TPropertiesVector _properties;
         Tilc::TExtString _quote;
 
         Tilc::TExtString _propertyToJson(TStdObjectProperty *p, const Tilc::TExtString& indent);

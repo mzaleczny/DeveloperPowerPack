@@ -148,7 +148,7 @@ Tilc::TExtString Tilc::Commerce::TPayPal::MakeOrder(TCart* cart, TCheckout* chec
         }
         if (o.getAsObject("root")->getAsString("status") == "PAYER_ACTION_REQUIRED")
         {
-            Tilc::TPointersVector* Links = o.getAsObject("root")->getAsArray("links");
+            Tilc::TPropertiesVector* Links = o.getAsObject("root")->getAsArray("links");
             RedirectUri = GetRedirectUriForOrder(Links);
         }
 
@@ -194,11 +194,11 @@ Tilc::TExtString Tilc::Commerce::TPayPal::RetrieveOrder(const Tilc::TExtString& 
     return ResultJson;
 }
 
-Tilc::TExtString Tilc::Commerce::TPayPal::GetRedirectUriForOrder(Tilc::TPointersVector* Links)
+Tilc::TExtString Tilc::Commerce::TPayPal::GetRedirectUriForOrder(Tilc::TPropertiesVector* Links)
 {
     for (size_t i = 0; i < Links->size(); ++i)
     {
-        Tilc::TStdObjectProperty* Link = reinterpret_cast<Tilc::TStdObjectProperty*>((*Links)[i]);
+        Tilc::TStdObjectProperty* Link = (*Links)[i];
         if (Link && Link->oValue->getAsString("rel") == "payer-action")
         {
             return Link->oValue->getAsString("href");

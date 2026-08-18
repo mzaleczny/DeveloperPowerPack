@@ -7,6 +7,7 @@
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Net/Http.h"
 #include "Tilc/Commerce/Payment.h"
+#include "Tilc/Utils/StdObject.h"
 
 namespace Tilc
 {
@@ -31,7 +32,7 @@ namespace Tilc
                     Tilc::TExtString& RedirectUri, Tilc::TExtString& CreatedOrderId // CreatedPayUOrderId - id zamówienia w PayU
                 ) override;
                 virtual Tilc::TExtString RetrieveOrder(const Tilc::TExtString& PayUOrderId, Tilc::TStdObject** OrderData) override;
-                Tilc::TExtString GetRedirectUriForOrder(Tilc::TPointersVector* Links);
+                Tilc::TExtString GetRedirectUriForOrder(Tilc::TPropertiesVector* Links);
         };
     }
 }
