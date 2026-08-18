@@ -71,15 +71,19 @@ void Tilc::Apps::Www::TRequestHandler::Cleanup()
 
 void Tilc::Apps::Www::TRequestHandler::OutputHeaders()
 {
-	std::for_each(Headers.begin(), Headers.end(), [this](Tilc::TExtString hdr) {
-		os << hdr << "\r\n";
-	});
-    os << "\r\n";
+    if (!m_HeadersSent)
+    {
+        m_HeadersSent = true;
+        std::for_each(Headers.begin(), Headers.end(), [this](Tilc::TExtString hdr) {
+            os << hdr << "\r\n";
+        });
+        os << "\r\n";
+    }
 }
 
 void Tilc::Apps::Www::TRequestHandler::HandleRequest()
 {
-    Headers.push_back("Content-type: text/html; charset=utf-8");
+    Headers.push_back("Content-type: " + ContentType + "; charset=utf-8");
     if (Application)
     {
         Headers.push_back("Access-Control-Allow-Origin: " + Application->GetAllowOrigin());
@@ -94,7 +98,6 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
         return;
     }
 
-    OutputHeaders();
     // os << "OK";
 //    for (size_t i = 0; i < UriParts.size(); ++i)
 //    {
@@ -118,6 +121,10 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
     {
         Found->second(*this, Url);
     }
+
+    // Call below guarantees OutputHeaders even if not << opertor was called. Because by default OutputHeaders is called
+    // before first call of <<.
+    OutputHeaders();
 }
 
 void Tilc::Apps::Www::TRequestHandler::ReadPostData()
@@ -165,18 +172,30 @@ void Tilc::Apps::Www::TRequestHandler::ReadPostData()
 
 Tilc::Apps::Www::TRequestHandler& Tilc::Apps::Www::TRequestHandler::operator<<(const std::string& val)
 {
+    if (!m_HeadersSent)
+    {
+        OutputHeaders();
+    }
     os << val.c_str();
     return *this;
 }
 
 Tilc::Apps::Www::TRequestHandler& Tilc::Apps::Www::TRequestHandler::operator<<(const char* val)
 {
+    if (!m_HeadersSent)
+    {
+        OutputHeaders();
+    }
     os << val;
     return *this;
 }
 
 Tilc::Apps::Www::TRequestHandler& Tilc::Apps::Www::TRequestHandler::operator<<(int val)
 {
+    if (!m_HeadersSent)
+    {
+        OutputHeaders();
+    }
     os << std::to_string(val);
     return *this;
 }

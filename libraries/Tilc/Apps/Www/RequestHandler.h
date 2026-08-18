@@ -36,6 +36,7 @@ namespace Tilc
                 void Init();
                 void Cleanup();
 
+                bool m_HeadersSent = false;
                 void OutputHeaders();
                 void ReadPostData();
 
@@ -58,6 +59,7 @@ namespace Tilc
                 std::vector<Tilc::TExtString> UriParts;
                 ERequestMethod RequestMethod;
                 Tilc::TExtString Lang;
+                Tilc::TExtString ContentType{"text/html"};
 
                 std::vector<Tilc::TExtString> Headers;
 
