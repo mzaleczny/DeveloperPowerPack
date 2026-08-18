@@ -43,7 +43,7 @@ void Tilc::Data::TDBMySQL::CloseSharedMariaDbLibrary()
     }
 }
 
-Tilc::Data::TDBMySQL::TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtString& DbName, const Tilc::TExtString& DbUser, const Tilc::TExtString& DbPasswd)
+Tilc::Data::TDBMySQL::TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtString& DbName, const Tilc::TExtString& DbUser, const Tilc::TExtString& DbPasswd, const Tilc::TExtString& Socket)
 	: Tilc::Data::TDB()
 {
 
@@ -53,7 +53,14 @@ Tilc::Data::TDBMySQL::TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtS
         m_Conn = tilc_mysql_init(NULL);
         if (m_Conn)
         {
-            tilc_mysql_real_connect(m_Conn, DbHost.c_str(), DbUser.c_str(), DbPasswd.c_str(), DbName.c_str(), 0, NULL, 0);
+            if (Socket.empty())
+            {
+                tilc_mysql_real_connect(m_Conn, DbHost.c_str(), DbUser.c_str(), DbPasswd.c_str(), DbName.c_str(), 0, NULL, 0);
+            }
+            else
+            {
+                tilc_mysql_real_connect(m_Conn, DbHost.c_str(), DbUser.c_str(), DbPasswd.c_str(), DbName.c_str(), 0, Socket.c_str(), 0);
+            }
             std::cerr << tilc_mysql_error(m_Conn) << std::endl;
             IsOpenDB = true;
         }
@@ -241,6 +248,7 @@ int Tilc::Data::TDBMySQL::ExecQuery(const char* Sql, const TDBFieldTypes& FieldT
         std::vector<int> IntInputs;
         std::vector<float> FloatInputs;
         std::vector<double> DoubleInputs;
+        my_bool IsNull = true;
         MYSQL_STMT* stmt = tilc_mysql_stmt_init(m_Conn);
         tilc_mysql_stmt_prepare(stmt, Sql, strlen(Sql));
         std::vector<MYSQL_BIND> InputBind(FieldValues.size());
@@ -271,18 +279,39 @@ int Tilc::Data::TDBMySQL::ExecQuery(const char* Sql, const TDBFieldTypes& FieldT
                 case Tilc::Data::EDBFT_TINYINT:
                 case Tilc::Data::EDBFT_INT:
                     InputBind[i].buffer_type = MYSQL_TYPE_LONG;
-                    IntInputs.push_back(std::atoi(Input[i].data()));
-                    InputBind[i].buffer = &IntInputs[IntInputs.size() - 1];
+                    if (!Input[i].isInt())
+                    {
+                        InputBind[i].is_null = &IsNull;
+                    }
+                    else
+                    {
+                        IntInputs.push_back(std::atoi(Input[i].data()));
+                        InputBind[i].buffer = &IntInputs[IntInputs.size() - 1];
+                    }
                     break;
                 case Tilc::Data::EDBFT_FLOAT:
                     InputBind[i].buffer_type = MYSQL_TYPE_FLOAT;
-                    FloatInputs.push_back(std::atof(Input[i].data()));
-                    InputBind[i].buffer = &FloatInputs[FloatInputs.size() - 1];
+                    if (!Input[i].isDouble())
+                    {
+                        InputBind[i].is_null = &IsNull;
+                    }
+                    else
+                    {
+                        FloatInputs.push_back(std::atof(Input[i].data()));
+                        InputBind[i].buffer = &FloatInputs[FloatInputs.size() - 1];
+                    }
                     break;
                 case Tilc::Data::EDBFT_DOUBLE:
                     InputBind[i].buffer_type = MYSQL_TYPE_DOUBLE;
-                    DoubleInputs.push_back(std::atof(Input[i].data()));
-                    InputBind[i].buffer = &DoubleInputs[DoubleInputs.size() - 1];
+                    if (!Input[i].isDouble())
+                    {
+                        InputBind[i].is_null = &IsNull;
+                    }
+                    else
+                    {
+                        DoubleInputs.push_back(std::atof(Input[i].data()));
+                        InputBind[i].buffer = &DoubleInputs[DoubleInputs.size() - 1];
+                    }
                     break;
                 default:
                     break;

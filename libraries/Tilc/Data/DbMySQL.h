@@ -8,7 +8,7 @@ namespace Tilc {
         class DECLSPEC TDBMySQL : public TDB
         {
         public:
-            TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtString& DbName, const Tilc::TExtString& DbUser, const Tilc::TExtString& DbPasswd);
+            TDBMySQL(const Tilc::TExtString& DbHost, const Tilc::TExtString& DbName, const Tilc::TExtString& DbUser, const Tilc::TExtString& DbPasswd, const Tilc::TExtString& Socket = "");
             virtual ~TDBMySQL();
 
             virtual void* GetDb() override { return reinterpret_cast<void*>(&(*m_Conn)); };
