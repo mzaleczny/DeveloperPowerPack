@@ -3,14 +3,15 @@
 
 long long int Tilc::Apps::Www::TRequestHandler::Count = 0;
 
-Tilc::Apps::Www::TRequestHandler::TRequestHandler(FCGX_Request* Request)
+Tilc::Apps::Www::TRequestHandler::TRequestHandler(FCGX_Request* Request, TRoutes& Routes)
     : request(Request),
         cin_fcgi_streambuf{Request->in},
         cout_fcgi_streambuf{Request->out},
         cerr_fcgi_streambuf{Request->err},
         os{&cout_fcgi_streambuf},
         errs{&cerr_fcgi_streambuf},
-        is{&cin_fcgi_streambuf}
+        is{&cin_fcgi_streambuf},
+        m_RequestHandlers(Routes)
 {
     Init();
 }

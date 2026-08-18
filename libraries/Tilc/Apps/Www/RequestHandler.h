@@ -24,10 +24,12 @@ namespace Tilc
     {
         namespace Www
         {
+            using TRoutes = std::unordered_map<Tilc::TExtString, std::function<void(TRequestHandler&, const Tilc::TExtString&)>>;
+
             class DECLSPEC TRequestHandler
             {
             public:
-                TRequestHandler(FCGX_Request* Request);
+                TRequestHandler(FCGX_Request* Request, TRoutes& Routes);
                 ~TRequestHandler();
                 void HandleRequest();
 
@@ -74,7 +76,7 @@ namespace Tilc
 
                 FCGX_Request* GetRequest() const { return request; };
 
-                std::unordered_map<Tilc::TExtString, std::function<void(TRequestHandler&, const Tilc::TExtString&)>> m_RequestHandlers;
+                TRoutes& m_RequestHandlers;
 
             protected:
                 FCGX_Request* request = nullptr;
