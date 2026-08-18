@@ -73,6 +73,12 @@ void Tilc::Apps::Www::TRequestHandler::OutputHeaders()
 {
     if (!m_HeadersSent)
     {
+        Headers.push_back("Content-type: " + ContentType + "; charset=utf-8");
+        if (Application)
+        {
+            Headers.push_back("Access-Control-Allow-Origin: " + Application->GetAllowOrigin());
+        }
+
         m_HeadersSent = true;
         std::for_each(Headers.begin(), Headers.end(), [this](Tilc::TExtString hdr) {
             os << hdr << "\r\n";
@@ -83,11 +89,6 @@ void Tilc::Apps::Www::TRequestHandler::OutputHeaders()
 
 void Tilc::Apps::Www::TRequestHandler::HandleRequest()
 {
-    Headers.push_back("Content-type: " + ContentType + "; charset=utf-8");
-    if (Application)
-    {
-        Headers.push_back("Access-Control-Allow-Origin: " + Application->GetAllowOrigin());
-    }
 //    if (UserAgent != "Teacher Application Curl Http Client")
 //    {
 //        return;
