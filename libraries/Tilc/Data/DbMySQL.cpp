@@ -291,7 +291,7 @@ int Tilc::Data::TDBMySQL::ExecQuery(const char* Sql, const TDBFieldTypes& FieldT
             tilc_mysql_stmt_bind_param(stmt, &InputBind[0]);
         }
         tilc_mysql_stmt_execute(stmt);
-        if (mysql_stmt_field_count(stmt) > 0)
+        if (tilc_mysql_stmt_field_count(stmt) > 0)
         {
             tilc_mysql_stmt_store_result(stmt);
         }
