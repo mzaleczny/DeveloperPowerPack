@@ -444,20 +444,6 @@ bool Tilc::TExtString::isNumeric(bool* isInt, bool* isDouble) const
 }
 
 
-const char* Tilc::TExtString::ImplodeInts(char Implodechar, std::vector<int>& Items)
-{
-	*this = "";
-	for (int i = 0; i < Items.size(); i++)
-	{
-		*this += std::to_string(Items[i]);
-		if (i < Items.size() - 1)
-		{
-			*this += Implodechar;
-		}
-	}
-	return c_str();
-}
-
 inline Tilc::TExtString Tilc::TExtString::WidecharToString(wchar_t Widechar, unsigned int CodePage)
 {
 	Tilc::TExtString Result;
@@ -1168,7 +1154,7 @@ int Tilc::TExtString::TruncateUtf8AtEnd(size_t NumChars)
     return 0;
 }
 
-long Tilc::DetectDataEncoding(unsigned char* buf, size_t buflen)
+DECLSPEC long Tilc::DetectDataEncoding(unsigned char* buf, size_t buflen)
 {
 	if (buflen >= 3 && buf[0] == (unsigned char)0xef && buf[1] == (unsigned char)0xbb && buf[2] == (unsigned char)0xbf) {
 		return ENC_UTF8_WITH_BOM;
@@ -1296,7 +1282,7 @@ long Tilc::DetectDataEncoding(unsigned char* buf, size_t buflen)
 	return 0;
 }
 
-void Tilc::Iso2ToAnsi(unsigned char* buf, size_t buflen)
+DECLSPEC void Tilc::Iso2ToAnsi(unsigned char* buf, size_t buflen)
 {
 	unsigned char b;
 	for (unsigned long i = 0; i < buflen; i++) {
@@ -1315,7 +1301,7 @@ void Tilc::Iso2ToAnsi(unsigned char* buf, size_t buflen)
 	}
 }
 
-void Tilc::AnsiToIso2(unsigned char* buf, size_t buflen)
+DECLSPEC void Tilc::AnsiToIso2(unsigned char* buf, size_t buflen)
 {
 	unsigned char b;
 	for (unsigned long i = 0; i < buflen; i++) {
@@ -1334,7 +1320,7 @@ void Tilc::AnsiToIso2(unsigned char* buf, size_t buflen)
 	}
 }
 
-void Tilc::Oem852ToAnsi(unsigned char* buf, size_t buflen)
+DECLSPEC void Tilc::Oem852ToAnsi(unsigned char* buf, size_t buflen)
 {
 	unsigned char b;
 	for (unsigned long i = 0; i < buflen; i++) {
@@ -1353,7 +1339,7 @@ void Tilc::Oem852ToAnsi(unsigned char* buf, size_t buflen)
 	}
 }
 
-void Tilc::AnsiToOem852(unsigned char* buf, size_t buflen)
+DECLSPEC void Tilc::AnsiToOem852(unsigned char* buf, size_t buflen)
 {
 	unsigned char b;
 	for (unsigned long i = 0; i < buflen; i++) {
@@ -1372,7 +1358,7 @@ void Tilc::AnsiToOem852(unsigned char* buf, size_t buflen)
 	}
 }
 
-bool Tilc::CharIsSentenceBoundary(wchar_t ch) {
+DECLSPEC bool Tilc::CharIsSentenceBoundary(wchar_t ch) {
 	if (wcschr(WORD_BOUNDARY_CHARS, ch) != nullptr) {
 		return true;
 	}
@@ -1380,7 +1366,7 @@ bool Tilc::CharIsSentenceBoundary(wchar_t ch) {
 	return false;
 }
 
-bool Tilc::IsDecimal(const wchar_t* str) {
+DECLSPEC bool Tilc::IsDecimal(const wchar_t* str) {
 	if (!str) return false;
 
 	size_t len = wcslen(str);
@@ -1399,7 +1385,7 @@ bool Tilc::IsDecimal(const wchar_t* str) {
 	return true;
 }
 
-bool Tilc::IsDouble(const wchar_t* str) {
+DECLSPEC bool Tilc::IsDouble(const wchar_t* str) {
 	if (!str) return false;
 
 	size_t len = wcslen(str);
@@ -1428,7 +1414,7 @@ bool Tilc::IsDouble(const wchar_t* str) {
 	return true;
 }
 
-Tilc::TExtString Tilc::GetRandomString(int DesiredLength, const char* Chars)
+DECLSPEC Tilc::TExtString Tilc::GetRandomString(int DesiredLength, const char* Chars)
 {
     /*
     auto d = std::uniform_int_distribution<>{ 0, static_cast<int>(strlen(Chars)) - 1 };
@@ -1450,7 +1436,36 @@ Tilc::TExtString Tilc::GetRandomString(int DesiredLength, const char* Chars)
     return Result;
 }
 
-Tilc::TExtString Tilc::Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items)
+
+DECLSPEC Tilc::TExtString Tilc::Implode(char Implodechar, std::vector<int>& Items)
+{
+	Tilc::TExtString Result;
+	for (int i = 0; i < Items.size(); i++)
+	{
+		Result += std::to_string(Items[i]);
+		if (i < Items.size() - 1)
+		{
+			Result += Implodechar;
+		}
+	}
+	return Result;
+}
+
+DECLSPEC Tilc::TExtString Tilc::Implode(char ImplodeChar, std::initializer_list<const char*>& Items)
+{
+    Tilc::TExtString Result;
+    for (auto it = Items.begin(); it != Items.end(); ++it)
+    {
+        if (it != Items.begin())
+        {
+            Result.push_back(ImplodeChar);
+        }
+        Result.append(*it);
+    }
+    return Result;
+}
+
+DECLSPEC Tilc::TExtString Tilc::Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items)
 {
     Tilc::TExtString Result;
     for (int i = 0; i < Items.size(); ++i)
@@ -1533,7 +1548,7 @@ DECLSPEC Tilc::TExtString Tilc::IntToHex(uint64_t num, size_t minHexNumberLength
     return retval;
 }
 
-int HexToInt(Tilc::TExtString hex)
+DECLSPEC int HexToInt(Tilc::TExtString hex)
 {
     size_t len = hex.length();
     if (len < 1)

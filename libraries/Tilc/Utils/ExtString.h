@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <initializer_list>
 #include "Tilc/DllGlobals.h"
 
 #define UTF8_PL_A		"\xc4\x84" // "Ą"
@@ -153,7 +154,6 @@ namespace Tilc
         float inline toFloat() { return std::stof(c_str()); }
         double inline toDouble() { return std::stod(c_str()); }
 
-		const char* ImplodeInts(char Implodechar, std::vector<int>& Items);
 		static inline Tilc::TExtString WidecharToString(wchar_t Widechar, unsigned int CodePage);
 
 		void RTrim(char ch);
@@ -284,7 +284,10 @@ namespace Tilc
 	DECLSPEC bool IsDouble(const wchar_t* str);
 	// if Chars is specified then it is used as character from which new string will be consisted of
 	DECLSPEC TExtString GetRandomString(int DesiredLength, const char* Chars = "");
-    TExtString Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items);
+
+    DECLSPEC TExtString Implode(char Implodechar, std::vector<int>& Items);
+    DECLSPEC TExtString Implode(char ImplodeChar, std::initializer_list<const char*>& Items);
+    DECLSPEC TExtString Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items);
 
 
     // Below code and struct speeds up comparison a + b == c, wheere a, b, c are TExtString
