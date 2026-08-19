@@ -13,6 +13,14 @@ namespace Tilc {
         {
         public:
             static std::ostream& PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields);
+            // remove objects with given ids, JsonCommand shold be for example
+            /*
+                {
+                    "Action": "Delete",
+                    "Ids": ["1", "2", "3", "4", "5"]
+                }
+            */
+            static std::ostream& DeleteItems(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, const Tilc::TExtString& JsonCommand);
 
         private:
             TDataProcessor() {}
