@@ -36,7 +36,7 @@ namespace Tilc
                 void Init();
                 void Cleanup();
 
-                bool m_HeadersSent = false;
+                bool m_HeadersSent {false};
                 void OutputHeaders();
                 void ReadPostData();
 
