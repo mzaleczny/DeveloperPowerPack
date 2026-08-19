@@ -465,6 +465,23 @@ Tilc::TExtString Tilc::TStdObject::toJson(const Tilc::TExtString& quote)
         {
             json += this->_propertyToJson(root, "");
         }
+        else
+        {
+            json = "{\n";
+            for (size_t i = 0; i < this->_properties.size(); ++i)
+            {
+                if (i > 0)
+                {
+                    json += ",\n";
+                }
+                json += "    \"" + this->_properties[i]->name + "\": " + this->_propertyToJson(this->_properties[i], "");
+                if (i == this->_properties.size() - 1)
+                {
+                    json += "\n";
+                }
+            }
+            json += "}";
+        }
     }
 
     return json;
