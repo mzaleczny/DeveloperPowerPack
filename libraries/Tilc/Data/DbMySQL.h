@@ -17,7 +17,7 @@ namespace Tilc {
             // Values are passed to MySQL/MariaDB as strings so we can pass empty initializer list {} as
             // FieldTypes. This apply three functions below.
             virtual int Select(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues, TDBDataRows& DataRows) override;
-            virtual int ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override;
+            virtual int ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes = {}, const TStringVector& FieldValues = {}) override;
             virtual int Insert(const char* InsertSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override
             {
                 return ExecQuery(InsertSql, FieldTypes, FieldValues);

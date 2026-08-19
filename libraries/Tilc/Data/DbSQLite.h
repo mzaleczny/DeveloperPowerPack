@@ -16,7 +16,7 @@ namespace Tilc {
             virtual int CreateTable(const char* CreateQuery) override;
             virtual int Select(const char* Sql, TDBDataRows& DataRows) override;
             virtual int Select(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues, TDBDataRows& DataRows) override;
-            virtual int ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override;
+            virtual int ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes = {}, const TStringVector& FieldValues = {}) override;
             virtual int Insert(const char* InsertSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override;
             virtual int Update(const char* UpdateSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override
             {

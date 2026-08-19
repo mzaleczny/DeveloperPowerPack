@@ -43,7 +43,7 @@ namespace Tilc {
             virtual int CreateTable(const char* CreateQuery) { return 0; }
             virtual int Select(const char* Sql, TDBDataRows& DataRows) { return 0; }
             virtual int Select(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues, TDBDataRows& DataRows) { return 0; }
-            virtual int ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) { return 0; }
+            virtual int ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes = {}, const TStringVector& FieldValues = {}) { return 0; }
             virtual int Insert(const char* InsertSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) { return 0; }
             virtual int Update(const char* UpdateSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) { return 0; }
             virtual int Delete(const char* DeleteSql, int Id) { return 0; }
