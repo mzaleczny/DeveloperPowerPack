@@ -12,6 +12,8 @@ std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data
     DB.Select(SqlStr.c_str(), Data);
     os << "{\"items\":";
     Tilc::PrintVectorAsJsonArray(os, Fields, Data);
-    os << ",\"items_count\":\"" << Data.size() << "\"}";
+    os << ",\"items_count\":\"" << Data.size() << "\"";
+    //os << ",\"Sql\":\"" << SqlStr << "\"";
+    os << "}";
     return os;
 }
