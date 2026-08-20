@@ -84,6 +84,13 @@ Tilc::TStdObject* Tilc::TJsonParser::parseFile(const Tilc::TExtString& fname, TS
     this->_error_msg = "";
     this->_line_number = 1;
 
+    if (!FileExists(fname))
+    {
+        this->_error = 1;
+        this->_error_msg = Tilc::TExtString("File ") + fname + " does not exists.";
+        return nullptr;
+    }
+
     this->_initParsingProcess(destination);
 
     Tilc::TFile File(fname.c_str());
