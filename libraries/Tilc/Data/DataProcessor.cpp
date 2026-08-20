@@ -3,6 +3,9 @@
 #include "Tilc/Utils/VectorContainer.h"
 #include "Tilc/Utils/JsonParser.h"
 #include "Tilc/Utils/StdObject.h"
+#include "Tilc/Data/DbMySQL.h"
+#include "Tilc/Data/TilcMariaDbLoader.h"
+#include <mysql.h>
 
 std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields)
 {
@@ -12,10 +15,16 @@ std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data
 
     Tilc::Data::TDBDataRows Data;
     DB.Select(SqlStr.c_str(), Data);
+    Tilc::TExtString Error = DB.GetErrorMessage();
+    if (!Error.empty())
+    {
+        os << Error << ": " << SqlStr << "\n";
+    }
+
     os << "{\"items\":";
     Tilc::PrintVectorAsJsonArray(os, Fields, Data);
     os << ",\"items_count\":\"" << Data.size() << "\"";
-    os << ",\"Sql\":\"" << SqlStr << "\"";
+    //os << ",\"Sql\":\"" << SqlStr << "\"";
     os << "}";
     return os;
 }
