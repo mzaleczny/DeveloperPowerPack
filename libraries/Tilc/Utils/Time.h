@@ -18,9 +18,12 @@ namespace Tilc {
 
         friend std::ostream& operator<<(std::ostream& out, const TDate& d)
         {
-            //const tm local_tm = *localtime(&d.m_Time);
             tm local_tm;
+#ifdef __linux__
+            localtime_r(&d.m_Time, &local_tm);
+#else
             localtime_s(&local_tm, &d.m_Time);
+#endif
             switch (d.m_Type)
             {
             case EDateType::EuropeanDate:
