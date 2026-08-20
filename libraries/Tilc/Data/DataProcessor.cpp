@@ -118,7 +118,9 @@ std::ostream& Tilc::Data::TDataProcessor::DeleteItems(std::ostream& os, Tilc::Da
             }
             if (Ids.length() > 0)
             {
-                DB.ExecQuery(Tilc::TExtString("DELETE FROM categories WHERE id IN (" + Ids + ")").c_str());
+                Tilc::TExtString SqlStr{Sql};
+                SqlStr.StrReplace("%s", Ids);
+                DB.ExecQuery(SqlStr.c_str());
             }
         }
         delete JsonInput;
