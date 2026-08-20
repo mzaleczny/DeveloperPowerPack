@@ -90,6 +90,7 @@ namespace Tilc {
     
         // przeciążone operatory
         TStdObjectProperty* operator[](char* name);
+        TPropertiesVector& getProperties() { return _properties; }
         void FreeProperties();
 
     protected:
