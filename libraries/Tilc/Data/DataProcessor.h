@@ -13,6 +13,40 @@ namespace Tilc {
         {
         public:
             static std::ostream& PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields);
+            // insert objects when Id in Json input is empty otherwise update item with specified Id
+            /*
+                {
+                    "Action": "InsertUpdate",
+                    "Items": [
+                        {
+                            "id": "",
+                            "name": "Kategoria #1"
+                        },
+                        {
+                            "id": "",
+                            "name": "Kategoria #2"
+                        },
+                        {
+                            "id": "",
+                            "name": "Kategoria #3"
+                        },
+                        {
+                            "id": "",
+                            "name": "Kategoria #4"
+                        },
+                        {
+                            "id": "",
+                            "name": "Kategoria #5"
+                        },
+                        {
+                            "id": "1",
+                            "name": "Kategoria #1",
+                            "short_description": "Krótki opis kategorii #1."
+                        }
+                    ]
+                }
+            */
+            static std::ostream& SaveItems(std::ostream& os, Tilc::Data::TDB& DB, const char* TableName, const Tilc::TExtString& JsonCommand);
             // remove objects with given ids, JsonCommand shold be for example
             /*
                 {
