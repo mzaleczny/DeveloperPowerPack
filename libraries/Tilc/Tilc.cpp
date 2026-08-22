@@ -5,7 +5,9 @@
 #if BUILD_WITH_GUI == 1
 	#include "Tilc/Gui/Theme.h"
 #endif
-#include "Tilc/Data/DbMySQL.h"
+#if BUILD_WITH_MARIADB == 1
+    #include "Tilc/Data/DbMySQL.h"
+#endif
 
 #if BUILD_WITH_SDL3 == 1
 SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned int WindowWidth, const unsigned int WindowHeight, int Flags, bool WithGLContext, const Tilc::TExtString& ResourcesDataFile, const Tilc::TExtString& DefaultThemeName)
