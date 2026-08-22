@@ -13,8 +13,15 @@ namespace Tilc
             class DECLSPEC TPDF
             {
             public:
-                TPDF();
+                TPDF(const char* FilePath);
                 virtual ~TPDF();
+            protected:
+                size_t m_StartXRef{}, m_StartXRefInBuffer;
+                size_t m_CurrentChunkOffset{};
+                size_t m_ChunkSize{ 64 * 1024 };
+                Tilc::TExtString m_FilePath;
+                Tilc::TExtString m_Content;
+                void ReadXRef();
             };
         }
     }
