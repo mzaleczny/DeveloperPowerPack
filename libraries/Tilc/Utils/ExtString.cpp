@@ -1479,6 +1479,20 @@ DECLSPEC Tilc::TExtString Tilc::Implode(char ImplodeChar, std::vector<Tilc::TExt
     return Result;
 }
 
+DECLSPEC Tilc::TExtString Tilc::ImplodeRepeatedString(char ImplodeChar, const char* RepeatString, int Count)
+{
+    Tilc::TExtString Result;
+    for (int i = 0; i < Count; ++i)
+    {
+        Result.append(RepeatString);
+        if (i < Count - 1)
+        {
+            Result.push_back(ImplodeChar);
+        }
+    }
+    return Result;
+}
+
 DECLSPEC Tilc::TExtString Tilc::IntToHex(uint64_t num, size_t minHexNumberLength, bool useSmallAlpha, bool prependx0)
 {
     Tilc::TExtString retval;

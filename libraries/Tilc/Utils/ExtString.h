@@ -288,6 +288,7 @@ namespace Tilc
     DECLSPEC TExtString Implode(char Implodechar, std::vector<int>& Items);
     DECLSPEC TExtString Implode(char ImplodeChar, std::initializer_list<const char*>& Items);
     DECLSPEC TExtString Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items);
+	DECLSPEC TExtString ImplodeRepeatedString(char ImplodeChar, const char* RepeatString, int Count);
 
 
     // Below code and struct speeds up comparison a + b == c, wheere a, b, c are TExtString

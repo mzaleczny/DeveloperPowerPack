@@ -87,6 +87,7 @@ int Tilc::Data::TDBMySQL::Select(MYSQL_STMT* stmt, TDBDataRows& DataRows)
     DataRows.clear();
 
     unsigned int field_count = tilc_mysql_stmt_field_count(stmt);
+    LastError = tilc_mysql_stmt_error(stmt);
     if (field_count < 1) return 0;
     std::vector<MYSQL_BIND> OutputBind(field_count);
     memset(&OutputBind[0], 0, sizeof(MYSQL_BIND) * OutputBind.size());
@@ -213,7 +214,6 @@ int Tilc::Data::TDBMySQL::Select(MYSQL_STMT* stmt, TDBDataRows& DataRows)
         free(OutputBind[i].buffer);
     }
 
-    tilc_mysql_stmt_close(stmt);
     return static_cast<int>(DataRows.size());
 }
 
@@ -221,7 +221,9 @@ int Tilc::Data::TDBMySQL::Select(const char* Sql, TDBDataRows& DataRows)
 {
     MYSQL_STMT* stmt = tilc_mysql_stmt_init(m_Conn);
     tilc_mysql_stmt_prepare(stmt, Sql, strlen(Sql));
-    return Select(stmt, DataRows);
+    int Result = Select(stmt, DataRows);
+    tilc_mysql_stmt_close(stmt);
+    return Result;
 }
 
 int Tilc::Data::TDBMySQL::Select(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues, TDBDataRows& DataRows)
@@ -237,7 +239,9 @@ int Tilc::Data::TDBMySQL::Select(const char* Sql, const TDBFieldTypes& FieldType
         InputBind[i].buffer = Input[i].data();
         tilc_mysql_stmt_bind_param(stmt, &InputBind[i]);
     }
-    return Select(stmt, DataRows);
+    int Result = Select(stmt, DataRows);
+    tilc_mysql_stmt_close(stmt);
+    return Result;
 }
 
 int Tilc::Data::TDBMySQL::ExecQuery(const char* Sql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues)
