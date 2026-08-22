@@ -319,6 +319,8 @@ namespace Tilc
     //Zamienia liczbę dziewieciocyfrową na string
     DECLSPEC TExtString SlowDziewiec(int i);
 
+    DECLSPEC TExtString FormatString(const TExtString& s, int align, char fillChar, int width);
+    DECLSPEC TExtString FormatHexValue(int value, int align, char fillChar, int width, bool prepend0x, bool appendH, bool useSmallAlpha, int minLen);
     /*
     struct TConcatProxy
     {

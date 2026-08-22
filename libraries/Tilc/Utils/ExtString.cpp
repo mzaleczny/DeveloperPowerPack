@@ -2081,3 +2081,36 @@ DECLSPEC Tilc::TExtString Tilc::SlowDziewiec(int i)
     result.Trim();
     return result;
 }// SlowDziewiec
+
+
+DECLSPEC Tilc::TExtString Tilc::FormatString(const Tilc::TExtString& s, int align, char fillChar, int width)
+{
+    Tilc::TExtString result(s);
+    size_t len = result.length();
+
+    if (width > 0 && width > len)
+    {
+        int paddingLen = static_cast<int>(width - len);
+        Tilc::TExtString padding = Tilc::TExtString(paddingLen, fillChar);
+        if (align == Tilc::FORMAT_ALIGN_RIGHT)
+        {
+            result.Prepend(padding);
+        }
+        else
+        {
+            result.append(padding);
+        }
+    }
+
+    return result;
+}
+
+DECLSPEC Tilc::TExtString Tilc::FormatHexValue(int value, int align, char fillChar, int width, bool prepend0x, bool appendH, bool useSmallAlpha, int minLen)
+{
+    Tilc::TExtString result = IntToHex(value, minLen, useSmallAlpha, prepend0x);
+    if (appendH)
+    {
+        result += 'h';
+    }
+    return FormatString(result, align, fillChar, width);
+}
