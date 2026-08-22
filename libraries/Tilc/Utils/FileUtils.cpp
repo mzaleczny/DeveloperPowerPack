@@ -7,6 +7,11 @@ Tilc::TFile::TFile(const char* FileName, std::ios_base::openmode OpenMode)
 {
     std::lock_guard<std::mutex> lock(TFile::m_MU);
     OpenFile(FileName, OpenMode);
+
+    size_t CurrentPos = m_File.tellg();
+    m_File.seekg(0, std::ios_base::end);
+    m_FileSize = m_File.tellg();
+    m_File.seekg(CurrentPos, std::ios_base::beg);
 }
 
 Tilc::TFile::~TFile()
@@ -66,6 +71,34 @@ void Tilc::TFile::AppendContent(const Tilc::TExtString& Content)
         m_File.write(Content.data(), Content.size());
         m_File.clear();
     }
+}
+
+size_t Tilc::TFile::Read(size_t BytesToRead, Tilc::TExtString& Content)
+{
+    size_t CurrentPos = m_File.tellg();
+    if (CurrentPos + BytesToRead > m_FileSize)
+    {
+        BytesToRead = m_FileSize - CurrentPos;
+    }
+
+    if (Content.capacity() <= BytesToRead)
+    {
+        Content.resize(BytesToRead);
+    }
+    m_File.read(Content.data(), BytesToRead);
+    return BytesToRead;
+}
+
+size_t Tilc::TFile::GetFileSize()
+{
+    if (m_FileSize < 1)
+    {
+        size_t CurrentPos = m_File.tellg();
+        m_File.seekg(0, std::ios_base::end);
+        m_FileSize = m_File.tellg();
+        m_File.seekg(CurrentPos, std::ios_base::beg);
+    }
+    return m_FileSize;
 }
 
 void Tilc::TFile::OpenFile(const char* FileName, std::ios_base::openmode OpenMode)

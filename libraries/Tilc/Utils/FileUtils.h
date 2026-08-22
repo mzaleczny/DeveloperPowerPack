@@ -20,11 +20,13 @@ namespace Tilc
         void ReadContent(Tilc::TExtString& Content);
         void WriteContent(const Tilc::TExtString& Content);
         void AppendContent(const Tilc::TExtString& Content);
-
+        size_t Read(size_t BytesToRead, Tilc::TExtString& Content);
+        size_t GetFileSize();
         std::fstream m_File;
 
     private:
         std::mutex m_MU;
+        size_t m_FileSize{};
         void OpenFile(const char* FileName, std::ios_base::openmode OpenMode = std::ios::in);
     };
 
