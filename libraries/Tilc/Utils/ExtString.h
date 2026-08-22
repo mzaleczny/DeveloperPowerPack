@@ -247,8 +247,14 @@ namespace Tilc
 		}
 		bool ContainsOneOfChars(const char* StringOfChars);
 		bool ContainsWhiteSpace();
-		long long StrPos(const char* SubString, size_t StartFrom = 0);
-		long long StrPosLast(const char* SubString, size_t StartFrom = 0);
+        size_t StrPos(const char* SubString, size_t StartFrom = 0)
+        {
+            return find(SubString, StartFrom);
+        }
+		size_t StrPosLast(const char* SubString, size_t StartFrom = 0)
+        {
+            return rfind(SubString, StartFrom);
+        }
         size_t RemoveCharsWithCodeLessThan(int CharCode);
 	};
 
