@@ -3,9 +3,6 @@
 #include "Tilc/Utils/VectorContainer.h"
 #include "Tilc/Utils/JsonParser.h"
 #include "Tilc/Utils/StdObject.h"
-#include "Tilc/Data/DbMySQL.h"
-#include "Tilc/Data/TilcMariaDbLoader.h"
-#include <mysql.h>
 
 std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields)
 {
