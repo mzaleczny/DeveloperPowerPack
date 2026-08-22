@@ -48,7 +48,7 @@ else()
     set(TilcBuildDir "${CMAKE_CURRENT_LIST_DIR}/../out/build/${BinDir}")
 
     if(EXISTS "${TilcBuildDir}/${LibName}Shared.lib")
-        if (${LibSuffix} STREQUAL "d")
+        if ("${LibSuffix}" STREQUAL "d")
             set(LibSuffix "")
         endif()
     endif()
