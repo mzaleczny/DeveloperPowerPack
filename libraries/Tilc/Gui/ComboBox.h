@@ -23,9 +23,9 @@ namespace Tilc {
             virtual bool OnMouseButtonDown(const SDL_Event& event) override;
         protected:
             float m_CurrentDropDownHeight{};
-            float m_DestinationDropDownHeight{100.0f};
-            int m_RollDirection{ 1 };
-            float m_RollSpeed{ 1.0f };
+            float m_DestinationDropDownHeight{150.0f};
+            int m_RollDirection{ 0 };
+            float m_RollSpeed{ 750.0f };
             bool m_DropDownVisible{};
             std::vector<Tilc::TExtString> m_Items;
             SDL_FRect m_ChevronRect;

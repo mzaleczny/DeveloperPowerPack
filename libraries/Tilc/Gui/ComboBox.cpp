@@ -12,6 +12,8 @@ Tilc::Gui::TComboBox::TComboBox(Tilc::Gui::TGuiControl* parent, const Tilc::TExt
     m_ChevronRect = m_Position;
     m_ChevronRect.x = m_ChevronRect.w - m_PaddingRight;
     m_ChevronRect.y = 0;
+
+    SetTickable(true);
 }
 
 Tilc::Gui::TComboBox::~TComboBox()
@@ -70,7 +72,6 @@ void Tilc::Gui::TComboBox::Draw()
         SDL_FRect rc = m_RealPosition;
         rc.y += rc.h;
         rc.h = m_CurrentDropDownHeight;
-        SDL_Log("m_CurrentDropDownHeight: %f", m_CurrentDropDownHeight);
         DrawCommonComplex(
             rc,
             frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
@@ -95,22 +96,19 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
         // tutaj rozwijamy
         if (m_RollDirection == 1 && m_CurrentDropDownHeight < m_DestinationDropDownHeight)
         {
-            m_CurrentDropDownHeight += m_RollDirection * DeltaTime;
-            SDL_Log("m_CurrentDropDownHeight: %f", m_CurrentDropDownHeight);
+            m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
             Invalidate();
             if (m_CurrentDropDownHeight > m_DestinationDropDownHeight)
             {
                 // rozwinęliśmy, więc zablokuj dalsze rozwijanie
                 m_CurrentDropDownHeight = m_DestinationDropDownHeight;
                 m_RollDirection = 0;
-                SDL_Log("STOP: m_CurrentDropDownHeight: %f", m_CurrentDropDownHeight);
             }
         }
         // tutaj zwijamy
         else if (m_RollDirection == -1 && m_CurrentDropDownHeight > 0.0f)
         {
-            m_CurrentDropDownHeight += m_RollDirection * DeltaTime;
-            SDL_Log("m_CurrentDropDownHeight: %f", m_CurrentDropDownHeight);
+            m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
             Invalidate();
             if (m_CurrentDropDownHeight < 0.0f)
             {
@@ -118,7 +116,6 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
                 m_CurrentDropDownHeight = 0.0f;
                 m_RollDirection = 0;
                 m_DropDownVisible = false;
-                SDL_Log("STOP: m_CurrentDropDownHeight: %f", m_CurrentDropDownHeight);
             }
         }
     }
@@ -152,17 +149,32 @@ bool Tilc::Gui::TComboBox::OnMouseButtonDown(const SDL_Event& event)
     {
         if (event.button.x >= m_RealPosition.x + m_ChevronRect.x)
         {
-            if (m_RollDirection <= 0)
+            if (m_RollDirection == -1)
             {
                 // Rozwijamy
                 m_DropDownVisible = true;
                 m_RollDirection = 1;
             }
-            else
+            else if (m_RollDirection == 1)
             {
                 // Zwijamy
                 m_DropDownVisible = true;
                 m_RollDirection = -1;
+            }
+            else
+            {
+                if (!m_DropDownVisible)
+                {
+                    // Rozwijamy
+                    m_DropDownVisible = true;
+                    m_RollDirection = 1;
+                }
+                else
+                {
+                    // Zwijamy
+                    m_DropDownVisible = true;
+                    m_RollDirection = -1;
+                }
             }
         }
         CaptureMouse(this);
