@@ -1875,21 +1875,27 @@ void Tilc::Gui::TGuiControl::DrawCommonComplex(
     }
     float middle_width = Position.w - ctrl_top_left_rc.w - ctrl_top_left_rc.w;
     float middle_height = Position.h - ctrl_top_left_rc.h - ctrl_top_left_rc.h;
+    if (middle_width <= 0.0f || middle_height <= 0.0f)
+    {
+        return;
+    }
 
+    float OffsetX = Position.x - m_RealPosition.x;
+    float OffsetY = Position.y - m_RealPosition.y;
     // ================================================================
     // Rysujemy tło
     // ================================================================
     // TOP
     // 
     // top left
-    RenderTexture(TextureMap, &ctrl_top_left_rc, x, y);
+    RenderTexture(TextureMap, &ctrl_top_left_rc, OffsetX + x, OffsetY + y);
     x += ctrl_top_left_rc.w;
     // top middle
     rc = { Position.x + x, Position.y + y, middle_width, ctrl_top_middle_rc.h };
     RenderTiledTexture(TextureMap, &ctrl_top_middle_rc, &rc);
     x += middle_width;
     // top right
-    RenderTexture(TextureMap, &ctrl_top_right_rc, x, y);
+    RenderTexture(TextureMap, &ctrl_top_right_rc, OffsetX + x, OffsetY + y);
 
     x = 0.0f;
     y = ctrl_top_middle_rc.h;
@@ -1907,18 +1913,18 @@ void Tilc::Gui::TGuiControl::DrawCommonComplex(
     RenderTiledTexture(TextureMap, &ctrl_inner_right_rc, &rc);
     y += rc.h;
 
-
+    x = 0.0f;
     // BOTTOM
     // 
     // bottom left
-    RenderTexture(TextureMap, &ctrl_bottom_left_rc, x, y);
+    RenderTexture(TextureMap, &ctrl_bottom_left_rc, OffsetX + x, OffsetY + y);
     x += ctrl_bottom_left_rc.w;
     // bottom middle
     rc = { Position.x + x, Position.y + y, middle_width, ctrl_bottom_middle_rc.h };
     RenderTiledTexture(TextureMap, &ctrl_bottom_middle_rc, &rc);
     x += middle_width;
     // bottom right
-    RenderTexture(TextureMap, &ctrl_bottom_right_rc, x, y);
+    RenderTexture(TextureMap, &ctrl_bottom_right_rc, OffsetX + x, OffsetY + y);
     // ================================================================
     // Koniec rysowania tła
     // ================================================================
@@ -1933,13 +1939,22 @@ void Tilc::Gui::TGuiControl::SetTickable(bool IsTickable)
 {
     if (IsTickable)
     {
-        m_IsTickable = false;
-        m_TickableControls.erase(std::remove(m_TickableControls.begin(), m_TickableControls.end(), this), m_TickableControls.end());
+        // Do listy dodajemy tylko jedno wystapienie tej kontrolki
+        auto it = std::find(m_TickableControls.begin(), m_TickableControls.end(), this);
+        if (it == m_TickableControls.end())
+        {
+            m_IsTickable = true;
+            m_TickableControls.push_back(this);
+        }
+        else
+        {
+            m_IsTickable = true;
+        }
     }
     else
     {
         m_IsTickable = false;
-        m_TickableControls.push_back(this);
+        m_TickableControls.erase(std::remove(m_TickableControls.begin(), m_TickableControls.end(), this), m_TickableControls.end());
     }
 }
 
