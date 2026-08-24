@@ -569,6 +569,16 @@ namespace Tilc {
 
             bool IsCaretMovingKey(unsigned int virtualCode);
 
+            void SetTickable(bool IsTickable);
+            bool IsTickble() const {
+                return m_IsTickable;
+            };
+
+            // Lista kontrolek, dla których wywoywana jest metda update
+            inline static std::list<Tilc::Gui::TGuiControl*> m_TickableControls{};
+            // domyślnie kontrolka nie jest Tickable, czyli ni jest dodawana do powyższej listy.
+            bool m_IsTickable{};
+
         protected:
             SDL_Texture* m_Canvas{};
             TStyledWindow* m_ParentWindow{};

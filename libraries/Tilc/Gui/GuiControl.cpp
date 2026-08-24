@@ -1929,6 +1929,20 @@ bool Tilc::Gui::TGuiControl::IsCaretMovingKey(unsigned int virtualCode)
     return virtualCode == SDLK_LEFT || virtualCode == SDLK_RIGHT || virtualCode == SDLK_UP || virtualCode == SDLK_DOWN || virtualCode == SDLK_HOME || virtualCode == SDLK_END;
 }
 
+void Tilc::Gui::TGuiControl::SetTickable(bool IsTickable)
+{
+    if (IsTickable)
+    {
+        m_IsTickable = false;
+        m_TickableControls.erase(std::remove(m_TickableControls.begin(), m_TickableControls.end(), this), m_TickableControls.end());
+    }
+    else
+    {
+        m_IsTickable = false;
+        m_TickableControls.push_back(this);
+    }
+}
+
 void Tilc::Gui::TGuiControl::MoveAllSubWindowsToTheEndOfGlobalWindowsOrder()
 {
     // Pobieramy referencję na globalną listę

@@ -61,6 +61,10 @@ void Tilc::TStateManager::Update(float DeltaTime)
 	{
 		m_States.back().second->Update(DeltaTime);
 	}
+
+    std::for_each(Tilc::Gui::TGuiControl::m_TickableControls.begin(), Tilc::Gui::TGuiControl::m_TickableControls.end(), [&DeltaTime](Tilc::Gui::TGuiControl* ctrl) {
+        ctrl->Update(DeltaTime);
+    });
 }
 
 void Tilc::TStateManager::Draw()
