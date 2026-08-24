@@ -57,7 +57,6 @@ else()
     set(ASSIMP_LIBRARY "assimp${LibSuffix}")
 endif()
 
-
 add_library(${LibName} INTERFACE)
 target_include_directories(${LibName} INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
     "$<BUILD_INTERFACE:${TilcBuildDir}/../../../.cache/SDL3/include>"
@@ -84,7 +83,7 @@ add_library(${LibName}_compiler_flags INTERFACE)
 target_compile_features(${LibName}_compiler_flags INTERFACE cxx_std_23)
 set_target_properties(${LibName}_compiler_flags PROPERTIES CXX_EXTENSIONS OFF)
 
-if ("${BUILD_WITHOUT_GRAPHICS}" STREQUAL "0")
+if ("${BUILD_WITH_SDL3}" STREQUAL "1")
     target_link_libraries(${LibName} INTERFACE ${LibName}_compiler_flags ${TILC_LIBRARY} SDL3 SDL3_image SDL3_ttf SDL3_mixer ${ASSIMP_LIBRARY})
 else()
     target_link_libraries(${LibName} INTERFACE ${LibName}_compiler_flags ${TILC_LIBRARY})
