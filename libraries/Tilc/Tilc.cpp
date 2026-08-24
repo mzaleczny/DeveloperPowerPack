@@ -1,6 +1,7 @@
 #include "Tilc/Tilc.h"
 #if (BUILD_WITH_SDL3 == 1) && (BUILD_WITH_SDL3_IMAGE == 1) && (BUILD_WITH_OPENGL == 1)
 	#include "Tilc/Game3D/World/World.h"
+	#include "Tilc/Resources/TextureManager.h"
 #endif
 #if BUILD_WITH_GUI == 1
 	#include "Tilc/Gui/Theme.h"

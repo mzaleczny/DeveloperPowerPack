@@ -393,7 +393,10 @@ endif()
 if("${BUILD_WITH_MARIADB}" STREQUAL "1")
     AddSourcesRecurse(Tilc/Data)
 else()
-    AddSourcesLists("Tilc/Data/Db.cpp;Tilc/Data/DbSQLite.cpp;Tilc/Data/DataProcessor.cpp;Tilc/Data/sqlite3.c" "Tilc/Data/Db.h;Tilc/Data/DbSQLite.h;Tilc/Data/DataProcessor.h;Tilc/Data/sqlite3.h")
+    AddSourcesLists(
+        "Tilc/Data/Db.cpp;Tilc/Data/DbSQLite.cpp;Tilc/Data/DataDbResources.cpp;Tilc/Data/DataProcessor.cpp;Tilc/Data/sqlite3.c"
+        "Tilc/Data/Db.h;Tilc/Data/DbSQLite.h;Tilc/Data/DataDbResources.h;Tilc/Data/DataProcessor.h;Tilc/Data/sqlite3.h"
+    )
 endif()
 AddSourcesRecurse(Tilc/Documents)
 
@@ -710,7 +713,7 @@ add_definitions (-DDLL_EXPORT -DGLM_ENABLE_EXPERIMENTAL)
 
 
 if ("${BUILD_WITH_OPENGL}" STREQUAL "1")
-    list(ADD Tilc_SOURCES ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
+    list(APPEND Tilc_SOURCES ${CMAKE_SOURCE_DIR}/Glad/src/glad.c)
 endif()
 
 add_library("${PROJECT_NAME}Shared" SHARED ${Tilc_SOURCES} ${Tilc_HEADERS} ${Tilc_SOURCES_OS} ${Tilc_HEADERS_OS})

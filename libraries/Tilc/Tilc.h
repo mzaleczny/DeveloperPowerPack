@@ -3,6 +3,7 @@
 #include "Tilc/configure.h"
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Globals.h"
+#include "Tilc/Game.h"
 
 #include <string>
 #include <random>
@@ -13,7 +14,7 @@
 	using SDL_AppResult = int;
 #endif
 #if BUILD_WITH_SDL3_IMAGE == 1
-	#include <SDL3_ttf/SDL_image.h>
+	#include <SDL3_image/SDL_image.h>
 #endif
 #if BUILD_WITH_SDL3_TTF == 1
 	#include <SDL3_ttf/SDL_ttf.h>
