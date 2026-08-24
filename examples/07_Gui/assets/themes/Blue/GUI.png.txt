@@ -190,3 +190,15 @@ listbox_frame_top_rc: 48, 1036, 1, 2
 listbox_frame_bottom_rc: 49, 1036, 1, 2
 listbox_bg_rc: 50, 1036, 1, 1
 listbox_bg_selected_rc: 51, 1036, 1, 1
+combobox_frame_top_left_rc: 80, 0, 2, 2
+combobox_frame_top_right_rc: 82, 0, 2, 2
+combobox_frame_bottom_left_rc: 84, 0, 2, 2
+combobox_frame_bottom_right_rc: 86, 0, 2, 2
+combobox_frame_left_rc: 88, 0, 2, 1
+combobox_frame_right_rc: 90, 0, 2, 1
+combobox_frame_top_rc: 92, 0, 1, 2
+combobox_frame_bottom_rc: 93, 0, 1, 2
+combobox_bg_rc: 94, 0, 1, 1
+combobox_bg_selected_rc: 95, 0, 1, 1
+combobox_chevron_down_rc: 96, 0, 25, 25
+combobox_chevron_up_rc: 121, 0, 25, 25
