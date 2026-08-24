@@ -106,6 +106,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     SDL_RenderClear(renderer);
 
     RenderWindow();
+
+    // KOLUMNA #1
     RenderScrollBars(16);
     RenderScrollBars(10, "small");
     RenderButtons("button", 75, 25);
@@ -139,6 +141,21 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     AddX(2*1, 0);
     RenderButtonsByNamesHorizontal({ "listbox_bg", "listbox_bg_selected" }, 1, 1, 10);
 
+    // KOLUMNA #2
+    CurrentColumnWidth = 80;
+    X = CurrentColumnWidth;
+    CurrentColumnX = X;
+    Y = 0;
+    RenderButtonsByNamesHorizontal({ "combobox_frame_top_left", "combobox_frame_top_right", "combobox_frame_bottom_left", "combobox_frame_bottom_right" }, 2, 2, 10);
+    AddX(4 * 2, 0);
+    RenderButtonsByNamesHorizontal({ "combobox_frame_left", "combobox_frame_right" }, 2, 1, 10);
+    AddX(2 * 2, 0);
+    RenderButtonsByNamesHorizontal({ "combobox_frame_top", "combobox_frame_bottom" }, 1, 2, 10);
+    AddX(2 * 1, 0);
+    RenderButtonsByNamesHorizontal({ "combobox_bg", "combobox_bg_selected" }, 1, 1, 10);
+    AddX(2 * 1, 0);
+    RenderButtonsByNamesHorizontal({ "combobox_chevron_down", "combobox_chevron_up" }, 25, 25, 10);
+    AddY(25, 0);
     SDL_SetRenderTarget(renderer, nullptr);
 
     //return SDL_APP_CONTINUE;
@@ -1014,7 +1031,7 @@ SDL_Texture* LoadSVG(const char* Filename, int Width, int Height)
 
 void AddX(int Value, int NextItemWidth)
 {
-    if (X + Value + NextItemWidth >= CurrentColumnWidth)
+    if (X + Value + NextItemWidth >= CurrentColumnX + CurrentColumnWidth)
     {
         X = 0;
         Y += CurrentRowHeight;
