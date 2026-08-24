@@ -76,13 +76,14 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     LoadCheckboxSkinResources(name);
     LoadOptionSkinResources(name);
     LoadGridSkinResources(name);
+    LoadListboxSkinResources(name);
+    LoadComboBoxSkinResources(name);
 
     this->LoadPanelSkinResources(name);
     this->LoadMenuSkinResources(name);
     this->LoadPopupmenuSkinResources(name);
     this->LoadToolbar16SkinResources(name);
     this->LoadLabelSkinResources(name);
-    this->LoadListboxSkinResources(name);
 
     LayoutInputStream.close();
 
@@ -975,6 +976,53 @@ void Tilc::Gui::TTheme::LoadGridSkinResources(Tilc::TExtString themeName)
     commonGridControlSelectionBorderColor = this->_getIniColorValue(settings_fname, L"border_color_selection");
     commonGridControlFocusedGridBorderColor = this->_getIniColorValue(settings_fname, L"border_color_focused_grid");
     */
+}
+
+void Tilc::Gui::TTheme::LoadComboBoxSkinResources(Tilc::TExtString themeName)
+{
+    if (GameObject)
+    {
+        Tilc::TExtString Line;
+        while (std::getline(LayoutInputStream, Line))
+        {
+            std::stringstream Keystream(Line);
+            Tilc::TExtString Item, sx, sy, sw, sh;
+            Keystream >> Item >> sx >> sy >> sw >> sh;
+            Item = Item.substr(0, Item.length() - 1);
+            sx = sx.substr(0, sx.length() - 1);
+            sy = sy.substr(0, sy.length() - 1);
+            sw = sw.substr(0, sw.length() - 1);
+            //sh = sh.substr(0, sh.length() - 1);
+
+            if (Item == "combobox_frame_top_left_rc")
+                combobox_frame_top_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_frame_top_right_rc")
+                combobox_frame_top_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_frame_bottom_left_rc")
+                combobox_frame_bottom_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_frame_bottom_right_rc")
+                combobox_frame_bottom_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_frame_left_rc")
+                combobox_frame_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_frame_right_rc")
+                combobox_frame_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_frame_top_rc")
+                combobox_frame_top_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_frame_bottom_rc")
+                combobox_frame_bottom_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_bg_rc")
+                combobox_bg_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_bg_selected_rc")
+                combobox_bg_selected_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_chevron_down_rc")
+                combobox_chevron_down_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "combobox_chevron_up_rc")
+            {
+                combobox_chevron_up_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                break;
+            }
+        }
+    }
 }
 
 void Tilc::Gui::TTheme::CreateComplexRects(const SDL_FRect& LeftRc, const SDL_FRect& MiddleRc, const SDL_FRect& RightRc,

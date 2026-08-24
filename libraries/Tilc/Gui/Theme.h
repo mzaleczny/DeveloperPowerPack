@@ -401,6 +401,25 @@ namespace Tilc {
             SDL_Color commonGridControlSelectionBorderColor{ 0, 0, 0, 255 };
             SDL_Color commonGridControlFocusedGridBorderColor{ 0, 0, 0, 255 };
 
+
+            // listbox bitmaps
+            SDL_FRect combobox_frame_top_left_rc;
+            SDL_FRect combobox_frame_top_rc;
+            SDL_FRect combobox_frame_top_right_rc;
+            SDL_FRect combobox_frame_bottom_left_rc;
+            SDL_FRect combobox_frame_bottom_rc;
+            SDL_FRect combobox_frame_bottom_right_rc;
+            SDL_FRect combobox_frame_left_rc;
+            SDL_FRect combobox_frame_right_rc;
+            SDL_FRect combobox_bg_rc;
+            SDL_FRect combobox_bg_selected_rc;
+            SDL_FRect combobox_chevron_down_rc;
+            SDL_FRect combobox_chevron_up_rc;
+            // fill colors for use by SDL_RenderFilledRect, because SDL_RenderTextureTiled cause much much much memory use from one pixel source rect and large destination rect
+            // no idea why
+            SDL_Color combobox_bg{ 0x52, 0x90, 0xfb, 0xff };
+            SDL_Color combobox_bg_selected{ 0xb0, 0xcd, 0xfe, 0xff };
+
             /*
             // Dostępne fonty
             CFont* globalStandardFont;
@@ -440,6 +459,7 @@ namespace Tilc {
             void LoadOptionSkinResources(Tilc::TExtString themeName);
             void LoadListboxSkinResources(Tilc::TExtString themeName);
             void LoadGridSkinResources(Tilc::TExtString themeName);
+            void LoadComboBoxSkinResources(Tilc::TExtString themeName);
         protected:
             Tilc::TExtString m_ThemeName;
             Tilc::TExtString m_ThemeDir;
