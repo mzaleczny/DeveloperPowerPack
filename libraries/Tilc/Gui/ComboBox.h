@@ -31,6 +31,7 @@ namespace Tilc {
             int m_RollDirection{ 0 };
             float m_RollSpeed{ 750.0f };
             bool m_DropDownVisible{};
+            bool m_AllowCloseDropDownList{ true };
             TListbox* m_DropDownItems{};
             SDL_FRect m_ChevronRect;
         };

@@ -13,7 +13,7 @@ int Tilc::Gui::DefaultComboDropDownClicked(float x, float y, Uint8 MouseButton, 
 
     if (DropDownList->m_VScrollBar && DropDownList->m_VScrollBar->IsVisible())
     {
-        if (x >= DropDownList->m_VScrollBar->m_RealPosition.x && x <= DropDownList->m_VScrollBar->m_RealPosition.x + DropDownList->m_VScrollBar->m_RealPosition.w)
+        if (Tilc::Gui::TGuiControl::GetLastClickedControl() != DropDownList)
         {
             ApplyAndClose = false;
         }
