@@ -476,6 +476,7 @@ namespace Tilc {
             }
             inline bool IsMouseCaptured() { return m_ControlThatCapturedMouse != nullptr; }
             inline static Tilc::Gui::TGuiControl* GetControlThatCapturedMouse() { return m_ControlThatCapturedMouse; }
+            inline static Tilc::Gui::TGuiControl* GetLastClickedControl() { return m_LastClickedControl; }
 
             // Reset control and all it's children to default state
             void ResetToDefaultState();
@@ -647,6 +648,8 @@ namespace Tilc {
             // Wskaźnik na sprite'a, na którym zarezerwowano zdarzenia WM_MOUSE (w wyniku kliknięcia na nim).
             // Jeśli jest różny od NULL, to inne Sprite'y powinny ignorować zdarzenia myszki.
             static TGuiControl* m_ControlThatCapturedMouse;
+            // Wskazuje kontrolkę, która została ostatnio kliknięta. Zmienna ta nigdy nie jest zerowana i zawsze jest ustawiana w funckji MouseDown klasy TGuiControl.
+            inline static TGuiControl* m_LastClickedControl{};
 
             void CommonInit(bool editable);
             void DestroyCanvasIfNeedDestroy();

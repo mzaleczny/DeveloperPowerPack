@@ -451,6 +451,7 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonDown(const SDL_Event& event)
         //SDL_Log("m_Dragging set to True");
         m_DragStartX = event.button.x;
         m_DragStartY = event.button.y;
+        Tilc::Gui::TGuiControl::m_LastClickedControl = this;
 
         Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
         wnd->CaptureMouse(this);
