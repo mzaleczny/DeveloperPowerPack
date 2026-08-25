@@ -205,6 +205,12 @@ void Tilc::Gui::TListbox::SetItems(const Tilc::TStringVector& items, bool redraw
     }
 }
 
+void Tilc::Gui::TListbox::SetSize(float width, float height)
+{
+    TGuiControl::SetSize(width, height);
+    m_VisibleItems = m_RealPosition.h / m_MeasuredTextSize.y;
+}
+
 Tilc::TExtString Tilc::Gui::TListbox::GetText()
 {
     Tilc::TExtString result;

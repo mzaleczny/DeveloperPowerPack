@@ -111,26 +111,13 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
         if (m_RollDirection == 1 && m_CurrentDropDownHeight < m_DestinationDropDownHeight)
         {
             m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
-            if (m_DropDownItems)
-            {
-                // Ustawiamy rozmiar scrollbarów
-                m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
-                // i ustawiamy ich widoczność
-                m_DropDownItems->SetScrollBars();
-            }
-            Invalidate();
             if (m_CurrentDropDownHeight > m_DestinationDropDownHeight)
             {
                 // rozwinęliśmy, więc zablokuj dalsze rozwijanie
                 m_CurrentDropDownHeight = m_DestinationDropDownHeight;
                 m_RollDirection = 0;
             }
-        }
-        // tutaj zwijamy
-        else if (m_RollDirection == -1 && m_CurrentDropDownHeight > 0.0f)
-        {
-            m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
-            if (m_DropDownItems)
+            else if (m_DropDownItems)
             {
                 // Ustawiamy rozmiar scrollbarów
                 m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
@@ -138,6 +125,11 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
                 m_DropDownItems->SetScrollBars();
             }
             Invalidate();
+        }
+        // tutaj zwijamy
+        else if (m_RollDirection == -1 && m_CurrentDropDownHeight > 0.0f)
+        {
+            m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
             if (m_CurrentDropDownHeight < 0.0f)
             {
                 // rozwinęliśmy, więc zablokuj dalsze zwijanie
@@ -145,6 +137,14 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
                 m_RollDirection = 0;
                 m_DropDownVisible = false;
             }
+            else if (m_DropDownItems)
+            {
+                // Ustawiamy rozmiar scrollbarów
+                m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
+                // i ustawiamy ich widoczność
+                m_DropDownItems->SetScrollBars();
+            }
+            Invalidate();
         }
     }
     return false;

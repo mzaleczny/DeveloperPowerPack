@@ -20,6 +20,7 @@ namespace Tilc {
             void SetItems(std::initializer_list<const char*> items, bool redraw = true);
             void SetItems(Tilc::TExtString& items, bool redraw = true);
             void SetItems(const Tilc::TStringVector& items, bool redraw = true);
+            virtual void SetSize(float width, float height) override;
 
             // zwraca przechowywany w kontrolce tekst
             virtual Tilc::TExtString GetText() override;
