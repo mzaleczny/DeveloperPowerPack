@@ -711,7 +711,12 @@ bool Tilc::Gui::TListbox::OnMouseButtonDown(const SDL_Event& event)
         CaptureMouse(this);
 
         Tilc::Gui::TTheme* t = GetTheme();
-        int ClickedItem = (event.button.y - m_RealPosition.y - t->listbox_frame_top_rc.h) / m_MeasuredTextSize.y;
+        int ClickedItem = (event.button.y - m_RealPosition.y - t->listbox_frame_top_rc.h);
+        if (m_VScrollBar)
+        {
+            ClickedItem += m_TopItemIndex * m_MeasuredTextSize.y;
+        }
+        ClickedItem /= m_MeasuredTextSize.y;
         SelectItem(ClickedItem);
 
         return true;
