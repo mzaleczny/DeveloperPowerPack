@@ -29,6 +29,12 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
     Tilc::Gui::TComboBox* cmb = new Tilc::Gui::TComboBox(wnd, "combobox1", { x, y, w, h }, "[Wybierz wartość]",
         {"Opcja numer 1", "Opcja numer 2", "Opcja numer 3", "Opcja numer 4", "Opcja numer 5", "Opcja numer 6", "Opcja numer 7", "Opcja numer 8"}
     );
+    Tilc::Gui::TComboBox* cmb2 = new Tilc::Gui::TComboBox(wnd, "combobox2", { x + 250.0f, y, w, h }, "[Wybierz wartość]",
+        {
+            "Opcja numer 1", "Opcja numer 2", "Opcja numer 3", "Opcja numer 4", "Opcja numer 5", "Opcja numer 6", "Opcja numer 7", "Opcja numer 8",
+            "Opcja numer 9", "Opcja numer 10", "Opcja numer 11", "Opcja numer 12", "Opcja numer 13", "Opcja numer 14", "Opcja numer 15", "Opcja numer 16"
+        }
+    );
 }
 
 TStateGame::~TStateGame()
