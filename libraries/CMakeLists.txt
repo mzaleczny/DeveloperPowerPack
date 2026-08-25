@@ -13,16 +13,16 @@ include(TilcConfigure.cmake)
 ################################################
 ## Prefer Clang if present
 ################################################
-find_program(CLANG_C_COMPILER NAMES clang)
-find_program(CLANG_CXX_COMPILER NAMES clang++)
+#find_program(CLANG_C_COMPILER NAMES clang)
+#find_program(CLANG_CXX_COMPILER NAMES clang++)
 
-if (CLANG_C_COMPILER AND CLANG_CXX_COMPILER)
-    message(STATUS "Clang found ${CLANG_C_COMPILER}, ${CLANG_CXX_COMPILER}")
-    set(CMAKE_C_COMPILER "${CLANG_C_COMPILER}" CACHE FILEPATH "" FORCE)
-    set(CMAKE_CXX_COMPILER "${CLANG_CXX_COMPILER}" CACHE FILEPATH "" FORCE)
-else()
-    message(STATUS "Clang not found, using default compiler")
-endif()
+#if (CLANG_C_COMPILER AND CLANG_CXX_COMPILER)
+#    message(STATUS "Clang found ${CLANG_C_COMPILER}, ${CLANG_CXX_COMPILER}")
+#    set(CMAKE_C_COMPILER "${CLANG_C_COMPILER}" CACHE FILEPATH "" FORCE)
+#    set(CMAKE_CXX_COMPILER "${CLANG_CXX_COMPILER}" CACHE FILEPATH "" FORCE)
+#else()
+#    message(STATUS "Clang not found, using default compiler")
+#endif()
 ################################################
 ################################################
 

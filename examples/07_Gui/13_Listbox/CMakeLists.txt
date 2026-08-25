@@ -18,6 +18,7 @@ endif()
 ################################################
 ################################################
 
+set(BUILD_WITH_SDL3 "1")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../../../libraries/cmake")
 find_package(Tilc REQUIRED)
 

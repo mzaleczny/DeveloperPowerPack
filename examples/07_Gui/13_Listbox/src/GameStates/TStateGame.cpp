@@ -70,6 +70,17 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
         "Vikings",
         "Vikings Valhalla",
         "Marco Polo",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "Marco Polo",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
         "Ostatnia pozycja"
         });
 
