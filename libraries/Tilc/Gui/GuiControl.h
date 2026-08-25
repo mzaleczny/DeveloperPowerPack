@@ -576,6 +576,8 @@ namespace Tilc {
             // domyślnie kontrolka nie jest Tickable, czyli ni jest dodawana do powyższej listy.
             bool m_IsTickable{};
 
+            virtual void SetScrollBars() {};
+
         protected:
             SDL_Texture* m_Canvas{};
             TStyledWindow* m_ParentWindow{};

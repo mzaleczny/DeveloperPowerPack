@@ -62,6 +62,8 @@ namespace Tilc {
             virtual bool OnMouseButtonDown(const SDL_Event& event) override;
             virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar) override;
 
+            virtual void SetScrollBars() override;
+
         protected:
             TGuiControlItemList m_Items;
             SDL_FPoint m_MeasuredTextSize;
@@ -80,7 +82,6 @@ namespace Tilc {
             int GetInnerTopLeftY();
             SDL_FPoint GetInnerSize(SDL_FRect* Position = nullptr);
             virtual void DeleteItems();
-            virtual void SetScrollBars();
 
             void CommonInit(const std::initializer_list<const char*>& items);
         };

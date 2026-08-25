@@ -113,7 +113,10 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
             m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
             if (m_DropDownItems)
             {
+                // Ustawiamy rozmiar scrollbarów
                 m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
+                // i ustawiamy ich widoczność
+                m_DropDownItems->SetScrollBars();
             }
             Invalidate();
             if (m_CurrentDropDownHeight > m_DestinationDropDownHeight)
@@ -129,7 +132,10 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
             m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
             if (m_DropDownItems)
             {
+                // Ustawiamy rozmiar scrollbarów
                 m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
+                // i ustawiamy ich widoczność
+                m_DropDownItems->SetScrollBars();
             }
             Invalidate();
             if (m_CurrentDropDownHeight < 0.0f)
