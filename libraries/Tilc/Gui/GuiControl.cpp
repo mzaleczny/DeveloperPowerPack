@@ -163,6 +163,23 @@ void Tilc::Gui::TGuiControl::Play(bool forward)
     m_Animation->Play();
 }
 
+void Tilc::Gui::TGuiControl::SetSize(float width, float height)
+{
+    m_Position.w = width;
+    m_Position.h = height;
+    GetRealPosition();
+    if (m_HScrollBar)
+    {
+        m_HScrollBar->m_Position.w = width;
+        m_HScrollBar->m_RealPosition.w = width;
+    }
+    if (m_VScrollBar)
+    {
+        m_VScrollBar->m_Position.h = height;
+        m_VScrollBar->m_RealPosition.h = height;
+    }
+}
+
 void Tilc::Gui::TGuiControl::SetMaxAvailableSizeOfScrollBars()
 {
     // jeśli mamy scrollbara poziomego
@@ -1257,6 +1274,18 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
             {
                 DoActualEventProcessing = true;
                 Target = *it;
+            }
+            // For the last step try to pass event to child controls of current control that are different than Vertical and Horizontal ScrollBars of current control
+            else if (m_Children.size() > 0)
+            {
+                for (auto ChildIt = (*it)->m_Children.begin(); ChildIt != (*it)->m_Children.end(); ++ChildIt)
+                {
+                    if (*ChildIt != (*it)->m_VScrollBar && *ChildIt != (*it)->m_HScrollBar)
+                    {
+                        if ((*ChildIt)->ProcessChildEvent(event)) return true;
+                        DoActualEventProcessing = false;
+                    }
+                }
             }
 
             if (DoActualEventProcessing && Target == *it)

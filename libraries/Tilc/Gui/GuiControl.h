@@ -115,6 +115,7 @@ namespace Tilc {
             virtual void DestroyChildren();
             virtual void DestroyChildWindows();
             virtual void Draw() {};
+            virtual void Draw(SDL_Texture* Canvas, SDL_FRect* Position) {};
             virtual void Draw(float x, float y,
                 SDL_FRect* frame_top_left_rc, SDL_FRect* frame_top_rc, SDL_FRect* frame_top_right_rc,
                 SDL_FRect* frame_bottom_left_rc, SDL_FRect* frame_bottom_rc, SDL_FRect* frame_bottom_right_rc,
@@ -237,11 +238,7 @@ namespace Tilc {
                 m_Position.x = x;
                 m_Position.y = y;
             }
-            virtual void SetSize(float width, float height)
-            {
-                m_Position.w = width;
-                m_Position.h = height;
-            }
+            virtual void SetSize(float width, float height);
             void SetMaxAvailableSizeOfScrollBars();
             bool IsPlaying() const;
             void Stop();
@@ -588,7 +585,7 @@ namespace Tilc {
             Tilc::TExtString m_Name;
             Tilc::TExtString m_Text;
             // Aktywna kontrolka - ta która aktualnie ma focus
-            TGuiControl* m_ActiveControl;
+            TGuiControl* m_ActiveControl{};
             // lista wszystkich okien na potrzeby z-orderingu
             std::list<Tilc::Gui::TStyledWindow*> m_AllWindows{};
             // Aktywne okno, pozwala ograniczyc wysylke zdarzen do kontrolek tylko tego okna
