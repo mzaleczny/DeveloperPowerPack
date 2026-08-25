@@ -58,6 +58,7 @@ namespace Tilc {
 
             // Funkcje obsługi zdarzeń
             virtual void Draw() override;
+            virtual void Draw(SDL_Texture* Canvas, SDL_FRect* Position) override;
             virtual bool OnMouseButtonDown(const SDL_Event& event) override;
             virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar) override;
 
@@ -77,7 +78,7 @@ namespace Tilc {
 
             int GetInnerTopLeftX();
             int GetInnerTopLeftY();
-            SDL_FPoint GetInnerSize();
+            SDL_FPoint GetInnerSize(SDL_FRect* Position = nullptr);
             virtual void DeleteItems();
             virtual void SetScrollBars();
 

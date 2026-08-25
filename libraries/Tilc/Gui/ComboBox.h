@@ -7,6 +7,8 @@
 
 namespace Tilc {
     namespace Gui {
+        class TListbox;
+
         class DECLSPEC TComboBox : public TTextField
         {
         public:
@@ -27,7 +29,7 @@ namespace Tilc {
             int m_RollDirection{ 0 };
             float m_RollSpeed{ 750.0f };
             bool m_DropDownVisible{};
-            std::vector<Tilc::TExtString> m_Items;
+            TListbox* m_DropDownItems{};
             SDL_FRect m_ChevronRect;
         };
     }

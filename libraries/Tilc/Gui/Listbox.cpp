@@ -524,12 +524,16 @@ int Tilc::Gui::TListbox::GetInnerTopLeftY()
     return m_Padding + t->listbox_frame_top_left_rc.h;
 }
 
-SDL_FPoint Tilc::Gui::TListbox::GetInnerSize()
+SDL_FPoint Tilc::Gui::TListbox::GetInnerSize(SDL_FRect* Position)
 {
+    if (!Position)
+    {
+        Position = &m_RealPosition;
+    }
     Tilc::Gui::TTheme* t = GetTheme();
     SDL_FPoint size{};
-    size.x = m_Position.w;
-    size.y = m_Position.h;
+    size.x = Position->w;
+    size.y = Position->h;
     if (t)
     {
         size.x -= m_Padding;
@@ -554,14 +558,20 @@ SDL_FPoint Tilc::Gui::TListbox::GetInnerSize()
 void Tilc::Gui::TListbox::Draw()
 {
     if (!m_Visible) return;
+    Draw(m_Canvas, &m_RealPosition);
+}
+
+void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
+{
+    if (!m_Visible) return;
     Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{ nullptr };
     Tilc::Gui::TFont* font = t->DefaultFont;
 
-    if (m_Canvas)
+    if (Canvas)
     {
         OldRenderTarget = SDL_GetRenderTarget(Renderer);
-        SDL_SetRenderTarget(Renderer, m_Canvas);
+        SDL_SetRenderTarget(Renderer, Canvas);
     }
 
     int x = 0;
@@ -584,7 +594,7 @@ void Tilc::Gui::TListbox::Draw()
     // Draw TListbox
     // ================================================================
     DrawCommonComplex(
-        GetRealPosition(),
+        *Position,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
@@ -594,7 +604,7 @@ void Tilc::Gui::TListbox::Draw()
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br
     );
 
-    rc = GetRealPosition();
+    rc = *Position;
     rc.x += t->listbox_frame_left_rc.w;
     rc.y += t->listbox_frame_top_rc.h;
     rc.w -= t->listbox_frame_left_rc.w + t->listbox_frame_right_rc.w;
@@ -614,22 +624,22 @@ void Tilc::Gui::TListbox::Draw()
         Tilc::Gui::TGuiControlItem* item;
         if (font)
         {
-            SDL_FPoint innerSize = GetInnerSize();
+            SDL_FPoint innerSize = GetInnerSize(Position);
             SDL_FPoint size{ static_cast<float>(m_SpaceWidth), static_cast<float>(m_SpaceHeight) };
 
-            x = GetInnerTopLeftX() + m_RealPosition.x;
-            y = GetInnerTopLeftY() + m_RealPosition.y;
-            SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x), static_cast<float>(size.y)};
+            x = GetInnerTopLeftX() + Position->x;
+            y = GetInnerTopLeftY() + Position->y;
+            SDL_FRect itemRect{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x), static_cast<float>(size.y) };
             SDL_Rect OrigClipRect, ControlClipRect;
             for (int i = m_TopItemIndex; i < m_Items.size(); ++i)
             {
-                if (itemRect.y >= m_RealPosition.y + m_Padding + innerSize.y)
+                if (itemRect.y >= Position->y + m_Padding + innerSize.y)
                 {
                     break;
                 }
-                if (itemRect.y + itemRect.h  >= m_RealPosition.y + innerSize.y)
+                if (itemRect.y + itemRect.h >= Position->y + innerSize.y)
                 {
-                    itemRect.h = m_RealPosition.y + m_Padding + innerSize.y - itemRect.y;
+                    itemRect.h = Position->y + m_Padding + innerSize.y - itemRect.y;
                 }
                 if (i - m_TopItemIndex + 1 == m_VisibleItems)
                 {
@@ -671,9 +681,9 @@ void Tilc::Gui::TListbox::Draw()
     // ================================================================
     // ================================================================
 
-    DrawChildren(false);    
+    DrawChildren(false);
 
-    if (m_Canvas)
+    if (Canvas)
     {
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
     }

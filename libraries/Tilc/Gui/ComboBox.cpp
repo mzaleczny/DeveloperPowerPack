@@ -1,4 +1,6 @@
 #include "Tilc/Gui/ComboBox.h"
+#include "Tilc/Gui/Listbox.h"
+#include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Theme.h"
 
@@ -6,12 +8,13 @@
 Tilc::Gui::TComboBox::TComboBox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, const std::initializer_list<const char*>& Items, bool tabStop)
     : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_ComboBox, "", tabStop)
 {
-    SetItems(Items);
     m_PaddingRight = 25.0f;
 
     m_ChevronRect = m_Position;
     m_ChevronRect.x = m_ChevronRect.w - m_PaddingRight;
     m_ChevronRect.y = 0;
+
+    SetItems(Items);
 
     SetTickable(true);
 }
@@ -22,9 +25,17 @@ Tilc::Gui::TComboBox::~TComboBox()
 
 void Tilc::Gui::TComboBox::SetItems(const std::initializer_list<const char*>& Items)
 {
-    for (auto it = Items.begin(); it != Items.end(); ++it)
+    if (!m_DropDownItems)
     {
-        m_Items.push_back(*it);
+        SDL_FRect Position = m_Position;
+        Position.x = 0;
+        Position.y = m_Position.h;
+        Position.h = 0;
+        m_DropDownItems = new TListbox(this, m_Name + "_DropdownList", Position);
+    }
+    if (m_DropDownItems)
+    {
+        m_DropDownItems->SetItems(Items);
     }
 }
 
@@ -67,11 +78,12 @@ void Tilc::Gui::TComboBox::Draw()
     // ================================================================
     // Draw DropDownList
     // ================================================================
-    if (m_DropDownVisible)
+    if (m_DropDownVisible && m_DropDownItems)
     {
         SDL_FRect rc = m_RealPosition;
         rc.y += rc.h;
         rc.h = m_CurrentDropDownHeight;
+        /*
         DrawCommonComplex(
             rc,
             frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
@@ -82,6 +94,8 @@ void Tilc::Gui::TComboBox::Draw()
             frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
             frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br
         );
+        */
+        m_DropDownItems->Draw(nullptr, &rc);
     }
     if (m_Canvas)
     {
@@ -97,6 +111,10 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
         if (m_RollDirection == 1 && m_CurrentDropDownHeight < m_DestinationDropDownHeight)
         {
             m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
+            if (m_DropDownItems)
+            {
+                m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
+            }
             Invalidate();
             if (m_CurrentDropDownHeight > m_DestinationDropDownHeight)
             {
@@ -109,6 +127,10 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
         else if (m_RollDirection == -1 && m_CurrentDropDownHeight > 0.0f)
         {
             m_CurrentDropDownHeight += m_RollDirection * m_RollSpeed * DeltaTime;
+            if (m_DropDownItems)
+            {
+                m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
+            }
             Invalidate();
             if (m_CurrentDropDownHeight < 0.0f)
             {
