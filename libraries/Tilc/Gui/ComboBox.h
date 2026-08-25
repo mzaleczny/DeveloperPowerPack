@@ -23,6 +23,8 @@ namespace Tilc {
             // Funkcje obsługi zdarzeń
             virtual bool OnMouseMove(const SDL_Event& event) override;
             virtual bool OnMouseButtonDown(const SDL_Event& event) override;
+
+            friend int DefaultComboDropDownClicked(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* DropDown);
         protected:
             float m_CurrentDropDownHeight{};
             float m_DestinationDropDownHeight{150.0f};

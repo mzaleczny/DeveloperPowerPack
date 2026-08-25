@@ -1,12 +1,38 @@
 #include "Tilc/Gui/ComboBox.h"
 #include "Tilc/Gui/Listbox.h"
 #include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/Gui/ScrollBar.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Theme.h"
 
+int Tilc::Gui::DefaultComboDropDownClicked(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* DropDown)
+{
+    Tilc::Gui::TListbox* DropDownList = reinterpret_cast<Tilc::Gui::TListbox*>(DropDown);
+    Tilc::Gui::TComboBox* Combo = reinterpret_cast<Tilc::Gui::TComboBox*>(DropDown->GetParent());
+    bool ApplyAndClose = true;
+
+    if (DropDownList->m_VScrollBar && DropDownList->m_VScrollBar->IsVisible())
+    {
+        if (x >= DropDownList->m_VScrollBar->m_RealPosition.x && x <= DropDownList->m_VScrollBar->m_RealPosition.x + DropDownList->m_VScrollBar->m_RealPosition.w)
+        {
+            ApplyAndClose = false;
+        }
+    }
+
+    if (ApplyAndClose)
+    {
+        Combo->SetText(DropDownList->GetSelectedItemValue());
+        // Zwijamy
+        Combo->m_DropDownVisible = false;
+        Combo->m_RollDirection = 0;
+        Combo->m_CurrentDropDownHeight = 0.0f;
+    }
+    return 0;
+}
+
 
 Tilc::Gui::TComboBox::TComboBox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, const std::initializer_list<const char*>& Items, bool tabStop)
-    : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_ComboBox, "", tabStop)
+    : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_ComboBox, text, tabStop)
 {
     m_PaddingRight = 25.0f;
 
@@ -36,6 +62,7 @@ void Tilc::Gui::TComboBox::SetItems(const std::initializer_list<const char*>& It
     if (m_DropDownItems)
     {
         m_DropDownItems->SetItems(Items);
+        m_DropDownItems->OnClick = &Tilc::Gui::DefaultComboDropDownClicked;
     }
 }
 
