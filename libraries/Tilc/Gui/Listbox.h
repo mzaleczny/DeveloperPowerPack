@@ -17,7 +17,7 @@ namespace Tilc {
             TListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, std::initializer_list<const char*> items);
             virtual  ~TListbox();
 
-            void SetItems(std::initializer_list<const char*> items, bool redraw = true);
+            void SetItems(const std::initializer_list<const char*> items, bool redraw = true);
             void SetItems(Tilc::TExtString& items, bool redraw = true);
             void SetItems(const Tilc::TStringVector& items, bool redraw = true);
             virtual void SetSize(float width, float height) override;
@@ -68,6 +68,8 @@ namespace Tilc {
         protected:
             TGuiControlItemList m_Items;
             SDL_FPoint m_MeasuredTextSize;
+            SDL_Color m_TextColor{0xff, 0xff, 0xff, 0xff};
+
             //CImageList* _imageList;
             bool m_IsCheckedList{}; //if checkbox near items are drawed and item.checked attribute is applied
             bool m_IsMultiselect{};

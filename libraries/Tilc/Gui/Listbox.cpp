@@ -13,7 +13,7 @@ void Tilc::Gui::TListbox::CommonInit(const std::initializer_list<const char*>& i
 {
     m_TopItemIndex = -1;
     m_TabStop = true;
-    m_Padding = 2;
+    m_Padding = 4;
 
     Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
     Tilc::Gui::TFont* font = t->DefaultFont;
@@ -112,7 +112,7 @@ void Tilc::Gui::TListbox::SetScrollBars()
     SetMaxAvailableSizeOfScrollBars();
 }
 
-void Tilc::Gui::TListbox::SetItems(std::initializer_list<const char*> items, bool redraw)
+void Tilc::Gui::TListbox::SetItems(const std::initializer_list<const char*> items, bool redraw)
 {
     DeleteItems();
     Tilc::TStringVector Lst;
@@ -173,6 +173,8 @@ void Tilc::Gui::TListbox::SetItems(const Tilc::TStringVector& items, bool redraw
             if (t && t->DefaultFont)
             {
                 t->DefaultFont->GetTextSize(item->m_Value.c_str(), Width, Height);
+                // overwrite text height as m_MeasuredTextSize.y can be 1 pixel greater ten current Height, so we must unifying this
+                Height = m_MeasuredTextSize.y;
                 if (Width > maxItemWidth)
                 {
                     maxItemWidth += Width;
@@ -632,18 +634,19 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
         {
             SDL_FPoint innerSize = GetInnerSize(Position);
             SDL_FPoint size{ static_cast<float>(m_SpaceWidth), static_cast<float>(m_SpaceHeight) };
-
             x = GetInnerTopLeftX() + Position->x;
             y = GetInnerTopLeftY() + Position->y;
             SDL_FRect itemRect{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x), static_cast<float>(size.y) };
             SDL_Rect OrigClipRect, ControlClipRect;
+            font->SetColor(m_TextColor);
             for (int i = m_TopItemIndex; i < m_Items.size(); ++i)
             {
-                if (itemRect.y >= Position->y + m_Padding + innerSize.y)
+                item = m_Items[i];
+                if (itemRect.y + size.y > Position->y + m_Padding + innerSize.y)
                 {
                     break;
                 }
-                if (itemRect.y + itemRect.h >= Position->y + innerSize.y)
+                if (itemRect.y + itemRect.h >= Position->y + m_Padding + innerSize.y)
                 {
                     itemRect.h = Position->y + m_Padding + innerSize.y - itemRect.y;
                 }
@@ -652,7 +655,6 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
                     ControlClipRect = FRectToRectFloor(&itemRect);
                     SDL_SetRenderClipRect(Renderer, &ControlClipRect);
                 }
-                item = m_Items[i];
                 if (item)
                 {
                     if (m_IsMultiselect)
@@ -660,8 +662,12 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
                         if (item->m_Selected)
                         {
                             //RenderTiledTexture(t->GuiTextureMap1, &t->listbox_bg_selected_rc, &itemRect);
+                            itemRect.x -= m_Padding;
+                            itemRect.w += m_Padding;
                             SDL_SetRenderDrawColor(Renderer, t->listbox_bg_selected.r, t->listbox_bg_selected.g, t->listbox_bg_selected.b, t->listbox_bg_selected.a);
                             SDL_RenderFillRect(Renderer, &itemRect);
+                            itemRect.w -= m_Padding;
+                            itemRect.x += m_Padding;
                         }
                     }
                     else
@@ -669,11 +675,15 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
                         if (m_SelectedItem == i)
                         {
                             //RenderTiledTexture(t->GuiTextureMap1, &t->listbox_bg_selected_rc, &itemRect);
+                            itemRect.x -= m_Padding;
+                            itemRect.w += m_Padding;
                             SDL_SetRenderDrawColor(Renderer, t->listbox_bg_selected.r, t->listbox_bg_selected.g, t->listbox_bg_selected.b, t->listbox_bg_selected.a);
                             SDL_RenderFillRect(Renderer, &itemRect);
+                            itemRect.w -= m_Padding;
+                            itemRect.x += m_Padding;
                         }
                     }
-                    font->DrawString(Renderer, item->m_Value.c_str(), &itemRect);
+                    font->DrawString(Renderer, (item->m_Value + ": " + std::to_string(i+1) + " / " + std::to_string(m_Items.size())).c_str(), &itemRect);
                     itemRect.y += size.y;
                 }
                 if (i - m_TopItemIndex + 1 == m_VisibleItems)
