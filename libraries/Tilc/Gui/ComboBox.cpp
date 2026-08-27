@@ -1,5 +1,6 @@
 #include "Tilc/Gui/ComboBox.h"
 #include "Tilc/Gui/Listbox.h"
+#include "Tilc/Gui/MultiColumnListbox.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/ScrollBar.h"
 #include "Tilc/Gui/Font.h"
@@ -26,12 +27,28 @@ int Tilc::Gui::DefaultComboDropDownClicked(float x, float y, Uint8 MouseButton, 
         Combo->m_DropDownVisible = false;
         Combo->m_RollDirection = 0;
         Combo->m_CurrentDropDownHeight = 0.0f;
+
+        Combo->RemoveDropDownFromPrivilegedList();
     }
     return 0;
 }
 
 
 Tilc::Gui::TComboBox::TComboBox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, const std::initializer_list<const char*>& Items, bool tabStop)
+    : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_ComboBox, text, tabStop)
+{
+    m_PaddingRight = 25.0f;
+
+    m_ChevronRect = m_Position;
+    m_ChevronRect.x = m_ChevronRect.w - m_PaddingRight;
+    m_ChevronRect.y = 0;
+
+    SetItems(Items);
+
+    SetTickable(true);
+}
+
+Tilc::Gui::TComboBox::TComboBox(Tilc::Gui::TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const Tilc::TExtString& text, const std::vector<std::initializer_list<const char*>>& Items, bool tabStop)
     : Tilc::Gui::TTextField(parent, name, position, Tilc::Gui::EControlType::ECT_ComboBox, text, tabStop)
 {
     m_PaddingRight = 25.0f;
@@ -63,6 +80,24 @@ void Tilc::Gui::TComboBox::SetItems(const std::initializer_list<const char*>& It
     {
         m_DropDownItems->SetItems(Items);
         m_DropDownItems->OnClick = &Tilc::Gui::DefaultComboDropDownClicked;
+    }
+}
+
+void Tilc::Gui::TComboBox::SetItems(const std::vector<std::initializer_list<const char*>>& Items, bool redraw)
+{
+    if (!m_DropDownItems)
+    {
+        SDL_FRect Position = m_Position;
+        Position.x = 0;
+        Position.y = m_Position.h;
+        Position.h = 0;
+        m_DropDownItems = new TMultiColumnListbox(this, m_Name + "_DropdownList", Position, {});
+    }
+    if (m_DropDownItems)
+    {
+        Tilc::Gui::TMultiColumnListbox* mlb = reinterpret_cast<Tilc::Gui::TMultiColumnListbox*>(m_DropDownItems);
+        mlb->SetItems(Items);
+        mlb->OnClick = &Tilc::Gui::DefaultComboDropDownClicked;
     }
 }
 
@@ -103,27 +138,23 @@ void Tilc::Gui::TComboBox::Draw()
     SDL_FRect frame_l = t->combobox_frame_left_rc;
     SDL_FRect frame_r = t->combobox_frame_right_rc;
     // ================================================================
-    // Draw DropDownList
+    // Draw DropDownList - jest rysowany z poziou listy uprzywilejowanych kontrolek: Tilc::Gui::TGuiControl::m_HighPrivilegedControls
     // ================================================================
+    /*
     if (m_DropDownVisible && m_DropDownItems)
     {
-        SDL_FRect rc = m_RealPosition;
-        rc.y += rc.h;
-        rc.h = m_CurrentDropDownHeight;
-        /*
-        DrawCommonComplex(
-            rc,
-            frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
-            frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
-            frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
-            frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
-            frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
-            frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
-            frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br
-        );
-        */
-        m_DropDownItems->Draw(nullptr, &rc);
+        m_DropDownRect = m_RealPosition;
+        m_DropDownRect.y += m_DropDownRect.h;
+        m_DropDownRect.h = m_CurrentDropDownHeight;
+        if (Tilc::Gui::TGuiControl::m_HighPrivilegedDrawCalls.find(this) == Tilc::Gui::TGuiControl::m_HighPrivilegedDrawCalls.end())
+        {
+            Tilc::Gui::TGuiControl::m_HighPrivilegedDrawCalls[this] =
+                [this]() {
+                    m_DropDownItems->Draw(nullptr, &m_DropDownRect);
+                };
+        }
     }
+    */
     if (m_Canvas)
     {
         SDL_SetRenderTarget(Renderer, OldRenderTarget);
@@ -143,6 +174,10 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
                 // rozwinęliśmy, więc zablokuj dalsze rozwijanie
                 m_CurrentDropDownHeight = m_DestinationDropDownHeight;
                 m_RollDirection = 0;
+                // Ustawiamy rozmiar scrollbarów
+                m_DropDownItems->SetSize(m_RealPosition.w, m_CurrentDropDownHeight);
+                // i ustawiamy ich widoczność
+                m_DropDownItems->SetScrollBars();
             }
             else if (m_DropDownItems)
             {
@@ -163,6 +198,7 @@ bool Tilc::Gui::TComboBox::Update(float DeltaTime)
                 m_CurrentDropDownHeight = 0.0f;
                 m_RollDirection = 0;
                 m_DropDownVisible = false;
+                RemoveDropDownFromPrivilegedList();
             }
             else if (m_DropDownItems)
             {
@@ -209,6 +245,7 @@ bool Tilc::Gui::TComboBox::OnMouseButtonDown(const SDL_Event& event)
                 // Rozwijamy
                 m_DropDownVisible = true;
                 m_RollDirection = 1;
+                AddDropDownToPrivilegedList();
             }
             else if (m_RollDirection == 1)
             {
@@ -223,6 +260,7 @@ bool Tilc::Gui::TComboBox::OnMouseButtonDown(const SDL_Event& event)
                     // Rozwijamy
                     m_DropDownVisible = true;
                     m_RollDirection = 1;
+                    AddDropDownToPrivilegedList();
                 }
                 else
                 {
@@ -238,4 +276,22 @@ bool Tilc::Gui::TComboBox::OnMouseButtonDown(const SDL_Event& event)
     }
 
     return false;
+}
+
+void Tilc::Gui::TComboBox::AddDropDownToPrivilegedList()
+{
+    std::list<Tilc::Gui::TGuiControl*>& lst = Tilc::Gui::TGuiControl::m_HighPrivilegedControls;
+    if (std::find(lst.begin(), lst.end(), m_DropDownItems) == lst.end())
+    {
+        lst.push_back(m_DropDownItems);
+    }
+}
+
+void Tilc::Gui::TComboBox::RemoveDropDownFromPrivilegedList()
+{
+    std::list<Tilc::Gui::TGuiControl*>& lst = Tilc::Gui::TGuiControl::m_HighPrivilegedControlsToRemove;
+    if (std::find(lst.begin(), lst.end(), m_DropDownItems) == lst.end())
+    {
+        lst.push_back(m_DropDownItems);
+    }
 }
