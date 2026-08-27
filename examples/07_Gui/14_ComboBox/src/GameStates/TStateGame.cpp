@@ -5,6 +5,8 @@
 #include "Tilc/Gui/TextBox.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/ComboBox.h"
+#include "Tilc/Gui/Listbox.h"
+#include "Tilc/Gui/MultiColumnListbox.h"
 #include "Tilc/Gui/Option.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Theme.h"
@@ -35,6 +37,145 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
             "Opcja numer 9", "Opcja numer 10", "Opcja numer 11", "Opcja numer 12", "Opcja numer 13", "Opcja numer 14", "Opcja numer 15", "Opcja numer 16"
         }
     );
+    Tilc::Gui::TComboBox* cmb3 = new Tilc::Gui::TComboBox(wnd, "combobox3", { x + 500.0f, y, w, h }, "[Wybierz wartość]",
+        {
+            {"Antek", "12", "2014-08-26"},
+            {"Wojtek", "14", "2012-07-25"},
+            {"Paweł", "16", "2010-06-24"},
+            {"Łukasz", "18", "2008-04-20"},
+            {"Karol", "20", "2006-08-14"},
+            {"Edward", "26", "2000-01-11"}
+        }
+    );
+    Tilc::Gui::TComboBox* cmb4 = new Tilc::Gui::TComboBox(wnd, "combobox4", { x + 750.0f, y, w, h }, "[Wybierz wartość]",
+        {
+            {"Antek", "12", "2014-08-26"},
+            {"Wojtek", "14", "2012-07-25"},
+            {"Paweł", "16", "2010-06-24"},
+            {"Łukasz", "18", "2008-04-20"},
+            {"Karol", "20", "2006-08-14"},
+            {"Edward", "26", "2000-01-11"},
+            {"Antek", "12", "2014-08-26"},
+            {"Wojtek", "14", "2012-07-25"},
+            {"Paweł", "16", "2010-06-24"},
+            {"Łukasz", "18", "2008-04-20"},
+            {"Karol", "20", "2006-08-14"},
+            {"Edward", "26", "2000-01-11"}
+        }
+    );
+
+    x = 0.0f;
+    y = 65.0f;
+    w = 598.0f;
+    h = 735.0f;
+    Tilc::Gui::TListbox* lst = new Tilc::Gui::TListbox(wnd, "listbox", { x, y, w, h }, {
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "Marco Polo",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "Marco Polo",
+        "Witcher",
+        "Hobbit",
+        "Lord of the Rings",
+        "Vikings",
+        "Vikings Valhalla",
+        "Marco Polo",
+        "Terminator 2 Judgment Day - Arnold Schwarzeneger",
+        "Stargate SG1 - Richard Dean Anderson",
+        "Matrix - Keanu Reeves",
+        "Stargate Atlantis",
+        "McGyver - Richard Dean Anderson",
+        "Ostatnia pozycja"
+        });
+
+    Tilc::Gui::TMultiColumnListbox* mclst = new Tilc::Gui::TMultiColumnListbox(wnd, "listbox", { x + w + 2, y, w, h }, {
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+
+        { "Terminator 2 Judgment Day", "Arnold Schwarzeneger", "1"},
+        { "Stargate SG1", "Richard Dean Anderson", "2" },
+        { "Matrix", "Keanu Reeves", "3" },
+        { "Stargate Atlantis", "Do not remember :(", "4" },
+        { "McGyver", "Richard Dean Anderson", "5" },
+        { "Witcher", "Do not remember :(", "6" },
+        { "Hobbit", "Do not remember :(", "7" },
+        { "Lord of the Rings", "Do not remember :(", "8" },
+        { "Vikings", "Do not remember :(", "9" },
+        { "Vikings Valhalla", "Do not remember :(", "10" },
+        { "Marco Polo", "Do not remember :(", "11" },
+        { "Ostatnia pozycja", "---", "123" }
+        });
+    mclst->SetColumnWidths({ 200, 200, 50 });
 }
 
 TStateGame::~TStateGame()
