@@ -174,6 +174,11 @@ void Tilc::Gui::TStyledWindow::Draw()
         DrawVerticalAndHorizontalScrollBars();
         DrawCaption();
 
+        // Wywołujemy wszystkie priorytetowe kontrolki
+        for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(); ++it)
+        {
+            (*it)->Draw();
+        }
 
         /*
         if (this->_isBlur) {
