@@ -1,6 +1,6 @@
 #include "Game.h"
 #include "Tilc/Window.h"
-#include "Tilc/Gui/Textbox.h"
+#include "Tilc/Gui/TextBox.h"
 #include "Tilc/StateManager.h"
 #include "GameStates/TStateGame.h"
 
