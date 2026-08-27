@@ -46,6 +46,7 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
 {
 	static Tilc::TVector2D<float> LastPos(-1000.0f, -1000.0f);
 	static bool MouseDown = false;
+	bool MouseEvent = false;
 	Tilc::Graphics::TCamera* Camera = Tilc::GameObject->GetCurrentCamera();
 	if (Event->type == SDL_EVENT_QUIT || Tilc::GameObject->m_Window->IsDone())
 	{
@@ -94,15 +95,18 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
 	else if (Event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
 	{
 		MouseDown = true;
+        MouseEvent = true;
     }
 	else if (Event->type == SDL_EVENT_MOUSE_BUTTON_UP)
 	{
 		MouseDown = false;
+        MouseEvent = true;
     }
     else if (Event->type == SDL_EVENT_MOUSE_MOTION)
     {
         Tilc::TVector2D<float> Pos;
         SDL_GetGlobalMouseState(&Pos.x, &Pos.y);
+        MouseEvent = true;
         // Absolute values below prevents cube displacement in situations when for example cursor moves to the left of the window and enters to the right of
         // the window again. The same in y axis top/down
         if (LastPos.x < -999.0f || fabs(Pos.x - LastPos.x) > 150.0f || fabs(Pos.y - LastPos.y) > 150.0f)
@@ -209,6 +213,27 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
 
         if (RenderWindow->m_ModalStack.empty() || RenderWindow->m_ModalStack.top() == wnd)
         {
+            // Priorytet do zdarzeń MouseEvents mają kontrolki na liście m_HighPrivilegedControls
+            if (MouseEvent)
+            {
+                for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(); ++it)
+                {
+                    if ((*it)->PointIn(pt.x, pt.y))
+                    {
+                        (*it)->ProcessEvent(*Event);
+                    }
+                }
+
+                // Po zakończeniu przetwarzania zdarzeń usuwamy priorytetowe kontrolki jeśli zgłoszono taką chęć
+                for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControlsToRemove.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControlsToRemove.end(); ++it)
+                {
+                    std::list<Tilc::Gui::TGuiControl*>& lst = Tilc::Gui::TGuiControl::m_HighPrivilegedControls;
+                    lst.erase(std::remove(lst.begin(), lst.end(), *it), lst.end());
+                }
+                // Czyścimy listę kontrolek do usunięcia
+                Tilc::Gui::TGuiControl::m_HighPrivilegedControlsToRemove.clear();
+            }
+
             // Pass event to the found styled window
             //std::cout << "ProcessChildEvents for: " << wnd->GetName() << std::endl;
             wnd->ProcessChildEvent(*Event);
