@@ -572,10 +572,20 @@ namespace Tilc {
                 return m_IsTickable;
             };
 
-            // Lista kontrolek, dla których wywoywana jest metda update
+            // Lista kontrolek, dla których wywoływana jest metda update
             inline static std::list<Tilc::Gui::TGuiControl*> m_TickableControls{};
             // domyślnie kontrolka nie jest Tickable, czyli ni jest dodawana do powyższej listy.
             bool m_IsTickable{};
+            // Lista kontrolek rysowanych po narysowaniu wszystkich innych kontrolek. Używana jest do tego, żeby:
+            // 1. DropDowny combobox-ów zawsze rysowały się na wierzchu.
+            // Kontrolki te mają także prorytet podczas przetwarzania zdarzeń. Czyli jeśli jedna z nich przesłania inną kontrolkę, to przechwyci ona zdarzenia nawet jeśli ta
+            // zasłonieta kontrolka normalnie miałaby priorytet.
+            inline static std::list<Tilc::Gui::TGuiControl*> m_HighPrivilegedControls;
+            // Poniższa lista słży do usuwania kontrolek z listy wyżej: m_HighPrivilegedControls. Jest to zrobione tak dlatego, że kontrolki priorytetowe mogą być usuwane
+            // podczas przetwarzania zdarzenia myszy np. kliknięcia. I usunięcie tej kontrolki z listy, gdy ta jest przetwarzana powodowało crash. Więc kontrolkę, którą
+            // chcemy usunąć dodajemy do tej listy m_HighPrivilegedControlsToRemove i są one następnie usuwane z m_HighPrivilegedControls po zakończeniu przetwarzania
+            // zdarzeń.
+            inline static std::list<Tilc::Gui::TGuiControl*> m_HighPrivilegedControlsToRemove;
 
             virtual void SetScrollBars() {};
 
