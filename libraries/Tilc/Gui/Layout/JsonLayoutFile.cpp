@@ -18,7 +18,7 @@ Tilc::Gui::TJsonLayoutFile::~TJsonLayoutFile()
 {
 }
 
-bool Tilc::Gui::TJsonLayoutFile::loadLayoutFromFile(const Tilc::TExtString& fname, int layoutContentType, Tilc::Gui::TStyledWindow* wnd)
+bool Tilc::Gui::TJsonLayoutFile::loadLayoutFromFile(const Tilc::TExtString& fname, Tilc::Gui::TStyledWindow* wnd)
 {
     bool result = false;
 
@@ -46,7 +46,7 @@ bool Tilc::Gui::TJsonLayoutFile::loadLayoutFromFile(const Tilc::TExtString& fnam
     return true;
 }
 
-bool Tilc::Gui::TJsonLayoutFile::loadLayout(const Tilc::TExtString& layoutContent, int layoutContentType, Tilc::Gui::TStyledWindow* wnd)
+bool Tilc::Gui::TJsonLayoutFile::loadLayout(const Tilc::TExtString& layoutContent, Tilc::Gui::TStyledWindow* wnd)
 {
     bool result = false;
 

@@ -19,8 +19,8 @@ namespace Tilc {
             TLayoutFile();
             virtual ~TLayoutFile();
 
-            virtual bool loadLayoutFromFile(const Tilc::TExtString& fname, int layoutContentType, Tilc::Gui::TStyledWindow* wnd) = 0;
-            virtual bool loadLayout(const Tilc::TExtString& layoutContent, int layoutContentType, Tilc::Gui::TStyledWindow* wnd) = 0;
+            virtual bool loadLayoutFromFile(const Tilc::TExtString& fname, Tilc::Gui::TStyledWindow* wnd) = 0;
+            virtual bool loadLayout(const Tilc::TExtString& layoutContent, Tilc::Gui::TStyledWindow* wnd) = 0;
             void addControl(Tilc::Gui::TGuiControl* gc, Tilc::Gui::TGuiControl* parent);
             void getCommonProperties(Tilc::TStdObject* item, bool* transparentDrawing);
             void getDimensionProperties(Tilc::TStdObject* item, float* x, float* y, float* width, float* height);

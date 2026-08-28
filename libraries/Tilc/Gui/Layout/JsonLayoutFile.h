@@ -13,8 +13,8 @@ namespace Tilc {
             TJsonLayoutFile();
             virtual ~TJsonLayoutFile();
 
-            virtual bool loadLayoutFromFile(const Tilc::TExtString& fname, int layoutContentType, Tilc::Gui::TStyledWindow* wnd) override;
-            virtual bool loadLayout(const Tilc::TExtString& layoutContent, int layoutContentType, Tilc::Gui::TStyledWindow* wnd) override;
+            virtual bool loadLayoutFromFile(const Tilc::TExtString& fname, Tilc::Gui::TStyledWindow* wnd) override;
+            virtual bool loadLayout(const Tilc::TExtString& layoutContent, Tilc::Gui::TStyledWindow* wnd) override;
         };
     }
 }
