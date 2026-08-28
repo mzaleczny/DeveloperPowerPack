@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Tilc/DllGlobals.h"
 #include "Tilc/Gui/TextField.h"
 #include "Tilc/Utils/ExtString.h"
 #include <initializer_list>
