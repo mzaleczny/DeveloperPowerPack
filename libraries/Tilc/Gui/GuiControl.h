@@ -588,6 +588,7 @@ namespace Tilc {
             inline static std::list<Tilc::Gui::TGuiControl*> m_HighPrivilegedControlsToRemove;
 
             virtual void SetScrollBars() {};
+            float GetControlHeightFromTheme(Tilc::Gui::EControlType ControlType);
 
         protected:
             SDL_Texture* m_Canvas{};

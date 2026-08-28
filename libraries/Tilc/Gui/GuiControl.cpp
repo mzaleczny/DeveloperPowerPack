@@ -30,6 +30,10 @@ Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString&
     m_Name = name;
     //SDL_Log("Added control: %s", m_Name.c_str());
     m_Position = position;
+    if (m_Position.h < 0)
+    {
+        m_Position.h = GetControlHeightFromTheme(ControlType);
+    }
     GetRealPosition();
     m_OriginalPosition = position;
     m_Parent = parent;
@@ -1985,6 +1989,18 @@ void Tilc::Gui::TGuiControl::SetTickable(bool IsTickable)
     {
         m_IsTickable = false;
         m_TickableControls.erase(std::remove(m_TickableControls.begin(), m_TickableControls.end(), this), m_TickableControls.end());
+    }
+}
+
+float Tilc::Gui::TGuiControl::GetControlHeightFromTheme(Tilc::Gui::EControlType ControlType)
+{
+    Tilc::Gui::TTheme* theme = Tilc::GameObject->GetContext()->m_Theme;
+    switch (ControlType)
+    {
+    case Tilc::Gui::EControlType::ECT_Button:
+        return theme->button_middle_rc.h;
+    default:
+        return 0.0f;
     }
 }
 
