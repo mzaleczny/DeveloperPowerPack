@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "15_ReadingWindowLayoutFromJson.exe",
+      "name": "15_ReadingWindowLayoutFromJson.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}
