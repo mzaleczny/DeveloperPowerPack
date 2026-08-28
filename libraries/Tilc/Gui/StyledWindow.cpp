@@ -811,76 +811,79 @@ bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
         return false;
     }
 
-    SDL_FRect RealPosition = GetRealPosition();
-    // jesli kliknieto na naglowku
-    if (event.button.y >= RealPosition.y && event.button.y < RealPosition.y + t->wnd_caption_middle_rc.h)
+    // jesli kliknięto na nagłówku i mamy włączoną obsługę nagłówka
+    if (m_WithCaption)
     {
         SDL_FRect RealPosition = GetRealPosition();
-        Tilc::TWindow* wnd = Tilc::GameObject->GetContext()->m_Window;
-        wnd->m_DraggedWindow = this;
-        float ButtonX = RealPosition.x + RealPosition.w - GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME - t->wnd_close_button_rc.w;
-        if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_close_button_rc.w)
+        if (event.button.y >= RealPosition.y && event.button.y < RealPosition.y + t->wnd_caption_middle_rc.h)
         {
-            // If this is a topmost StyledWindow then we close application window and thus entire application
-            if (!m_Parent)
+            SDL_FRect RealPosition = GetRealPosition();
+            Tilc::TWindow* wnd = Tilc::GameObject->GetContext()->m_Window;
+            wnd->m_DraggedWindow = this;
+            float ButtonX = RealPosition.x + RealPosition.w - GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME - t->wnd_close_button_rc.w;
+            if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_close_button_rc.w)
             {
-                wnd->Close();
-            }
-            else
-            {
-                m_Parent->Invalidate();
-                // Do late delete of the control, it is done after all events was processed
-                Destroy();
-            }
-            return true;
-        }
-        else
-        {
-            // Przyciski minimize i restore na razie obslugujemy tylko dla głównego okna aplikacji. Minimalizacja/Przywracanie okien dzieci, na razie nie jest
-            // obsługiwane. Obsługę tego dotrzeba później dodać.
-            if (TopWindow == this)
-            {
-                ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_maximize_button_rc.w;
-                // Maximize/Restore button is handled only if window allows resizing
-                if (m_AllowResizing && event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_maximize_button_rc.w)
+                // If this is a topmost StyledWindow then we close application window and thus entire application
+                if (!m_Parent)
                 {
-                    if (!wnd->IsMaximized())
-                    {
-                        wnd->Maximize();
-                    }
-                    else
-                    {
-                        wnd->Restore();
-                    }
-                    wnd->m_TopmostWindow->Invalidate();
-                    return true;
+                    wnd->Close();
                 }
                 else
                 {
-                    // if window allows resizing then we must shift ButtonX left by the length of minimize_button, because maximize/restore button is visible and now we pointed to it
-                    // if not then we just pointed at minimize button
-                    if (m_AllowResizing)
+                    m_Parent->Invalidate();
+                    // Do late delete of the control, it is done after all events was processed
+                    Destroy();
+                }
+                return true;
+            }
+            else
+            {
+                // Przyciski minimize i restore na razie obslugujemy tylko dla głównego okna aplikacji. Minimalizacja/Przywracanie okien dzieci, na razie nie jest
+                // obsługiwane. Obsługę tego dotrzeba później dodać.
+                if (TopWindow == this)
+                {
+                    ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_maximize_button_rc.w;
+                    // Maximize/Restore button is handled only if window allows resizing
+                    if (m_AllowResizing && event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_maximize_button_rc.w)
                     {
-                        ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_minimize_button_rc.w;
-                    }
-                    if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_minimize_button_rc.w)
-                    {
-                        wnd->Minimize();
+                        if (!wnd->IsMaximized())
+                        {
+                            wnd->Maximize();
+                        }
+                        else
+                        {
+                            wnd->Restore();
+                        }
+                        wnd->m_TopmostWindow->Invalidate();
                         return true;
+                    }
+                    else
+                    {
+                        // if window allows resizing then we must shift ButtonX left by the length of minimize_button, because maximize/restore button is visible and now we pointed to it
+                        // if not then we just pointed at minimize button
+                        if (m_AllowResizing)
+                        {
+                            ButtonX -= GAP_X_BETWEEN_CAPTION_BUTTONS + t->wnd_minimize_button_rc.w;
+                        }
+                        if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_minimize_button_rc.w)
+                        {
+                            wnd->Minimize();
+                            return true;
+                        }
                     }
                 }
             }
-        }
 
-        // If none window button was clicked and it is not topmost window then start dragging window
-        if (m_Parent)
-        {
-            TBaseState* CurrentState = Tilc::GameObject->GetContext()->m_StateManager.GetState(Tilc::GameObject->GetCurrentState());
-            CurrentState->DraggingWindow = true;
-            SDL_GetGlobalMouseState(&CurrentState->DragStartMouseX, &CurrentState->DragStartMouseY);
-            CurrentState->DragStartWindowX = m_Position.x;
-            CurrentState->DragStartWindowY = m_Position.y;
-            //std::cout << "Dragging subwindow started" << std::endl;
+            // If none window button was clicked and it is not topmost window then start dragging window
+            if (m_Parent)
+            {
+                TBaseState* CurrentState = Tilc::GameObject->GetContext()->m_StateManager.GetState(Tilc::GameObject->GetCurrentState());
+                CurrentState->DraggingWindow = true;
+                SDL_GetGlobalMouseState(&CurrentState->DragStartMouseX, &CurrentState->DragStartMouseY);
+                CurrentState->DragStartWindowX = m_Position.x;
+                CurrentState->DragStartWindowY = m_Position.y;
+                //std::cout << "Dragging subwindow started" << std::endl;
+            }
         }
     }
 

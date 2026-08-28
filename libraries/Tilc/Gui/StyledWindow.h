@@ -105,6 +105,7 @@ namespace Tilc {
                     Invalidate();
                 }
             }
+            bool HasCaption() const { return m_WithCaption; }
             void SetHasBorder(bool Value, bool Redraw = true) {
                 m_WithBorder = Value;
                 if (Redraw)
@@ -112,6 +113,7 @@ namespace Tilc {
                     Invalidate();
                 }
             }
+            bool HasBorder() const { return m_WithBorder; }
             void SetHasBackground(bool Value, bool Redraw = true) {
                 m_WithBackground = Value;
                 if (Redraw)
@@ -119,6 +121,7 @@ namespace Tilc {
                     Invalidate();
                 }
             }
+            bool HasBackground() const { return m_WithBackground; }
         protected:
             // Parametry wpływające na szybkość obsługi zdarzeń klawiatury
             // opóźnienie po pierwszym wciśnięciu klawisza

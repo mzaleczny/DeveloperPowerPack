@@ -191,11 +191,15 @@ void Tilc::TBaseState::MouseDownLeft(Tilc::TEventDetails* Details)
     // Check if main window is dragged
     if (!DraggingWindow && Details && Details->m_Mouse.Coord[1] < Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h)
     {
-        DraggingWindow = true;
-        Tilc::GameObject->GetContext()->m_Window->m_DraggedWindow = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
-        SDL_GetGlobalMouseState(&DragStartMouseX, &DragStartMouseY);
-        SDL_GetWindowPosition(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), &DragStartWindowX, &DragStartWindowY);
-        //std::cout << "Dragging topwindow started" << std::endl;
+        // Na przeciąganie okna pozwalamy tylko wtedy, gdy okno ma nagłówek
+        if (Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow->HasCaption())
+        {
+            DraggingWindow = true;
+            Tilc::GameObject->GetContext()->m_Window->m_DraggedWindow = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
+            SDL_GetGlobalMouseState(&DragStartMouseX, &DragStartMouseY);
+            SDL_GetWindowPosition(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), &DragStartWindowX, &DragStartWindowY);
+            //std::cout << "Dragging topwindow started" << std::endl;
+        }
     }
 }
 

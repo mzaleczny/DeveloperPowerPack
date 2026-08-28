@@ -120,9 +120,9 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             Camera->Rotate(DeltaPos.x, DeltaPos.y);
         }
         // If Styled window is created and theme is created
-        if (Tilc::GameObject->m_Window->m_TopmostWindow && Tilc::GameObject->GetContext()->m_Theme)
+        if (Tilc::GameObject->m_Window->m_TopmostWindow && Tilc::GameObject->m_Window->m_TopmostWindow->HasCaption() && Tilc::GameObject->GetContext()->m_Theme)
         {
-            // if this is topmost StyledWindow then make dragging whole app window
+            // Redraw window caption buttons (maximize/minimize/restore/close) if needed
             int wx, wy;
             SDL_GetWindowPosition(Tilc::GameObject->m_Window->GetRenderWindow(), &wx, &wy);
 
@@ -130,7 +130,7 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             bool AllowRedraw = (Pos.y - wy >= 0.0f) && (Pos.y - wy <= 3 * Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h);
             if (AllowRedraw && (Pos.x - wx > Tilc::GameObject->m_Window->m_TopmostWindow->m_Position.w - 3 * (Tilc::GameObject->GetContext()->m_Theme->wnd_close_button_rc.w + 10)))
             {
-                // if so, then invalidate window to force redrawing only capytion buttons
+                // if so, then invalidate window to force redrawing only caption buttons
                 Tilc::GameObject->m_Window->m_TopmostWindow->Invalidate(Tilc::Gui::ENeedUpdate::ENU_Caption);
             }
         }
