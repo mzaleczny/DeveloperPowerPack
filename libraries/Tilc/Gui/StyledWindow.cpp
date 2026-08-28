@@ -127,43 +127,50 @@ void Tilc::Gui::TStyledWindow::Draw()
         {
             DestRect = { 0, 0, m_Position.w, m_Position.h };
         }
-        if (!m_Bg)
+        // Tło - wypełnienie kolorem lub tapetą ryujemy tylko jeśli m_WithBackground == true
+        if (m_WithBackground)
         {
-            // Full Canvas of window is light gray
-            SDL_SetRenderDrawColor(Renderer, 0xa0, 0xa0, 0xa0, 0xff);
-            SDL_RenderFillRect(Renderer, &DestRect);
-        }
-        else
-        {
-            SDL_RenderTexture(Renderer, m_Bg, nullptr, &DestRect);
+            if (!m_Bg)
+            {
+                // Full Canvas of window is light gray
+                SDL_SetRenderDrawColor(Renderer, 0xa0, 0xa0, 0xa0, 0xff);
+                SDL_RenderFillRect(Renderer, &DestRect);
+            }
+            else
+            {
+                SDL_RenderTexture(Renderer, m_Bg, nullptr, &DestRect);
+            }
         }
 
         // ================================================================
         // Rysujemy obramowanie okna
         // ================================================================
-        // Ramka lewa
-        x = 0.0f;
-        y = t->wnd_caption_middle_rc.h;
-        RenderTexture(TextureMap, &t->wnd_frame_left_rc, x, y, t->wnd_frame_left_rc.w, m_Position.h - y - t->wnd_frame_bottom_left_rc.h);
+        if (m_WithBorder)
+        {
+            // Ramka lewa
+            x = 0.0f;
+            y = t->wnd_caption_middle_rc.h;
+            RenderTexture(TextureMap, &t->wnd_frame_left_rc, x, y, t->wnd_frame_left_rc.w, m_Position.h - y - t->wnd_frame_bottom_left_rc.h);
 
-        // Lewy dolny róg
-        y = m_Position.h - t->wnd_frame_bottom_left_rc.h;
-        RenderTexture(TextureMap, &t->wnd_frame_bottom_left_rc, x, y);
+            // Lewy dolny róg
+            y = m_Position.h - t->wnd_frame_bottom_left_rc.h;
+            RenderTexture(TextureMap, &t->wnd_frame_bottom_left_rc, x, y);
 
-        // Ramka dolna
-        x += t->wnd_frame_bottom_left_rc.w;
-        y = m_Position.h - t->wnd_frame_bottom_rc.h;
-        RenderTexture(TextureMap, &t->wnd_frame_bottom_rc, x, y, m_Position.w - x - t->wnd_frame_bottom_right_rc.w, t->wnd_frame_right_rc.w);
+            // Ramka dolna
+            x += t->wnd_frame_bottom_left_rc.w;
+            y = m_Position.h - t->wnd_frame_bottom_rc.h;
+            RenderTexture(TextureMap, &t->wnd_frame_bottom_rc, x, y, m_Position.w - x - t->wnd_frame_bottom_right_rc.w, t->wnd_frame_right_rc.w);
 
-        // Prawy dolny róg
-        x = m_Position.w - t->wnd_frame_bottom_right_rc.w;
-        y = m_Position.h - t->wnd_frame_bottom_right_rc.h;
-        RenderTexture(TextureMap, &t->wnd_frame_bottom_right_rc, x, y);
+            // Prawy dolny róg
+            x = m_Position.w - t->wnd_frame_bottom_right_rc.w;
+            y = m_Position.h - t->wnd_frame_bottom_right_rc.h;
+            RenderTexture(TextureMap, &t->wnd_frame_bottom_right_rc, x, y);
 
-        // Ramka prawa
-        x = m_Position.w - t->wnd_frame_right_rc.w;
-        y = t->wnd_caption_middle_rc.h;
-        RenderTexture(TextureMap, &t->wnd_frame_right_rc, x, y, t->wnd_frame_right_rc.w, m_Position.h - y - t->wnd_frame_bottom_right_rc.h);
+            // Ramka prawa
+            x = m_Position.w - t->wnd_frame_right_rc.w;
+            y = t->wnd_caption_middle_rc.h;
+            RenderTexture(TextureMap, &t->wnd_frame_right_rc, x, y, t->wnd_frame_right_rc.w, m_Position.h - y - t->wnd_frame_bottom_right_rc.h);
+        }
         // ================================================================
         // Koniec rysowania obramowania okna
         // ================================================================
@@ -172,7 +179,10 @@ void Tilc::Gui::TStyledWindow::Draw()
         DrawChildren();
         DrawChildWindows();
         DrawVerticalAndHorizontalScrollBars();
-        DrawCaption();
+        if (m_WithCaption)
+        {
+            DrawCaption();
+        }
 
         // Wywołujemy wszystkie priorytetowe kontrolki
         for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(); ++it)
@@ -195,17 +205,23 @@ void Tilc::Gui::TStyledWindow::Draw()
     }
     else if (m_NeedUpdate == ENeedUpdate::ENU_CaptionButtons)
     {
-        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
-        SDL_SetRenderTarget(Renderer, m_Canvas);
-        DrawCaptionButtons();
-        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        if (m_WithCaption)
+        {
+            SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+            SDL_SetRenderTarget(Renderer, m_Canvas);
+            DrawCaptionButtons();
+            SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        }
     }
     else if (m_NeedUpdate == ENeedUpdate::ENU_Caption)
     {
-        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
-        SDL_SetRenderTarget(Renderer, m_Canvas);
-        DrawCaption();
-        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        if (m_WithCaption)
+        {
+            SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+            SDL_SetRenderTarget(Renderer, m_Canvas);
+            DrawCaption();
+            SDL_SetRenderTarget(Renderer, OldRenderTarget);
+        }
     }
     else if (m_NeedUpdate == ENeedUpdate::ENU_Children)
     {
@@ -240,145 +256,151 @@ void Tilc::Gui::TStyledWindow::Draw()
 
 void Tilc::Gui::TStyledWindow::DrawCaptionButtons()
 {
-    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
-    SDL_Texture* TextureMap = t->GuiTextureMap1;
-    float x, y;
-
-    SDL_FRect wnd_close_button_rc = t->wnd_close_button_rc;
-    SDL_FRect wnd_maximize_button_rc = t->wnd_maximize_button_rc;
-    SDL_FRect wnd_restore_button_rc = t->wnd_restore_button_rc;
-    SDL_FRect wnd_minimize_button_rc = t->wnd_minimize_button_rc;
-    float mx, my;
-    GetCurrentMousePosition(&mx, &my);
-    bool MouseOnCaption = (my >= GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME) && (my <= t->wnd_caption_middle_rc.h - GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME);
-
-    // Close Button
-    x = m_Position.w - wnd_close_button_rc.w - GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME;
-    y = GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME;
-    if (MouseOnCaption && mx >= x && mx < x + wnd_close_button_rc.w)
+    if (m_WithCaption)
     {
-        wnd_close_button_rc = t->wnd_close_button_hover_rc;
-    }
-    RenderTexture(TextureMap, &wnd_close_button_rc, x, y);
+        TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+        SDL_Texture* TextureMap = t->GuiTextureMap1;
+        float x, y;
 
-    if (m_Parent)
-    {
-        return;
-    }
+        SDL_FRect wnd_close_button_rc = t->wnd_close_button_rc;
+        SDL_FRect wnd_maximize_button_rc = t->wnd_maximize_button_rc;
+        SDL_FRect wnd_restore_button_rc = t->wnd_restore_button_rc;
+        SDL_FRect wnd_minimize_button_rc = t->wnd_minimize_button_rc;
+        float mx, my;
+        GetCurrentMousePosition(&mx, &my);
+        bool MouseOnCaption = (my >= GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME) && (my <= t->wnd_caption_middle_rc.h - GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME);
 
-    if (m_AllowResizing)
-    {
-        // Maximize/Restore Button
-        SDL_FRect r = wnd_maximize_button_rc;
-        if (w->IsMaximized())
-        {
-            r = wnd_restore_button_rc;
-        }
-        x -= r.w + GAP_X_BETWEEN_CAPTION_BUTTONS;
+        // Close Button
+        x = m_Position.w - wnd_close_button_rc.w - GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME;
         y = GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME;
-        if (MouseOnCaption && mx >= x && mx < x + r.w)
+        if (MouseOnCaption && mx >= x && mx < x + wnd_close_button_rc.w)
         {
+            wnd_close_button_rc = t->wnd_close_button_hover_rc;
+        }
+        RenderTexture(TextureMap, &wnd_close_button_rc, x, y);
+
+        if (m_Parent)
+        {
+            return;
+        }
+
+        if (m_AllowResizing)
+        {
+            // Maximize/Restore Button
+            SDL_FRect r = wnd_maximize_button_rc;
             if (w->IsMaximized())
             {
-                r = t->wnd_restore_button_hover_rc;
+                r = wnd_restore_button_rc;
             }
-            else
+            x -= r.w + GAP_X_BETWEEN_CAPTION_BUTTONS;
+            y = GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME;
+            if (MouseOnCaption && mx >= x && mx < x + r.w)
             {
-                r = t->wnd_maximize_button_hover_rc;
+                if (w->IsMaximized())
+                {
+                    r = t->wnd_restore_button_hover_rc;
+                }
+                else
+                {
+                    r = t->wnd_maximize_button_hover_rc;
+                }
             }
+            RenderTexture(TextureMap, &r, x, y);
         }
-        RenderTexture(TextureMap, &r, x, y);
-    }
 
-    // Minimize Button
-    x -= wnd_minimize_button_rc.w + GAP_X_BETWEEN_CAPTION_BUTTONS;
-    y = GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME;
-    if (MouseOnCaption && mx >= x && mx < x + wnd_restore_button_rc.w)
-    {
-        wnd_minimize_button_rc = t->wnd_minimize_button_hover_rc;
+        // Minimize Button
+        x -= wnd_minimize_button_rc.w + GAP_X_BETWEEN_CAPTION_BUTTONS;
+        y = GAP_Y_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME;
+        if (MouseOnCaption && mx >= x && mx < x + wnd_restore_button_rc.w)
+        {
+            wnd_minimize_button_rc = t->wnd_minimize_button_hover_rc;
+        }
+        RenderTexture(TextureMap, &wnd_minimize_button_rc, x, y);
     }
-    RenderTexture(TextureMap, &wnd_minimize_button_rc, x, y);
 }
 
 void Tilc::Gui::TStyledWindow::DrawCaption()
 {
-    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
-    SDL_Texture* TextureMap = t->GuiTextureMap1;
-    Tilc::Gui::TFont* Font = t->DefaultFont;
-    Font->SetColor({ 255, 255, 255, 255 });
-    float x{}, y{};
-
-    // ================================================================
-    // Rysujemy belkę tytułową
-    // ================================================================
-    SDL_FRect wnd_caption_left;
-    SDL_FRect wnd_caption_middle;
-    SDL_FRect wnd_caption_right;
-    SDL_FRect wnd_frame_left;
-    SDL_FRect wnd_frame_right;
-    SDL_FRect wnd_frame_bottom;
-    SDL_FRect wnd_frame_bottom_left;
-    SDL_FRect wnd_frame_bottom_right;
-
-    if (w->IsFocused())
+    if (m_WithCaption)
     {
-        wnd_caption_left = t->wnd_caption_left_rc;
-        wnd_caption_right = t->wnd_caption_right_rc;
-        wnd_caption_middle = t->wnd_caption_middle_rc;
-        wnd_frame_left = t->wnd_frame_left_rc;
-        wnd_frame_right = t->wnd_frame_right_rc;
-        wnd_frame_bottom = t->wnd_frame_bottom_rc;
-        wnd_frame_bottom_left = t->wnd_frame_bottom_left_rc;
-        wnd_frame_bottom_right = t->wnd_frame_bottom_right_rc;
-    }
-    else
-    {
-        wnd_caption_left = t->wnd_caption_inactive_left_rc;
-        wnd_caption_right = t->wnd_caption_inactive_right_rc;
-        wnd_caption_middle = t->wnd_caption_inactive_middle_rc;
-        wnd_frame_left = t->wnd_frame_inactive_left_rc;
-        wnd_frame_right = t->wnd_frame_inactive_right_rc;
-        wnd_frame_bottom = t->wnd_frame_inactive_bottom_rc;
-        wnd_frame_bottom_left = t->wnd_frame_inactive_bottom_left_rc;
-        wnd_frame_bottom_right = t->wnd_frame_inactive_bottom_right_rc;
-    }
+        TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+        SDL_Texture* TextureMap = t->GuiTextureMap1;
+        Tilc::Gui::TFont* Font = t->DefaultFont;
+        Font->SetColor({ 255, 255, 255, 255 });
+        float x{}, y{};
 
-    RenderTexture(TextureMap, &wnd_caption_left, x, y);
-    x += wnd_frame_left.w;
-    float caption_middle_width = m_Position.w - wnd_frame_left.w - wnd_frame_right.w;
-    SDL_FRect DestRect = { x, y, caption_middle_width, wnd_caption_middle.h };
-    RenderTiledTexture(TextureMap, &wnd_caption_middle, &DestRect);
-    x += caption_middle_width;
-    RenderTexture(TextureMap, &wnd_caption_right, x, y);
-    // ================================================================
-    // Koniec rysowania belki tytułowej
-    // ================================================================
+        // ================================================================
+        // Rysujemy belkę tytułową
+        // ================================================================
+        SDL_FRect wnd_caption_left;
+        SDL_FRect wnd_caption_middle;
+        SDL_FRect wnd_caption_right;
+        SDL_FRect wnd_frame_left;
+        SDL_FRect wnd_frame_right;
+        SDL_FRect wnd_frame_bottom;
+        SDL_FRect wnd_frame_bottom_left;
+        SDL_FRect wnd_frame_bottom_right;
 
-    // ================================================================
-    // Tekst nagłówka okienka
-    // ================================================================
-    Tilc::TExtString caption = GetText();
-    SDL_FRect rc;
-    rc.x = wnd_frame_left.w + 4;
-    rc.y = 4.0f;
-    rc.w = caption_middle_width;
-    rc.h = wnd_caption_middle.h - 4.0f;
-    if (t->wnd_leftmenu_button_rc.w > 0.0f)
-    {
-        rc.x += t->wnd_leftmenu_button_rc.w + 4.0f;
+        if (w->IsFocused())
+        {
+            wnd_caption_left = t->wnd_caption_left_rc;
+            wnd_caption_right = t->wnd_caption_right_rc;
+            wnd_caption_middle = t->wnd_caption_middle_rc;
+            wnd_frame_left = t->wnd_frame_left_rc;
+            wnd_frame_right = t->wnd_frame_right_rc;
+            wnd_frame_bottom = t->wnd_frame_bottom_rc;
+            wnd_frame_bottom_left = t->wnd_frame_bottom_left_rc;
+            wnd_frame_bottom_right = t->wnd_frame_bottom_right_rc;
+        }
+        else
+        {
+            wnd_caption_left = t->wnd_caption_inactive_left_rc;
+            wnd_caption_right = t->wnd_caption_inactive_right_rc;
+            wnd_caption_middle = t->wnd_caption_inactive_middle_rc;
+            wnd_frame_left = t->wnd_frame_inactive_left_rc;
+            wnd_frame_right = t->wnd_frame_inactive_right_rc;
+            wnd_frame_bottom = t->wnd_frame_inactive_bottom_rc;
+            wnd_frame_bottom_left = t->wnd_frame_inactive_bottom_left_rc;
+            wnd_frame_bottom_right = t->wnd_frame_inactive_bottom_right_rc;
+        }
+
+        RenderTexture(TextureMap, &wnd_caption_left, x, y);
+        x += wnd_frame_left.w;
+        float caption_middle_width = m_Position.w - wnd_frame_left.w - wnd_frame_right.w;
+        SDL_FRect DestRect = { x, y, caption_middle_width, wnd_caption_middle.h };
+        RenderTiledTexture(TextureMap, &wnd_caption_middle, &DestRect);
+        x += caption_middle_width;
+        RenderTexture(TextureMap, &wnd_caption_right, x, y);
+        // ================================================================
+        // Koniec rysowania belki tytułowej
+        // ================================================================
+
+        // ================================================================
+        // Tekst nagłówka okienka
+        // ================================================================
+        Tilc::TExtString caption = GetText();
+        SDL_FRect rc;
+        rc.x = wnd_frame_left.w + 4;
+        rc.y = 4.0f;
+        rc.w = caption_middle_width;
+        rc.h = wnd_caption_middle.h - 4.0f;
+        if (t->wnd_leftmenu_button_rc.w > 0.0f)
+        {
+            rc.x += t->wnd_leftmenu_button_rc.w + 4.0f;
+        }
+
+        if (Font)
+        {
+            Font->DrawString(GetRenderer(), caption.c_str(), rc.x, rc.y);
+        }
+        // ================================================================
+        // Koniec rysowania nagłówka okienka
+        // ================================================================
+
+        DrawCaptionButtons();
     }
-
-    if (Font)
-    {
-        Font->DrawString(GetRenderer(), caption.c_str(), rc.x, rc.y);
-    }
-    // ================================================================
-    // Koniec rysowania nagłówka okienka
-    // ================================================================
-
-    DrawCaptionButtons();
 }
 
 Tilc::Gui::TGuiControl* Tilc::Gui::TStyledWindow::GetControl(const Tilc::TExtString& ControlName)

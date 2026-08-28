@@ -98,7 +98,27 @@ namespace Tilc {
 
             // Ads this window on top of Render Window's modal stack
             void SetModal();
-
+            void SetHasCaption(bool Value, bool Redraw = true) {
+                m_WithCaption = Value;
+                if (Redraw)
+                {
+                    Invalidate();
+                }
+            }
+            void SetHasBorder(bool Value, bool Redraw = true) {
+                m_WithBorder = Value;
+                if (Redraw)
+                {
+                    Invalidate();
+                }
+            }
+            void SetHasBackground(bool Value, bool Redraw = true) {
+                m_WithBackground = Value;
+                if (Redraw)
+                {
+                    Invalidate();
+                }
+            }
         protected:
             // Parametry wpływające na szybkość obsługi zdarzeń klawiatury
             // opóźnienie po pierwszym wciśnięciu klawisza
@@ -123,6 +143,8 @@ namespace Tilc {
 
             // If window has Caption
             bool m_WithCaption{ true };
+            bool m_WithBorder{ true };
+            bool m_WithBackground{ true };
 
             // Poniższa funkcja zwraca TRUE, jeśli przetworzyła klawisz i FALSE jeśli go zignorowała.
             /*
