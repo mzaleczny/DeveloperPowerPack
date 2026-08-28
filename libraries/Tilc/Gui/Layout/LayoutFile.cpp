@@ -42,11 +42,12 @@ void Tilc::Gui::TLayoutFile::processData(Tilc::TStdObject* data)
         return;
     }
 
-    if (root->type == Tilc::PROPERTY_ARRAY)
+    if (root->type == Tilc::PROPERTY_OBJECT && root->oValue)
     {
-        if (root->aValue)
+        Tilc::TPropertiesVector* TopLevelItems = root->oValue->getAsArray("TopLevelItems");
+        if (TopLevelItems)
         {
-            processToplevelItems(root->aValue);
+            processToplevelItems(TopLevelItems);
         }
     }
 }
@@ -391,6 +392,7 @@ void Tilc::Gui::TLayoutFile::processButtonItem(Tilc::TStdObject* item, Tilc::Gui
         disabled = item->getAsString("disabled") == "true";
 
         SDL_FRect Position = { x, y, width, -1 };
+
         Tilc::Gui::TButton* gc = new Tilc::Gui::TButton(parent, name, Position, text);
         if (gc)
         {
@@ -400,7 +402,6 @@ void Tilc::Gui::TLayoutFile::processButtonItem(Tilc::TStdObject* item, Tilc::Gui
             {
                 gc->Disable();
             }
-            addControl(gc, parent);
         }
     }
 }
