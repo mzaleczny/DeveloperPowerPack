@@ -20,7 +20,7 @@ endif()
 
 
 set(BUILD_WITHOUT_GRAPHICS "1")
-set(LibSuffix "")
+set(LibSuffix "d")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../../libraries/cmake")
 find_package(Tilc REQUIRED)
 
@@ -79,4 +79,5 @@ AddAndConfigureProgram(Pdf "src/Pdf.cpp")
 
 
 # Dlls can be copied once for one target as all targets sits in the same directory
-TilcNonGraphicsCopyRuntimeDlls(Pdf)
+TilcCopyRuntimeDlls(Pdf)
+#TilcNonGraphicsCopyRuntimeDlls(Pdf)
