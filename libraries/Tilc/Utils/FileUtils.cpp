@@ -5,19 +5,16 @@
 
 Tilc::TFile::TFile(const char* FileName, std::ios_base::openmode OpenMode)
 {
-    std::lock_guard<std::mutex> lock(TFile::m_MU);
     OpenFile(FileName, OpenMode);
-
-    size_t CurrentPos = m_File.tellg();
-    m_File.seekg(0, std::ios_base::end);
-    m_FileSize = m_File.tellg();
-    m_File.seekg(CurrentPos, std::ios_base::beg);
 }
 
 Tilc::TFile::~TFile()
 {
     std::lock_guard<std::mutex> lock(TFile::m_MU);
-    m_File.close();
+    if (m_File.is_open())
+    {
+        m_File.close();
+    }
 }
 
 void Tilc::TFile::ReadLines(std::vector<Tilc::TExtString>& Lines)
@@ -103,11 +100,20 @@ size_t Tilc::TFile::GetFileSize()
 
 void Tilc::TFile::OpenFile(const char* FileName, std::ios_base::openmode OpenMode)
 {
+    std::lock_guard<std::mutex> lock(TFile::m_MU);
+
     m_File.open(FileName, OpenMode);
     if (!m_File)
     {
         std::cerr << "Could not open file " << FileName << ". Skipping..." << std::endl;
+        m_FileSize = 0;
+        return;
     }
+
+    size_t CurrentPos = m_File.tellg();
+    m_File.seekg(0, std::ios_base::end);
+    m_FileSize = m_File.tellg();
+    m_File.seekg(CurrentPos, std::ios_base::beg);
 }
 
 

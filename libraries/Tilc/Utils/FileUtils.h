@@ -14,8 +14,10 @@ namespace Tilc
     class DECLSPEC TFile
     {
     public:
+        TFile() = default;
         TFile(const char* FileName, std::ios_base::openmode OpenMode = std::ios::in);
         ~TFile();
+        void OpenFile(const char* FileName, std::ios_base::openmode OpenMode = std::ios::in);
         void ReadLines(std::vector<Tilc::TExtString>& Lines);
         void ReadContent(Tilc::TExtString& Content);
         void WriteContent(const Tilc::TExtString& Content);
@@ -27,7 +29,6 @@ namespace Tilc
     private:
         std::mutex m_MU;
         size_t m_FileSize{};
-        void OpenFile(const char* FileName, std::ios_base::openmode OpenMode = std::ios::in);
     };
 
 
