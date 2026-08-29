@@ -173,12 +173,12 @@ void Tilc::Gui::TLayoutFile::processWindowItem(Tilc::TStdObject* item)
         }
     }
     
-    if (width != std::numeric_limits<int>::max() && height != std::numeric_limits<int>::max())
+    if (width != static_cast<float>(std::numeric_limits<int>::max()) && height != static_cast<float>(std::numeric_limits<int>::max()))
     {
         m_Wnd->SetSize(width, height);
     }
     
-    if (x != std::numeric_limits<int>::max() && y != std::numeric_limits<int>::max())
+    if (x != static_cast<float>(std::numeric_limits<int>::max()) && y != static_cast<float>(std::numeric_limits<int>::max()))
     {
         m_Wnd->SetPosition(x, y);
     }
@@ -521,7 +521,8 @@ void Tilc::Gui::TLayoutFile::getCommonProperties(Tilc::TStdObject* item, bool* t
     // we set MAXLONG values
     *transparentDrawing = false;
     Tilc::TExtString transparent = item->getAsString("transparent-drawing");
-    if (transparent.ToLowercase() == "true")
+    transparent.ToLowercase();
+    if (transparent == "true")
     {
         *transparentDrawing = true;
     }
@@ -530,10 +531,10 @@ void Tilc::Gui::TLayoutFile::getCommonProperties(Tilc::TStdObject* item, bool* t
 void Tilc::Gui::TLayoutFile::getDimensionProperties(Tilc::TStdObject* item, float* x, float* y, float* width, float* height)
 {
     // we set MAXLONG values
-    *x = std::numeric_limits<int>::max();
-    *y = std::numeric_limits<int>::max();
-    *width = std::numeric_limits<int>::max();
-    *height = std::numeric_limits<int>::max();
+    *x = static_cast<float>(std::numeric_limits<int>::max());
+    *y = static_cast<float>(std::numeric_limits<int>::max());
+    *width = static_cast<float>(std::numeric_limits<int>::max());
+    *height = static_cast<float>(std::numeric_limits<int>::max());
     int iValue;
     Tilc::TExtString sValue;
     Tilc::TStdObjectProperty* property;
