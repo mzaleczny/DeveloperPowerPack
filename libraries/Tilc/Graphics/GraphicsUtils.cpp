@@ -220,6 +220,20 @@ DECLSPEC void Tilc::Graphics::SaveTextureToFile(SDL_Renderer* Renderer, SDL_Text
     }
 }
 
+DECLSPEC SDL_Texture* ScaleTexture(SDL_Renderer* Renderer, SDL_Texture* SourceTexture, float ScaleFactor)
+{
+    SDL_Texture* ScaledTexture = SDL_CreateTexture(Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, SourceTexture->w * ScaleFactor, SourceTexture->h * ScaleFactor);
+    if (!ScaledTexture)
+    {
+        SDL_Log("Couldn't create texture: %s", SDL_GetError());
+        return nullptr;
+    }
+    SDL_SetRenderTarget(Renderer, ScaledTexture);
+    SDL_RenderTexture(Renderer, SourceTexture, nullptr, nullptr);
+    SDL_SetRenderTarget(Renderer, nullptr);
+    return ScaledTexture;
+}
+
 DECLSPEC SDL_Texture* Tilc::Graphics::ConvertToGrayscale(SDL_Renderer* Renderer, SDL_Texture* Texture)
 {
     if (!Texture) return nullptr;

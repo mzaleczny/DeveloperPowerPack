@@ -14,6 +14,7 @@ namespace Tilc::Graphics {
 
     DECLSPEC SDL_Texture* LoadTextureFromFileAsRenderTarget(SDL_Renderer* Renderer, const char* fname);
     DECLSPEC void SaveTextureToFile(SDL_Renderer* Renderer, SDL_Texture* Texture, const char* fname);
+    DECLSPEC SDL_Texture* ScaleTexture(SDL_Renderer* Renderer, SDL_Texture* SourceTexture, float ScaleFactor);
 
     DECLSPEC SDL_Texture* ConvertToGrayscale(SDL_Renderer* Renderer, SDL_Texture* Texture);
     DECLSPEC void ClearStreamingTexture(SDL_Texture* tex, const SDL_Color& color = { 0, 0, 0, 0 });
