@@ -27,7 +27,7 @@ void Tilc::Gui::TButton::CommonInit(const Tilc::TExtString& text)
 void Tilc::Gui::TButton::SetText(Tilc::TExtString text, bool redraw)
 {
     Tilc::Gui::TGuiControl::SetText(text);
-    CleanupText();
+    //CleanupText();
 }
 
 void Tilc::Gui::TButton::CleanupText()
