@@ -95,9 +95,9 @@ namespace Tilc
 #endif
 
 #if BUILD_WITH_SDL3 == 1
-    constexpr const SDL_FRect GetRect(int x, int y, int TileSize = 16)
+    constexpr const SDL_FRect GetRect(int x, int y, int TileSizeX = 16, int TileSizeY = 16)
     {
-        return SDL_FRect{ static_cast<float>(x * TileSize), static_cast<float>(y * TileSize, static_cast<float>(TileSize), static_cast<float>(TileSize) };
+        return SDL_FRect{ static_cast<float>(x * TileSizeX), static_cast<float>(y * TileSizeY), static_cast<float>(TileSizeX), static_cast<float>(TileSizeY) };
     }
 #endif
 
