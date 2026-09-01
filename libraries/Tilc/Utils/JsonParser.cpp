@@ -607,6 +607,7 @@ void Tilc::TJsonParser::_processBuffer(const TExtString& buffer)
 int Tilc::TJsonParser::_onExpectArrayValueInQuote(char quoteType, char ch)
 {
     int NumBack = 0;
+
     // if we are reading not quoted value
     if (!this->m_QuotedValueStarted)
     {
@@ -680,7 +681,7 @@ int Tilc::TJsonParser::_onExpectObjectValueInQuote(char quoteType, char ch)
     {
         if (!this->m_QuotedValueStarted)
         {
-            if (ch == ' ')
+            if (this->_isWhiteSpace(ch))
             {
                 this->_onCompleteReadObjectAttributeSimpleValue();
                 this->_current_state.pop_back();
