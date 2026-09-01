@@ -65,7 +65,7 @@ void Tilc::Gui::TLayoutFile::processToplevelItems(Tilc::TPropertiesVector* items
     for (size_t i = 0; i < size; ++i)
     {
         item = (*items)[i];
-        if (item || item->type == PROPERTY_OBJECT)
+        if (item && item->type == PROPERTY_OBJECT)
         {
             oValue = item->oValue;
             if (oValue)
@@ -94,7 +94,7 @@ void Tilc::Gui::TLayoutFile::processItems(Tilc::TPropertiesVector* items, Tilc::
     for (size_t i = 0; i < size; i++)
     {
         item = (*items)[i];
-        if (item || item->type == PROPERTY_OBJECT)
+        if (item && item->type == PROPERTY_OBJECT)
         {
             oValue = item->oValue;
             if (oValue)
@@ -253,7 +253,6 @@ void Tilc::Gui::TLayoutFile::processLabelItem(Tilc::TStdObject* item, Tilc::Gui:
         if (gc)
         {
             doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
-            addControl(gc, parent);
         }
     }
 }
@@ -290,8 +289,6 @@ void Tilc::Gui::TLayoutFile::processTextfieldItem(Tilc::TStdObject* item, Tilc::
                 gc->DisableTabkey();
             }
             gc->DoEnterAsTabkey(enterAsTab);
-            
-            this->addControl(gc, parent);
         }
     }
 }
