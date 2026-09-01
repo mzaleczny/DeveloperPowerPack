@@ -34,6 +34,10 @@ Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString&
     {
         m_Position.h = GetControlHeightFromTheme(ControlType);
     }
+    if (m_Position.w < 0)
+    {
+        m_Position.w = GetControlWidthFromTheme(ControlType);
+    }
     GetRealPosition();
     m_OriginalPosition = position;
     m_Parent = parent;
@@ -2001,6 +2005,20 @@ float Tilc::Gui::TGuiControl::GetControlHeightFromTheme(Tilc::Gui::EControlType 
         return theme->button_middle_rc.h;
     case Tilc::Gui::EControlType::ECT_TextField:
         return theme->textfield_left_rc.h;
+    case Tilc::Gui::EControlType::ECT_Slider:
+        return theme->slider_vertical_thumb_rc.h;
+    default:
+        return 0.0f;
+    }
+}
+
+float Tilc::Gui::TGuiControl::GetControlWidthFromTheme(Tilc::Gui::EControlType ControlType)
+{
+    Tilc::Gui::TTheme* theme = Tilc::GameObject->GetContext()->m_Theme;
+    switch (ControlType)
+    {
+    case Tilc::Gui::EControlType::ECT_Slider:
+        return theme->slider_vertical_thumb_rc.w;
     default:
         return 0.0f;
     }

@@ -3,6 +3,7 @@
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Utils/StdObject.h"
+#include "Tilc/Gui/OptionGroup.h"
 #include "Tilc/Game.h"
 #include "SDL3/SDL.h"
 #include <vector>
@@ -590,6 +591,9 @@ namespace Tilc {
 
             virtual void SetScrollBars() {};
             float GetControlHeightFromTheme(Tilc::Gui::EControlType ControlType);
+            float GetControlWidthFromTheme(Tilc::Gui::EControlType ControlType);
+
+            inline static std::unordered_map<int, TOptionGroup> m_OptionGroups{};
 
         protected:
             SDL_Texture* m_Canvas{};
