@@ -262,6 +262,7 @@ void Tilc::Gui::TGrid::Draw()
                 SDL_SetRenderDrawColor(Renderer, border_color.r, border_color.g, border_color.b, border_color.a);
                 SDL_RenderRect(Renderer, &rc);
                 rc.w = w;
+                f->SetColor(t->commonGridControlTopHeaderNormalFontColor);
                 f->DrawString(Renderer, xheaderCell.m_Value.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
             }
             x += w - 1; // - 1, żeby krawędzie sąsiednich komórek były wspólne
@@ -321,6 +322,7 @@ void Tilc::Gui::TGrid::Draw()
             SDL_RenderRect(Renderer, &rc);
             if (yIndex <= m_MaxRowNumber)
             {
+                f->SetColor(t->commonGridControlLeftHeaderNormalFontColor);
                 f->DrawString(Renderer, yheaderCell.m_Value.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
             }
 

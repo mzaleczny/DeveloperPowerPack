@@ -386,10 +386,10 @@ namespace Tilc {
             SDL_FRect grid_top_header_inner_bg_normal_cell_rc;
             SDL_FRect grid_top_header_inner_bg_selected_cell_rc;
 
-            SDL_Color commonGridControlTopHeaderNormalFontColor{ 0, 0, 0, 255 };
-            SDL_Color commonGridControlTopHeaderSelectedFontColor{ 0, 0, 0, 255 };
-            SDL_Color commonGridControlLeftHeaderNormalFontColor{ 0, 0, 0, 255 };
-            SDL_Color commonGridControlLeftHeaderSelectedFontColor{ 0, 0, 0, 255 };
+            SDL_Color commonGridControlTopHeaderNormalFontColor{ 0xff, 0xff, 0xff, 255 };
+            SDL_Color commonGridControlTopHeaderSelectedFontColor{ 0xff, 0xff, 0xff, 255 };
+            SDL_Color commonGridControlLeftHeaderNormalFontColor{ 0xff, 0xff, 0xff, 255 };
+            SDL_Color commonGridControlLeftHeaderSelectedFontColor{ 0xff, 0xff, 0xff, 255 };
             SDL_Color commonGridControlTopHeaderCellBorderColor_Normal{ 0, 0, 0, 255 };
             SDL_Color commonGridControlTopHeaderCellBorderColor_Selected{ 0, 0, 0, 255 };
             SDL_Color commonGridControlLeftTopHeaderCellBorderColor{ 0, 0, 0, 255 };
