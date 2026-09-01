@@ -1,12 +1,18 @@
 #include "Tilc/Gui/Layout/LayoutFile.h"
 #include "Tilc/Gui/Label.h"
 #include "Tilc/Gui/TextField.h"
+#include "Tilc/Gui/MultilineTextField.h"
 #include "Tilc/Gui/Grid.h"
 #include "Tilc/Gui/Button.h"
 #include "Tilc/Gui/Checkbox.h"
+#include "Tilc/Gui/Option.h"
 #include "Tilc/Gui/Listbox.h"
 #include "Tilc/Gui/MessageBox.h"
 #include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/Gui/SliderVertical.h"
+#include "Tilc/Gui/SliderHorizontal.h"
+#include "Tilc/Gui/ScrollbarVertical.h"
+#include "Tilc/Gui/ScrollbarHorizontal.h"
 #include "Tilc/Utils/FileUtils.h"
 #include <cstring>
 
@@ -105,6 +111,11 @@ void Tilc::Gui::TLayoutFile::processItems(Tilc::TPropertiesVector* items, Tilc::
                     processTextfieldItem(oValue, parent);
                     continue;
                 }
+                if (type == "multiline-textfield")
+                {
+                    processMultilineTextfieldItem(oValue, parent);
+                    continue;
+                }
                 if (type == "button")
                 {
                     processButtonItem(oValue, parent);
@@ -120,6 +131,11 @@ void Tilc::Gui::TLayoutFile::processItems(Tilc::TPropertiesVector* items, Tilc::
                     processCheckboxItem(oValue, parent);
                     continue;
                 }
+                if (type == "option")
+                {
+                    processOptionItem(oValue, parent);
+                    continue;
+                }
                 if (type == "listbox")
                 {
                     processListboxItem(oValue, parent);
@@ -133,6 +149,16 @@ void Tilc::Gui::TLayoutFile::processItems(Tilc::TPropertiesVector* items, Tilc::
                 if (type == "menu")
                 {
                     processMenuItem(oValue, parent);
+                    continue;
+                }
+                if (type == "slider")
+                {
+                    processSliderItem(oValue, parent);
+                    continue;
+                }
+                if (type == "scrollbar")
+                {
+                    processScrollbarItem(oValue, parent);
                     continue;
                 }
             }
@@ -233,14 +259,15 @@ void Tilc::Gui::TLayoutFile::processLabelItem(Tilc::TStdObject* item, Tilc::Gui:
     Tilc::TExtString name = item->getAsString("name");
     if (!name.empty())
     {
-        Tilc::TExtString caption, relativeControl, relativePosition;
+        Tilc::TExtString caption, relativeControl, relativePosition, color;
         float x, y, width, height;
         bool autosize = false;
         Tilc::TStdObjectProperty* property;
 
         getDimensionProperties(item, &x, &y, &width, &height);
         getRelativePositionProperties(item, &relativeControl, &relativePosition);
-        caption = item->getAsString("caption");
+        caption = item->getAsString("text");
+        color = item->getAsString("color");
         
         property = item->get("autosize");
         if (property && property->type == PROPERTY_VALUE && property->value == "true")
@@ -253,6 +280,16 @@ void Tilc::Gui::TLayoutFile::processLabelItem(Tilc::TStdObject* item, Tilc::Gui:
         if (gc)
         {
             doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            if (color.length() == 9 && color[0] == '#')
+            {
+                SDL_Color c{
+                    static_cast<Uint8>(Tilc::HexToInt(color.substr(1,2))),
+                    static_cast<Uint8>(Tilc::HexToInt(color.substr(3,2))),
+                    static_cast<Uint8>(Tilc::HexToInt(color.substr(5,2))),
+                    static_cast<Uint8>(Tilc::HexToInt(color.substr(7,2)))
+                };
+                gc->SetColor(c);
+            }
         }
     }
 }
@@ -280,6 +317,42 @@ void Tilc::Gui::TLayoutFile::processTextfieldItem(Tilc::TStdObject* item, Tilc::
 
         SDL_FRect Position = { x, y, width, -1 };
         Tilc::Gui::TTextField* gc = new Tilc::Gui::TTextField(parent, name, Position);
+        if (gc)
+        {
+            doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            gc->SetTabStop(canTabStop);
+            if (disableTabkey)
+            {
+                gc->DisableTabkey();
+            }
+            gc->DoEnterAsTabkey(enterAsTab);
+        }
+    }
+}
+
+void Tilc::Gui::TLayoutFile::processMultilineTextfieldItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent)
+{
+    if (!item || !parent)
+    {
+        return;
+    }
+
+    Tilc::TExtString name = item->getAsString("name");
+    if (!name.empty())
+    {
+        Tilc::TExtString text, relativeControl, relativePosition;
+        float x, y, width, height;
+        bool enterAsTab = true , canTabStop = true , disableTabkey = false;
+
+        getDimensionProperties(item, &x, &y, &width, &height);
+        getRelativePositionProperties(item, &relativeControl, &relativePosition);
+        text = item->getAsString("text");
+        enterAsTab = item->getAsString("enter-as-tab") != "false";
+        canTabStop = item->getAsString("can-tab-stop") != "false";
+        disableTabkey = item->getAsString("disable-tab-key") == "true";
+
+        SDL_FRect Position = { x, y, width, height };
+        Tilc::Gui::TMultilineTextField* gc = new Tilc::Gui::TMultilineTextField(parent, name, Position);
         if (gc)
         {
             doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
@@ -360,8 +433,7 @@ void Tilc::Gui::TLayoutFile::processGridItem(Tilc::TStdObject* item, Tilc::Gui::
                 gc->SetLeftHeaderWidth(leftHeaderWidth);
             }
             doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());            
-            addControl(gc, parent);
-        }
+       }
     }
 }
 
@@ -459,7 +531,72 @@ void Tilc::Gui::TLayoutFile::processCheckboxItem(Tilc::TStdObject* item, Tilc::G
             {
                 gc->Disable();
             }
-            addControl(gc, parent);
+        }
+    }
+}
+
+void Tilc::Gui::TLayoutFile::processOptionItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent)
+{
+    if (!item || !parent) {
+        return;
+    }
+
+    Tilc::TExtString name = item->getAsString("name");
+    if (!name.empty())
+    {
+        Tilc::TExtString text, relativeControl, relativePosition, checkedStateText, uncheckedStateText, textPlacementStr;
+        float x, y, width, height;
+        int textSpacing, textPlacement, group;
+        bool canTabStop, disableTabkey, disabled, checked;
+        bool transparentDrawing;
+
+        getCommonProperties(item, &transparentDrawing);
+        getDimensionProperties(item, &x, &y, &width, &height);
+        getRelativePositionProperties(item, &relativeControl, &relativePosition);
+        group = item->getAsInt("group");
+        text = item->getAsString("text");
+        checkedStateText = item->getAsString("checked-state-text");
+        uncheckedStateText = item->getAsString("unchecked-state-text");
+        canTabStop = item->getAsString("can-tab-stop") != "false";
+        disableTabkey = item->getAsString("disable-tab-key") == "true";
+        disabled = item->getAsString("disabled") == "true";
+        checked = item->getAsString("checked") == "true";
+        textSpacing = item->getAsInt("text-spacing");
+        textPlacementStr = item->getAsString("text-placement");
+
+        if (!text.empty())
+        {
+            checkedStateText = text;
+            uncheckedStateText = text;
+        }
+        if (textPlacementStr == "left")
+        {
+            textPlacement = Tilc::Gui::CONTROL_TEXT_PLACEMENT_LEFT;
+        }
+        else
+        {
+            textPlacement = CONTROL_TEXT_PLACEMENT_RIGHT;
+        }
+        if (textSpacing == 0)
+        {
+            textSpacing = CONTROL_DEFAULT_SPACING;
+        }
+
+        SDL_FRect Position = { x, y, width, -1 };
+        Tilc::Gui::TOption* gc = new Tilc::Gui::TOption(parent, name, Position, checkedStateText, uncheckedStateText, checked, textPlacement, textSpacing);
+        if (gc)
+        {
+            if (Tilc::Gui::TGuiControl::m_OptionGroups.find(group) == Tilc::Gui::TGuiControl::m_OptionGroups.end())
+            {
+                Tilc::Gui::TGuiControl::m_OptionGroups[group] = Tilc::Gui::TOptionGroup();
+            }
+            Tilc::Gui::TGuiControl::m_OptionGroups[group].AddOptions({ gc });
+            //gc->SetTransparentDrawing(transparentDrawing);
+            doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            if (disabled)
+            {
+                gc->Disable();
+            }
         }
     }
 }
@@ -502,9 +639,59 @@ void Tilc::Gui::TLayoutFile::processListboxItem(Tilc::TStdObject* item, Tilc::Gu
             {
                 gc->Disable();
             }
-            addControl(gc, parent);
+       }
+    }
+}
+
+void Tilc::Gui::TLayoutFile::processSliderItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent)
+{
+    if (!item || !parent)
+    {
+        return;
+    }
+
+    Tilc::TExtString name = item->getAsString("name");
+    if (!name.empty())
+    {
+        Tilc::TExtString text, relativeControl, relativePosition, sliderType;
+        float x, y, width, height;
+        bool canTabStop, disableTabkey, disabled;
+        bool transparentDrawing;
+
+        getCommonProperties(item, &transparentDrawing);
+        getDimensionProperties(item, &x, &y, &width, &height);
+        getRelativePositionProperties(item, &relativeControl, &relativePosition);
+        canTabStop = item->getAsString("can-tab-stop") != "false";
+        disableTabkey = item->getAsString("disable-tab-key") == "true ";
+        disabled = item->getAsString("disabled") == "true";
+        sliderType = item->getAsString("type");
+
+        SDL_FRect Position;
+        Tilc::Gui::TGuiControl* gc{};
+        if (sliderType != "horzontal")
+        {
+            Position = { x, y, -1, height };
+            gc = new Tilc::Gui::TSliderVertical(parent, name, Position);
+        }
+        else
+        {
+            Position = { x, y, width, -1 };
+            gc = new Tilc::Gui::TSliderHorizontal(parent, name, Position);
+        }
+        if (gc)
+        {
+            //gc->SetTransparentDrawing(transparentDrawing);
+            doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            if (disabled)
+            {
+                gc->Disable();
+            }
         }
     }
+}
+
+void Tilc::Gui::TLayoutFile::processScrollbarItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent)
+{
 }
 
 void Tilc::Gui::TLayoutFile::addControl(Tilc::Gui::TGuiControl* gc, Tilc::Gui::TGuiControl* parent)

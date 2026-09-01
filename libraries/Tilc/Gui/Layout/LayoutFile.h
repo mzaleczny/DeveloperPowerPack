@@ -33,7 +33,7 @@ namespace Tilc {
             Tilc::Gui::TGuiControl* getControl(const char* name);
             // Variable valid only during call to drawJsonFile method.
             // It is set to canvas pointer and NULL-ed just before drawJsonFile method return.
-            Tilc::Gui::TStyledWindow* m_Wnd;
+            Tilc::Gui::TStyledWindow* m_Wnd{};
             Tilc::TExtString m_Filename;
 
             void getAsStringList(Tilc::TStdObject* item, const char* name, Tilc::TStringVector& Result);
@@ -44,10 +44,14 @@ namespace Tilc {
             void processMenuItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processLabelItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processTextfieldItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
+            void processMultilineTextfieldItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processGridItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processButtonItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processCheckboxItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
+            void processOptionItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processListboxItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
+            void processSliderItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
+            void processScrollbarItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
         };
     }
 }
