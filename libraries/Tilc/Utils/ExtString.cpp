@@ -1562,19 +1562,20 @@ DECLSPEC Tilc::TExtString Tilc::IntToHex(uint64_t num, size_t minHexNumberLength
     return retval;
 }
 
-DECLSPEC int HexToInt(Tilc::TExtString hex)
+DECLSPEC int Tilc::HexToInt(const Tilc::TExtString& hex)
 {
+    size_t StartFrom{ 0 };
     size_t len = hex.length();
     if (len < 1)
     {
         return 0;
     }
+    size_t End{ len - 1 };
 
-    char* buf = hex.data();
+    const char* buf = hex.data();
     if (buf[len - 1] == 'h')
     {
-        buf[len - 1] = '\0';
-        len -= 1;
+        --End;
     }
 
     if (len == 0)
@@ -1584,33 +1585,31 @@ DECLSPEC int HexToInt(Tilc::TExtString hex)
 
     if (buf[0] == '#')
     {
-        hex.LTrim('#');
-        len -= 1;
+        StartFrom = 1;
     }
 
-    if (len == 0)
+    if (len - StartFrom == 0)
     {
         return 0;
     }
 
-    if (buf[0] == '0' && buf[1] == 'x')
+    if (buf[StartFrom] == '0' && buf[StartFrom+1] == 'x')
     {
-        hex = hex.substr(2);
-        len -= 2;
+        StartFrom += 2;
     }
 
-    if (len == 0)
+    if (len - StartFrom == 0)
     {
         return 0;
     }
 
-    int retval = 0;
+    int retval{ 0 };
     buf = hex.data();
-    int count = 0;
+    int count{ 0 };
     int maxcount = sizeof(int) << 1;
     char c;
     int b;
-    for (int i = (int)len - 1; i >= 0; i--)
+    for (int i = (int)End; i >= (int)StartFrom; --i)
     {
         c = buf[i];
         if (c >= 0x30 && c <= 0x39)
