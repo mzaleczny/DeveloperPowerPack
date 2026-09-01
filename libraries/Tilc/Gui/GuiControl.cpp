@@ -1999,6 +1999,8 @@ float Tilc::Gui::TGuiControl::GetControlHeightFromTheme(Tilc::Gui::EControlType 
     {
     case Tilc::Gui::EControlType::ECT_Button:
         return theme->button_middle_rc.h;
+    case Tilc::Gui::EControlType::ECT_TextField:
+        return theme->textfield_left_rc.h;
     default:
         return 0.0f;
     }
