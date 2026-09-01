@@ -145,11 +145,11 @@ void Tilc::Gui::TFont::DrawString(SDL_Renderer* Renderer, const char* String, SD
             }
             else if (Align & Tilc::Gui::Align_Right)
             {
-                Rect.x = DestRect->x + DestRect->w - TextSurface->w;
+                Rect.x = ceil(DestRect->x + DestRect->w - TextSurface->w);
             }
             else if (Align & Tilc::Gui::Align_CenterHorizontal)
             {
-                Rect.x = DestRect->x + (DestRect->w - TextSurface->w) / 2.0f;
+                Rect.x = ceil(DestRect->x + (DestRect->w - TextSurface->w) / 2.0f);
             }
 
             if (Align & Tilc::Gui::Align_Top)
@@ -158,11 +158,11 @@ void Tilc::Gui::TFont::DrawString(SDL_Renderer* Renderer, const char* String, SD
             }
             else if (Align & Tilc::Gui::Align_Bottom)
             {
-                Rect.y = DestRect->y + DestRect->h - TextSurface->h;
+                Rect.y = ceil(DestRect->y + DestRect->h - TextSurface->h);
             }
             else if (Align & Tilc::Gui::Align_CenterVertical)
             {
-                Rect.y = DestRect->y + (DestRect->h - TextSurface->h) / 2.0f;
+                Rect.y = ceil(DestRect->y + (DestRect->h - TextSurface->h) / 2.0f);
             }
 
             SDL_RenderTexture(Renderer, TextTexture, nullptr, &Rect);
