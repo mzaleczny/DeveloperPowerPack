@@ -17,10 +17,10 @@ namespace Tilc {
 
         struct DECLSPEC TGridCell
         {
-            Tilc::TExtString m_Value;
-            SDL_Point m_Size;
-            bool m_IsHeader;
-            bool m_Selected;
+            Tilc::TExtString m_Value{};
+            SDL_Point m_Size{};
+            bool m_IsHeader{};
+            bool m_Selected{};
 
             TGridCell() = default;
             TGridCell(const Tilc::TExtString& value, SDL_Point size, bool isHeader = false, bool selected = false);
