@@ -35,6 +35,11 @@ void Tilc::Gui::TMultiColumnListbox::DeleteItems()
 
 void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::initializer_list<const char*>>& Items, bool redraw)
 {
+    SetItems(std::vector(Items), redraw);
+}
+
+void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::vector<Tilc::TExtString>>& Items, bool redraw)
+{
     DeleteItems();
     Tilc::Gui::TTheme* t = GetTheme();
 
