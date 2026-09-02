@@ -5,6 +5,7 @@
 #include "Tilc/Utils/ExtString.h"
 
 #include <initializer_list>
+#include <vector>
 
 namespace Tilc
 {
@@ -34,6 +35,7 @@ namespace Tilc
             virtual bool OnMouseButtonDown(const SDL_Event& event) override;
 
             void SetItems(const std::initializer_list<TPanelMenuItem>& Items);
+            void SetItems(const std::vector<TPanelMenuItem>& Items);
             void SelectItemExclusive(TPanelMenuItem* ItemToSelect);
             TPanelMenuItem* GetSelectedItem() const { return m_SelectedItem; }
 
