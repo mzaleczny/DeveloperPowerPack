@@ -36,7 +36,7 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
             "name": "MainWindow",
             "x": 0,
             "y": 0,
-            "width": 1200,
+            "width": 1500,
             "height": 800,
             "caption": "Application demonstrating reading layout from json",
             "items": [
@@ -304,6 +304,73 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
                     "min": 1,
                     "max": 100,
                     "small": 1
+                },
+                {
+                    "name": "panelmenu",
+                    "type": "panelmenu",
+                    "x": 1200,
+                    "y": 35,
+                    "width": 290,
+                    "height": 755,
+                    "position": 1,
+                    "large-icons": "../assets/Icons/Icons3d.png",
+                    "small-icons": "../assets/Icons/SmallIcons3d.png",
+                    "items": [
+                        {
+                            "icon": [0, 0, 109, 106],
+                            "text": "Kategorie",
+                            "subitems": [
+                                {
+                                    "icon": [0, 0, 27, 22],
+                                    "text": "Dodaj nową kategorię"
+                                },
+                                {
+                                    "icon": [1, 0, 27, 22],
+                                    "text": "Edytuj zaznaczoną kategorię"
+                                },
+                                {
+                                    "icon": [2, 0, 27, 22],
+                                    "text": "Usuń zaznaczone kategorie"
+                                }
+                            ]
+                        },
+                        {
+                            "icon": [1, 0, 109, 106],
+                            "text": "Produkty",
+                            "subitems": [
+                                {
+                                    "icon": [0, 0, 27, 22],
+                                    "text": "Dodaj nowy produkt"
+                                },
+                                {
+                                    "icon": [1, 0, 27, 22],
+                                    "text": "Edytuj zaznaczoną produkt"
+                                },
+                                {
+                                    "icon": [2, 0, 27, 22],
+                                    "text": "Usuń zaznaczone produkty"
+                                }
+                            ]
+                        },
+                        {
+                            "icon": [2, 0, 109, 106],
+                            "text": "Zamówienia",
+                            "subitems": [
+                                {
+                                    "icon": [0, 0, 27, 22],
+                                    "text": "Dodaj nowe zamówienie"
+                                },
+                                {
+                                    "icon": [1, 0, 27, 22],
+                                    "text": "Edytuj zaznaczone zamówienie"
+                                },
+                                {
+                                    "icon": [2, 0, 27, 22],
+                                    "text": "Usuń zaznaczone zamówienia"
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         }
