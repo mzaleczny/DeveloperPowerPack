@@ -3,6 +3,7 @@
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Utils/StdObject.h"
+#include "Tilc/Gui/PanelMenu.h"
 #include <list>
 
 
@@ -53,6 +54,8 @@ namespace Tilc {
             void processMultiColumnListboxItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processSliderItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processScrollbarItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
+            void processPanelMenuItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
+            Tilc::Gui::TPanelMenuItem processPanelMenuItem_ReadPanelMenuItem(Tilc::TStdObject* item);
         };
     }
 }

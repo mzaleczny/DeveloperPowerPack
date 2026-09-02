@@ -14,6 +14,7 @@
 #include "Tilc/Gui/SliderHorizontal.h"
 #include "Tilc/Gui/ScrollbarVertical.h"
 #include "Tilc/Gui/ScrollbarHorizontal.h"
+#include "Tilc/Gui/PanelMenu.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Utils/FileUtils.h"
 #include "Tilc/Game.h"
@@ -167,6 +168,11 @@ void Tilc::Gui::TLayoutFile::processItems(Tilc::TPropertiesVector* items, Tilc::
                 if (type == "scrollbar")
                 {
                     processScrollbarItem(oValue, parent);
+                    continue;
+                }
+                if (type == "panelmenu")
+                {
+                    processPanelMenuItem(oValue, parent);
                     continue;
                 }
             }
@@ -818,6 +824,92 @@ void Tilc::Gui::TLayoutFile::processScrollbarItem(Tilc::TStdObject* item, Tilc::
             }
         }
     }
+}
+
+void Tilc::Gui::TLayoutFile::processPanelMenuItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent)
+{
+    if (!item || !parent)
+    {
+        return;
+    }
+
+    Tilc::TExtString name = item->getAsString("name");
+    if (!name.empty())
+    {
+        Tilc::TExtString text, relativeControl, relativePosition, orientation, LargeIcons, SmallIcons;
+        float x, y, width, height;
+        bool Small = false;
+        bool canTabStop, disableTabkey, disabled;
+        bool transparentDrawing;
+
+        getCommonProperties(item, &transparentDrawing);
+        getDimensionProperties(item, &x, &y, &width, &height);
+        getRelativePositionProperties(item, &relativeControl, &relativePosition);
+        canTabStop = item->getAsString("can-tab-stop") != "false";
+        disableTabkey = item->getAsString("disable-tab-key") == "true ";
+        disabled = item->getAsString("disabled") == "true";
+        orientation = item->getAsString("orientation");
+        LargeIcons = item->getAsString("large-icons");
+        SmallIcons = item->getAsString("small-icons");
+
+        SDL_FRect Position;
+        Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        Position = { x, y, width, height };
+        Tilc::Gui::TPanelMenu* gc = new Tilc::Gui::TPanelMenu(parent, name, Position, LargeIcons, SmallIcons);
+        if (gc)
+        {
+            Tilc::TPropertiesVector* Items = item->getAsArray("items");
+            if (Items)
+            {
+                std::vector< Tilc::Gui::TPanelMenuItem> PanelMenuItems;
+                for (size_t i = 0; i < (*Items).size(); ++i)
+                {
+                    Tilc::Gui::TPanelMenuItem PanelMenuItem = processPanelMenuItem_ReadPanelMenuItem((*Items)[i]->oValue);
+                    if (!PanelMenuItem.m_Caption.empty())
+                    {
+                        PanelMenuItems.push_back(PanelMenuItem);
+                    }
+                }
+                gc->SetItems(PanelMenuItems);
+            }
+            //gc->SetTransparentDrawing(transparentDrawing);
+            doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            if (disabled)
+            {
+                gc->Disable();
+            }
+        }
+    }
+}
+
+Tilc::Gui::TPanelMenuItem Tilc::Gui::TLayoutFile::processPanelMenuItem_ReadPanelMenuItem(Tilc::TStdObject* item)
+{
+    Tilc::Gui::TPanelMenuItem PanelMenuItem;
+    if (item)
+    {
+        Tilc::TPropertiesVector* Icon = item->getAsArray("icon");
+        if (Icon)
+        {
+            PanelMenuItem.m_IconPosition.x = (*Icon)[0]->iValue;
+            PanelMenuItem.m_IconPosition.y = (*Icon)[1]->iValue;
+            PanelMenuItem.m_IconPosition.w = (*Icon)[2]->iValue;
+            PanelMenuItem.m_IconPosition.h = (*Icon)[3]->iValue;
+        }
+        PanelMenuItem.m_Caption = item->getAsString("text");
+        Tilc::TPropertiesVector* SubItems = item->getAsArray("subitems");
+        if (SubItems)
+        {
+            for (size_t i = 0; i < (*SubItems).size(); ++i)
+            {
+                Tilc::Gui::TPanelMenuItem PanelMenuSubItem = processPanelMenuItem_ReadPanelMenuItem((*SubItems)[i]->oValue);
+                if (!PanelMenuSubItem.m_Caption.empty())
+                {
+                    PanelMenuItem.m_ChildItems.push_back(PanelMenuSubItem);
+                }
+            }
+        }
+    }
+    return PanelMenuItem;
 }
 
 void Tilc::Gui::TLayoutFile::addControl(Tilc::Gui::TGuiControl* gc, Tilc::Gui::TGuiControl* parent)
