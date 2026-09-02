@@ -50,6 +50,7 @@ namespace Tilc {
             void processCheckboxItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processOptionItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processListboxItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
+            void processMultiColumnListboxItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processSliderItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
             void processScrollbarItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent);
         };

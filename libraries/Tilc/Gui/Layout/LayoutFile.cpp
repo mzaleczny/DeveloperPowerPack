@@ -7,6 +7,7 @@
 #include "Tilc/Gui/Checkbox.h"
 #include "Tilc/Gui/Option.h"
 #include "Tilc/Gui/Listbox.h"
+#include "Tilc/Gui/MultiColumnListbox.h"
 #include "Tilc/Gui/MessageBox.h"
 #include "Tilc/Gui/StyledWindow.h"
 #include "Tilc/Gui/SliderVertical.h"
@@ -139,6 +140,11 @@ void Tilc::Gui::TLayoutFile::processItems(Tilc::TPropertiesVector* items, Tilc::
                 if (type == "listbox")
                 {
                     processListboxItem(oValue, parent);
+                    continue;
+                }
+                if (type == "multicolumn-listbox")
+                {
+                    processMultiColumnListboxItem(oValue, parent);
                     continue;
                 }
                 if (type == "grid")
@@ -640,6 +646,69 @@ void Tilc::Gui::TLayoutFile::processListboxItem(Tilc::TStdObject* item, Tilc::Gu
                 gc->Disable();
             }
        }
+    }
+}
+
+void Tilc::Gui::TLayoutFile::processMultiColumnListboxItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent)
+{
+    if (!item || !parent)
+    {
+        return;
+    }
+
+    Tilc::TExtString name = item->getAsString("name");
+    if (!name.empty())
+    {
+        Tilc::TExtString text, relativeControl, relativePosition;
+        float x, y, width, height;
+        bool canTabStop, disableTabkey, disabled;
+        bool transparentDrawing;
+
+        getCommonProperties(item, &transparentDrawing);
+        getDimensionProperties(item, &x, &y, &width, &height);
+        getRelativePositionProperties(item, &relativeControl, &relativePosition);
+        canTabStop = item->getAsString("can-tab-stop") != "false";
+        disableTabkey = item->getAsString("disable-tab-key") == "true ";
+        disabled = item->getAsString("disabled") == "true";
+
+        SDL_FRect Position = { x, y, width, height };
+        Tilc::Gui::TMultiColumnListbox* gc = new Tilc::Gui::TMultiColumnListbox(parent, name, Position, {});
+        if (gc)
+        {
+            std::vector<Tilc::TStringVector> ItemsToAdd;
+            Tilc::TStringVector lst;
+            Tilc::TPropertiesVector* ItemsArray = item->getAsArray("items");
+            if (ItemsArray)
+            {
+                for (size_t i = 0; i < (*ItemsArray).size(); ++i)
+                {
+                    Tilc::TPropertiesVector* ColumnItemsArray = (*ItemsArray)[i]->aValue;
+                    if (ColumnItemsArray)
+                    {
+                        lst.clear();
+                        lst.reserve((*ColumnItemsArray).size());
+                        for (size_t j = 0; j < (*ColumnItemsArray).size(); ++j)
+                        {
+                            lst.push_back((*ColumnItemsArray)[j]->getAsString());
+                        }
+                    }
+                    if (lst.size() > 0)
+                    {
+                        ItemsToAdd.push_back(lst);
+                    }
+                }
+            }
+            if (ItemsToAdd.size() > 0)
+            {
+                gc->SetItems(ItemsToAdd);
+            }
+            //gc->SetTransparentDrawing(transparentDrawing);
+            doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            if (disabled)
+            {
+                gc->Disable();
+            }
+        }
     }
 }
 
