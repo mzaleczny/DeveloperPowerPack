@@ -230,6 +230,80 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
                     "height": -1,
                     "group": 2,
                     "text": "Option #3 - Grupa 2"
+                },
+                {
+                    "name": "vslider",
+                    "type": "slider",
+                    "orientation": "vertical",
+                    "x": 550,
+                    "y": 600,
+                    "width": -1,
+                    "height": 150,
+                    "position": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "hslider",
+                    "type": "slider",
+                    "orientation": "horizontal",
+                    "x": 250,
+                    "y": 600,
+                    "width": 250,
+                    "height": -1,
+                    "position": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "vscrollbar",
+                    "type": "scrollbar",
+                    "orientation": "vertical",
+                    "x": 600,
+                    "y": 600,
+                    "width": -1,
+                    "height": 150,
+                    "position": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "hscrollbar",
+                    "type": "scrollbar",
+                    "orientation": "horizontal",
+                    "x": 250,
+                    "y": 625,
+                    "width": 250,
+                    "height": -1,
+                    "position": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "vscrollbarSmall",
+                    "type": "scrollbar",
+                    "orientation": "vertical",
+                    "x": 625,
+                    "y": 600,
+                    "width": -1,
+                    "height": 150,
+                    "position": 1,
+                    "min": 1,
+                    "max": 100,
+                    "small": 1
+                },
+                {
+                    "name": "hscrollbarSmall",
+                    "type": "scrollbar",
+                    "orientation": "horizontal",
+                    "x": 250,
+                    "y": 650,
+                    "width": 250,
+                    "height": -1,
+                    "position": 1,
+                    "min": 1,
+                    "max": 100,
+                    "small": 1
                 }
             ]
         }
