@@ -14,7 +14,9 @@
 #include "Tilc/Gui/SliderHorizontal.h"
 #include "Tilc/Gui/ScrollbarVertical.h"
 #include "Tilc/Gui/ScrollbarHorizontal.h"
+#include "Tilc/Gui/Theme.h"
 #include "Tilc/Utils/FileUtils.h"
+#include "Tilc/Game.h"
 #include <cstring>
 
 Tilc::Gui::TLayoutFile::TLayoutFile()
@@ -722,8 +724,8 @@ void Tilc::Gui::TLayoutFile::processSliderItem(Tilc::TStdObject* item, Tilc::Gui
     Tilc::TExtString name = item->getAsString("name");
     if (!name.empty())
     {
-        Tilc::TExtString text, relativeControl, relativePosition, sliderType;
-        float x, y, width, height;
+        Tilc::TExtString text, relativeControl, relativePosition, orientation;
+        float x, y, width, height, min, max, pos;
         bool canTabStop, disableTabkey, disabled;
         bool transparentDrawing;
 
@@ -733,19 +735,22 @@ void Tilc::Gui::TLayoutFile::processSliderItem(Tilc::TStdObject* item, Tilc::Gui
         canTabStop = item->getAsString("can-tab-stop") != "false";
         disableTabkey = item->getAsString("disable-tab-key") == "true ";
         disabled = item->getAsString("disabled") == "true";
-        sliderType = item->getAsString("type");
+        orientation = item->getAsString("orientation");
+        min = item->getAsInt("min");
+        max = item->getAsInt("max");
+        pos = item->getAsInt("position");
 
         SDL_FRect Position;
         Tilc::Gui::TGuiControl* gc{};
-        if (sliderType != "horzontal")
+        if (orientation == "vertical")
         {
             Position = { x, y, -1, height };
-            gc = new Tilc::Gui::TSliderVertical(parent, name, Position);
+            gc = new Tilc::Gui::TSliderVertical(parent, name, Position, pos, max, min);
         }
-        else
+        else if (orientation == "horizontal")
         {
             Position = { x, y, width, -1 };
-            gc = new Tilc::Gui::TSliderHorizontal(parent, name, Position);
+            gc = new Tilc::Gui::TSliderHorizontal(parent, name, Position, pos, max, min);
         }
         if (gc)
         {
@@ -761,6 +766,58 @@ void Tilc::Gui::TLayoutFile::processSliderItem(Tilc::TStdObject* item, Tilc::Gui
 
 void Tilc::Gui::TLayoutFile::processScrollbarItem(Tilc::TStdObject* item, Tilc::Gui::TGuiControl* parent)
 {
+    if (!item || !parent)
+    {
+        return;
+    }
+
+    Tilc::TExtString name = item->getAsString("name");
+    if (!name.empty())
+    {
+        Tilc::TExtString text, relativeControl, relativePosition, orientation;
+        float x, y, width, height, min, max, pos;
+        bool Small = false;
+        bool canTabStop, disableTabkey, disabled;
+        bool transparentDrawing;
+
+        getCommonProperties(item, &transparentDrawing);
+        getDimensionProperties(item, &x, &y, &width, &height);
+        getRelativePositionProperties(item, &relativeControl, &relativePosition);
+        canTabStop = item->getAsString("can-tab-stop") != "false";
+        disableTabkey = item->getAsString("disable-tab-key") == "true ";
+        disabled = item->getAsString("disabled") == "true";
+        orientation = item->getAsString("orientation");
+        min = item->getAsInt("min");
+        max = item->getAsInt("max");
+        pos = item->getAsInt("position");
+        if (item->get("small"))
+        {
+            Small = item->getAsInt("small") != 0;
+        }
+
+        SDL_FRect Position;
+        Tilc::Gui::TGuiControl* gc{};
+        Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        if (orientation == "vertical")
+        {
+            Position = { x, y, Small ? t->small_scrollbar_vertical_bg_rc.w : t->scrollbar_vertical_bg_rc.w, height };
+            gc = new Tilc::Gui::TScrollBarVertical(parent, name, Position, Tilc::Gui::EControlType::ECT_ScrollBar, pos, max, min, false, !Small);
+        }
+        else if (orientation == "horizontal")
+        {
+            Position = { x, y, width, Small ? t->small_scrollbar_horizontal_bg_rc.h : t->scrollbar_horizontal_bg_rc.h };
+            gc = new Tilc::Gui::TScrollBarHorizontal(parent, name, Position, Tilc::Gui::EControlType::ECT_ScrollBar, pos, max, min, false, !Small);
+        }
+        if (gc)
+        {
+            //gc->SetTransparentDrawing(transparentDrawing);
+            doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            if (disabled)
+            {
+                gc->Disable();
+            }
+        }
+    }
 }
 
 void Tilc::Gui::TLayoutFile::addControl(Tilc::Gui::TGuiControl* gc, Tilc::Gui::TGuiControl* parent)
