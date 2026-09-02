@@ -212,6 +212,15 @@ void Tilc::Gui::TPanelMenu::SetItems(const std::initializer_list<TPanelMenuItem>
     }
 }
 
+void Tilc::Gui::TPanelMenu::SetItems(const std::vector<TPanelMenuItem>& Items)
+{
+    m_Items.reserve(Items.size());
+    for (auto it = Items.begin(); it != Items.end(); ++it)
+    {
+        m_Items.emplace_back(*it);
+    }
+}
+
 void Tilc::Gui::TPanelMenu::SelectItemExclusive(TPanelMenuItem* ItemToSelect)
 {
     for (size_t i = 0; i < m_Items.size(); ++i)
