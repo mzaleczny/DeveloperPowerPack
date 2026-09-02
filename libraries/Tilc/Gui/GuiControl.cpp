@@ -2019,6 +2019,8 @@ float Tilc::Gui::TGuiControl::GetControlWidthFromTheme(Tilc::Gui::EControlType C
     {
     case Tilc::Gui::EControlType::ECT_Slider:
         return theme->slider_vertical_thumb_rc.w;
+    case Tilc::Gui::EControlType::ECT_ScrollBar:
+        return theme->scrollbar_horizontal_thumb_bg_rc.w;
     default:
         return 0.0f;
     }
