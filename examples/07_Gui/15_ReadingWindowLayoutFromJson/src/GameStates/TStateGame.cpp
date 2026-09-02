@@ -139,6 +139,39 @@ TStateGame::TStateGame(Tilc::TStateManager* StateManager) : Tilc::TBaseState(Sta
                     "height": 450
                 },
                 {
+                    "name": "listbox",
+                    "type": "listbox",
+                    "x": 570,
+                    "y": 140,
+                    "width": 225,
+                    "height": 450,
+                    "items": [
+                        "Pozycja #1", "Pozycja #2", "Pozycja #3", "Pozycja #4", "Pozycja #5", "Pozycja #6", "Pozycja #7", "Pozycja #8", "Pozycja #9", "Pozycja #10",
+                        "Pozycja #11", "Pozycja #12", "Pozycja #13", "Pozycja #14", "Pozycja #15", "Pozycja #16", "Pozycja #17", "Pozycja #18", "Pozycja #19", "Pozycja #20",
+                        "Pozycja #21", "Pozycja #22", "Pozycja #23", "Pozycja #24", "Pozycja #25", "Pozycja #26", "Pozycja #27", "Pozycja #28", "Pozycja #29", "Pozycja #30"
+                    ]
+                },
+                {
+                    "name": "multicolumnlistbox",
+                    "type": "multicolumn-listbox",
+                    "x": 800,
+                    "y": 140,
+                    "width": 390,
+                    "height": 450,
+                    "items": [
+                        ["Pozycja #1", "Pozycja #2", "Pozycja #3"],
+                        ["Pozycja #4", "Pozycja #5", "Pozycja #6"],
+                        ["Pozycja #7", "Pozycja #8", "Pozycja #9"],
+                        ["Pozycja #10", "Pozycja #11", "Pozycja #12"],
+                        ["Pozycja #13", "Pozycja #14", "Pozycja #15"],
+                        ["Pozycja #16", "Pozycja #17", "Pozycja #18"],
+                        ["Pozycja #19", "Pozycja #20", "Pozycja #21"],
+                        ["Pozycja #22", "Pozycja #23", "Pozycja #24"],
+                        ["Pozycja #25", "Pozycja #26", "Pozycja #27"],
+                        ["Pozycja #28", "Pozycja #29", "Pozycja #30"]
+                    ]
+                },
+                {
                     "name": "chk",
                     "type": "checkbox",
                     "x": 10,
