@@ -683,7 +683,8 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
                             itemRect.x += m_Padding;
                         }
                     }
-                    font->DrawString(Renderer, (item->m_Value + ": " + std::to_string(i+1) + " / " + std::to_string(m_Items.size())).c_str(), &itemRect);
+                    //font->DrawString(Renderer, (item->m_Value + ": " + std::to_string(i+1) + " / " + std::to_string(m_Items.size())).c_str(), &itemRect);
+                    font->DrawString(Renderer, item->m_Value.c_str(), &itemRect);
                     itemRect.y += size.y;
                 }
                 if (i - m_TopItemIndex + 1 == m_VisibleItems)
