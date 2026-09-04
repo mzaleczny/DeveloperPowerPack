@@ -2,14 +2,8 @@
 
 #include "Tilc/configure.h"
 
-#define GLAD_GL_IMPLEMENTATION
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
-#include <glad/glad.h>
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
+#include "Tilc/configure.h"
+#include "Tilc/OpenGL.h"
 #include <glm/glm.hpp>
 #include <string>
 #include "Tilc/DllGlobals.h"

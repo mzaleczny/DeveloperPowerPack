@@ -4,14 +4,8 @@
 #include "Tilc/Game.h"
 #include "Tilc/Resources/ResourceManager.h"
 #include <SDL3/SDL.h>
-#define GLAD_GL_IMPLEMENTATION
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
-#include <glad/glad.h>
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
+#include "Tilc/configure.h"
+#include "Tilc/OpenGL.h"
 
 namespace Tilc::Resources
 {

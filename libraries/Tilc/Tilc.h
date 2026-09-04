@@ -24,14 +24,7 @@
 #endif
 
 #if BUILD_WITH_OPENGL == 1
-	#define GLAD_GL_IMPLEMENTATION
-	#ifdef APIENTRY
-	# undef APIENTRY
-	#endif
-	#include <glad/glad.h>
-	#ifdef APIENTRY
-	# undef APIENTRY
-	#endif
+#include "Tilc/OpenGL.h"
 #endif
 
 namespace Tilc

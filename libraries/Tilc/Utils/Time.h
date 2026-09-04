@@ -21,6 +21,8 @@ namespace Tilc {
             tm local_tm;
 #ifdef __linux__
             localtime_r(&d.m_Time, &local_tm);
+#elif __EMSCRIPTEN__
+            localtime_r(&d.m_Time, &local_tm);
 #else
             localtime_s(&local_tm, &d.m_Time);
 #endif

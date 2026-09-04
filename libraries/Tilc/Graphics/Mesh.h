@@ -1,15 +1,7 @@
 #pragma once
 
 #include "Tilc/configure.h"
-
-#define GLAD_GL_IMPLEMENTATION
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
-#include <glad/glad.h>
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
+#include "Tilc/OpenGL.h"
 #include "Tilc/DllGlobals.h"
 #include <Tilc/Graphics/OpenGL/Shader.h>
 #include <Tilc/Utils/Types.h>

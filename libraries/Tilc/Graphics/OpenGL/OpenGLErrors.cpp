@@ -1,12 +1,7 @@
 #include "OpenGLErrors.h"
 #include <SDL3/SDL.h>
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
-#include <glad/glad.h>
-#ifdef APIENTRY
-# undef APIENTRY
-#endif
+#include "Tilc/configure.h"
+#include "Tilc/OpenGL.h"
 
 void PrintOpenGLError(const std::string& PrefixString)
 {
