@@ -1156,7 +1156,11 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
         }
         int last_char_pos = GetLastVisibleCharPos();
 
+#ifdef WIN32
         if (localX <= frame_left_width && fabs(m_CaretAtChar - m_StartChar) <= 2)
+#else
+        if (localX <= frame_left_width && std::abs(m_CaretAtChar - m_StartChar) <= 2)
+#endif
         {
             // przesuwamy karetkę o jeden znak w lewo
             UpdateCursorPosition(SDLK_LEFT, updateCaretPos, redraw);
@@ -1170,7 +1174,11 @@ bool Tilc::Gui::TTextField::Update(float DeltaTime)
             processed = true;
         }
 
+#ifdef WIN32
+        if (!processed && localX > frame_left_width + inner_width && fabs((last_char_pos + 1) - m_CaretAtChar) <= 2)
+#else
         if (!processed && localX > frame_left_width + inner_width && std::fabs((last_char_pos + 1) - m_CaretAtChar) <= 2)
+#endif
         {
             // przesuwamy karetkę o jeden znak w prawo
             UpdateCursorPosition(SDLK_RIGHT, updateCaretPos, redraw);

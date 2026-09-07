@@ -312,9 +312,17 @@ DECLSPEC void Tilc::Graphics::ClearStreamingTexture(SDL_Texture* tex, const SDL_
 
 DECLSPEC void Tilc::Graphics::DrawLine(SDL_Surface* Surface, const SDL_Point& p1, const SDL_Point& p2, int color)
 {
+#ifdef WIN32
     int dx = fabs(p2.x - p1.x);
+#else
+    int dx = std::abs(p2.x - p1.x);
+#endif
     int sx = (p2.x - p1.x) > 0 ? 1 : -1;
+#ifdef WIN32
     int dy = fabs(p2.y - p1.y);
+#else
+    int dy = std::abs(p2.y - p1.y);
+#endif
     int sy = (p2.y - p1.y) > 0 ? 1 : -1;
     int Err;
     int x = p1.x;
