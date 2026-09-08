@@ -141,6 +141,12 @@ void Tilc::Gui::TStyledWindow::Draw()
                 SDL_RenderTexture(Renderer, m_Bg, nullptr, &DestRect);
             }
         }
+        else
+        {
+            // Full Canvas of window is transparent if m_WithBackground == false
+            SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0x00);
+            SDL_RenderFillRect(Renderer, &DestRect);
+        }
 
         // ================================================================
         // Rysujemy obramowanie okna
@@ -148,27 +154,28 @@ void Tilc::Gui::TStyledWindow::Draw()
         if (m_WithBorder)
         {
             // Ramka lewa
-            x = m_Position.x;
-            y = m_Position.y + t->wnd_caption_middle_rc.h;
+            x = 0;
+            y = t->wnd_caption_middle_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_left_rc, x, y, t->wnd_frame_left_rc.w, m_Position.h - y - t->wnd_frame_bottom_left_rc.h);
 
             // Lewy dolny róg
-            y = m_Position.y + m_Position.h - t->wnd_frame_bottom_left_rc.h;
+            y = m_Position.h - t->wnd_frame_bottom_left_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_bottom_left_rc, x, y);
 
             // Ramka dolna
             x += t->wnd_frame_bottom_left_rc.w;
-            y = m_Position.y + m_Position.h - t->wnd_frame_bottom_rc.h;
-            RenderTexture(TextureMap, &t->wnd_frame_bottom_rc, x, y, m_Position.w - x - t->wnd_frame_bottom_right_rc.w, t->wnd_frame_right_rc.h);
+            y = m_Position.h - t->wnd_frame_bottom_rc.h;
+            DestRect = { x, y, m_Position.w - x - t->wnd_frame_bottom_right_rc.w, t->wnd_frame_bottom_rc.h };
+            RenderTiledTexture(TextureMap, &t->wnd_frame_bottom_rc, &DestRect);
 
             // Prawy dolny róg
-            x = m_Position.x + m_Position.w - t->wnd_frame_bottom_right_rc.w;
-            y = m_Position.y + m_Position.h - t->wnd_frame_bottom_right_rc.h;
+            x = m_Position.w - t->wnd_frame_bottom_right_rc.w;
+            y = m_Position.h - t->wnd_frame_bottom_right_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_bottom_right_rc, x, y);
 
             // Ramka prawa
-            x = m_Position.x + m_Position.w - t->wnd_frame_right_rc.w;
-            y = m_Position.y + t->wnd_caption_middle_rc.h;
+            x = m_Position.w - t->wnd_frame_right_rc.w;
+            y = t->wnd_caption_middle_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_right_rc, x, y, t->wnd_frame_right_rc.w, m_Position.h - y - t->wnd_frame_bottom_right_rc.h);
         }
         // ================================================================
@@ -241,15 +248,15 @@ void Tilc::Gui::TStyledWindow::Draw()
         }
     }
 
+    SDL_SetTextureBlendMode(m_Canvas, SDL_BLENDMODE_BLEND);
     if (m_Alpha < 1.0f)
     {
-        SDL_SetTextureBlendMode(m_Canvas, SDL_BLENDMODE_BLEND);
         SDL_SetTextureAlphaMod(m_Canvas, static_cast<int>(m_Alpha * 255.0f));
         SDL_RenderTexture(Renderer, m_Canvas, nullptr, &m_Position);
     }
     else
     {
-        SDL_SetTextureBlendMode(m_Canvas, SDL_BLENDMODE_NONE);
+        SDL_SetTextureAlphaMod(m_Canvas, 255);
         SDL_RenderTexture(Renderer, m_Canvas, nullptr, &m_Position);
     }
 }
