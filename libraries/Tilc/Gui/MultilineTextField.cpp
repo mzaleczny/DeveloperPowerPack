@@ -53,7 +53,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
     SDL_Texture* TextureMap = t->GuiTextureMap1;
     Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
     SDL_Texture* OldRenderTarget{ nullptr };
-    SDL_FRect RealPosition = GetRealPosition();
+    SDL_FRect RealPosition = m_Position;// GetRealPosition();
 
     SDL_FRect rc = m_Position;
     DrawCommonComplex(
@@ -278,7 +278,7 @@ void Tilc::Gui::TMultilineTextField::PositionCaretNearClickedPoint(float localX,
 void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
 {
     int w, h;
-    SDL_FRect RealPosition = m_RealPosition;
+    SDL_FRect RealPosition = m_Position;// m_RealPosition;
 
     Tilc::Gui::Helpers::THbTextLayoutCache::TLine& Line = m_HbTextLayoutCache->GetLine(m_CurrentLine);
     m_Caret->m_Position.x = RealPosition.x + m_PaddingLeft + m_HbTextLayoutCache->GetCaretX(m_CurrentLine, m_CaretAtChar) - m_ScrollOffsetX;
@@ -943,7 +943,7 @@ void Tilc::Gui::TMultilineTextField::MoveCaretToPreviousLine(bool SetCaretAtEndO
 
 bool Tilc::Gui::TMultilineTextField::IsCaretInsideView()
 {
-    SDL_FRect RealPosition = m_RealPosition;
+    SDL_FRect RealPosition = m_Position;// m_RealPosition;
     if (
         m_Caret->m_Position.x >= RealPosition.x + m_PaddingLeft && m_Caret->m_Position.x <= RealPosition.x + m_PaddingLeft + CalculateInnerWidth()
         &&

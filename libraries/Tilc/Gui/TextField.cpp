@@ -207,7 +207,7 @@ bool Tilc::Gui::TTextField::OnMouseMove(const SDL_Event& event)
     if (event.button.button == SDL_BUTTON_LEFT)
     {
         int oldCaretAtChar = m_CaretAtChar;
-        PositionCaretNearClickedPoint(event.motion.x - m_Position.x, event.motion.y - m_Position.y);
+        PositionCaretNearClickedPoint(event.motion.x - m_RealPosition.x, event.motion.y - m_RealPosition.y);
         // Jeśli ruszamy myszką w lewo przesuwając zaznaczenie i jesteśmy tuż przy lewym końcu
         if (m_StartChar > 0 && m_CaretAtChar - m_StartChar < 3)
         {
@@ -258,7 +258,7 @@ bool Tilc::Gui::TTextField::OnMouseButtonDown(const SDL_Event& event)
         CaptureMouse(this);
 
         // pozycjonujemy karetkę na odpowiednim znaku
-        PositionCaretNearClickedPoint(event.button.x - m_Position.x, event.button.y - m_Position.y);
+        PositionCaretNearClickedPoint(event.button.x - m_RealPosition.x, event.button.y - m_RealPosition.y);
         // Line below is required for proper starting new selection bu multiline text field
         ClearSelection();
         m_SelBegin = m_SelStart = m_SelEnd = m_CaretAtChar;
