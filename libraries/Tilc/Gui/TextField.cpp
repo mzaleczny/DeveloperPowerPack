@@ -369,7 +369,7 @@ SDL_FPoint Tilc::Gui::TTextField::CalculateCaretPos()
 
     if (m_Caret)
     {
-        SDL_FRect RealPosition = GetRealPosition();
+        SDL_FRect RealPosition = m_Position;// GetRealPosition();
         pt.x = RealPosition.x + m_PaddingLeft;
         if (TextSize.w < size.w - 1.0f)
         {
@@ -408,7 +408,7 @@ SDL_FPoint Tilc::Gui::TTextField::CalculateCharPos(int CurrentChar, int& Result)
         Font->GetTextSize(s.c_str(), size.w, size.h);
     }
 
-    SDL_FRect RealPos = GetRealPosition();
+    SDL_FRect RealPos = m_Position;// GetRealPosition();
     pt.x = RealPos.x + m_PaddingLeft + size.w;
     pt.y = RealPos.y + (m_Position.h - t->textfield_selection_rc.h) / 2.0f;
 
@@ -1029,7 +1029,7 @@ int Tilc::Gui::TTextField::CalculateInnerHeight() const
 int Tilc::Gui::TTextField::GetMaxXPosAllowedForContent()
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    SDL_FRect rc = GetRealPosition();
+    SDL_FRect rc = m_Position;// GetRealPosition();
     return rc.x + m_PaddingLeft + CalculateInnerWidth();
 }
 
