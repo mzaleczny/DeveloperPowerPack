@@ -17,7 +17,7 @@
 #include "Tilc/Gui/ScrollBarVertical.h"
 #include "Tilc/Gui/ScrollBarHorizontal.h"
 
-void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields, float TopY)
+void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields, const char* SaveButtonLabel, float TopY)
 {
     float const PaddingLeft = 10.0f;
     float const PaddingRight = 10.0f;
@@ -26,12 +26,13 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
     float const SpacerW = 15.0f;
     float const SpacerH = 15.0f;
     SDL_FRect Position{PaddingLeft, PaddingTop, Window->m_Position.w, 25.0f };
+    Tilc::Gui::TGuiControl* gc{};
+
     for (auto Item : FormFields)
     {
         const char* Label = *Item.begin();
         const char* Name = *(Item.begin()+1);
         const char* Type = *(Item.begin()+2);
-        Tilc::Gui::TGuiControl* gc{};
 
         if (std::strncmp(Type, "label", 5) == 0)
         {
@@ -79,6 +80,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "button", 6) == 0)
         {
             Position.w = std::atoi(*(Item.begin() + 3));
+            Position.h = 25.0f;
             gc = new Tilc::Gui::TButton(Window, Name, Position, Label);
             Position.x += Position.w + SpacerW;
             continue;
@@ -213,4 +215,16 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             continue;
         }
     }
+
+    Tilc::TExtString SaveButtonText = "Dodaj";
+    if (SaveButtonLabel)
+    {
+        SaveButtonText = SaveButtonLabel;
+    }
+
+    Position.w = 100.0f;
+    Position.h = 25.0f;
+    gc = new Tilc::Gui::TButton(Window, "SaveButton", Position, SaveButtonText);
+    Position.x += Position.w + SpacerW;
+    gc = new Tilc::Gui::TButton(Window, "CancelButton", Position, "Anuluj");
 }
