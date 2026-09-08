@@ -439,6 +439,7 @@ namespace Tilc {
             SDL_Color commonTextControlSelectedFontColor;
 
             TFont* DefaultFont;
+            TFont* DefaultFontBold;
 
             void Load(Tilc::TExtString name = "");
             void LoadFonts();

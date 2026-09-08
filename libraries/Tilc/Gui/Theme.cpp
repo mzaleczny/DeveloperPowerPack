@@ -106,6 +106,7 @@ void Tilc::Gui::TTheme::LoadFonts()
 {
     Tilc::GameObject->LoadFontsFromConfig(m_ThemeDir + "/Fonts.cfg");
     DefaultFont = Tilc::GameObject->GetFont("Default");
+    DefaultFontBold = Tilc::GameObject->GetFont("DefaultBold");
     /*
     this->globalStandardFont = new CFont(NULL, RGB(0, 0, 0), "Verdana", 8);
     this->windowCaptionFont = new CFont(NULL, RGB(255, 255, 255), SYSTEM_WINDOW_CAPTION_FONT);

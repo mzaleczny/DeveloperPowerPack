@@ -19,8 +19,8 @@
 
 void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields)
 {
-    float const PaddingLeft = 0.0f;
-    float const PaddingTop = 0.0f;
+    float const PaddingLeft = 10.0f;
+    float const PaddingTop = 10.0f;
     float const Spacer = 15.0f;
     SDL_FRect Position{PaddingLeft, PaddingTop, Window->m_RealPosition.w, 25.0f };
     for (auto Item : FormFields)
@@ -28,7 +28,6 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         const char* Label = *Item.begin();
         const char* Name = *(Item.begin()+1);
         const char* Type = *(Item.begin()+2);
-        SDL_Log("%s  %s  %s", Label, Name, Type);
         Tilc::Gui::TGuiControl* gc{};
 
         if (std::strncmp(Type, "label", 5) == 0)
@@ -44,12 +43,15 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.x = PaddingLeft;
             Position.w = Window->m_RealPosition.w;
             Position.h = 25.0f;
-            SDL_Log("%s,  %.2f, %.2f  %.2f x %.2f", Label, Position.x, Position.y, Position.w, Position.h);
-            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+            gc = lbl;
             Position.x = PaddingLeft;
             Position.y += 2*Position.h;
             Position.h = 25.0f;
-            SDL_Log("%.2f, %.2f  %.2f x %.2f", Position.x, Position.y, Position.w, Position.h);
             gc = new Tilc::Gui::TTextField(Window, Name, Position);
             Position.y += Position.h;
             continue;
@@ -57,7 +59,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "multiline-textfield", 19) == 0)
         {
             Position.w = Window->m_RealPosition.w;
-            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+            gc = lbl;
             Position.y += Position.h;
             Position.x = PaddingLeft;
             gc = new Tilc::Gui::TMultilineTextField(Window, Name, Position);
@@ -94,7 +101,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "listbox", 7) == 0)
         {
             Position.w = Window->m_RealPosition.w;
-            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+            gc = lbl;
             Position.y += Position.h;
             Position.x = PaddingLeft;
             gc = new Tilc::Gui::TListbox(Window, Name, Position, {});
@@ -118,7 +130,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "grid", 4) == 0)
         {
             Position.w = Window->m_RealPosition.w;
-            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+            gc = lbl;
             Position.y += Position.h;
             Position.x = PaddingLeft;
             gc = new Tilc::Gui::TGrid(Window, Name, Position, 10, 10, true,
@@ -130,7 +147,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "slider", 6) == 0)
         {
             Position.w = Window->m_RealPosition.w;
-            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+            gc = lbl;
             Position.y += Position.h;
             Position.x = PaddingLeft;
             const char* SliderType = *(Item.begin() + 3);
@@ -151,7 +173,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "scrollbar", 9) == 0)
         {
             Position.w = Window->m_RealPosition.w;
-            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+            gc = lbl;
             Position.y += Position.h;
             Position.x = PaddingLeft;
             const char* SliderType = *(Item.begin() + 3);
