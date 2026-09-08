@@ -17,12 +17,15 @@
 #include "Tilc/Gui/ScrollBarVertical.h"
 #include "Tilc/Gui/ScrollBarHorizontal.h"
 
-void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields)
+void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields, float TopY)
 {
     float const PaddingLeft = 10.0f;
-    float const PaddingTop = 10.0f;
-    float const Spacer = 15.0f;
-    SDL_FRect Position{PaddingLeft, PaddingTop, Window->m_RealPosition.w, 25.0f };
+    float const PaddingRight = 10.0f;
+    float const PaddingTop = (TopY > 10.0f) ? TopY : 10.0f;
+    float const PaddingBottom = (TopY > 10.0f) ? TopY : 10.0f;
+    float const SpacerW = 15.0f;
+    float const SpacerH = 15.0f;
+    SDL_FRect Position{PaddingLeft, PaddingTop, Window->m_Position.w, 25.0f };
     for (auto Item : FormFields)
     {
         const char* Label = *Item.begin();
@@ -32,7 +35,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
 
         if (std::strncmp(Type, "label", 5) == 0)
         {
-            Position.w = Window->m_RealPosition.w;
+            Position.w = Window->m_Position.w;
             gc = new Tilc::Gui::TLabel(Window, Name, Position, Label, false);
             Position.y += Position.h;
             Position.x = PaddingLeft;
@@ -41,7 +44,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "textfield", 9) == 0)
         {
             Position.x = PaddingLeft;
-            Position.w = Window->m_RealPosition.w;
+            Position.w = Window->m_Position.w - PaddingLeft - PaddingRight;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -50,15 +53,16 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             }
             gc = lbl;
             Position.x = PaddingLeft;
-            Position.y += 2*Position.h;
+            Position.y += Position.h;
             Position.h = 25.0f;
             gc = new Tilc::Gui::TTextField(Window, Name, Position);
-            Position.y += Position.h;
+            Position.y += Position.h + SpacerH;
             continue;
         }
         if (std::strncmp(Type, "multiline-textfield", 19) == 0)
         {
-            Position.w = Window->m_RealPosition.w;
+            Position.w = Window->m_Position.w - PaddingLeft - PaddingRight;
+            Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
             {
@@ -67,30 +71,33 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             gc = lbl;
             Position.y += Position.h;
             Position.x = PaddingLeft;
+            Position.h = 5*25.0f;
             gc = new Tilc::Gui::TMultilineTextField(Window, Name, Position);
-            Position.y += Position.h;
+            Position.y += Position.h + SpacerH;
             continue;
         }
         if (std::strncmp(Type, "button", 6) == 0)
         {
             Position.w = std::atoi(*(Item.begin() + 3));
             gc = new Tilc::Gui::TButton(Window, Name, Position, Label);
-            Position.x += Position.w + Spacer;
+            Position.x += Position.w + SpacerW;
             continue;
         }
         if (std::strncmp(Type, "checkbox", 8) == 0)
         {
             Position.w = std::atoi(*(Item.begin() + 3));
+            Position.h = 25.0f;
             gc = new Tilc::Gui::TCheckbox(Window, Name, Position, Label, Label, false);
-            Position.x += Position.w + Spacer;
+            Position.x += Position.w + SpacerW;
             continue;
         }
         if (std::strncmp(Type, "option", 6) == 0)
         {
             int GroupNumber = std::atoi(*(Item.begin() + 3));
             Position.w = std::atoi(*(Item.begin() + 4));
+            Position.h = 25.0f;
             gc = new Tilc::Gui::TOption(Window, Name, Position, Label, Label, false);
-            Position.x += Position.w + Spacer;
+            Position.x += Position.w + SpacerW;
             if (Tilc::Gui::TGuiControl::m_OptionGroups.find(GroupNumber) == Tilc::Gui::TGuiControl::m_OptionGroups.end())
             {
                 Tilc::Gui::TGuiControl::m_OptionGroups[GroupNumber] = Tilc::Gui::TOptionGroup();
@@ -101,6 +108,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "listbox", 7) == 0)
         {
             Position.w = Window->m_RealPosition.w;
+            Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
             {
@@ -130,6 +138,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "grid", 4) == 0)
         {
             Position.w = Window->m_RealPosition.w;
+            Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
             {
@@ -147,6 +156,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "slider", 6) == 0)
         {
             Position.w = Window->m_RealPosition.w;
+            Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
             {
@@ -173,6 +183,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         if (std::strncmp(Type, "scrollbar", 9) == 0)
         {
             Position.w = Window->m_RealPosition.w;
+            Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
             {
