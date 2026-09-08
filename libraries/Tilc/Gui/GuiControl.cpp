@@ -1267,7 +1267,7 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
             TGuiControl* Target = nullptr;
             if (event.type == SDL_EVENT_TEXT_INPUT || event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)
             {
-                if (event.key.key == SDLK_TAB)
+                if (event.key.key == SDLK_TAB && event.type == SDL_EVENT_KEY_DOWN)
                 {
                     // jesli nie wciśnięto SHIFT, to idziemy do następnej kontrolki
                     if ((event.key.mod & SDL_KMOD_SHIFT) == 0)
@@ -1279,6 +1279,7 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
                     {
                         MoveTabStopBackward();
                     }
+                    return true;
                 }
                 else
                 {

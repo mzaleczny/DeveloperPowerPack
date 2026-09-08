@@ -462,8 +462,8 @@ namespace Tilc {
             virtual void MoveTabStopForward();
             virtual void MoveTabStopBackward();
             virtual bool SetActiveControl(TGuiControl* Control);
-            inline TGuiControl* GetActiveControl() { return m_ActiveControl; }
-            inline void SetOnlyActiveControlPointer(Tilc::Gui::TGuiControl* Control) { m_ActiveControl = Control; }
+            inline static TGuiControl* GetActiveControl() { return m_ActiveControl; }
+            inline static void SetOnlyActiveControlPointer(Tilc::Gui::TGuiControl* Control) { m_ActiveControl = Control; }
 
             // Variable controlling dragging
             float m_DragStartX{};
@@ -580,7 +580,7 @@ namespace Tilc {
             Tilc::TExtString m_Name;
             Tilc::TExtString m_Text;
             // Aktywna kontrolka - ta która aktualnie ma focus
-            TGuiControl* m_ActiveControl{};
+            inline static TGuiControl* m_ActiveControl{};
             // lista wszystkich okien na potrzeby z-orderingu
             std::list<Tilc::Gui::TStyledWindow*> m_AllWindows{};
             // Aktywne okno, pozwala ograniczyc wysylke zdarzen do kontrolek tylko tego okna
