@@ -1232,11 +1232,14 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
         // Jeśli to okno
         if (m_ControlType == Tilc::Gui::EControlType::ECT_WindowControl)
         {
-            SDL_FRect Position{ GetRealPosition() };
-            // Jeśli jesteśmy nad jego nagłówkiem
-            if (pt.y >= Position.y && pt.y <= Position.y + Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h)
+            if ((reinterpret_cast<TStyledWindow*>(this))->HasCaption())
             {
-                InCaption = true;
+                SDL_FRect Position{ GetRealPosition() };
+                // Jeśli jesteśmy nad jego nagłówkiem
+                if (pt.y >= Position.y && pt.y <= Position.y + Tilc::GameObject->GetContext()->m_Theme->wnd_caption_middle_rc.h)
+                {
+                    InCaption = true;
+                }
             }
         }
     }
