@@ -2,7 +2,7 @@
 
 #define BUILD_GAME_STUFF 1
 #define BUILD_WITH_OPENGL 1
-/* #undef FORCE_OPENGL_ES */
+#define FORCE_OPENGL_ES 1
 /* #undef BUILD_WITH_MARIADB */
 #define BUILD_WITH_SDL3 1
 #define BUILD_WITH_SDL3_IMAGE 1
