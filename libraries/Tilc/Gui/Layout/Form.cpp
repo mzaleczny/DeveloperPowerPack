@@ -19,15 +19,16 @@
 
 void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields)
 {
+    float const PaddingLeft = 0.0f;
+    float const PaddingTop = 0.0f;
+    float const Spacer = 15.0f;
+    SDL_FRect Position{PaddingLeft, PaddingTop, Window->m_RealPosition.w, 25.0f };
     for (auto Item : FormFields)
     {
         const char* Label = *Item.begin();
         const char* Name = *(Item.begin()+1);
         const char* Type = *(Item.begin()+2);
-        float const PaddingLeft = 15.0f;
-        float const PaddingTop = 15.0f;
-        float const Spacer = 15.0f;
-        SDL_FRect Position{PaddingLeft, PaddingTop, Window->m_RealPosition.w, 25.0f };
+        SDL_Log("%s  %s  %s", Label, Name, Type);
         Tilc::Gui::TGuiControl* gc{};
 
         if (std::strncmp(Type, "label", 5) == 0)
@@ -40,10 +41,15 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         if (std::strncmp(Type, "textfield", 9) == 0)
         {
-            Position.w = Window->m_RealPosition.w;
-            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
-            Position.y += Position.h;
             Position.x = PaddingLeft;
+            Position.w = Window->m_RealPosition.w;
+            Position.h = 25.0f;
+            SDL_Log("%s,  %.2f, %.2f  %.2f x %.2f", Label, Position.x, Position.y, Position.w, Position.h);
+            gc = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Position.x = PaddingLeft;
+            Position.y += 2*Position.h;
+            Position.h = 25.0f;
+            SDL_Log("%.2f, %.2f  %.2f x %.2f", Position.x, Position.y, Position.w, Position.h);
             gc = new Tilc::Gui::TTextField(Window, Name, Position);
             Position.y += Position.h;
             continue;

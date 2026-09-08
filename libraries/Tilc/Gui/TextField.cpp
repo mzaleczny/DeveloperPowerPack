@@ -64,7 +64,7 @@ void Tilc::Gui::TTextField::Draw()
     }
 
     DrawCommon(
-        GetRealPosition(),
+        m_Position, //GetRealPosition(),
         t->textfield_left_rc, t->textfield_middle_rc, t->textfield_right_rc,
         t->textfield_left_disabled_rc, t->textfield_middle_disabled_rc, t->textfield_right_disabled_rc,
         t->textfield_left_focused_rc, t->textfield_middle_focused_rc, t->textfield_right_focused_rc,
@@ -95,7 +95,7 @@ void Tilc::Gui::TTextField::Draw()
     // ================================================================
     TFont* Font = t->DefaultFont;
     Font->SetColor({ 0, 0, 0, 0 });
-    SDL_FRect rc = GetRealPosition();
+    SDL_FRect rc = m_Position;//GetRealPosition();
     rc.x += m_PaddingLeft;
     rc.w = GetMaxXPosAllowedForContent() - rc.x - m_PaddingRight;
     int LastCharPos = GetLastVisibleCharPos();

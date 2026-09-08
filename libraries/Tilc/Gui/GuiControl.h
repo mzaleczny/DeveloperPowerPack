@@ -134,7 +134,8 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, float x, float y, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, static_cast<float>(Src->w), static_cast<float>(Src->h) };
+                //SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, static_cast<float>(Src->w), static_cast<float>(Src->h) };
+                SDL_FRect r{ x, y, static_cast<float>(Src->w), static_cast<float>(Src->h) };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {
@@ -150,7 +151,8 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, SDL_FRect* SrcRect, float x, float y, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, static_cast<float>(SrcRect->w), static_cast<float>(SrcRect->h) };
+                //SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, static_cast<float>(SrcRect->w), static_cast<float>(SrcRect->h) };
+                SDL_FRect r{ x, y, static_cast<float>(SrcRect->w), static_cast<float>(SrcRect->h) };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {
@@ -173,7 +175,8 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, float x, float y, float destW, float destH, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, destW, destH };
+                //SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, destW, destH };
+                SDL_FRect r{ x, y, destW, destH };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {
@@ -189,7 +192,8 @@ namespace Tilc {
             }
             inline void RenderTexture(SDL_Texture* Src, SDL_FRect* SrcRect, float x, float y, float destW, float destH, bool RoundCoords = true)
             {
-                SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, destW, destH };
+                //SDL_FRect r{ m_RealPosition.x + x, m_RealPosition.y + y, destW, destH };
+                SDL_FRect r{ x, y, destW, destH };
                 // If canvas is specified then we draw within the canvas without offsetting
                 if (m_Canvas)
                 {

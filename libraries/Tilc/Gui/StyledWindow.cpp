@@ -148,27 +148,27 @@ void Tilc::Gui::TStyledWindow::Draw()
         if (m_WithBorder)
         {
             // Ramka lewa
-            x = 0.0f;
-            y = t->wnd_caption_middle_rc.h;
+            x = m_Position.x;
+            y = m_Position.y + t->wnd_caption_middle_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_left_rc, x, y, t->wnd_frame_left_rc.w, m_Position.h - y - t->wnd_frame_bottom_left_rc.h);
 
             // Lewy dolny róg
-            y = m_Position.h - t->wnd_frame_bottom_left_rc.h;
+            y = m_Position.y + m_Position.h - t->wnd_frame_bottom_left_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_bottom_left_rc, x, y);
 
             // Ramka dolna
             x += t->wnd_frame_bottom_left_rc.w;
-            y = m_Position.h - t->wnd_frame_bottom_rc.h;
-            RenderTexture(TextureMap, &t->wnd_frame_bottom_rc, x, y, m_Position.w - x - t->wnd_frame_bottom_right_rc.w, t->wnd_frame_right_rc.w);
+            y = m_Position.y + m_Position.h - t->wnd_frame_bottom_rc.h;
+            RenderTexture(TextureMap, &t->wnd_frame_bottom_rc, x, y, m_Position.w - x - t->wnd_frame_bottom_right_rc.w, t->wnd_frame_right_rc.h);
 
             // Prawy dolny róg
-            x = m_Position.w - t->wnd_frame_bottom_right_rc.w;
-            y = m_Position.h - t->wnd_frame_bottom_right_rc.h;
+            x = m_Position.x + m_Position.w - t->wnd_frame_bottom_right_rc.w;
+            y = m_Position.y + m_Position.h - t->wnd_frame_bottom_right_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_bottom_right_rc, x, y);
 
             // Ramka prawa
-            x = m_Position.w - t->wnd_frame_right_rc.w;
-            y = t->wnd_caption_middle_rc.h;
+            x = m_Position.x + m_Position.w - t->wnd_frame_right_rc.w;
+            y = m_Position.y + t->wnd_caption_middle_rc.h;
             RenderTexture(TextureMap, &t->wnd_frame_right_rc, x, y, t->wnd_frame_right_rc.w, m_Position.h - y - t->wnd_frame_bottom_right_rc.h);
         }
         // ================================================================
