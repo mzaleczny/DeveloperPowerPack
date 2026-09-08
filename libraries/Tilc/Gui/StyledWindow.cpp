@@ -190,6 +190,59 @@ void Tilc::Gui::TStyledWindow::Draw()
         {
             DrawCaption();
         }
+        else
+        {
+            // Jeśli nie wyświetlamy nagłówka, to musimy tutaj wyrysować górne obramowanie, bo go brakuje
+            // Lewy górny róg
+            x = 0;
+            y = 0;
+            SDL_FRect wnd_caption_left;
+            SDL_FRect wnd_caption_middle;
+            SDL_FRect wnd_caption_right;
+            SDL_FRect wnd_frame_left;
+            SDL_FRect wnd_frame_right;
+            SDL_FRect wnd_frame_bottom;
+            SDL_FRect wnd_frame_bottom_left;
+            SDL_FRect wnd_frame_bottom_right;
+
+            if (w->IsFocused())
+            {
+                wnd_caption_left = t->wnd_caption_left_rc;
+                wnd_caption_right = t->wnd_caption_right_rc;
+                wnd_caption_middle = t->wnd_caption_middle_rc;
+                wnd_frame_left = t->wnd_frame_left_rc;
+                wnd_frame_right = t->wnd_frame_right_rc;
+                wnd_frame_bottom = t->wnd_frame_bottom_rc;
+                wnd_frame_bottom_left = t->wnd_frame_bottom_left_rc;
+                wnd_frame_bottom_right = t->wnd_frame_bottom_right_rc;
+            }
+            else
+            {
+                wnd_caption_left = t->wnd_caption_inactive_left_rc;
+                wnd_caption_right = t->wnd_caption_inactive_right_rc;
+                wnd_caption_middle = t->wnd_caption_inactive_middle_rc;
+                wnd_frame_left = t->wnd_frame_inactive_left_rc;
+                wnd_frame_right = t->wnd_frame_inactive_right_rc;
+                wnd_frame_bottom = t->wnd_frame_inactive_bottom_rc;
+                wnd_frame_bottom_left = t->wnd_frame_inactive_bottom_left_rc;
+                wnd_frame_bottom_right = t->wnd_frame_inactive_bottom_right_rc;
+            }
+
+            // Lewy górny róg
+            wnd_caption_left.w = 1.0f;
+            RenderTexture(TextureMap, &wnd_caption_left, x, y);
+            x += wnd_frame_left.w;
+            float caption_middle_width = m_Position.w - wnd_frame_left.w - wnd_frame_right.w;
+            // Lewy górny róg
+            wnd_caption_middle.w = 1.0f;
+            wnd_caption_middle.h = 1.0f;
+            SDL_FRect DestRect = { x, y, caption_middle_width, 1.0f };
+            RenderTiledTexture(TextureMap, &wnd_caption_middle, &DestRect);
+            x += caption_middle_width;
+            wnd_caption_right.x += wnd_caption_right.w - 1.0f;
+            wnd_caption_right.w = 1.0f;
+            RenderTexture(TextureMap, &wnd_caption_right, x, y);
+        }
 
         // Wywołujemy wszystkie priorytetowe kontrolki
         for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(); ++it)
