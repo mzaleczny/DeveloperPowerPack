@@ -19,6 +19,7 @@
 #include <cstring>
 #include <cmath>
 #include <random>
+#include <format>
 
 #define STRING2(x)  #x
 #define STRING(x)   STRING2(x)
@@ -91,6 +92,11 @@ namespace Tilc
         r.w = static_cast<int>(std::round(Rect->w));
         r.h = static_cast<int>(std::round(Rect->h));
         return r;
+    }
+
+    inline Tilc::TExtString FRectToString(SDL_FRect* Rect)
+    {
+        return std::format("x: {},  y: {},  w: {},  h: {}", Rect->x, Rect->y, Rect->w, Rect->h);
     }
 #endif
 
