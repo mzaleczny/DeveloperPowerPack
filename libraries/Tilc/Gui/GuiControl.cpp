@@ -1752,11 +1752,10 @@ void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRe
 void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRect& left_rc, const SDL_FRect& middle_rc, const SDL_FRect& right_rc, const SDL_FRect& left_disabled_rc, const SDL_FRect& middle_disabled_rc, const SDL_FRect& right_disabled_rc, const SDL_FRect& left_focused_rc, const SDL_FRect& middle_focused_rc, const SDL_FRect& right_focused_rc, const SDL_FRect& left_hover_focused_rc, const SDL_FRect& middle_hover_focused_rc, const SDL_FRect& right_hover_focused_rc, const SDL_FRect& left_pushed_focused_rc, const SDL_FRect& middle_pushed_focused_rc, const SDL_FRect& right_pushed_focused_rc, const SDL_FRect& left_hover_rc, const SDL_FRect& middle_hover_rc, const SDL_FRect& right_hover_rc, const SDL_FRect& left_pushed_rc, const SDL_FRect& middle_pushed_rc, const SDL_FRect& right_pushed_rc)
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;
     Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
     SDL_FRect rc, DestRect;
-    float x{}, y{};
+    auto [x, y, w, h] = Position;
 
     SDL_FRect ctrl_left = left_rc;
     SDL_FRect ctrl_middle = middle_rc;
@@ -1830,11 +1829,10 @@ void Tilc::Gui::TGuiControl::DrawCommonComplex(
 )
 {
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
     SDL_Texture* TextureMap = t->GuiTextureMap1;
     Tilc::Gui::TFont* DefaultFont = t->DefaultFont;
     SDL_FRect rc, DestRect;
-    float x{}, y{};
+    auto [x, y, w, h] = Position;
 
     SDL_FRect ctrl_top_left_rc = top_left_rc;
     SDL_FRect ctrl_top_middle_rc = top_middle_rc;
@@ -1918,51 +1916,48 @@ void Tilc::Gui::TGuiControl::DrawCommonComplex(
         return;
     }
 
-    float OffsetX = Position.x - m_RealPosition.x;
-    float OffsetY = Position.y - m_RealPosition.y;
     // ================================================================
     // Rysujemy tło
     // ================================================================
     // TOP
     // 
     // top left
-    RenderTexture(TextureMap, &ctrl_top_left_rc, OffsetX + x, OffsetY + y);
+    RenderTexture(TextureMap, &ctrl_top_left_rc, x, y);
     x += ctrl_top_left_rc.w;
     // top middle
-    rc = { Position.x + x, Position.y + y, middle_width, ctrl_top_middle_rc.h };
+    rc = { x, y, middle_width, ctrl_top_middle_rc.h };
     RenderTiledTexture(TextureMap, &ctrl_top_middle_rc, &rc);
     x += middle_width;
     // top right
-    RenderTexture(TextureMap, &ctrl_top_right_rc, OffsetX + x, OffsetY + y);
+    RenderTexture(TextureMap, &ctrl_top_right_rc, x, y);
 
-    x = 0.0f;
-    y = ctrl_top_middle_rc.h;
+    x = Position.x;
+    y = Position.y + ctrl_top_middle_rc.h;
 
     // INNER
     // inner left
-    rc = { Position.x + x, Position.y + y, ctrl_inner_left_rc.w, middle_height };
+    rc = { x, y, ctrl_inner_left_rc.w, middle_height };
     RenderTiledTexture(TextureMap, &ctrl_inner_left_rc, &rc);
     // inner bg
-    rc = { Position.x + x + ctrl_inner_left_rc.w, Position.y + y, middle_width, middle_height };
+    rc = { x + ctrl_inner_left_rc.w, y, middle_width, middle_height };
     SDL_SetRenderDrawColor(Renderer, t->multiline_textfield_inner_bg.r, t->multiline_textfield_inner_bg.g, t->multiline_textfield_inner_bg.b, t->multiline_textfield_inner_bg.a);
     SDL_RenderFillRect(Renderer, &rc);
     // inner right
-    rc = { Position.x + x + ctrl_inner_left_rc.w + middle_width, Position.y + y, ctrl_inner_right_rc.w, middle_height };
+    rc = { x + ctrl_inner_left_rc.w + middle_width, y, ctrl_inner_right_rc.w, middle_height };
     RenderTiledTexture(TextureMap, &ctrl_inner_right_rc, &rc);
     y += rc.h;
 
-    x = 0.0f;
     // BOTTOM
     // 
     // bottom left
-    RenderTexture(TextureMap, &ctrl_bottom_left_rc, OffsetX + x, OffsetY + y);
+    RenderTexture(TextureMap, &ctrl_bottom_left_rc, x, y);
     x += ctrl_bottom_left_rc.w;
     // bottom middle
-    rc = { Position.x + x, Position.y + y, middle_width, ctrl_bottom_middle_rc.h };
+    rc = { x, y, middle_width, ctrl_bottom_middle_rc.h };
     RenderTiledTexture(TextureMap, &ctrl_bottom_middle_rc, &rc);
     x += middle_width;
     // bottom right
-    RenderTexture(TextureMap, &ctrl_bottom_right_rc, OffsetX + x, OffsetY + y);
+    RenderTexture(TextureMap, &ctrl_bottom_right_rc, x, y);
     // ================================================================
     // Koniec rysowania tła
     // ================================================================
