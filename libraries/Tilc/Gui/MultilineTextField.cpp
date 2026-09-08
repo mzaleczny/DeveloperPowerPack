@@ -55,7 +55,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
     SDL_Texture* OldRenderTarget{ nullptr };
     SDL_FRect RealPosition = GetRealPosition();
 
-    SDL_FRect rc = RealPosition;
+    SDL_FRect rc = m_Position;
     DrawCommonComplex(
         rc,
         t->multiline_textfield_top_left_rc, t->multiline_textfield_top_middle_rc, t->multiline_textfield_top_right_rc, t->multiline_textfield_inner_left_rc, t->multiline_textfield_inner_right_rc, t->multiline_textfield_bottom_left_rc, t->multiline_textfield_bottom_middle_rc, t->multiline_textfield_bottom_right_rc,

@@ -63,6 +63,7 @@ void Tilc::Gui::TTextField::Draw()
         SDL_SetRenderTarget(Renderer, m_Canvas);
     }
 
+    //SDL_Log("%s:  %s", m_Name.c_str(), FRectToString(&m_Position).c_str());
     DrawCommon(
         m_Position, //GetRealPosition(),
         t->textfield_left_rc, t->textfield_middle_rc, t->textfield_right_rc,
