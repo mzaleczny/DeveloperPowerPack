@@ -1243,12 +1243,19 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
             }
         }
     }
+
+    Tilc::Gui::TStyledWindow* wnd = GetParentWindow();
+    Tilc::Gui::TGuiControl* ActiveControl = m_ActiveControl;
+    if (wnd)
+    {
+        ActiveControl = wnd->m_ActiveControl;
+    }
     // Jeśli nie kliknięto na nagłówku okna. Jeśli ta kontrolka nie jest oknem to InCaption zawsze będzie dla niej false
     if (!InCaption)
     {
-        if (m_ActiveControl && m_ActiveControl->m_IsEditor)
+        if (ActiveControl && ActiveControl->m_IsEditor)
         {
-            return m_ActiveControl->ProcessEvent(event);
+            return ActiveControl->ProcessEvent(event);
         }
 
         // First we traverse childs list, to handle ecvent by innermost child first and then pop upwards
@@ -1275,7 +1282,7 @@ bool Tilc::Gui::TGuiControl::ProcessChildEvent(const SDL_Event& event)
                 }
                 else
                 {
-                    if (m_ActiveControl == *it)
+                    if (ActiveControl == *it)
                     {
                         DoActualEventProcessing = true;
                         Target = *it;
