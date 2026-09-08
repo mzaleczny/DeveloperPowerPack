@@ -145,8 +145,8 @@ void Tilc::Gui::TScrollBarVertical::Draw()
     TTheme* m_Theme = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{};
     SDL_FRect RealPosition = GetRealPosition();
-	float x = 0;
-    float y = 0;
+	float x = RealPosition.x;
+    float y = RealPosition.y;
     SDL_Texture* TextureMap = m_Theme->GuiTextureMap1;
     SDL_FRect rcAbove = scrollbar_vertical_bg_rc;
     SDL_FRect rcBottom = scrollbar_vertical_bg_rc;
@@ -201,7 +201,7 @@ void Tilc::Gui::TScrollBarVertical::Draw()
     SDL_FRect DestRect;
     if (y_thumb > y)
     {
-        DestRect = { RealPosition.x + x, RealPosition.y + y, RealPosition.w, y_thumb - y };
+        DestRect = { x, y, RealPosition.w, y_thumb - y };
         RenderTiledTexture(TextureMap, &rcAbove, &DestRect);
     }
     y = y_thumb;
@@ -213,18 +213,19 @@ void Tilc::Gui::TScrollBarVertical::Draw()
     float thumb_size_bg = thumb_size - scrollbar_vertical_thumb_top_rc.h - scrollbar_vertical_thumb_bottom_rc.h;
     if (thumb_size_bg > 0)
     {
-        DestRect = { RealPosition.x + x, RealPosition.y + y, RealPosition.w, thumb_size_bg };
+        DestRect = { x, y, RealPosition.w, thumb_size_bg };
         RenderTiledTexture(TextureMap, &scrollbar_vertical_thumb_middle_rc, &DestRect);
         // teraz na tle suwaka centrujemy w pionie część środkową
         RenderTexture(TextureMap, &scrollbar_vertical_thumb_bg_rc, x, y + (thumb_size_bg - scrollbar_vertical_thumb_bg_rc.h) / 2.0f);
         y += thumb_size_bg;
     }
     RenderTexture(TextureMap, &scrollbar_vertical_thumb_bottom_rc, x, y);
+
     y += scrollbar_vertical_thumb_bottom_rc.h;
     // na koniec tło pod suwakiem
-    if (y < RealPosition.h - scrollbar_vertical_arrow_down_rc.h)
+    if (y < RealPosition.y + RealPosition.h - scrollbar_vertical_arrow_down_rc.h)
     {
-        DestRect = { RealPosition.x + x, RealPosition.y + y, RealPosition.w, RealPosition.h - scrollbar_vertical_arrow_down_rc.h - y };
+        DestRect = { x, y, RealPosition.w, RealPosition.y + RealPosition.h - scrollbar_vertical_arrow_down_rc.h - y };
         RenderTiledTexture(TextureMap, &rcBottom, &DestRect);
         y += (RealPosition.h - scrollbar_vertical_arrow_down_rc.h - y);
     }
@@ -248,7 +249,7 @@ void Tilc::Gui::TScrollBarVertical::Draw()
 
     if (y + scrollbar_vertical_arrow_down_rc_local.h >= m_Position.h)
     {
-        y = m_Position.h - scrollbar_vertical_arrow_down_rc_local.h;
+        y = RealPosition.y + m_Position.h - scrollbar_vertical_arrow_down_rc_local.h;
     }
     RenderTexture(TextureMap, &scrollbar_vertical_arrow_down_rc_local, x, y);
     // ================================================================

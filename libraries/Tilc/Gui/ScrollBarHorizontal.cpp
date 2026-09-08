@@ -138,8 +138,8 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     TTheme* m_Theme = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{};
     SDL_FRect RealPosition = GetRealPosition();
-    float x = 0;
-    float y = 0;
+    float x = RealPosition.x;
+    float y = RealPosition.y;
     SDL_Texture* TextureMap = m_Theme->GuiTextureMap1;
     SDL_FRect rcLeft = scrollbar_horizontal_bg_rc;
     SDL_FRect rcRight = scrollbar_horizontal_bg_rc;
@@ -194,7 +194,7 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     SDL_FRect DestRect;
     if (x_thumb > x)
     {
-        DestRect = { RealPosition.x + x, RealPosition.y + y, x_thumb - x, m_Position.h };
+        DestRect = { x, y, x_thumb - x, m_Position.h };
         RenderTiledTexture(TextureMap, &rcLeft, &DestRect);
     }
     x = x_thumb;
@@ -206,7 +206,7 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     float thumb_size_bg = thumb_size - scrollbar_horizontal_thumb_left_rc.w - scrollbar_horizontal_thumb_right_rc.w;
     if (thumb_size_bg > 0)
     {
-        DestRect = { RealPosition.x + x, RealPosition.y + y, thumb_size_bg, m_Position.h };
+        DestRect = { x, y, thumb_size_bg, m_Position.h };
         RenderTiledTexture(TextureMap, &scrollbar_horizontal_thumb_middle_rc, &DestRect);
         // teraz na tle suwaka centrujemy w poziomie część środkową
         RenderTexture(TextureMap, &scrollbar_horizontal_thumb_bg_rc, x + (thumb_size_bg - scrollbar_horizontal_thumb_bg_rc.w) / 2.0f, y);
@@ -215,11 +215,12 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
     RenderTexture(TextureMap, &scrollbar_horizontal_thumb_right_rc, x, y);
     x += scrollbar_horizontal_thumb_right_rc.w;
     // na koniec tło po prawej stronie suwaka
-    if (x < RealPosition.w - scrollbar_horizontal_arrow_right_rc.w)
+    if (x < RealPosition.x + RealPosition.w - scrollbar_horizontal_arrow_right_rc.w)
     {
-        DestRect = { RealPosition.x + x, RealPosition.y + y, RealPosition.w - scrollbar_horizontal_arrow_right_rc.w - x, RealPosition.h };
+        // +1.0f below is for correction as when it was lacking then there was a 1px wide gap in scrollbar
+        DestRect = { x, y, RealPosition.x + RealPosition.w + 1.0f - scrollbar_horizontal_arrow_right_rc.w - x, RealPosition.h };
         RenderTiledTexture(TextureMap, &rcRight, &DestRect);
-        x += RealPosition.w - scrollbar_horizontal_arrow_right_rc.w - x;
+        x += m_Position.w - scrollbar_horizontal_arrow_right_rc.w - x;
     }
     // ================================================================
     // Koniec rysowania wnętrza scrollbara
@@ -241,7 +242,7 @@ void Tilc::Gui::TScrollBarHorizontal::Draw()
 
     if (x + scrollbar_horizontal_arrow_right_rc_local.w >= m_Position.w)
     {
-        x = m_Position.w - scrollbar_horizontal_arrow_right_rc_local.w;
+        x = RealPosition.x + m_Position.w - scrollbar_horizontal_arrow_right_rc_local.w;
     }
     RenderTexture(TextureMap, &scrollbar_horizontal_arrow_right_rc_local, x, y);
     // ================================================================
