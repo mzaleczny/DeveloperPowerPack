@@ -106,10 +106,11 @@ void Tilc::Gui::TCheckbox::Draw()
     // ================================================================
     int checkbox_width = t->checkbox_checked_rc.w;
     int checkbox_height = t->checkbox_checked_rc.h;
-    float x{}, y = (m_Position.h - checkbox_height) / 2.0f;
+    float x = m_Position.x;
+    float y = m_Position.y + (m_Position.h - checkbox_height) / 2.0f;
     if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_LEFT)
     {
-        x = m_TextSize.w + m_TextSpacing;
+        x = m_Position.x + m_TextSize.w + m_TextSpacing;
     }
 
     SDL_FRect Position = GetRealPosition();
@@ -132,10 +133,10 @@ void Tilc::Gui::TCheckbox::Draw()
     // Draw label
     // ================================================================
     Position = GetRealPosition();
-    x = 0;
+    x = m_Position.x;
     if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_RIGHT)
     {
-        x = 0;
+        x = m_Position.x;
         if (checkbox_width)
         {
             x += checkbox_width + m_TextSpacing;
