@@ -36,10 +36,11 @@ void Tilc::Gui::TOption::Draw()
     // ================================================================
     int option_width = t->option_checked_rc.w;
     int option_height = t->option_checked_rc.h;
-    float x{}, y = (m_Position.h - option_height) / 2.0f;
+    float x = m_Position.x;
+    float y = m_Position.y + (m_Position.h - option_height) / 2.0f;
     if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_LEFT)
     {
-        x = m_TextSize.w + m_TextSpacing;
+        x = m_Position.x + m_TextSize.w + m_TextSpacing;
     }
 
     SDL_FRect Position = GetRealPosition();
@@ -65,7 +66,6 @@ void Tilc::Gui::TOption::Draw()
     x = 0;
     if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_RIGHT)
     {
-        x = 0;
         if (option_width)
         {
             x += option_width + m_TextSpacing;
