@@ -70,8 +70,8 @@ void Tilc::Gui::TSliderHorizontal::Draw()
 
     TTheme* m_Theme = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{};
-    float x = 0;
-    float y = 0;
+    float x = m_Position.x;
+    float y = m_Position.y;
     SDL_Texture* TextureMap = m_Theme->GuiTextureMap1;
     SDL_FRect rcLeft = m_Theme->slider_horizontal_rail_left_rc;
     SDL_FRect rcRight = m_Theme->slider_horizontal_rail_right_rc;
@@ -99,7 +99,7 @@ void Tilc::Gui::TSliderHorizontal::Draw()
     // ================================================================
 
     // musimy obliczyć położenie suwaka
-    float x_thumb = (static_cast<float>(m_ThumbPosition - m_MinValue) / (m_MaxValue - m_MinValue)) * (m_Position.w - m_ThumbSize);
+    float x_thumb = m_Position.x + (static_cast<float>(m_ThumbPosition - m_MinValue) / (m_MaxValue - m_MinValue)) * (m_Position.w - m_ThumbSize);
     x = x_thumb;
 
     // teraz suwak
