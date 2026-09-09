@@ -638,7 +638,8 @@ int Tilc::TJsonParser::_onExpectArrayValueInQuote(char quoteType, char ch)
                 else if (isDouble)
                 {
 					p = new TStdObjectProperty(Tilc::TExtString(std::to_string(a->size())), v.toDouble());
-				} else
+				}
+                else
                 {
 					this->_error = 1;
 					this->_error_msg = Tilc::TExtString("Error at line: ") + this->_line_number + " at position " + this->_char_number_in_line + Tilc::TExtString(". Improper numerical array value (not LONG and not DOUBLE).");
