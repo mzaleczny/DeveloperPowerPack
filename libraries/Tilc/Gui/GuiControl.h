@@ -297,9 +297,6 @@ namespace Tilc {
             // zwraca okno wewnątrz którego znajduje się ta kontrolka.
             TStyledWindow* GetParentWindow();
 
-            // Zwraca sprite'a o podanej nazwie
-            TGuiControl* GetChildByName(const Tilc::TExtString& name);
-
             // Funkcja ustawiająca focus na kontrolce - możliwość customizacji we właściwej kontrolce
             virtual void Focus();
             // Funkcja odbierająca kontrolce focus - możliwość customizacji we właściwej kontrolce
