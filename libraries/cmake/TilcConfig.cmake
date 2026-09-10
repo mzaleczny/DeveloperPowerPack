@@ -25,7 +25,7 @@ find_path(TILC_INCLUDE_DIR NAMES "${LibName}/Tilc.h" PATHS ${_TILC_HEADER_SEARCH
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Tilc DEFAULT_MSG TILC_INCLUDE_DIR)
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CommonBinDir "Release")
     set(BinDir "x64-Release")
     if (NOT DEFINED LibSuffix)
@@ -40,9 +40,13 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(TilcBuildDir "${CMAKE_CURRENT_LIST_DIR}/../out")
-    set(TILC_LIBRARY "${TilcBuildDir}/libTilcShared.so")
-    set(ASSIMP_LIBRARY "${TilcBuildDir}/external_assimp-build/bin/libassimp.so")
+    set(TilcOutDir "out")
+    if(TILC_OUT_DIR)
+        set(TilcOutDir ${TILC_OUT_DIR})
+    endif()
+    set(TilcBuildDir "${CMAKE_CURRENT_LIST_DIR}/../${TilcOutDir}")
+    set(TILC_LIBRARY "${TilcBuildDir}/libTilcShared${LibSuffix}.so")
+    set(ASSIMP_LIBRARY "${TilcBuildDir}/external_assimp-build/bin/libassimp${LibSuffix}.so")
     message(${TilcBuildDir})
 else()
     set(TilcBuildDir "${CMAKE_CURRENT_LIST_DIR}/../out/build/${BinDir}")
@@ -101,9 +105,11 @@ add_library(Tilc::Tilc ALIAS Tilc)
 function(TilcNonGraphicsCopyRuntimeDlls TARGET_NAME)
     message("TilcCopyRuntimeDlls")
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared.so"
-        )
+        if(EXISTS "${TilcBuildDir}/libTilcShared${LibSuffix}.so")
+            add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared${LibSuffix}.so"
+            )
+        endif()
     else()
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/TilcShared${LibSuffix}.dll"
@@ -115,10 +121,18 @@ endfunction()
 function(TilcCopyRuntimeDlls TARGET_NAME)
     message("TilcCopyRuntimeDlls")
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        if(EXISTS "${TilcBuildDir}/libTilcShared${LibSuffix}.so")
+            add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared${LibSuffix}.so"
+            )
+        endif()
+        if(EXISTS "${TilcBuildDir}/external_assimp-build/bin/libassimp${LibSuffix}.so")
+            add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/libassimp${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/out/libassimp${LibSuffix}.so"
+            )
+        endif()
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/libassimp.so" "${PROJECT_SOURCE_DIR}/out/libassimp.so"
-            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/libSDL3_image.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_image.so"
+                COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/libSDL3_image.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_image.so"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/libSDL3_mixer.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_mixer.so"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/libSDL3_ttf.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_ttf.so"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/libSDL3.so" "${PROJECT_SOURCE_DIR}/out/libSDL3.so"
