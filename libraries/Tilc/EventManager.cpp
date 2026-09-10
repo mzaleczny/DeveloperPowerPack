@@ -162,7 +162,7 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
         for (auto it = Tilc::GameObject->m_Window->m_AllWindows.rbegin(); it != Tilc::GameObject->m_Window->m_AllWindows.rend(); ++it)
         {
             SDL_FRect Position{ (*it)->GetRealPosition() };
-            if (SDL_PointInRectFloat(&pt, &Position))
+            if ((*it)->IsVisible() && SDL_PointInRectFloat(&pt, &Position))
             {
                 Tilc::Gui::TStyledWindow* FoundWnd = *it;
                 // By default we take window under cursor into account
