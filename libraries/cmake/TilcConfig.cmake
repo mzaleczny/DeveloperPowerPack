@@ -39,8 +39,8 @@ else()
     endif()
 endif()
 
+set(TilcOutDir "out")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(TilcOutDir "out")
     if(TILC_OUT_DIR)
         set(TilcOutDir ${TILC_OUT_DIR})
     endif()
@@ -107,12 +107,12 @@ function(TilcNonGraphicsCopyRuntimeDlls TARGET_NAME)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         if(EXISTS "${TilcBuildDir}/libTilcShared${LibSuffix}.so")
             add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared${LibSuffix}.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libTilcShared${LibSuffix}.so"
             )
         endif()
     else()
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/TilcShared${LibSuffix}.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/TilcShared${LibSuffix}.dll"
 	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/.cache/zlib/zd.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/zd.dll"
         )
     endif()
@@ -123,40 +123,40 @@ function(TilcCopyRuntimeDlls TARGET_NAME)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         if(EXISTS "${TilcBuildDir}/libTilcShared${LibSuffix}.so")
             add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/out/libTilcShared${LibSuffix}.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/libTilcShared${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libTilcShared${LibSuffix}.so"
             )
         endif()
         if(EXISTS "${TilcBuildDir}/external_assimp-build/bin/libassimp${LibSuffix}.so")
             add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/libassimp${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/out/libassimp${LibSuffix}.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/libassimp${LibSuffix}.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libassimp${LibSuffix}.so"
             )
         endif()
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/libSDL3_image.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_image.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/libSDL3_mixer.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_mixer.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/libSDL3_ttf.so" "${PROJECT_SOURCE_DIR}/out/libSDL3_ttf.so"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/libSDL3.so" "${PROJECT_SOURCE_DIR}/out/libSDL3.so"
+                COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/libSDL3_image.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libSDL3_image.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/libSDL3_mixer.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libSDL3_mixer.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/libSDL3_ttf.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libSDL3_ttf.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/libSDL3.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libSDL3.so"
         )
     else()
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/TilcShared${LibSuffix}.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/SDL3_image.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_image.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/SDL3_mixer.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_mixer.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/SDL3_ttf.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3_ttf.dll"
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/SDL3.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/SDL3.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/TilcShared${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/TilcShared${LibSuffix}.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_image-build/SDL3_image.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/SDL3_image.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_mixer-build/SDL3_mixer.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/SDL3_mixer.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3_ttf-build/SDL3_ttf.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/SDL3_ttf.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_sdl3-build/SDL3.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/SDL3.dll"
         )
         # Visual C compiler and clang++ compiler produces assimp library with different names so we copy only the one that exists, otherwise we get cmake error
         if(EXISTS "${TilcBuildDir}/external_assimp-build/lib/assimp-vc145-mtd.lib")
             add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp-vc145-mtd.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/assimp-vc145-mtd.dll"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp-vc145-mtd.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/assimp-vc145-mtd.dll"
             )
         elseif(EXISTS "${TilcBuildDir}/external_assimp-build/lib/assimp-vc145-mt.lib")
             add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp-vc145-mt.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/assimp-vc145-mt.dll"
+	            COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp-vc145-mt.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/assimp-vc145-mt.dll"
             )
         else()
             add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/assimp${LibSuffix}.dll"
+                COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/external_assimp-build/bin/assimp${LibSuffix}.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/assimp${LibSuffix}.dll"
             )
         endif()
     endif()
@@ -170,29 +170,29 @@ function(MariaDBCopyRuntimeDlls TARGET_NAME)
 	    #    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so"
         #)
         # Use Mariadb c connector - update it TODO
-        message("MariaDBCopyRuntimeDlls for Linux, SET: ${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so => ${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so")
+        message("MariaDBCopyRuntimeDlls for Linux, SET: ${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so => ${PROJECT_SOURCE_DIR}/${TilcOutDir}/libmariadbcpp.so")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/out/libmariadbcpp.so"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/${CommonBinDir}/mariadb/libmariadbcpp.so" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/libmariadbcpp.so"
         )
     else()
         # Disable MariaDB cpp connector
-        #message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll")
+        #message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll => ${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/mariadbcpp.dll")
         #add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	    #    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/mariadbcpp.dll"
+	    #    COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/mariadbcpp.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/mariadbcpp.dll"
         #)
         # Use Mariadb c connector
-        message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadb/libmariadb.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadb/mariadb.dll")
+        message("MariaDBCopyRuntimeDlls for Other, SET: ${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadb/libmariadb.dll => ${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/libmariadb/mariadb.dll")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadb/libmariadb.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libmariadb.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../${CommonBinDir}/mariadb/libmariadb/libmariadb.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/libmariadb.dll"
         )
     endif()
 endfunction()
 
 function(CurlCopyRuntimeDlls TARGET_NAME)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        message("libcurl-x64.dll for Windows, SET: ${TilcBuildDir}/../../../.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.dll => ${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libcurl-x64.dll")
+        message("libcurl-x64.dll for Windows, SET: ${TilcBuildDir}/../../../.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.dll => ${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/libcurl-x64.dll")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../../.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.dll" "${PROJECT_SOURCE_DIR}/out/build/${BinDir}/libcurl-x64.dll"
+	        COMMAND ${CMAKE_COMMAND} -E copy "${TilcBuildDir}/../../../.cache/curl-8.21.0_5-win64-mingw/bin/libcurl-x64.dll" "${PROJECT_SOURCE_DIR}/${TilcOutDir}/build/${BinDir}/libcurl-x64.dll"
         )
     endif()
 endfunction()
