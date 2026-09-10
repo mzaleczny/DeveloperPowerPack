@@ -293,6 +293,7 @@ void Tilc::Gui::TLayoutFile::processLabelItem(Tilc::TStdObject* item, Tilc::Gui:
         Tilc::Gui::TLabel* gc = new Tilc::Gui::TLabel(parent, name, Position, caption, autosize);
         if (gc)
         {
+            gc->SetFontToUse("DefaultBold");
             doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
             if (color.length() == 9 && color[0] == '#')
             {
