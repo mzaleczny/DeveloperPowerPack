@@ -168,6 +168,7 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 			return SDL_APP_FAILURE;
 		}
 		m_IsTooltip = false;
+		SDL_Log("Window: %p,  Renderer: %p", m_Window, m_Renderer);
 	}
 	else
 	{
@@ -175,6 +176,7 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 		m_Window = SDL_CreatePopupWindow(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
 		m_Renderer = SDL_CreateRenderer(m_Window, nullptr);
 		m_IsTooltip = true;
+		SDL_Log("PopupWindow: %p,  Renderer: %p", m_Window, m_Renderer);
 	}
 
     if (WithGLContext)

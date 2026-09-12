@@ -124,7 +124,7 @@ namespace Tilc
         std::list<Tilc::Gui::TGuiControl*> m_ControlsToDestroy;
         std::list<Tilc::Gui::TStyledWindow*> m_WindowsToDestroy;
     	// Tag for this window allows distinguishing windows if there are many of them
-		int Tag{};
+		int m_Tag{};
 
         inline void DoCloseWindowByPressingQ(bool Value) { m_QKeyClosesWindow = Value; }
         inline bool CloseWindowByPressingQ() const { return m_QKeyClosesWindow; }
