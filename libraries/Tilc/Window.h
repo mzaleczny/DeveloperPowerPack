@@ -18,7 +18,7 @@ namespace Tilc
 	{
 	public:
 		TWindow();
-		TWindow(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext);
+		TWindow(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup = false);
 		virtual ~TWindow();
 
 		inline void BeginDraw()
@@ -124,11 +124,13 @@ namespace Tilc
         inline bool CloseWindowByPressingQ() const { return m_QKeyClosesWindow; }
 
 	private:
-		void Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext);
-		SDL_AppResult Create(int Flags, bool WithGLContext);
+		void Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup = false);
+		SDL_AppResult Create(int Flags, bool WithGLContext, bool IsPopup = false);
 		SDL_Window* m_Window = nullptr;
-		SDL_Renderer* m_Renderer = nullptr;
-		SDL_Texture* m_WindowSDLStreamingTexture = nullptr;
+    	SDL_Renderer* m_Renderer = nullptr;
+    	SDL_Window* m_PopupWindow = nullptr;
+    	SDL_Renderer* m_PopupRenderer = nullptr;
+    	SDL_Texture* m_WindowSDLStreamingTexture = nullptr;
 		SDL_Surface* m_RenderSurface = nullptr;
 		SDL_GLContext gContext = nullptr;
 		unsigned int m_WindowWidth;

@@ -7,12 +7,12 @@
 
 Tilc::TWindow::TWindow()
 {
-	Setup("Window", 640, 480, false, false);
+	Setup("Window", 640, 480, false, false, false);
 }
 
-Tilc::TWindow::TWindow(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext)
+Tilc::TWindow::TWindow(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup)
 {
-	Setup(Title, Width, Height, Flags, WithGLContext);
+	Setup(Title, Width, Height, Flags, WithGLContext, IsPopup);
 }
 
 Tilc::TWindow::~TWindow()
@@ -124,7 +124,7 @@ void Tilc::TWindow::CreateWindowSDLStreamingTexture(SDL_PixelFormat PixelFormat)
 	}
 }
 
-void Tilc::TWindow::Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext)
+void Tilc::TWindow::Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup)
 {
     m_Flags = Flags;
 	m_WindowTitle = Title;
@@ -134,13 +134,13 @@ void Tilc::TWindow::Setup(const Tilc::TExtString& Title, const unsigned int Widt
 	m_IsBorderless = (Flags & InitFlag_WindowBorderless) == InitFlag_WindowBorderless;
 	m_IsDone = false;
 	m_IsFocused = true;
-	Create(Flags, WithGLContext);
+	Create(Flags, WithGLContext, IsPopup);
 
 	m_EventManager.AddCallback(EStateType::All, "Fullscreen_toggle", &Tilc::TWindow::ToggleFullscreen, this);
 	m_EventManager.AddCallback(EStateType::All, "Window_close", &Tilc::TWindow::Close, this);
 }
 
-SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext)
+SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 {
 	SDL_WindowFlags WindowFlags = 0;
 	if (WithGLContext)
@@ -159,12 +159,23 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext)
         WindowFlags |= SDL_WINDOW_BORDERLESS;
     }
 
-	if (!SDL_CreateWindowAndRenderer(m_WindowTitle.c_str(), m_WindowWidth, m_WindowHeight, WindowFlags, &m_Window, &m_Renderer))
+	if (!IsPopup)
 	{
-		SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
-		return SDL_APP_FAILURE;
+		SDL_Log("Create Standard Window with Renderer");
+		if (!SDL_CreateWindowAndRenderer(m_WindowTitle.c_str(), m_WindowWidth, m_WindowHeight, WindowFlags, &m_Window, &m_Renderer))
+		{
+			SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
+			return SDL_APP_FAILURE;
+		}
 	}
-	if (WithGLContext)
+	else
+	{
+		SDL_Log("Create Popup");
+		m_Window = SDL_CreatePopupWindow(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
+		m_Renderer = SDL_CreateRenderer(m_PopupWindow, nullptr);
+	}
+
+    if (WithGLContext)
 	{
 		gContext = SDL_GL_CreateContext(m_Window);
 		if (!gContext)
@@ -175,6 +186,7 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext)
 	}
 	if (m_IsFullScreen)
 	{
+		SDL_Log("FullScreen: On");
 		SDL_SetWindowFullscreen(m_Window, m_IsFullScreen);
 	}
 	return SDL_APP_CONTINUE;
