@@ -172,7 +172,7 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 	{
 		SDL_Log("Create Popup");
 		m_Window = SDL_CreatePopupWindow(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
-		m_Renderer = SDL_CreateRenderer(m_PopupWindow, nullptr);
+		m_Renderer = SDL_CreateRenderer(m_Window, nullptr);
 	}
 
     if (WithGLContext)

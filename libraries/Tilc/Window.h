@@ -128,8 +128,6 @@ namespace Tilc
 		SDL_AppResult Create(int Flags, bool WithGLContext, bool IsPopup = false);
 		SDL_Window* m_Window = nullptr;
     	SDL_Renderer* m_Renderer = nullptr;
-    	SDL_Window* m_PopupWindow = nullptr;
-    	SDL_Renderer* m_PopupRenderer = nullptr;
     	SDL_Texture* m_WindowSDLStreamingTexture = nullptr;
 		SDL_Surface* m_RenderSurface = nullptr;
 		SDL_GLContext gContext = nullptr;
