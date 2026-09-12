@@ -4,6 +4,7 @@
 #include "SDL3/SDL.h"
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
 
 namespace Tilc {
     namespace Gui {
@@ -21,6 +22,9 @@ namespace Tilc {
             // TextureMap of all possible controls in all possible states inside window
             SDL_Texture* GuiTextureMap1{};
             SDL_Texture* GuiTextureMap1_TMP{};
+
+            std::unordered_map<SDL_Renderer*, SDL_Texture*> Map_GuiTextureMap1;
+            std::unordered_map<SDL_Renderer*, SDL_Texture*> Map_GuiTextureMap1_TMP;
 
             SDL_FRect wnd_caption_left_rc;
             SDL_FRect wnd_caption_middle_rc;
