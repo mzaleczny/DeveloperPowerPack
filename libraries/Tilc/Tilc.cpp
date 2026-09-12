@@ -66,10 +66,8 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 	ctx->m_Window = Tilc::GameObject->m_Window;
 	ctx->m_EventManager = Tilc::GameObject->m_Window->GetEventManager();
     ctx->m_TextureManager = new Tilc::Resources::TTextureManager(ResourcesDataFile);
-    SDL_Log("Before theme load, trying to load: %s", DefaultThemeName.c_str());
 	ctx->m_Theme = new Tilc::Gui::TTheme(DefaultThemeName);
     ctx->m_Theme->Load();
-	SDL_Log("After theme load");
 
     /* Create a mixer on the default audio device. Don't care about the specific audio format. */
     ctx->m_MixMixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
@@ -77,10 +75,6 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
     {
         SDL_Log("Couldn't create mixer on default device: %s", SDL_GetError());
     }
-	else
-	{
-		SDL_Log("Mixer created!");
-	}
 
 	if (Tilc::GameObject->m_GameType == Tilc::EGameType::Game2D)
 	{
@@ -113,9 +107,7 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 		}
 	}
 
-	SDL_Log("Calling Game OnInitialize()");
 	Tilc::GameObject->OnInitialize();
-	SDL_Log("After calling Game OnInitialize()");
 
 	return SDL_APP_CONTINUE;
 }
