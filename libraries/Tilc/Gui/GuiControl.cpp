@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <ranges>
 
-SDL_Renderer* Tilc::Gui::TGuiControl::Renderer{};
 Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::m_ControlThatCapturedMouse{};
 
 Tilc::Gui::TGuiControlItem::TGuiControlItem(const Tilc::TExtString& value, bool selected, bool checked, int imageIndex, long long data)
@@ -78,7 +77,13 @@ void Tilc::Gui::TGuiControl::CommonInit(bool editable)
     m_HScrollBar = nullptr;
     m_VScrollBar = nullptr;
     m_Editor = nullptr;
-    
+
+    // kontrolce ustawiamy taki sam renderer, jak okienku StyledWIndow, na którym lezy
+    if (m_ControlType != Tilc::Gui::EControlType::ECT_WindowControl)
+    {
+        Renderer = m_Parent->Renderer;
+    }
+
     m_Editable = false;
     m_IsEditor = false;
     if (m_HasEditor)

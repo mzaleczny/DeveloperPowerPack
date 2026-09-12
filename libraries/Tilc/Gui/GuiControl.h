@@ -414,15 +414,15 @@ namespace Tilc {
 
             TGuiControl* GetChild(const Tilc::TExtString& name);
 
-            static inline SDL_Renderer* GetRenderer()
+            inline SDL_Renderer* GetRenderer()
             {
                 if (Renderer) return Renderer;
-                Renderer = Tilc::GameObject->GetContext()->m_Window->GetRenderer();
+                Renderer = m_ParentSystemWindow ? m_ParentSystemWindow->GetRenderer() : Tilc::GameObject->GetContext()->m_Window->GetRenderer();
                 return Renderer;
             }
             static TTheme* GetTheme() { return Tilc::GameObject->GetContext()->m_Theme; }
             static TCursor* GetCursor() { return nullptr; }
-            static SDL_Renderer* Renderer;
+            SDL_Renderer* Renderer{};
 
             // Funkcja zwraca bieżącą pozycję kursora względem lewego górnego narożnika kontrolki
             void GetCurrentMousePosition(float* x, float* y);
@@ -570,6 +570,7 @@ namespace Tilc {
 
         protected:
             SDL_Texture* m_Canvas{};
+            TWindow* m_ParentSystemWindow{};
             TStyledWindow* m_ParentWindow{};
             TGuiControl* m_Parent{};
             Tilc::Game2D::Sprite::TDirectionalAnimation* m_Animation = nullptr;
