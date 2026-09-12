@@ -19,9 +19,9 @@ namespace Tilc {
         class DECLSPEC TStyledWindow : public TGuiControl
         {
         public:
-            TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position);
-            TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layoutFilename);
-            TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layout, int layoutContentType, bool returnEditedValues);
+            TStyledWindow(TWindow* SystemWindow, TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position);
+            TStyledWindow(TWindow* SystemWindow, TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layoutFilename);
+            TStyledWindow(TWindow* SystemWindow, TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layout, int layoutContentType, bool returnEditedValues);
             virtual ~TStyledWindow();
             void RemoveFromParent();
 
@@ -122,6 +122,13 @@ namespace Tilc {
                 }
             }
             bool HasBackground() const { return m_WithBackground; }
+
+            void SetAsTopmostWindowForSystemWindow(TWindow* ParentSystemWindow)
+            {
+                ParentSystemWindow->m_TopmostWindow = this;
+                m_ParentSystemWindow = ParentSystemWindow;
+            }
+
         protected:
             // Parametry wpływające na szybkość obsługi zdarzeń klawiatury
             // opóźnienie po pierwszym wciśnięciu klawisza
@@ -158,7 +165,7 @@ namespace Tilc {
                 bool systemKey,
                 unsigned int virtualCode, unsigned int scanCode, char ch, bool& updateCaretPos, bool& redraw);
             */
-            void CommonInit(Tilc::TExtString layoutFilename = "");
+            void CommonInit(TWindow* SystemWindow, Tilc::TExtString layoutFilename = "");
 
             void OnScrollHorizontal();
             void OnScrollVertical();

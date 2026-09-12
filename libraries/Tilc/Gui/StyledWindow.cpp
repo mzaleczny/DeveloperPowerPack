@@ -15,10 +15,13 @@
 #include <algorithm>
 #include <limits>
 
-void Tilc::Gui::TStyledWindow::CommonInit(Tilc::TExtString layoutFilename)
+void Tilc::Gui::TStyledWindow::CommonInit(TWindow* SystemWindow, Tilc::TExtString layoutFilename)
 {
+    m_ParentSystemWindow = SystemWindow;
+    Renderer = m_ParentSystemWindow->GetRenderer();
+
     // window has its own canvas to avoid redrawing all its children in each frame when not needed
-    m_Canvas = SDL_CreateTexture(GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_Position.w, m_Position.h);
+    m_Canvas = SDL_CreateTexture(SystemWindow->GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_Position.w, m_Position.h);
     m_DestroyCanvas = true;
 
     m_ActiveControl = nullptr;
@@ -37,22 +40,22 @@ void Tilc::Gui::TStyledWindow::CommonInit(Tilc::TExtString layoutFilename)
     }
 }
 
-Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position)
+Tilc::Gui::TStyledWindow::TStyledWindow(TWindow* SystemWindow, TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position)
     : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_WindowControl)
 {
-    CommonInit();
+    CommonInit(SystemWindow);
 }
 
-Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layoutFilename)
+Tilc::Gui::TStyledWindow::TStyledWindow(TWindow* SystemWindow, TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layoutFilename)
     : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_WindowControl)
 {
-    CommonInit(layoutFilename);
+    CommonInit(SystemWindow, layoutFilename);
 }
 
-Tilc::Gui::TStyledWindow::TStyledWindow(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layout, int layoutContentType, bool returnEditedValues)
+Tilc::Gui::TStyledWindow::TStyledWindow(TWindow* SystemWindow, TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, Tilc::TExtString layout, int layoutContentType, bool returnEditedValues)
     : TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_WindowControl)
 {
-    CommonInit();
+    CommonInit(SystemWindow);
     LoadGuiLayout(layout, true);
     if (returnEditedValues) {
         m_ReturnEditedValues = returnEditedValues;
@@ -63,7 +66,7 @@ Tilc::Gui::TStyledWindow::~TStyledWindow()
 {
     RemoveFromParent();
     // Jeśli to okno (wskaznik na nie) jest na szczycie stosu okien modalnych, to ściągamy je z niego
-    std::stack<Tilc::Gui::TStyledWindow*>& ModalStack = Tilc::GameObject->GetContext()->m_Window->m_ModalStack;
+    std::stack<Tilc::Gui::TStyledWindow*>& ModalStack = m_ParentSystemWindow->m_ModalStack;
     if (ModalStack.size() > 0 && ModalStack.top() == this)
     {
         ModalStack.pop();
@@ -92,23 +95,23 @@ void Tilc::Gui::TStyledWindow::RemoveFromParent()
         }
     }
 
-    std::list<Tilc::Gui::TStyledWindow*>& AllWindows = Tilc::GameObject->GetContext()->m_Window->m_AllWindows;
+    std::list<Tilc::Gui::TStyledWindow*>& AllWindows = m_ParentSystemWindow->m_AllWindows;
     AllWindows.erase(std::remove(AllWindows.begin(), AllWindows.end(), this), AllWindows.end());
 }
 
 void Tilc::Gui::TStyledWindow::Draw()
 {
-    if (!m_Visible || Tilc::GameObject->GetContext()->m_Window->IsMinimized()) return;
+    if (!m_Visible || m_ParentSystemWindow->IsMinimized()) return;
 
     bool bConvertToGrayscale = (m_NeedUpdate != ENeedUpdate::ENU_None);
-    if (bConvertToGrayscale && Tilc::GameObject->GetContext()->m_Window->IsFocused())
+    if (bConvertToGrayscale && m_ParentSystemWindow->IsFocused())
     {
         bConvertToGrayscale = false;
     }
     if (m_NeedUpdate == ENeedUpdate::ENU_Everything)
     {
         TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-        TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+        TWindow* w = m_ParentSystemWindow;
         SDL_Texture* TextureMap = t->GuiTextureMap1;
 
         float x = 0.0f;
@@ -119,6 +122,7 @@ void Tilc::Gui::TStyledWindow::Draw()
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_Canvas);
 
+        SDL_Log("StyledWindow::Draw on Renderer: %p", Renderer);
         if (!m_Parent)
         {
             DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
@@ -319,7 +323,7 @@ void Tilc::Gui::TStyledWindow::DrawCaptionButtons()
     if (m_WithCaption)
     {
         TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-        TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+        TWindow* w = m_ParentSystemWindow;
         SDL_Texture* TextureMap = t->GuiTextureMap1;
         float x, y;
 
@@ -385,7 +389,7 @@ void Tilc::Gui::TStyledWindow::DrawCaption()
     if (m_WithCaption)
     {
         TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-        TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+        TWindow* w = m_ParentSystemWindow;
         SDL_Texture* TextureMap = t->GuiTextureMap1;
         Tilc::Gui::TFont* Font = t->DefaultFont;
         Font->SetColor({ 255, 255, 255, 255 });
@@ -865,7 +869,7 @@ bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
     if (!t) return false;
 
     // najpierw sprawdzamy czy kliknęliśmy na ngłówku okna głównego, żeby nie wywoływać obu draggów głównego i podokna równocześnie bo będąsię gryzły
-    Tilc::Gui::TStyledWindow* TopWindow = Tilc::GameObject->GetContext()->m_Window->m_TopmostWindow;
+    Tilc::Gui::TStyledWindow* TopWindow = m_ParentSystemWindow->m_TopmostWindow;
     if (this != TopWindow && (event.button.y >= TopWindow->m_Position.y && event.button.y < TopWindow->m_Position.y + t->wnd_caption_middle_rc.h))
     {
         return false;
@@ -878,7 +882,7 @@ bool Tilc::Gui::TStyledWindow::OnMouseButtonDown(const SDL_Event& event)
         if (event.button.y >= RealPosition.y && event.button.y < RealPosition.y + t->wnd_caption_middle_rc.h)
         {
             SDL_FRect RealPosition = GetRealPosition();
-            Tilc::TWindow* wnd = Tilc::GameObject->GetContext()->m_Window;
+            Tilc::TWindow* wnd = m_ParentSystemWindow;
             wnd->m_DraggedWindow = this;
             float ButtonX = RealPosition.x + RealPosition.w - GAP_X_BETWEEN_CAPTION_BUTTON_AND_WINDOW_FRAME - t->wnd_close_button_rc.w;
             if (event.button.x >= ButtonX && event.button.x < ButtonX + t->wnd_close_button_rc.w)
@@ -1278,7 +1282,7 @@ void Tilc::Gui::TStyledWindow::OnThumbChange(int oldPosition, int curPosition, T
 
 void Tilc::Gui::TStyledWindow::SetModal()
 {
-    Tilc::GameObject->GetContext()->m_Window->m_ModalStack.push(this);
+    m_ParentSystemWindow->m_ModalStack.push(this);
 }
 
 void Tilc::Gui::TStyledWindow::InternalProcessOnGetEditedValues(Tilc::TStdObject* eventInfo)
