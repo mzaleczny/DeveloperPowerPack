@@ -50,6 +50,7 @@ namespace Tilc
 		{
 		}
 		TStateManager m_StateManager;
+		// Aktualnie przetwarzane okno
         TWindow* m_Window{};
 		TEventManager* m_EventManager{};
 		Tilc::Resources::TTextureManager* m_TextureManager{};
@@ -77,7 +78,10 @@ namespace Tilc
 	{
 	public:
         TWindow* m_Window{ nullptr };
-        TGameState m_State{};
+		// Lista utworzonych okien, kiedy każde z nich jest przetwarzane pod kątem HandleEvent(), Update(), Render(), LateUpdate()
+		// to do zmiennej m_Window jest przypisywane to przetwarzane okno z tego wektora.
+		std::vector<TWindow*> m_AllWindows{};
+		TGameState m_State{};
         Uint64 m_LastFrameDuration{};
         Uint64 m_TotalElapsed{};
         float m_LastFrameMilliseconds{}; // Time in milliseconds of last frame processing

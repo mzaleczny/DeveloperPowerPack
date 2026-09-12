@@ -60,10 +60,7 @@ SDL_AppResult Tilc::InitTilc(const Tilc::TExtString& WindowTitle, const unsigned
 		SDL_Log("Error: Could not create Window");
 		return SDL_APP_FAILURE;
 	}
-	//else
-	//{
-	//	SDL_Log("Window created!");
-	//}
+	Tilc::GameObject->m_AllWindows.push_back(Tilc::GameObject->m_Window);
 
     TSharedContext* ctx = Tilc::GameObject->GetContext();
 	ctx->m_Window = Tilc::GameObject->m_Window;

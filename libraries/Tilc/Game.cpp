@@ -136,11 +136,14 @@ Tilc::TGame::~TGame()
 	// Before we destroy window we must call OnDestroy of all states in m_StateManager and free their memory
 	m_Context.m_StateManager.RemoveAllImmediately();
 	// Now we are ready to delete window
-	if (m_Window)
+	for (size_t i = m_AllWindows.size() - 1; i > 0; --i)
 	{
-		delete m_Window;
-		m_Window = nullptr;
+		if (m_AllWindows[i])
+		{
+			delete m_AllWindows[i];
+		}
 	}
+	m_AllWindows.clear();
 }
 
 void Tilc::TGame::LoadFontsFromConfig(Tilc::TExtString FontResource)
@@ -223,9 +226,13 @@ void Tilc::TGame::Update()
 
 void Tilc::TGame::Render()
 {
-	m_Context.m_Window->BeginDraw();
-	m_Context.m_StateManager.Draw();
-	m_Context.m_Window->EndDraw();
+	for (auto* wnd : m_AllWindows)
+	{
+		m_Context.m_Window = wnd;
+		m_Context.m_Window->BeginDraw();
+		m_Context.m_StateManager.Draw();
+		m_Context.m_Window->EndDraw();
+	}
 }
 
 Tilc::Gui::TFont* Tilc::TGame::AddFont(const Tilc::TExtString& Key, Tilc::TExtString FontFilename, float Size, bool FromFile)
@@ -272,31 +279,35 @@ Tilc::Graphics::TCamera* Tilc::TGame::GetCurrentCamera()
 void Tilc::TGame::LateUpdate()
 {
 	m_Context.m_StateManager.ProcessRequests();
+	for (auto* wnd : m_AllWindows)
+	{
+		m_Context.m_Window = wnd;
 
-    // we do delete controls destroyed during event processing. We do it here to ensure that they are still not used in code
-    if (m_Context.m_Window && m_Context.m_Window->m_TopmostWindow)
-    {
-        // first delete controls
-        if (!m_Context.m_Window->m_ControlsToDestroy.empty())
-        {
-            for (auto it = m_Context.m_Window->m_ControlsToDestroy.begin(); it != m_Context.m_Window->m_ControlsToDestroy.end(); ++it)
-            {
-                // deleting this object causes remove it from parent child windows and setting proper next active window if any is available
-                delete (*it);
-            }
-            m_Context.m_Window->m_ControlsToDestroy.clear();
-        }
-        // and then windows
-        if (!m_Context.m_Window->m_WindowsToDestroy.empty())
-        {
-            for (auto it = m_Context.m_Window->m_WindowsToDestroy.begin(); it != m_Context.m_Window->m_WindowsToDestroy.end(); ++it)
-            {
-                // deleting this object causes remove it from parent child windows and setting proper next active window if any is available
-                delete (*it);
-            }
-            m_Context.m_Window->m_WindowsToDestroy.clear();
-        }
-    }
+		// we do delete controls destroyed during event processing. We do it here to ensure that they are still not used in code
+		if (m_Context.m_Window && m_Context.m_Window->m_TopmostWindow)
+		{
+			// first delete controls
+			if (!m_Context.m_Window->m_ControlsToDestroy.empty())
+			{
+				for (auto it = m_Context.m_Window->m_ControlsToDestroy.begin(); it != m_Context.m_Window->m_ControlsToDestroy.end(); ++it)
+				{
+					// deleting this object causes remove it from parent child windows and setting proper next active window if any is available
+					delete (*it);
+				}
+				m_Context.m_Window->m_ControlsToDestroy.clear();
+			}
+			// and then windows
+			if (!m_Context.m_Window->m_WindowsToDestroy.empty())
+			{
+				for (auto it = m_Context.m_Window->m_WindowsToDestroy.begin(); it != m_Context.m_Window->m_WindowsToDestroy.end(); ++it)
+				{
+					// deleting this object causes remove it from parent child windows and setting proper next active window if any is available
+					delete (*it);
+				}
+				m_Context.m_Window->m_WindowsToDestroy.clear();
+			}
+		}
+	}
 }
 
 Tilc::EStateType Tilc::TGame::GetCurrentState()
@@ -369,9 +380,14 @@ void Tilc::TGame::InitGuiMode()
     CreateCursor();
     CreateCaret();
     CreateClipboard();
-    SDL_StartTextInput(m_Context.m_Window->GetRenderWindow());
-    // Do not close window by pressing Q key on keyboard, to allow type it into TextFields
-    m_Context.m_Window->DoCloseWindowByPressingQ(false);
+
+	for (auto* wnd : m_AllWindows)
+	{
+		m_Context.m_Window = wnd;
+		SDL_StartTextInput(m_Context.m_Window->GetRenderWindow());
+		// Do not close window by pressing Q key on keyboard, to allow type it into TextFields
+		m_Context.m_Window->DoCloseWindowByPressingQ(false);
+	}
 }
 
 void Tilc::TGame::CreateCursor()

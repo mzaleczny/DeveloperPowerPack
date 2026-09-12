@@ -9,7 +9,7 @@ Tilc::TBaseState::TBaseState(TStateManager* StateManager, bool DraggingTurnedOn)
 {
     if (Tilc::GameObject)
     {
-        m_Window = Tilc::GameObject->GetContext()->m_Window;
+        m_Window = Tilc::GameObject->m_AllWindows[0];
         m_EventManager = Tilc::GameObject->GetContext()->m_EventManager;
         if (HasDraggingTurnedOn)
         {
