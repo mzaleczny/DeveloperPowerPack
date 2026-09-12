@@ -161,18 +161,20 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 
 	if (!IsPopup)
 	{
-		SDL_Log("Create Standard Window with Renderer");
+		//SDL_Log("Create Standard Window with Renderer");
 		if (!SDL_CreateWindowAndRenderer(m_WindowTitle.c_str(), m_WindowWidth, m_WindowHeight, WindowFlags, &m_Window, &m_Renderer))
 		{
 			SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
 			return SDL_APP_FAILURE;
 		}
+		m_IsTooltip = false;
 	}
 	else
 	{
-		SDL_Log("Create Popup");
+		//SDL_Log("Create Popup");
 		m_Window = SDL_CreatePopupWindow(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
 		m_Renderer = SDL_CreateRenderer(m_Window, nullptr);
+		m_IsTooltip = true;
 	}
 
     if (WithGLContext)
@@ -186,7 +188,7 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 	}
 	if (m_IsFullScreen)
 	{
-		SDL_Log("FullScreen: On");
+		//SDL_Log("FullScreen: On");
 		SDL_SetWindowFullscreen(m_Window, m_IsFullScreen);
 	}
 	return SDL_APP_CONTINUE;

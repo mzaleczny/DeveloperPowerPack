@@ -75,7 +75,11 @@ namespace Tilc
 			return m_IsFocused;
 		};
         void SetIsFocused(bool IsFocused);
-		inline bool IsMaximized() const
+    	inline bool IsTooltip() const
+    	{
+    		return m_IsTooltip;
+    	};
+    	inline bool IsMaximized() const
 		{
 			return m_IsMaximized;
 		};
@@ -119,6 +123,8 @@ namespace Tilc
         // List of child controls to delete after all event handlers hav been processed
         std::list<Tilc::Gui::TGuiControl*> m_ControlsToDestroy;
         std::list<Tilc::Gui::TStyledWindow*> m_WindowsToDestroy;
+    	// Tag for this window allows distinguishing windows if there are many of them
+		int Tag{};
 
         inline void DoCloseWindowByPressingQ(bool Value) { m_QKeyClosesWindow = Value; }
         inline bool CloseWindowByPressingQ() const { return m_QKeyClosesWindow; }
@@ -139,6 +145,7 @@ namespace Tilc
         bool m_IsFullScreen;
         bool m_IsBorderless;
         bool m_IsFocused;
+        bool m_IsTooltip{};
         bool m_IsMaximized{};
         bool m_IsMinimized{};
         bool m_QKeyClosesWindow{ true };
