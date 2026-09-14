@@ -3,12 +3,12 @@
 #include "Tilc/configure.h"
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Globals.h"
-#include "Tilc/Game.h"
 
 #include <string>
 #include <random>
 
 #if BUILD_WITH_SDL3 == 1
+	#include "Tilc/Game.h"
 	#include "SDL3/SDL.h"
 #else
 	using SDL_AppResult = int;
