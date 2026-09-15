@@ -122,7 +122,6 @@ void Tilc::Gui::TStyledWindow::Draw()
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_Canvas);
 
-        SDL_Log("StyledWindow::Draw on Renderer: %p", Renderer);
         if (!m_Parent)
         {
             DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
