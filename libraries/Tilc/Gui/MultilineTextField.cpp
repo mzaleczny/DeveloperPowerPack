@@ -159,7 +159,11 @@ void Tilc::Gui::TMultilineTextField::Draw()
     if (m_StartDrawingSegmentsInBackground)
     {
         m_StartDrawingSegmentsInBackground = false;
+#ifdef __EMSCRIPTEN__
+        m_HbTextLayoutCache->RenderSegmentsInSingleThread(m_TopLine, GetNumberOfVisibleLines());
+#else
         m_HbTextLayoutCache->RenderSegmentsInBackground(m_TopLine, GetNumberOfVisibleLines());
+#endif
     }
     AttachRenderedSegmentsToCache();
 }

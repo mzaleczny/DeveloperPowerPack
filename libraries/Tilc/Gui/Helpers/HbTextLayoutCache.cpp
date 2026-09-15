@@ -955,6 +955,39 @@ void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInBackground(int Star
     Thread.detach();
 }
 
+void Tilc::Gui::Helpers::THbTextLayoutCache::RenderSegmentsInSingleThread(int StartLine, int NumberOfLines)
+{
+    int CurrentLine = StartLine;
+    int EndLine = StartLine + NumberOfLines - 1;
+    int LineHeight = m_Face->size->metrics.height >> 6;
+
+    for (int i = CurrentLine; i <= EndLine && i < m_Lines.size(); ++i)
+    {
+        THbTextLayoutCache::TLine& Line = m_Lines[i];
+        for (int Segment = 0; Segment < Line.Segments.size(); ++Segment)
+        {
+            if (!Line.Segments[Segment])
+            {
+                Tilc::Gui::Helpers::TSegmentJob Job;
+                Job.Line = &Line;
+                Job.LineIndex = i;
+                Job.SegmentIndex = Segment;
+                Job.startX = -(Job.SegmentIndex * LINE_TILE_WIDTH);
+                Job.startY = 0;
+                if (Job.startX >= Job.Line->TotalWidth) return;
+                Job.SegmentWidth = std::min(LINE_TILE_WIDTH, Job.Line->TotalWidth - Job.startX);
+                if (Job.SegmentWidth <= 0) continue;
+                Job.LineHeight = LineHeight;
+                Job.Surface = nullptr;
+                Job.FontColor = { 0, 0, 0, 255 };
+                Job.FontFilePath = m_Font->m_FontFilePath;
+                Job.FontSize = m_Font->m_Size;
+                DoSegmentJob(Job);
+            }
+        }
+    }
+}
+
 
 DECLSPEC Tilc::Thread::TThreadSafeQueue<Tilc::Gui::Helpers::TSegmentJob> Tilc::Gui::Helpers::JobQueue;
 DECLSPEC Tilc::Thread::TThreadSafeQueue<Tilc::Gui::Helpers::TSegmentJob> Tilc::Gui::Helpers::ReadyQueue;
@@ -967,6 +1000,13 @@ DECLSPEC void Tilc::Gui::Helpers::SegmentTask()
         return;
     }
 
+    DoSegmentJob(Job);
+
+    ReadyQueue.Push(Job);
+}
+
+void Tilc::Gui::Helpers::DoSegmentJob(Tilc::Gui::Helpers::TSegmentJob& Job)
+{
     FT_Init_FreeType(&Job.m_FT);
     if (!Job.m_FT) return;
     //FT_New_Memory_Face(Job.m_FT, BUFFER_DATA, BUFFER_DATA_SIZE, 0, &m_Face);
@@ -1037,6 +1077,4 @@ DECLSPEC void Tilc::Gui::Helpers::SegmentTask()
         FT_Done_Face(Job.m_Face);
     }
     FT_Done_FreeType(Job.m_FT);
-
-    ReadyQueue.Push(Job);
 }

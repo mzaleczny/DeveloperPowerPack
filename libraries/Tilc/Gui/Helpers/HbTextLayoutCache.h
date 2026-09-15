@@ -131,6 +131,7 @@ namespace Tilc::Gui::Helpers
         void SetMaxWidth(int Value) { m_MaxWidth = Value; }
         void SetFontColor(const SDL_Color& Color) { m_FontColor = Color; }
         void RenderSegmentsInBackground(int StartLine, int NumberOfLines);
+        void RenderSegmentsInSingleThread(int StartLine, int NumberOfLines);
         void ClearLines() {
             m_Lines.clear();
         }
@@ -176,4 +177,6 @@ namespace Tilc::Gui::Helpers
 
 
     DECLSPEC void SegmentTask();
+    // funkcja ponżej została wydzielona, żeby umożliwić wyrenderowanie tekstu zarówno przez kod wielo- jak i jedno-wątkowy
+    DECLSPEC void DoSegmentJob(TSegmentJob& Job);
 }
