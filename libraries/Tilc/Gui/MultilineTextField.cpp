@@ -1190,8 +1190,12 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
             m_HbTextLayoutCache->AppendEmptyLine();
             m_CaretAtChar = 0;
             ++m_CurrentLine;
-            ++m_TopLine;
-            RedrawTextTextureBufferAddingEmptyLineOnBottom();
+            // Top line zwiększamy tylko wtedy, gdy jesteśmy w ostatniej widocznej linijce kontrolki
+            if (m_CurrentLine - m_TopLine >= GetNumberOfVisibleLines())
+            {
+                ++m_TopLine;
+                RedrawTextTextureBufferAddingEmptyLineOnBottom();
+            }
         }
         updateCaretPos = true;
         redraw = true;
