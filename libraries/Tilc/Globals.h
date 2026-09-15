@@ -107,4 +107,23 @@ namespace Tilc
     }
 #endif
 
+    namespace CompUnits
+    {
+        constexpr size_t operator""_KB(unsigned long long const size)
+        {
+            return static_cast<size_t>(size * 1024);
+        }
+        constexpr size_t operator""_MB(unsigned long long const size)
+        {
+            return static_cast<size_t>(size * 1024 * 1024);
+        }
+        constexpr size_t operator""_GB(unsigned long long const size)
+        {
+            return static_cast<size_t>(size * 1024 * 1024 * 1024);
+        }
+        constexpr size_t operator""_TB(unsigned long long const size)
+        {
+            return static_cast<size_t>(size * 1024 * 1024 * 1024 * 1024);
+        }
+    }
 }
