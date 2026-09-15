@@ -134,7 +134,13 @@ namespace Tilc
         void CreateCursor();
         void CreateCaret();
         void CreateClipboard();
-
+		void SetActiveWindow(size_t Index)
+		{
+			if (Index < m_AllWindows.size())
+			{
+				m_Window = m_AllWindows[Index];
+			}
+		}
 	protected:
 		TSharedContext m_Context;
 	};
