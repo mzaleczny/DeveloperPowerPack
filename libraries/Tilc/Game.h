@@ -139,6 +139,7 @@ namespace Tilc
 			if (Index < m_AllWindows.size())
 			{
 				m_Window = m_AllWindows[Index];
+				m_Context.m_Window = m_Window;
 			}
 		}
 	protected:
