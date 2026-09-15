@@ -47,6 +47,14 @@ namespace Tilc
             void update(TProduct* product) {};
         };
 
+        class DECLSPEC TCategory
+        {
+        public:
+            Tilc::TExtString name;
+            Tilc::TExtString slug;
+            Tilc::TExtString short_description;
+        };
+
         class DECLSPEC TProduct
         {
         public:
