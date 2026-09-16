@@ -602,6 +602,22 @@ Tilc::TExtString Tilc::Gui::TGuiControl::GetChildText(const Tilc::TExtString& na
     return "";
 }
 
+void Tilc::Gui::TGuiControl::SetChildValue(const Tilc::TExtString& name, const Tilc::TExtString& value)
+{
+    if (auto* Ctrl = GetChild(name); Ctrl)
+    {
+        Ctrl->SetValue(value);
+    }
+}
+
+void Tilc::Gui::TGuiControl::SetChildText(const Tilc::TExtString& name, const Tilc::TExtString& text)
+{
+    if (auto* Ctrl = GetChild(name); Ctrl)
+    {
+        Ctrl->SetText(text);
+    }
+}
+
 void Tilc::Gui::TGuiControl::GetCurrentMousePosition(float* x, float* y)
 {
     float mx, my;
