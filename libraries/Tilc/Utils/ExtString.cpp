@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <locale>
 #include <ranges>
+#include <unordered_map>
 
 // --------------------          ą       ć       ę       ł       ń       ó       ś       ź       ż       Ą       Ć       Ę       Ł       Ń       Ó       Ś       Ź       Ż
 unsigned char allowed_codes_ansi[] = { 0xb9,   0xe6,   0xea,   0xb3,   0xf1,   0xf3,   0x9c,   0x9f,   0xbf,   0xa5,   0xc6,   0xca,   0xa3,   0xd1,   0xd3,   0x8c,   0x8f,   0xaf };
@@ -2126,4 +2127,84 @@ DECLSPEC Tilc::TExtString Tilc::FormatHexValue(int value, int align, char fillCh
         result += 'h';
     }
     return FormatString(result, align, fillChar, width);
+}
+
+// Funkcja zamieniająca polskie i wybrane diakrytyki na ich bazowe odpowiedniki ASCII
+DECLSPEC Tilc::TExtString Tilc::RemoveDiacritics(Tilc::TExtString& input)
+{
+    // Tabela mapowania najczęstszych znaków UTF-8 (w tym polskich)
+    static const std::unordered_map<std::string_view, std::string_view> translation_table = {
+        {"ą", "a"}, {"ć", "c"}, {"ę", "e"}, {"ł", "l"}, {"ń", "n"},
+        {"ó", "o"}, {"ś", "s"}, {"ź", "z"}, {"ż", "z"},
+        {"Ą", "a"}, {"Ć", "c"}, {"Ę", "e"}, {"Ł", "l"}, {"Ń", "n"},
+        {"Ó", "o"}, {"Ś", "s"}, {"Ź", "z"}, {"Ż", "z"},
+        {"ä", "a"}, {"ö", "o"}, {"ü", "u"}, {"ß", "ss"}, {"Ä", "a"},
+        {"Ö", "o"}, {"Ü", "u"}, {"à", "a"}, {"á", "a"}, {"â", "a"},
+        {"è", "e"}, {"é", "e"}, {"ê", "e"}, {"ì", "i"}, {"í", "i"},
+        {"ò", "o"}, {"ó", "o"}, {"ù", "u"}, {"ú", "u"}, {"ñ", "n"}
+    };
+
+    Tilc::TExtString result;
+    result.reserve(input.size());
+
+    for (size_t i = 0; i < input.size(); )
+    {
+        bool replaced = false;
+
+        // Sprawdzamy sekwencje 2-bajtowe UTF-8 (znaki diakrytyczne)
+        if (i + 1 < input.size())
+        {
+            Tilc::TExtString candidate = input.substr(i, 2);
+            if (auto it = translation_table.find(candidate); it != translation_table.end())
+            {
+                result.append(it->second);
+                i += 2;
+                replaced = true;
+            }
+        }
+
+        if (!replaced)
+        {
+            result.push_back(input[i]);
+            ++i;
+        }
+    }
+
+    return result;
+}
+
+// Główna funkcja generująca slug
+DECLSPEC Tilc::TExtString Tilc::ToSlug(Tilc::TExtString& text)
+{
+    // 1. Zamiana diakrytyków na ich odpowiedniki ASCII
+    Tilc::TExtString ascii_text = Tilc::RemoveDiacritics(text);
+
+    std::string slug;
+    slug.reserve(ascii_text.size());
+
+    bool last_was_dash = false;
+
+    // 2. Normalizacja znaków
+    for (char ch : ascii_text)
+    {
+        if (std::isalnum(static_cast<unsigned char>(ch)))
+        {
+            slug.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
+            last_was_dash = false;
+        }
+    	else if (!last_was_dash && !slug.empty())
+    	{
+            // Zamienia spacje, interpunkcję i znaki specjalne na pojedynczy myślnik
+            slug.push_back('-');
+            last_was_dash = true;
+        }
+    }
+
+    // 3. Usunięcie ewentualnego myślnika z końca
+    if (!slug.empty() && slug.back() == '-')
+    {
+        slug.pop_back();
+    }
+
+    return slug;
 }

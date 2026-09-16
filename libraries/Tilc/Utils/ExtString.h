@@ -328,7 +328,10 @@ namespace Tilc
 
     DECLSPEC TExtString FormatString(const TExtString& s, int align, char fillChar, int width);
     DECLSPEC TExtString FormatHexValue(int value, int align, char fillChar, int width, bool prepend0x, bool appendH, bool useSmallAlpha, int minLen);
-    /*
+	DECLSPEC TExtString RemoveDiacritics(TExtString& input);
+	DECLSPEC TExtString ToSlug(TExtString& text);
+
+	/*
     struct TConcatProxy
     {
         const TExtString& a;
