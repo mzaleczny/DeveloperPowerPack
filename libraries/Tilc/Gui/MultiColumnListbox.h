@@ -13,6 +13,8 @@ namespace Tilc {
             TMultiColumnListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, const std::vector<std::initializer_list<const char*>>& items);
             virtual  ~TMultiColumnListbox();
 
+            Tilc::Gui::TGuiControlItem* AddItem(const std::vector<const char*>& Item, bool redraw = true);
+            Tilc::Gui::TGuiControlItem* AddItem(const std::vector<Tilc::TExtString>& Item, bool redraw = true);
             void SetItems(const std::vector<std::initializer_list<const char*>>& Items, bool redraw = true);
             void SetItems(const std::vector<std::vector<Tilc::TExtString>>& Items, bool redraw = true);
             void SetColumnWidths(std::initializer_list<float> ColumnWidths);
@@ -27,6 +29,7 @@ namespace Tilc {
             std::vector<float> m_ColumnWidths;
             virtual void DeleteItems() override;
             virtual void SetScrollBars() override;
+            void SetColumns();
         };
     }
 }

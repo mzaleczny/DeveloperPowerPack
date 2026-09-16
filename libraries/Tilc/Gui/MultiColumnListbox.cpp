@@ -19,11 +19,62 @@ Tilc::Gui::TMultiColumnListbox::~TMultiColumnListbox()
     DeleteItems();
 }
 
+Tilc::Gui::TGuiControlItem* Tilc::Gui::TMultiColumnListbox::AddItem(const std::vector<const char*>& Item, bool redraw)
+{
+    Tilc::Gui::TTheme* t = GetTheme();
+    TStringVector StringItems;
+    for (auto it = Item.begin(); it != Item.end(); ++it)
+    {
+        StringItems.push_back(*it);
+    }
+    return AddItem(StringItems);
+}
+
+Tilc::Gui::TGuiControlItem* Tilc::Gui::TMultiColumnListbox::AddItem(const std::vector<Tilc::TExtString>& Item, bool redraw)
+{
+    Tilc::Gui::TTheme* t = GetTheme();
+    auto* item = new Tilc::Gui::TGuiControlItem(Item[0]);
+    if (item)
+    {
+        SDL_FPoint size = { 0, 0 };
+        int Width, Height;
+        if (t && t->DefaultFont)
+        {
+            t->DefaultFont->GetTextSize(item->m_Value.c_str(), Width, Height);
+            // overwrite text height as m_MeasuredTextSize.y can be 1 pixel greater ten current Height, so we must unifying this
+            Height = m_MeasuredTextSize.y;
+        }
+        item->m_Size = { static_cast<float>(Width), static_cast<float>(Height) };
+
+        int Column = 0;
+        for (auto it = Item.begin() + 1; it != Item.end(); ++it, ++Column)
+        {
+            item->m_Columns.push_back(*it);
+        }
+        m_Items.push_back(item);
+        SetColumns();
+    }
+    return item;
+}
+
 void Tilc::Gui::TMultiColumnListbox::SetScrollBars()
 {
     TListbox::SetScrollBars();
 
     SetMaxAvailableSizeOfScrollBars();
+}
+
+void Tilc::Gui::TMultiColumnListbox::SetColumns()
+{
+    int ColumnsCount = m_Items[0]->m_Columns.size() + 1;
+    if (m_Items.size() > 0 && m_ColumnWidths.empty())
+    {
+        m_ColumnWidths.reserve(ColumnsCount);
+        for (size_t j = 0; j < m_Items[0]->m_Columns.size() + 1; ++j)
+        {
+            m_ColumnWidths.push_back(GetInnerSize().x / ColumnsCount);
+        }
+    }
 }
 
 void Tilc::Gui::TMultiColumnListbox::DeleteItems()
@@ -37,12 +88,10 @@ void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::initializer
 {
     DeleteItems();
     Tilc::Gui::TTheme* t = GetTheme();
-
     SDL_FPoint size = GetInnerSize();
     float allowedTextAreaWidth = size.x;
     float allowedTextAreaHeight = size.y;
 
-    Tilc::Gui::TGuiControlItem* item;
     float maxItemWidth = 0;
     float maxItemHeight = 0;
     float summaryItemHeight = 0;
@@ -50,50 +99,40 @@ void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::initializer
 
     m_FullVisibleItems = 0;
     m_VisibleItems = 0;
+
     for (size_t i = 0; i < Items.size(); ++i)
     {
-        item = new Tilc::Gui::TGuiControlItem(*Items[i].begin());
-        if (item)
-        {
-            SDL_FPoint size = { 0, 0 };
-            int Width, Height;
-            if (t && t->DefaultFont)
-            {
-                t->DefaultFont->GetTextSize(item->m_Value.c_str(), Width, Height);
-                // overwrite text height as m_MeasuredTextSize.y can be 1 pixel greater ten current Height, so we must unifying this
-                Height = m_MeasuredTextSize.y;
-                if (Width > maxItemWidth)
-                {
-                    maxItemWidth += Width;
-                }
-                if (Height > maxItemHeight)
-                {
-                    maxItemHeight += Height;
-                }
-                if (summaryItemHeight <= allowedTextAreaHeight)
-                {
-                    m_FullVisibleItems += 1;
-                }
-                summaryItemHeight += Height;
-                if (summaryItemHeight <= allowedTextAreaHeight)
-                {
-                    m_VisibleItems += 1;
-                }
-            }
-            item->m_Size = { static_cast<float>(Width), static_cast<float>(Height) };
+        AddItem(Items[i], false);
+    }
 
-            item->m_Columns.reserve(Items[i].size());
-            int Column = 0;
-            for (auto it = Items[i].begin(); it != Items[i].end(); ++it, ++Column)
+    for (auto* item : m_Items)
+    {
+        SDL_FPoint size = { 0, 0 };
+        int Width, Height;
+        if (t && t->DefaultFont)
+        {
+            t->DefaultFont->GetTextSize(item->m_Value.c_str(), Width, Height);
+            // overwrite text height as m_MeasuredTextSize.y can be 1 pixel greater ten current Height, so we must unifying this
+            Height = m_MeasuredTextSize.y;
+            if (Width > maxItemWidth)
             {
-                if (it == Items[i].begin())
-                {
-                    continue;
-                }
-                item->m_Columns.push_back(*it);
+                maxItemWidth += Width;
             }
-            m_Items.push_back(item);
+            if (Height > maxItemHeight)
+            {
+                maxItemHeight += Height;
+            }
+            if (summaryItemHeight <= allowedTextAreaHeight)
+            {
+                m_FullVisibleItems += 1;
+            }
+            summaryItemHeight += Height;
+            if (summaryItemHeight <= allowedTextAreaHeight)
+            {
+                m_VisibleItems += 1;
+            }
         }
+        item->m_Size = { static_cast<float>(Width), static_cast<float>(Height) };
     }
     m_TopItemIndex = 0;
 
@@ -131,6 +170,12 @@ void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::vector<Tilc
 
     m_FullVisibleItems = 0;
     m_VisibleItems = 0;
+
+    for (size_t i = 0; i < Items.size(); ++i)
+    {
+        AddItem(Items[i], false);
+    }
+
     for (size_t i = 0; i < Items.size(); ++i)
     {
         item = new Tilc::Gui::TGuiControlItem(*Items[i].begin());
@@ -162,18 +207,6 @@ void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::vector<Tilc
                 }
             }
             item->m_Size = { static_cast<float>(Width), static_cast<float>(Height) };
-
-            item->m_Columns.reserve(Items[i].size());
-            int Column = 0;
-            for (auto it = Items[i].begin(); it != Items[i].end(); ++it, ++Column)
-            {
-                if (it == Items[i].begin())
-                {
-                    continue;
-                }
-                item->m_Columns.push_back(*it);
-            }
-            m_Items.push_back(item);
         }
     }
     m_TopItemIndex = 0;
@@ -360,7 +393,7 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
             // Nie renderujemy ostatniego obramowania - pionowej kreski, żeby ostatnie pole miało całą dostepną szerokość
             for (size_t i = 0; i < m_ColumnWidths.size() - 1; ++i)
             {
-                SDL_FRect rc = m_RealPosition;
+                SDL_FRect rc = m_Position;
                 OffsetX += m_ColumnWidths[i];
                 rc.x += OffsetX;               
                 rc.w = 1.0f;
