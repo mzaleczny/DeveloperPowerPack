@@ -1640,6 +1640,7 @@ bool Tilc::Gui::TMultilineTextField::GetTextWrap() const
 
 void Tilc::Gui::TMultilineTextField::SetText(const Tilc::TExtString& Text)
 {
+    m_RenderedTextToUpdate = true;
     if (m_HbTextLayoutCache)
     {
         m_HbTextLayoutCache->ClearLines();
