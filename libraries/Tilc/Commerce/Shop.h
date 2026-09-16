@@ -50,6 +50,7 @@ namespace Tilc
         class DECLSPEC TCategory
         {
         public:
+            Tilc::TExtString id;
             Tilc::TExtString name;
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
@@ -58,6 +59,7 @@ namespace Tilc
         class DECLSPEC TProduct
         {
         public:
+            Tilc::TExtString id;
             Tilc::TExtString name;
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
