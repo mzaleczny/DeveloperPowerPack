@@ -20,6 +20,8 @@ namespace Tilc
                 ~THttp();
 
                 TVariables m_Variables;
+                Tilc::TExtString& DoRequest(bool Post, Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode);
+                Tilc::TExtString& DoGet(Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode);
                 Tilc::TExtString& DoPost(Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode);
                 Tilc::TExtString& DoPost(Tilc::TExtString Url, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode);
 

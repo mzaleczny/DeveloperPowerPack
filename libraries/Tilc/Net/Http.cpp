@@ -24,7 +24,7 @@ Tilc::Net::THttp::~THttp()
     curl_global_cleanup();
 }
 
-Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode)
+Tilc::TExtString& Tilc::Net::THttp::DoRequest(bool Post, Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode)
 {
     struct curl_slist* headers = nullptr;
 
@@ -38,7 +38,15 @@ Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtStrin
     m_Curl = curl_easy_init();
     if (m_Curl)
     {
+        if (!Post)
+        {
+            Url = Url + "?" + Variables;
+        }
         curl_easy_setopt(m_Curl, CURLOPT_URL, Url.c_str());
+        if (Post)
+        {
+            curl_easy_setopt(m_Curl, CURLOPT_POST, 1L);
+        }
         curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, this);
 
@@ -50,9 +58,12 @@ Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtStrin
         {
             curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, headers);
         }
-        if (Variables.length() > 0)
+        if (Post)
         {
-            curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, Variables.c_str());
+            if (Variables.length() > 0)
+            {
+                curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, Variables.c_str());
+            }
         }
 
         m_Result = curl_easy_perform(m_Curl);
@@ -68,6 +79,16 @@ Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtStrin
 
     ResultCode = "OK";
     return m_ResponseData;
+}
+
+Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode)
+{
+    return DoRequest(true, Url, Variables, Headers, ResultCode);
+}
+
+Tilc::TExtString& Tilc::Net::THttp::DoGet(Tilc::TExtString Url, Tilc::TExtString Variables, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode)
+{
+    return DoRequest(false, Url, Variables, Headers, ResultCode);
 }
 
 Tilc::TExtString& Tilc::Net::THttp::DoPost(Tilc::TExtString Url, std::vector<Tilc::TExtString> Headers, Tilc::TExtString& ResultCode)
