@@ -204,7 +204,7 @@ void Tilc::Gui::TMultiColumnListbox::SetColumnWidths(std::initializer_list<float
 void Tilc::Gui::TMultiColumnListbox::Draw()
 {
     if (!m_Visible) return;
-    Draw(m_Canvas, &m_RealPosition);
+    Draw(m_Canvas, &m_Position);
 }
 
 void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
