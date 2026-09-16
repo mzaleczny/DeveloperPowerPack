@@ -234,6 +234,15 @@ void Tilc::Gui::TMultiColumnListbox::SetColumnWidths(std::initializer_list<float
     std::ranges::for_each(ColumnWidths, [this](float ItemWidth) { m_ColumnWidths.push_back(ItemWidth); });
 }
 
+void Tilc::Gui::TMultiColumnListbox::DeleteItem(size_t Index)
+{
+    if (Index < m_Items.size())
+    {
+        delete m_Items[Index];
+        m_Items.erase(m_Items.begin() + Index);
+    }
+}
+
 void Tilc::Gui::TMultiColumnListbox::Draw()
 {
     if (!m_Visible) return;
