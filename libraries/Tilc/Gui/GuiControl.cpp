@@ -584,6 +584,24 @@ Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::GetChild(const Tilc::TExtString&
     return nullptr;
 }
 
+Tilc::TExtString Tilc::Gui::TGuiControl::GetChildValue(const Tilc::TExtString& name)
+{
+    if (auto* Ctrl = GetChild(name); Ctrl)
+    {
+        return Ctrl->GetValue();
+    }
+    return "";
+}
+
+Tilc::TExtString Tilc::Gui::TGuiControl::GetChildText(const Tilc::TExtString& name)
+{
+    if (auto* Ctrl = GetChild(name); Ctrl)
+    {
+        return Ctrl->GetText();
+    }
+    return "";
+}
+
 void Tilc::Gui::TGuiControl::GetCurrentMousePosition(float* x, float* y)
 {
     float mx, my;

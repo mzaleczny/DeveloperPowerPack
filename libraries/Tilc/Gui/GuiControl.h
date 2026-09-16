@@ -413,6 +413,8 @@ namespace Tilc {
             virtual void SetEditorValue(const Tilc::TExtString& value);
 
             TGuiControl* GetChild(const Tilc::TExtString& name);
+            TExtString GetChildValue(const Tilc::TExtString& name);
+            TExtString GetChildText(const Tilc::TExtString& name);
 
             inline SDL_Renderer* GetRenderer()
             {
