@@ -1675,6 +1675,20 @@ void Tilc::Gui::TMultilineTextField::SetText(const Tilc::TExtString& Text)
     }
 }
 
+Tilc::TExtString Tilc::Gui::TMultilineTextField::GetText()
+{
+    Tilc::TExtString Content;
+    for (int i = 0; i < m_HbTextLayoutCache->GetLinesCount(); ++i)
+    {
+        Content += m_HbTextLayoutCache->GetLineUtf8(i);
+        if (i < m_HbTextLayoutCache->GetLinesCount() - 1)
+        {
+            Content += "\n";
+        }
+    }
+    return Content;
+}
+
 void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
 {
     while (!Tilc::Gui::Helpers::ReadyQueue.Empty())

@@ -104,6 +104,7 @@ namespace Tilc
             // zwróć czy ustawione jest zawijanie tekstu
             bool GetTextWrap() const;
             virtual void SetText(const Tilc::TExtString& Text) override;
+            virtual Tilc::TExtString GetText() override;
 
         protected:
             SDL_Texture* m_TextTexture{};
