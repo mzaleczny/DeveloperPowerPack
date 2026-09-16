@@ -28,6 +28,13 @@ namespace Tilc {
             inline TGuiControlItem* GetItem(int item) {
                 return m_Items[item];
             }
+            inline TGuiControlItem* GetSelectedItem() {
+                if (m_SelectedItem >= 0 && m_SelectedItem < m_Items.size())
+                {
+                    return m_Items[m_SelectedItem];
+                }
+                return nulptr;
+            }
             Tilc::TExtString GetItemValue(int item);
             bool IsItemSelected(int item);
             bool IsItemChecked(int item);
