@@ -33,7 +33,7 @@ namespace Tilc {
                 {
                     return m_Items[m_SelectedItem];
                 }
-                return nulptr;
+                return nullptr;
             }
             Tilc::TExtString GetItemValue(int item);
             bool IsItemSelected(int item);
