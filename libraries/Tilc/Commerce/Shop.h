@@ -54,6 +54,7 @@ namespace Tilc
             Tilc::TExtString name;
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
+            Tilc::TExtString description;
         };
 
         class DECLSPEC TProduct
