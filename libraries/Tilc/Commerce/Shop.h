@@ -79,6 +79,7 @@ namespace Tilc
             double averageReviewScore;
 
             // Constructor
+            TProduct() = default;
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
                     Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
                     Tilc::TExtString created = "", Tilc::TExtString modified = "")
