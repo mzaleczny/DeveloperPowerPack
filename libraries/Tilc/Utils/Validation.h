@@ -44,7 +44,7 @@ namespace Tilc
 			auto rx = std::basic_regex<CharT>{ LR"(^([A-Z0-9._%+-]+)@([A-Z0-9.-]+)\.([A-Z]{2,})$)"s, std::regex_constants::icase };
 			auto result = std::smatch{};
 			auto success = std::regex_match(email, result, rx);
-			return std::make_tuple(success, success ? result[1].str() : ""s, success ? result[2].str() : ""s, success ? result[3].str() : ""s);
+			return std::make_tuple(success, success ? result[1].str() : L""s, success ? result[2].str() : L""s, success ? result[3].str() : L""s);
 		}
 	}
 }
