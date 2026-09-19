@@ -136,14 +136,14 @@ Tilc::TGame::~TGame()
 	// Before we destroy window we must call OnDestroy of all states in m_StateManager and free their memory
 	m_Context.m_StateManager.RemoveAllImmediately();
 	// Now we are ready to delete window
-	for (size_t i = m_AllWindows.size() - 1; i > 0; --i)
+	for (size_t i = m_AllSystemWindows.size() - 1; i > 0; --i)
 	{
-		if (m_AllWindows[i])
+		if (m_AllSystemWindows[i])
 		{
-			delete m_AllWindows[i];
+			delete m_AllSystemWindows[i];
 		}
 	}
-	m_AllWindows.clear();
+	m_AllSystemWindows.clear();
 }
 
 void Tilc::TGame::LoadFontsFromConfig(Tilc::TExtString FontResource)
@@ -226,7 +226,7 @@ void Tilc::TGame::Update()
 
 void Tilc::TGame::Render()
 {
-	for (auto* wnd : m_AllWindows)
+	for (auto* wnd : m_AllSystemWindows)
 	{
 		m_Context.m_Window = wnd;
 		m_Context.m_Window->BeginDraw();
@@ -279,7 +279,7 @@ Tilc::Graphics::TCamera* Tilc::TGame::GetCurrentCamera()
 void Tilc::TGame::LateUpdate()
 {
 	m_Context.m_StateManager.ProcessRequests();
-	for (auto* wnd : m_AllWindows)
+	for (auto* wnd : m_AllSystemWindows)
 	{
 		m_Context.m_Window = wnd;
 
@@ -381,7 +381,7 @@ void Tilc::TGame::InitGuiMode()
     CreateCaret();
     CreateClipboard();
 
-	for (auto* wnd : m_AllWindows)
+	for (auto* wnd : m_AllSystemWindows)
 	{
 		m_Context.m_Window = wnd;
 		SDL_StartTextInput(m_Context.m_Window->GetRenderWindow());

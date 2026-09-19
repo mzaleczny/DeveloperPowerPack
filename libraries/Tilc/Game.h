@@ -80,7 +80,7 @@ namespace Tilc
         TWindow* m_Window{ nullptr };
 		// Lista utworzonych okien, kiedy każde z nich jest przetwarzane pod kątem HandleEvent(), Update(), Render(), LateUpdate()
 		// to do zmiennej m_Window jest przypisywane to przetwarzane okno z tego wektora.
-		std::vector<TWindow*> m_AllWindows{};
+		std::vector<TWindow*> m_AllSystemWindows{};
 		TGameState m_State{};
         Uint64 m_LastFrameDuration{};
         Uint64 m_TotalElapsed{};
@@ -136,9 +136,9 @@ namespace Tilc
         void CreateClipboard();
 		void SetActiveWindow(size_t Index)
 		{
-			if (Index < m_AllWindows.size())
+			if (Index < m_AllSystemWindows.size())
 			{
-				m_Window = m_AllWindows[Index];
+				m_Window = m_AllSystemWindows[Index];
 				m_Context.m_Window = m_Window;
 			}
 		}
