@@ -107,6 +107,7 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const 
             {
                 TextureType = Tilc::Resources::ETextureType::SDL_Texture;
                 Texture = SDL_CreateTextureFromSurface(Tilc::GameObject->m_Window->GetRenderer(), Surface);
+                //SDL_SetTextureBlendMode(Texture, SDL_BLENDMODE_BLEND);
                 SDL_DestroySurface(Surface);
                 Surface = nullptr;
                 if (!Texture)
