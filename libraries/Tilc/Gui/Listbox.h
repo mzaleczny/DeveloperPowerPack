@@ -17,10 +17,12 @@ namespace Tilc {
             TListbox(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, EControlType ControlType, std::initializer_list<const char*> items);
             virtual  ~TListbox();
 
+            Tilc::Gui::TGuiControlItem* AddItem(const char* Item, bool redraw = true);
             void SetItems(const std::initializer_list<const char*> items, bool redraw = true);
             void SetItems(Tilc::TExtString& items, bool redraw = true);
             void SetItems(const Tilc::TStringVector& items, bool redraw = true);
             virtual void SetSize(float width, float height) override;
+            void DeleteItem(size_t Index);
 
             // zwraca przechowywany w kontrolce tekst
             virtual Tilc::TExtString GetText() override;

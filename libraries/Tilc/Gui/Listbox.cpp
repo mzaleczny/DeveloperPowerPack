@@ -56,6 +56,11 @@ Tilc::Gui::TListbox::~TListbox()
     DeleteItems();
 }
 
+Tilc::Gui::TGuiControlItem* Tilc::Gui::TListbox::AddItem(const char* Item, bool redraw)
+{
+    m_Items.push_back(new Tilc::Gui::TGuiControlItem(Item));
+}
+
 void Tilc::Gui::TListbox::DeleteItems()
 {
     std::ranges::for_each(m_Items, [](TGuiControlItem* Item) { delete Item; });
@@ -165,7 +170,12 @@ void Tilc::Gui::TListbox::SetItems(const Tilc::TStringVector& items, bool redraw
     m_VisibleItems = 0;
     for (size_t i = 0; i < items.size(); ++i)
     {
-        item = new Tilc::Gui::TGuiControlItem(items[i]);
+        AddItem(items[i].c_str());
+    }
+
+    for (size_t i = 0; i < items.size(); ++i)
+    {
+        item = m_Items[i];
         if (item)
         {
             SDL_FPoint size = {0, 0};
@@ -211,6 +221,15 @@ void Tilc::Gui::TListbox::SetSize(float width, float height)
 {
     TGuiControl::SetSize(width, height);
     m_VisibleItems = m_RealPosition.h / m_MeasuredTextSize.y;
+}
+
+void Tilc::Gui::TListbox::DeleteItem(size_t Index)
+{
+    if (Index < m_Items.size())
+    {
+        delete m_Items[Index];
+        m_Items.erase(m_Items.begin() + Index);
+    }
 }
 
 Tilc::TExtString Tilc::Gui::TListbox::GetText()
