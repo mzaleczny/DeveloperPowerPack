@@ -242,6 +242,7 @@ void Tilc::TGame::Render()
 	for (auto* wnd : m_AllSystemWindows)
 	{
 		m_Context.m_Window = wnd;
+		SDL_Renderer* Renderer = m_Context.m_Window->GetRenderer();
 		if (!wnd->IsTransparent())
 		{
 			m_Context.m_Window->BeginDraw();
@@ -250,7 +251,6 @@ void Tilc::TGame::Render()
 		}
 		else
 		{
-			SDL_Renderer* Renderer = m_Context.m_Window->GetRenderer();
 			SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
 			SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
 			SDL_RenderClear(Renderer);
