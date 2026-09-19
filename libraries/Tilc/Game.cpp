@@ -28,7 +28,20 @@
 
 namespace Tilc
 {
-	DECLSPEC TGame* GameObject = nullptr;
+	DECLSPEC void TGame::SetActiveWindow(SDL_Window* Window)
+	{
+		for (auto* Wnd : m_AllSystemWindows)
+		{
+			if (Wnd->GetRenderWindow() == Window)
+			{
+				m_Window = Wnd;
+				m_Context.m_Window = m_Window;
+				return;
+			}
+		}
+	}
+
+	TGame* GameObject = nullptr;
 	DECLSPEC Tilc::TExtString WorkingDirectory = "./";
 }
 

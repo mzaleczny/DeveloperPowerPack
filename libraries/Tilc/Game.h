@@ -147,6 +147,7 @@ namespace Tilc
 			m_Window = Window;
 			m_Context.m_Window = m_Window;
 		}
+		void SetActiveWindow(SDL_Window* Window);
 	protected:
 		TSharedContext m_Context;
 	};
