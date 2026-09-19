@@ -74,6 +74,10 @@ namespace Tilc
 		{
 			return m_IsMinimized;
 		};
+		inline bool IsTransparent() const
+		{
+			return m_IsTransparent;
+		};
         void Minimize();
         void Maximize();
         void Restore();
@@ -135,6 +139,7 @@ namespace Tilc
         bool m_IsTooltip{};
         bool m_IsMaximized{};
         bool m_IsMinimized{};
+        bool m_IsTransparent{};
         bool m_QKeyClosesWindow{ true };
         TEventManager m_EventManager;
 		void Destroy();

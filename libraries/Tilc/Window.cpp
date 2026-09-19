@@ -208,6 +208,11 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup,
     {
         WindowFlags |= SDL_WINDOW_UTILITY;
     }
+    if ((Flags & InitFlag_TransparentWindow) == InitFlag_TransparentWindow)
+    {
+        WindowFlags |= SDL_WINDOW_TRANSPARENT;
+    	m_IsTransparent = true;
+    }
 
 	if (!IsPopup)
 	{
