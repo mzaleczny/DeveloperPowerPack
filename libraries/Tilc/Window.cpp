@@ -20,6 +20,29 @@ Tilc::TWindow::~TWindow()
 	Destroy();
 }
 
+void Tilc::TWindow::BeginDraw()
+{
+	Tilc::GameObject->GetContext()->m_Theme->ActivateGuiTextureMapForWindow(this);
+	//SDL_SetRenderDrawColorFloat(m_Renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE_FLOAT);
+	//SDL_RenderClear(m_Renderer);
+	if (m_WindowSDLStreamingTexture)
+	{
+		SDL_LockTextureToSurface(m_WindowSDLStreamingTexture, nullptr, &m_RenderSurface);
+		SDL_ClearSurface(m_RenderSurface, 0.0f, 0.0f, 0.0f, 1.0f);
+	}
+}
+
+void Tilc::TWindow::EndDraw()
+{
+	if (m_WindowSDLStreamingTexture)
+	{
+		SDL_UnlockTexture(m_WindowSDLStreamingTexture);
+		SDL_RenderTexture(m_Renderer, m_WindowSDLStreamingTexture, NULL, nullptr);
+	}
+	/* put the newly-cleared rendering on the screen. */
+	SDL_RenderPresent(m_Renderer);
+}
+
 void Tilc::TWindow::Close(TEventDetails* Details)
 {
 	m_IsDone = true;
@@ -168,7 +191,7 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 			return SDL_APP_FAILURE;
 		}
 		m_IsTooltip = false;
-		SDL_Log("Window: %p,  Renderer: %p", m_Window, m_Renderer);
+		SDL_Log("Window: %p,  Renderer: %p,  TopmostWindow: %p", m_Window, m_Renderer, m_TopmostWindow);
 	}
 	else
 	{
@@ -176,7 +199,14 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 		m_Window = SDL_CreatePopupWindow(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
 		m_Renderer = SDL_CreateRenderer(m_Window, nullptr);
 		m_IsTooltip = true;
-		SDL_Log("PopupWindow: %p,  Renderer: %p", m_Window, m_Renderer);
+		SDL_Log("PopupWindow: %p,  Renderer: %p,  TopmostWindow: %p", m_Window, m_Renderer, m_TopmostWindow);
+	}
+	Tilc::GameObject->m_AllSystemWindows.push_back(this);
+	// jesli motyw został juz utworzony i wczytany podczas inicjalizacji a tu dodajemy kolejne okno w obsłudze zdarzenia tworzena TStateGame
+	if (Tilc::GameObject->GetContext()->m_Theme && !Tilc::GameObject->GetContext()->m_Theme->GetThemeName().empty())
+	{
+		// to dodajemy texturę tematu pasującą do renderera, tego utworzonego okna
+		Tilc::GameObject->GetContext()->m_Theme->LoadTextureMapForWindowRenderer(this);
 	}
 
     if (WithGLContext)
@@ -198,6 +228,7 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 
 void Tilc::TWindow::Destroy()
 {
+	//SDL_Log("DESTROY Window: %p,  Renderer: %p,  TopmostWindow: %p", m_Window, m_Renderer, m_TopmostWindow);
     if (m_TopmostWindow)
     {
         delete m_TopmostWindow;

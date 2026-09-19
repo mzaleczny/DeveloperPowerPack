@@ -6,6 +6,9 @@
 #include <list>
 #include <stack>
 
+#include "Game.h"
+#include "Gui/Theme.h"
+
 namespace Tilc
 {
     namespace Gui
@@ -21,26 +24,8 @@ namespace Tilc
 		TWindow(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup = false);
 		virtual ~TWindow();
 
-		inline void BeginDraw()
-		{
-			//SDL_SetRenderDrawColorFloat(m_Renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE_FLOAT);
-			//SDL_RenderClear(m_Renderer);
-            if (m_WindowSDLStreamingTexture)
-            {
-                SDL_LockTextureToSurface(m_WindowSDLStreamingTexture, nullptr, &m_RenderSurface);
-                SDL_ClearSurface(m_RenderSurface, 0.0f, 0.0f, 0.0f, 1.0f);
-            }
-		}
-        inline void EndDraw()
-        {
-            if (m_WindowSDLStreamingTexture)
-            {
-                SDL_UnlockTexture(m_WindowSDLStreamingTexture);
-                SDL_RenderTexture(m_Renderer, m_WindowSDLStreamingTexture, NULL, nullptr);
-            }
-			/* put the newly-cleared rendering on the screen. */
-			SDL_RenderPresent(m_Renderer);
-		}
+		void BeginDraw();
+        void EndDraw();
 		inline SDL_Window* GetRenderWindow()
 		{
 			return m_Window;
