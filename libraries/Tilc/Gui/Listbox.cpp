@@ -58,12 +58,18 @@ Tilc::Gui::TListbox::~TListbox()
 
 Tilc::Gui::TGuiControlItem* Tilc::Gui::TListbox::AddItem(const char* Item, bool redraw)
 {
-    m_Items.push_back(new Tilc::Gui::TGuiControlItem(Item));
+    Tilc::Gui::TGuiControlItem* NewItem = new Tilc::Gui::TGuiControlItem(Item);
+    m_Items.push_back(NewItem);
+    return NewItem;
 }
 
 void Tilc::Gui::TListbox::DeleteItems()
 {
-    std::ranges::for_each(m_Items, [](TGuiControlItem* Item) { delete Item; });
+    std::ranges::for_each(m_Items, [](TGuiControlItem* Item)
+    {
+        //SDL_Log("DeleteItem: %s", Item->m_Value.c_str());
+        delete Item;
+    });
     m_Items.clear();
 }
 
@@ -204,7 +210,6 @@ void Tilc::Gui::TListbox::SetItems(const Tilc::TStringVector& items, bool redraw
                 }
             }
             item->m_Size = { static_cast<float>(Width), static_cast<float>(Height) };
-            m_Items.push_back(item);
         }
     }
     m_TopItemIndex = 0;
