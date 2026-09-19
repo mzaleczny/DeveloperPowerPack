@@ -142,6 +142,11 @@ namespace Tilc
 				m_Context.m_Window = m_Window;
 			}
 		}
+		void SetActiveWindow(Tilc::TWindow* Window)
+		{
+			m_Window = Window;
+			m_Context.m_Window = m_Window;
+		}
 	protected:
 		TSharedContext m_Context;
 	};
