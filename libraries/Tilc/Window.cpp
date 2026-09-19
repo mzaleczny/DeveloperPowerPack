@@ -15,6 +15,12 @@ Tilc::TWindow::TWindow(const Tilc::TExtString& Title, const unsigned int Width, 
 	Setup(Title, Width, Height, Flags, WithGLContext, IsPopup);
 }
 
+Tilc::TWindow::TWindow(TWindow* Parent, const Tilc::TExtString& Title, const unsigned int Width,
+	const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup)
+{
+	Setup(Title, Width, Height, Flags, WithGLContext, IsPopup, Parent);
+}
+
 Tilc::TWindow::~TWindow()
 { 
 	Destroy();
@@ -147,7 +153,7 @@ void Tilc::TWindow::CreateWindowSDLStreamingTexture(SDL_PixelFormat PixelFormat)
 	}
 }
 
-void Tilc::TWindow::Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup)
+void Tilc::TWindow::Setup(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup, TWindow* Parent)
 {
     m_Flags = Flags;
 	m_WindowTitle = Title;
@@ -157,13 +163,13 @@ void Tilc::TWindow::Setup(const Tilc::TExtString& Title, const unsigned int Widt
 	m_IsBorderless = (Flags & InitFlag_WindowBorderless) == InitFlag_WindowBorderless;
 	m_IsDone = false;
 	m_IsFocused = true;
-	Create(Flags, WithGLContext, IsPopup);
+	Create(Flags, WithGLContext, IsPopup, Parent);
 
 	m_EventManager.AddCallback(EStateType::All, "Fullscreen_toggle", &Tilc::TWindow::ToggleFullscreen, this);
 	m_EventManager.AddCallback(EStateType::All, "Window_close", &Tilc::TWindow::Close, this);
 }
 
-SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
+SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup, TWindow* Parent)
 {
 	SDL_WindowFlags WindowFlags = 0;
 	if (WithGLContext)
@@ -191,15 +197,28 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup)
 			return SDL_APP_FAILURE;
 		}
 		m_IsTooltip = false;
-		SDL_Log("Window: %p,  Renderer: %p,  TopmostWindow: %p", m_Window, m_Renderer, m_TopmostWindow);
+		//SDL_Log("Window: %p,  Renderer: %p,  TopmostWindow: %p", m_Window, m_Renderer, m_TopmostWindow);
 	}
 	else
 	{
 		//SDL_Log("Create Popup");
-		m_Window = SDL_CreatePopupWindow(Tilc::GameObject->GetContext()->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
+		if (Parent)
+		{
+			//m_Window = SDL_CreatePopupWindow(Parent->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
+			m_Window = SDL_CreatePopupWindow(Parent->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_POPUP_MENU);
+		}
+		else
+		{
+			//m_Window = SDL_CreatePopupWindow(Tilc::GameObject->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_TOOLTIP | SDL_WINDOW_NOT_FOCUSABLE);
+			m_Window = SDL_CreatePopupWindow(Tilc::GameObject->m_Window->GetRenderWindow(), -200, -200, 250, 400, SDL_WINDOW_POPUP_MENU);
+		}
 		m_Renderer = SDL_CreateRenderer(m_Window, nullptr);
 		m_IsTooltip = true;
-		SDL_Log("PopupWindow: %p,  Renderer: %p,  TopmostWindow: %p", m_Window, m_Renderer, m_TopmostWindow);
+		//SDL_Log("PopupWindow: %p,  Renderer: %p,  TopmostWindow: %p", m_Window, m_Renderer, m_TopmostWindow);
+	}
+	if (m_Window && Parent)
+	{
+		SDL_SetWindowParent(m_Window, Parent->GetRenderWindow());
 	}
 	Tilc::GameObject->m_AllSystemWindows.push_back(this);
 	// jesli motyw został juz utworzony i wczytany podczas inicjalizacji a tu dodajemy kolejne okno w obsłudze zdarzenia tworzena TStateGame
