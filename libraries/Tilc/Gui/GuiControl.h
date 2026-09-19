@@ -572,6 +572,8 @@ namespace Tilc {
 
             inline static std::unordered_map<int, TOptionGroup> m_OptionGroups{};
 
+            TWindow* GetParentSystemWindow() const { return m_ParentSystemWindow; }
+
         protected:
             SDL_Texture* m_Canvas{};
             TWindow* m_ParentSystemWindow{};
