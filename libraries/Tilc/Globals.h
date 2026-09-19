@@ -46,6 +46,7 @@ namespace Tilc
     constexpr const int InitFlag_FullScreen = 1;
     constexpr const int InitFlag_WithStreamingTexture = 2;
     constexpr const int InitFlag_WindowBorderless = 4;
+    constexpr const int InitFlag_UtilityWindow = 8;
 
     constexpr const char* Chars = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*()-=_+[]{};:\'\"\\|,<.>/?";
     constexpr int HiWord(int Value) {
