@@ -10,6 +10,6 @@
 #define BUILD_WITH_SDL3_MIXER 1
 #define BUILD_WITH_GLM 1
 #define BUILD_WITH_ASSIMP 1
-/* #undef BUILD_WITH_CURL */
+#define BUILD_WITH_CURL 1
 /* #undef BUILD_WITH_LIBFCGI */
 #define BUILD_WITH_GUI 1
