@@ -47,6 +47,11 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
 	static Tilc::TVector2D<float> LastPos(-1000.0f, -1000.0f);
 	static bool MouseDown = false;
 	bool MouseEvent = false;
+	SDL_Window* Window = SDL_GetWindowFromEvent(Event);
+
+	// Linijka poniżej jest kluczowa do tego, żeby zdarzenie poszło do poprawnego okna i zostało przez nie obsłużone
+	Tilc::GameObject->SetActiveWindow(Window);
+
 	Tilc::Graphics::TCamera* Camera = Tilc::GameObject->GetCurrentCamera();
 	if (Event->type == SDL_EVENT_QUIT || Tilc::GameObject->m_Window->IsDone())
 	{
@@ -253,6 +258,7 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
 
 SDL_AppResult Tilc::TEventManager::HandleEvent(const SDL_Event* Event)
 {
+	SDL_Window* targetWindow = SDL_GetWindowFromID(Event->button.windowID);
 	// Handling events
 	if (DefaultHandleEvent(Event) == SDL_APP_SUCCESS)
 	{
