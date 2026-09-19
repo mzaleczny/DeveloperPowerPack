@@ -677,6 +677,8 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
                 if (i - m_TopItemIndex + 1 == m_VisibleItems)
                 {
                     ControlClipRect = FRectToRectFloor(&itemRect);
+                    ControlClipRect.x = Position->x + t->listbox_frame_left_rc.w;
+                    ControlClipRect.w = Position->w - t->listbox_frame_left_rc.w - t->listbox_frame_right_rc.w;
                     SDL_SetRenderClipRect(Renderer, &ControlClipRect);
                 }
                 if (item)
@@ -686,8 +688,8 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
                         if (item->m_Selected)
                         {
                             //RenderTiledTexture(t->GuiTextureMap1, &t->listbox_bg_selected_rc, &itemRect);
-                            itemRect.x -= m_Padding;
-                            itemRect.w += m_Padding;
+                            itemRect.x = Position->x + t->listbox_frame_left_rc.w;
+                            itemRect.w = Position->w - t->listbox_frame_left_rc.w - t->listbox_frame_right_rc.w;
                             SDL_SetRenderDrawColor(Renderer, t->listbox_bg_selected.r, t->listbox_bg_selected.g, t->listbox_bg_selected.b, t->listbox_bg_selected.a);
                             SDL_RenderFillRect(Renderer, &itemRect);
                             itemRect.w -= m_Padding;
@@ -699,8 +701,8 @@ void Tilc::Gui::TListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Position)
                         if (m_SelectedItem == i)
                         {
                             //RenderTiledTexture(t->GuiTextureMap1, &t->listbox_bg_selected_rc, &itemRect);
-                            itemRect.x -= m_Padding;
-                            itemRect.w += m_Padding;
+                            itemRect.x = Position->x + t->listbox_frame_left_rc.w;
+                            itemRect.w = Position->w - t->listbox_frame_left_rc.w - t->listbox_frame_right_rc.w;
                             SDL_SetRenderDrawColor(Renderer, t->listbox_bg_selected.r, t->listbox_bg_selected.g, t->listbox_bg_selected.b, t->listbox_bg_selected.a);
                             SDL_RenderFillRect(Renderer, &itemRect);
                             itemRect.w -= m_Padding;
