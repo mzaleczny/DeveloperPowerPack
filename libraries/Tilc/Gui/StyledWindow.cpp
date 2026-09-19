@@ -159,7 +159,8 @@ void Tilc::Gui::TStyledWindow::Draw()
             // Ramka lewa
             x = 0;
             y = t->wnd_caption_middle_rc.h;
-            RenderTexture(TextureMap, &t->wnd_frame_left_rc, x, y, t->wnd_frame_left_rc.w, m_Position.h - y - t->wnd_frame_bottom_left_rc.h);
+            DestRect = { x, y, t->wnd_frame_left_rc.w, m_Position.h - y - t->wnd_frame_bottom_left_rc.h };
+            RenderTiledTexture(TextureMap, &t->wnd_frame_left_rc, &DestRect);
 
             // Lewy dolny róg
             y = m_Position.h - t->wnd_frame_bottom_left_rc.h;
@@ -179,7 +180,8 @@ void Tilc::Gui::TStyledWindow::Draw()
             // Ramka prawa
             x = m_Position.w - t->wnd_frame_right_rc.w;
             y = t->wnd_caption_middle_rc.h;
-            RenderTexture(TextureMap, &t->wnd_frame_right_rc, x, y, t->wnd_frame_right_rc.w, m_Position.h - y - t->wnd_frame_bottom_right_rc.h);
+            DestRect = { x, y, t->wnd_frame_right_rc.w, m_Position.h - y - t->wnd_frame_bottom_right_rc.h };
+            RenderTiledTexture(TextureMap, &t->wnd_frame_right_rc, &DestRect);
         }
         // ================================================================
         // Koniec rysowania obramowania okna
