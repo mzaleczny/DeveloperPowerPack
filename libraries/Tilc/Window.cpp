@@ -46,6 +46,7 @@ Tilc::TWindow::~TWindow()
 void Tilc::TWindow::BeginDraw()
 {
 	Tilc::GameObject->GetContext()->m_Theme->ActivateGuiTextureMapForWindow(this);
+	SDL_SetRenderDrawBlendMode(m_Renderer, SDL_BLENDMODE_BLEND);
 	//SDL_SetRenderDrawColorFloat(m_Renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE_FLOAT);
 	//SDL_RenderClear(m_Renderer);
 	if (m_WindowSDLStreamingTexture)
