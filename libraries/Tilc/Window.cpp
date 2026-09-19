@@ -10,6 +10,23 @@ Tilc::TWindow::TWindow()
 	Setup("Window", 640, 480, false, false, false);
 }
 
+Tilc::TWindow::TWindow(const SDL_PropertiesID props)
+{
+	m_Window = SDL_CreateWindowWithProperties(props);
+	if (m_Window)
+	{
+		m_Renderer = SDL_CreateRenderer(m_Window, nullptr);
+		m_IsTooltip = false;
+		Tilc::GameObject->m_AllSystemWindows.push_back(this);
+		// jesli motyw został juz utworzony i wczytany podczas inicjalizacji a tu dodajemy kolejne okno w obsłudze zdarzenia tworzena TStateGame
+		if (Tilc::GameObject->GetContext()->m_Theme && !Tilc::GameObject->GetContext()->m_Theme->GetThemeName().empty())
+		{
+			// to dodajemy texturę tematu pasującą do renderera, tego utworzonego okna
+			Tilc::GameObject->GetContext()->m_Theme->LoadTextureMapForWindowRenderer(this);
+		}
+	}
+}
+
 Tilc::TWindow::TWindow(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup)
 {
 	Setup(Title, Width, Height, Flags, WithGLContext, IsPopup);
@@ -186,6 +203,10 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup,
     if ((Flags & InitFlag_WindowBorderless) == InitFlag_WindowBorderless)
     {
         WindowFlags |= SDL_WINDOW_BORDERLESS;
+    }
+    if ((Flags & InitFlag_UtilityWindow) == InitFlag_UtilityWindow)
+    {
+        WindowFlags |= SDL_WINDOW_UTILITY;
     }
 
 	if (!IsPopup)

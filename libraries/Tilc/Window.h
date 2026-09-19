@@ -21,6 +21,7 @@ namespace Tilc
 	{
 	public:
 		TWindow();
+		TWindow(const SDL_PropertiesID props);
 		TWindow(const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup = false);
 		TWindow(TWindow* Parent, const Tilc::TExtString& Title, const unsigned int Width, const unsigned int Height, int Flags, bool WithGLContext, bool IsPopup = false);
 		virtual ~TWindow();
