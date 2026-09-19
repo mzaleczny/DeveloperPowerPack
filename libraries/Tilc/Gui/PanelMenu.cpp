@@ -1,4 +1,6 @@
 #include "Tilc/Gui/PanelMenu.h"
+
+#include "StyledWindow.h"
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/Theme.h"
 #include "Tilc/Resources/TextureManager.h"
@@ -10,7 +12,7 @@ Tilc::Gui::TPanelMenu::TPanelMenu(TGuiControl* parent, const Tilc::TExtString& n
 
     if (FromFile)
     {
-        Tilc::GameObject->SetActiveWindow(0);
+        Tilc::GameObject->SetActiveWindow(GetParent()->GetActiveWindow()->GetParentSystemWindow());
         ResourceTexture = Tilc::GameObject->GetContext()->m_TextureManager->AddResourceFromFile(m_Name + "_Main", MainIconsSource, "SDL_Texture");
         if (ResourceTexture)
         {
