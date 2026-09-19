@@ -162,7 +162,6 @@ void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::vector<Tilc
     float allowedTextAreaWidth = size.x;
     float allowedTextAreaHeight = size.y;
 
-    Tilc::Gui::TGuiControlItem* item;
     float maxItemWidth = 0;
     float maxItemHeight = 0;
     float summaryItemHeight = 0;
@@ -176,9 +175,9 @@ void Tilc::Gui::TMultiColumnListbox::SetItems(const std::vector<std::vector<Tilc
         AddItem(Items[i], false);
     }
 
-    for (size_t i = 0; i < Items.size(); ++i)
+    for (size_t i = 0; i < m_Items.size(); ++i)
     {
-        item = new Tilc::Gui::TGuiControlItem(*Items[i].begin());
+        Tilc::Gui::TGuiControlItem* item = m_Items[i];
         if (item)
         {
             SDL_FPoint size = { 0, 0 };
