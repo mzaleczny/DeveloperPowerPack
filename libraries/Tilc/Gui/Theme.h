@@ -7,6 +7,8 @@
 #include <unordered_map>
 
 namespace Tilc {
+    class TWindow;
+
     namespace Gui {
 
         class TFont;
@@ -19,12 +21,16 @@ namespace Tilc {
             Tilc::TExtString GetThemeName() const { return m_ThemeName; }
             Tilc::TExtString GetThemeDir() const { return m_ThemeDir; }
 
+            void LoadTextureMapForWindowRenderer(TWindow* Window);
+            void ActivateGuiTextureMapForCurrentActiveWindow();
+            void ActivateGuiTextureMapForWindow(TWindow* Window);
+
             // TextureMap of all possible controls in all possible states inside window
             SDL_Texture* GuiTextureMap1{};
-            SDL_Texture* GuiTextureMap1_TMP{};
+            //SDL_Texture* GuiTextureMap1_TMP{};
 
             std::unordered_map<SDL_Renderer*, SDL_Texture*> Map_GuiTextureMap1;
-            std::unordered_map<SDL_Renderer*, SDL_Texture*> Map_GuiTextureMap1_TMP;
+            //std::unordered_map<SDL_Renderer*, SDL_Texture*> Map_GuiTextureMap1_TMP;
 
             SDL_FRect wnd_caption_left_rc;
             SDL_FRect wnd_caption_middle_rc;
@@ -468,6 +474,7 @@ namespace Tilc {
         protected:
             Tilc::TExtString m_ThemeName;
             Tilc::TExtString m_ThemeDir;
+            Tilc::TExtString m_ThemeFilename;
             SDL_Renderer* m_Renderer;
 
         private:

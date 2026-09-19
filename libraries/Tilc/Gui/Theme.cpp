@@ -4,6 +4,7 @@
 #include "Tilc/Globals.h"
 #include "Tilc/Utils/FileUtils.h"
 #include "Tilc/Graphics/GraphicsUtils.h"
+#include "Tilc/Window.h"
 
 Tilc::Gui::TTheme::TTheme(Tilc::TExtString name)
     : m_ThemeName(name)
@@ -14,6 +15,46 @@ Tilc::Gui::TTheme::TTheme(Tilc::TExtString name)
 Tilc::Gui::TTheme::~TTheme()
 {
     Unload();
+}
+
+void Tilc::Gui::TTheme::LoadTextureMapForWindowRenderer(Tilc::TWindow* Window)
+{
+    if (Map_GuiTextureMap1.find(Window->GetRenderer()) == Map_GuiTextureMap1.end())
+    {
+        // Remember current Active Window
+        Tilc::TWindow* ActiveWindow = Tilc::GameObject->m_Window;
+        if (ActiveWindow != Window)
+        {
+            // Change current Active Window
+            Tilc::GameObject->SetActiveWindow(Window);
+        }
+
+        Tilc::Resources::TTextureManager* tm = GameObject->GetContext()->m_TextureManager;
+        GuiTextureMap1 = tm->LoadFromFile(m_ThemeFilename.c_str(), "SDL_Texture")->AsSDLTexture();
+        Map_GuiTextureMap1[Window->GetRenderer()] = GuiTextureMap1;
+
+        if (ActiveWindow != Window)
+        {
+            // Restore current Active Window
+            Tilc::GameObject->SetActiveWindow(ActiveWindow);
+        }
+    }
+}
+
+void Tilc::Gui::TTheme::ActivateGuiTextureMapForCurrentActiveWindow()
+{
+    if (Map_GuiTextureMap1.find(Tilc::GameObject->m_Window->GetRenderer()) != Map_GuiTextureMap1.end())
+    {
+        GuiTextureMap1 = Map_GuiTextureMap1[Tilc::GameObject->m_Window->GetRenderer()];
+    }
+}
+
+void Tilc::Gui::TTheme::ActivateGuiTextureMapForWindow(TWindow* Window)
+{
+    if (Map_GuiTextureMap1.find(Window->GetRenderer()) != Map_GuiTextureMap1.end())
+    {
+        GuiTextureMap1 = Map_GuiTextureMap1[Window->GetRenderer()];
+    }
 }
 
 void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
@@ -49,7 +90,7 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
         }
     }
     Filename = ThemeDir + "/GUI.png";
-    SDL_Log("Skin found in %s", Filename.c_str());
+    //SDL_Log("Skin found in %s", Filename.c_str());
 
     m_ThemeDir = ThemeDir;
     m_ThemeName = name;
@@ -94,6 +135,9 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
 
     Tilc::Resources::TTextureManager* tm = GameObject->GetContext()->m_TextureManager;
     GuiTextureMap1 = tm->LoadFromFile(Filename.c_str(), "SDL_Texture")->AsSDLTexture();
+    Map_GuiTextureMap1[Tilc::GameObject->m_Window->GetRenderer()] = GuiTextureMap1;
+    m_ThemeFilename = Filename;
+
     /*
     GuiTextureMap1 = tm->LoadFromFile(Tilc::GetTmpFolder() + "/GUI.png", "SDL_Texture")->AsSDLTexture();
     if (!GuiTextureMap1) return;
@@ -1073,12 +1117,12 @@ void Tilc::Gui::TTheme::CreateComplexRects(const SDL_FRect& LeftRc, const SDL_FR
 
 void Tilc::Gui::TTheme::Unload()
 {
-    if (GuiTextureMap1)
+    for (auto [Renderer, Texture] : Map_GuiTextureMap1)
     {
-        SDL_DestroyTexture(GuiTextureMap1);
-        GuiTextureMap1 = nullptr;
+        SDL_DestroyTexture(Texture);
     }
-
+    GuiTextureMap1 = nullptr;
+    Map_GuiTextureMap1.clear();
     /*
     if (this->globalStandardFont) {
         delete this->globalStandardFont;
