@@ -574,6 +574,14 @@ namespace Tilc {
 
             TWindow* GetParentSystemWindow() const { return m_ParentSystemWindow; }
 
+            void SetIconsTexture(SDL_Texture* IconsTexture)
+            {
+                m_Icons = IconsTexture;
+            };
+            void SetIconRect(const SDL_FRect& IconRect)
+            {
+                m_IconRect = IconRect;
+            };
         protected:
             SDL_Texture* m_Canvas{};
             // m_Icons is not owning pointer

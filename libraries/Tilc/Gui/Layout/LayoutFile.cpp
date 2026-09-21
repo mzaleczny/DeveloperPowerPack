@@ -20,6 +20,8 @@
 #include "Tilc/Game.h"
 #include <cstring>
 
+#include "Tilc/Resources/TextureManager.h"
+
 Tilc::Gui::TLayoutFile::TLayoutFile()
 {
 }
@@ -482,6 +484,16 @@ void Tilc::Gui::TLayoutFile::processButtonItem(Tilc::TStdObject* item, Tilc::Gui
         {
             //gc->SetTransparentDrawing(transparentDrawing);
             doRelativePositioning(gc, relativeControl.c_str(), relativePosition.c_str());
+            Tilc::TPropertiesVector* Icon = item->getAsArray("icon");
+            if (Icon)
+            {
+                Tilc::TExtString IconsTexName = item->getAsString("iconsTexName");
+                gc->SetIconRect(Tilc::GetRect(static_cast<int>((*Icon)[0]->iValue), static_cast<int>((*Icon)[1]->iValue),
+                    static_cast<int>((*Icon)[2]->iValue), static_cast<int>((*Icon)[3]->iValue)));
+                gc->SetIconsTexture(Tilc::GameObject->GetContext()->m_TextureManager->GetResource(IconsTexName)->AsSDLTexture());
+                // Jesli rysujemy ikonę, to ustawiamy rozmiar z pliku z layoutem, bo nie chcemy domyślnej wysokości przycisku
+                gc->m_Position.h = height;
+            }
             if (disabled)
             {
                 gc->Disable();

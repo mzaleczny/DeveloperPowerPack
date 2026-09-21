@@ -47,65 +47,46 @@ void Tilc::Gui::TButton::Draw()
         SDL_SetRenderTarget(Renderer, m_Canvas);
     }
 
-    DrawCommon(
-        m_Position,
-        t->button_left_rc, t->button_middle_rc, t->button_right_rc,
-        t->button_left_disabled_rc, t->button_middle_disabled_rc, t->button_right_disabled_rc,
-        t->button_left_focused_rc, t->button_middle_focused_rc, t->button_right_focused_rc,
-        t->button_left_hover_focused_rc, t->button_middle_hover_focused_rc, t->button_right_hover_focused_rc,
-        t->button_left_pushed_focused_rc, t->button_middle_pushed_focused_rc, t->button_right_pushed_focused_rc,
-        t->button_left_hover_rc, t->button_middle_hover_rc, t->button_right_hover_rc,
-        t->button_left_pushed_rc, t->button_middle_pushed_rc, t->button_right_pushed_rc
-    );
-
-    // ================================================================
-    // Rysujemy tekst i ewentualną ikonkę
-    // ================================================================
-    TWindow* w = Tilc::GameObject->GetContext()->m_Window;
-    SDL_Texture* TextureMap = t->GuiTextureMap1;
-    Tilc::Gui::TFont* Font = t->DefaultFont;
-    Font->SetColor({ 255, 255, 255, 255 });
-
-    Tilc::TExtString caption = GetText();
-    SDL_FRect rc = m_Position;
-    if (Font)
+    if (m_Icons == nullptr)
     {
-        //std::string s = caption + ": " + std::to_string(m_State);
-        //DefaultFont->DrawString(GetRenderer(), s.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
-        Font->DrawString(GetRenderer(), caption.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
-    }
+        DrawCommon(
+            m_Position,
+            t->button_left_rc, t->button_middle_rc, t->button_right_rc,
+            t->button_left_disabled_rc, t->button_middle_disabled_rc, t->button_right_disabled_rc,
+            t->button_left_focused_rc, t->button_middle_focused_rc, t->button_right_focused_rc,
+            t->button_left_hover_focused_rc, t->button_middle_hover_focused_rc, t->button_right_hover_focused_rc,
+            t->button_left_pushed_focused_rc, t->button_middle_pushed_focused_rc, t->button_right_pushed_focused_rc,
+            t->button_left_hover_rc, t->button_middle_hover_rc, t->button_right_hover_rc,
+            t->button_left_pushed_rc, t->button_middle_pushed_rc, t->button_right_pushed_rc
+        );
 
-    // IKONKA
-    /*
-    int textDrawingAttribs = DT_SINGLELINE | DT_VCENTER | DT_CENTER;
-    if (this->_imageList) {
-        int image_index = this->_normalStateImageIndex;
-        switch (this->_state) {
-        case CONTROL_STATE_HOVER:
-            image_index = this->_hoverStateImageIndex;
-            break;
-        case CONTROL_STATE_PUSHED:
-            image_index = this->_pushedStateImageIndex;
-            break;
-        case CONTROL_STATE_FOCUSED:
-            image_index = this->_focusedStateImageIndex;
-            break;
-        case CONTROL_STATE_DISABLED:
-            image_index = this->_disabledStateImageIndex;
-            break;
-        }
-        // TUTAJ KOD rysujący ikonkę
-        if (image_index >= 0) {
-            textDrawingAttribs = DT_SINGLELINE | DT_VCENTER | DT_LEFT;
-            int yDelta = 0;
-            if (this->_state & CONTROL_STATE_PUSHED) {
-                yDelta = -1;
-            }
-            this->_imageList->transparentBitblt(this->canvas->getDC(), rc.left + 2, rc.top + yDelta + (this->height - this->_imageList->imHeight) / 2, image_index);
-            rc.left += this->_imageList->imWidth + 4;
+        // ================================================================
+        // Rysujemy tekst i ewentualną ikonkę
+        // ================================================================
+        TWindow* w = Tilc::GameObject->GetContext()->m_Window;
+        SDL_Texture* TextureMap = t->GuiTextureMap1;
+        Tilc::Gui::TFont* Font = t->DefaultFont;
+        Font->SetColor({ 255, 255, 255, 255 });
+
+        Tilc::TExtString caption = GetText();
+        SDL_FRect rc = m_Position;
+        if (Font)
+        {
+            //std::string s = caption + ": " + std::to_string(m_State);
+            //DefaultFont->DrawString(GetRenderer(), s.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
+            Font->DrawString(GetRenderer(), caption.c_str(), &rc, Align_CenterVertical | Align_CenterHorizontal);
         }
     }
-    */
+    else
+    {
+        // IKONA
+        RenderTexture(m_Icons, &m_IconRect, m_Position.x, m_Position.y, m_Position.w, m_Position.h);
+        if (m_State & CONTROL_STATE_HOVER)
+        {
+            SDL_SetRenderDrawColor(GetRenderer(), 0, 0, 0xc0, 0xff);
+            SDL_RenderRect(GetRenderer(), &m_Position);
+        }
+    }
     // ================================================================
     // Koniec rysowania tekstu
     // ================================================================
