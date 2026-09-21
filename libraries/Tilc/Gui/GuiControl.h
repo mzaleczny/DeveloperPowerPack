@@ -576,11 +576,14 @@ namespace Tilc {
 
         protected:
             SDL_Texture* m_Canvas{};
+            // m_Icons is not owning pointer
+            SDL_Texture* m_Icons{};
             TWindow* m_ParentSystemWindow{};
             TStyledWindow* m_ParentWindow{};
             TGuiControl* m_Parent{};
             Tilc::Game2D::Sprite::TDirectionalAnimation* m_Animation = nullptr;
             SDL_FPoint m_ClientPos;
+            SDL_FRect m_IconRect;
             Tilc::TExtString m_Name;
             Tilc::TExtString m_Text;
             // Aktywna kontrolka - ta która aktualnie ma focus
