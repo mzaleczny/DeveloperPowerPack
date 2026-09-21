@@ -292,7 +292,6 @@ void Tilc::Gui::TMultilineTextField::UpdateCaretPos()
     m_Caret->m_Position.y = RealPosition.y + m_PaddingTop + (m_CurrentLine - m_TopLine) * m_Caret->m_Position.h;
     m_Caret->m_ControlX = m_Position.x;
     m_Caret->m_ControlY = m_Position.y;
-    //SDL_Log("CaretPos: %.2f x %.2f", m_Caret->m_Position.x, m_Caret->m_Position.y);
     if (IsCaretInsideView())
     {
         m_Caret->Show();
@@ -991,8 +990,6 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
         {
             --m_CaretAtChar;
             // opcjonalnie scrollujemy content jeśli jesteśmy przy prawym brzegu kontrolki i nadal idziemy w prawo
-            SDL_Log("m_CurrentLine: %d, m_CaretAtChar: %d,  Line.CaretX.size(): %lu,  Line.Text32.length(): %lu",
-                m_CurrentLine, m_CaretAtChar, Line.CaretX.size(), Line.Text32.length());
             if (Line.CaretX[m_CaretAtChar] - m_ScrollOffsetX < 75)
             {
                 if (m_HScrollBar)
@@ -1271,11 +1268,6 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
                     m_HbTextLayoutCache->InsertText(m_CurrentLine, m_CaretAtChar, InsertString32);
                     // i przesuwamy karetkę w prawo
                     m_CaretAtChar += InsertString32.length();
-                    /*
-                    SDL_Log("m_CaretAtChar: %d,  InsertString32.length(): %lu,  Text: %s,  kontrolka: %s",
-                        m_CaretAtChar, InsertString32.length(), m_HbTextLayoutCache->GetLineUtf8(m_CurrentLine).c_str(),
-                        m_Name.c_str());
-                    */
                 }
                 else
                 {
@@ -1612,7 +1604,6 @@ void Tilc::Gui::TMultilineTextField::RemoveSelectedText(bool redraw)
             StartRemovingFrom = 0;
             ++Count;
         }
-        //SDL_Log("Lines to delete: %d, m_SelectionLineEnd: %d, m_SelectionLineStart: %d", Count, m_SelectionLineEnd, m_SelectionLineStart);
         for (int i = 0; i < Count; ++i)
         {
             m_HbTextLayoutCache->DeleteLine(m_SelectionLineStart + StartRemovingFrom);
@@ -1723,7 +1714,6 @@ void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
                 SDL_Texture* tex = SDL_CreateTexture(Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, Job.Surface->w, Job.Surface->h);
                 if (tex)
                 {
-                    //SDL_Log("Set Line[%d] at %p,  Segment[%d] to texture: %p", Job.LineIndex, Job.Line, Job.SegmentIndex, tex);
                     SDL_UpdateTexture(tex, nullptr, Job.Surface->pixels, Job.Surface->pitch);
                     Job.Line->Segments[Job.SegmentIndex] = tex;
                     SDL_DestroySurface(Job.Surface);
