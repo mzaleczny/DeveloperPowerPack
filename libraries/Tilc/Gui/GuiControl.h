@@ -583,6 +583,8 @@ namespace Tilc {
             {
                 m_IconRect = IconRect;
             };
+
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> m_Props;
         protected:
             SDL_Texture* m_Canvas{};
             // m_Icons is not owning pointer
