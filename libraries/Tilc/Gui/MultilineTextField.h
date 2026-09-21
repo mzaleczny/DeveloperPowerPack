@@ -70,6 +70,8 @@ namespace Tilc
             };
             virtual bool OnKeyDown(const SDL_Event& event) override;
             virtual bool OnTextInput(const SDL_Event& event) override;
+            // Czyści białym prostokątem podaną linię
+            void ClearLine(int LineNumber);
             // Odrysowuje linię o podanym indeksie w buforze przechowującym cały tekst widoczny w kontrolce. Przed wypisaniem tekstu tej linii, jest ona czyszczona kolorem przezrozystym.
             // LineNumber jest numerem linii od 0 do NumerWidocznychLinii - 1
             void RedrawLineInTextTextureBuffer(int LineNumber);

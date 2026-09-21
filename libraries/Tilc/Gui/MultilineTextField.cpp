@@ -1147,12 +1147,16 @@ bool Tilc::Gui::TMultilineTextField::OnKeyDown(const SDL_Event& event)
                 m_HbTextLayoutCache->EnsureLineLayout(m_CurrentLine);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
             }
-            else if (m_CurrentLine > 0)
+            else if (m_CaretAtChar == m_HbTextLayoutCache->GetLinePositionsNum(m_CurrentLine) - 1)
             {
                 // Tutaj usuwamy znak łamania linii, czyli bieżącą linię dopisujemy do poprzedniej lini w cache
                 m_HbTextLayoutCache->JoinLines(m_CurrentLine, m_CurrentLine + 1);
                 RedrawTextTextureBufferWithoutLine(m_CurrentLine+1-m_TopLine);
                 RedrawLineInTextTextureBuffer(m_CurrentLine - m_TopLine);
+                if (m_CurrentLine+1-m_TopLine == m_HbTextLayoutCache->GetLinesCount())
+                {
+                    ClearLine(m_CurrentLine+1-m_TopLine);
+                }
             }
 
             // Get number of lines per control
@@ -1292,6 +1296,27 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
     }
 
     return true;
+}
+
+void Tilc::Gui::TMultilineTextField::ClearLine(int LineNumber)
+{
+    if (LineNumber >= 0 && LineNumber < GetNumberOfVisibleLines())
+    {
+        // Rysujemy tło i tekst
+        SDL_FRect rc{};
+        rc.y = LineNumber * m_Caret->m_Position.h;
+        rc.h = m_Caret->m_Position.h;
+
+        SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
+        SDL_SetRenderTarget(Renderer, m_TextTexture);
+
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
+        rc.w = CalculateInnerWidth();
+        SDL_RenderFillRect(Renderer, &rc);
+
+        SDL_SetRenderTarget(Renderer, OldRenderTarget);
+    }
 }
 
 void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumber)
