@@ -89,6 +89,7 @@ namespace Tilc {
             long long m_Data;
             SDL_FPoint m_Size;
             TStringVector m_Columns;
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> m_Props;
         };
         using TGuiControlItemList = std::vector<TGuiControlItem*>;
 
