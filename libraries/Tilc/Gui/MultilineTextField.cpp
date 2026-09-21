@@ -1309,7 +1309,8 @@ void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumbe
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_TextTexture);
 
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         rc.w = m_TextTexture->w;
         SDL_RenderFillRect(Renderer, &rc);
         rc.w = TextLineTexture->w;
@@ -1328,7 +1329,8 @@ void Tilc::Gui::TMultilineTextField::RedrawLineInTextTextureBuffer(int LineNumbe
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_TextTexture);
 
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0 , 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         rc.w = m_TextTexture->w;
         SDL_RenderFillRect(Renderer, &rc);
 
@@ -1347,7 +1349,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
 
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, NewTextTexture);
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         rc.w = NewTextTexture->w;
         rc.h = NewTextTexture->h;
         SDL_RenderFillRect(Renderer, &rc);
@@ -1380,7 +1383,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLine(int With
         DestRect.y = 0;
         DestRect.w = NewTextTexture->w;
         DestRect.h = NewTextTexture->h;
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         SDL_RenderFillRect(Renderer, &DestRect);
         SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
 
@@ -1399,7 +1403,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLines(int ToL
 
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, NewTextTexture);
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         rc.w = NewTextTexture->w;
         rc.h = NewTextTexture->h;
         SDL_RenderFillRect(Renderer, &rc);
@@ -1424,7 +1429,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferWithoutLines(int ToL
         DestRect.y = 0;
         DestRect.w = NewTextTexture->w;
         DestRect.h = NewTextTexture->h;
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         SDL_RenderFillRect(Renderer, &DestRect);
         SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
 
@@ -1444,7 +1450,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAt
 
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, NewTextTexture);
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         rc.w = NewTextTexture->w;
         rc.h = NewTextTexture->h;
         SDL_RenderFillRect(Renderer, &rc);
@@ -1468,7 +1475,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferInsertingBlankLineAt
         DestRect.y = 0;
         DestRect.w = NewTextTexture->w;
         DestRect.h = NewTextTexture->h;
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         SDL_RenderFillRect(Renderer, &DestRect);
         SDL_RenderTexture(Renderer, NewTextTexture, nullptr, &DestRect);
 
@@ -1487,7 +1495,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferAddingEmptyLineOnBot
 
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, NewTextTexture);
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         rc.w = NewTextTexture->w;
         rc.h = NewTextTexture->h;
         SDL_RenderFillRect(Renderer, &rc);
@@ -1504,7 +1513,8 @@ void Tilc::Gui::TMultilineTextField::RedrawTextTextureBufferAddingEmptyLineOnBot
         DestRect.y = 0;
         DestRect.w = NewTextTexture->w;
         DestRect.h = NewTextTexture->h;
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         SDL_RenderFillRect(Renderer, &DestRect);
         DestRect.h = rc.h;
         rc.y = 0;
@@ -1775,7 +1785,8 @@ void Tilc::Gui::TMultilineTextField::DrawTextInView()
     // czyścimy teksturę kontrolki
     SDL_Texture* OldTarget = SDL_GetRenderTarget(Renderer);
     SDL_SetRenderTarget(Renderer, m_TextTexture);
-    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Czyścimy białym kolorem
+    SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
     SDL_RenderClear(Renderer);
 
     const int ControlWidth = m_TextTexture->w;
