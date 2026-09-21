@@ -12,7 +12,6 @@ Tilc::Gui::TPanelMenu::TPanelMenu(TGuiControl* parent, const Tilc::TExtString& n
 
     if (FromFile)
     {
-        Tilc::GameObject->SetActiveWindow(GetParent()->GetActiveWindow()->GetParentSystemWindow());
         ResourceTexture = Tilc::GameObject->GetContext()->m_TextureManager->AddResourceFromFile(m_Name + "_Main", MainIconsSource, "SDL_Texture");
         if (ResourceTexture)
         {
