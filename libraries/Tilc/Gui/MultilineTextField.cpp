@@ -102,8 +102,8 @@ void Tilc::Gui::TMultilineTextField::Draw()
 
         OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_TextTexture);
-        // Fill with transparent color
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+        // Fill with white color
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0xff);
         SDL_RenderFillRect(Renderer, nullptr);
 
         int MaxLineWidthInPixels = m_TextTexture->w;
@@ -118,6 +118,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
             {
                 rc.w = TextLineTexture->w;
                 rc.h = TextLineTexture->h;
+
                 SDL_RenderTexture(Renderer, TextLineTexture, nullptr, &rc);
                 SDL_DestroyTexture(TextLineTexture);
             }
@@ -141,6 +142,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
     rc.y += m_PaddingTop;
     rc.w = m_TextTexture->w;
     rc.h = m_TextTexture->h;
+
     SDL_RenderTexture(Renderer, m_TextTexture, nullptr, &rc);
     // ================================================================
     // Koniec rysowania tekstu

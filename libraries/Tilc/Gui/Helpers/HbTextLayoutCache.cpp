@@ -616,7 +616,7 @@ SDL_Texture* Tilc::Gui::Helpers::THbTextLayoutCache::RenderHbLineToTexture(SDL_R
     SDL_Surface* surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
     if (surface)
     {
-        Uint32 RGBAColor = SDL_MapSurfaceRGBA(surface, 0, 0, 0, 0);
+        Uint32 RGBAColor = SDL_MapSurfaceRGBA(surface, 0xff, 0xff, 0xff, 0xff);
         SDL_FillSurfaceRect(surface, nullptr, RGBAColor);
 
         for (int i = 0; i < Line.Glyphs.size(); ++i)
