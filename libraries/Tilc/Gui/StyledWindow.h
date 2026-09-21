@@ -25,6 +25,7 @@ namespace Tilc {
             virtual ~TStyledWindow();
             void RemoveFromParent();
 
+            virtual void SetSize(float width, float height) override;
             virtual void Draw() override;
             void DrawCaptionButtons();
             void DrawCaption();

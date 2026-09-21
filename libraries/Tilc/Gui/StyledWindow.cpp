@@ -99,6 +99,26 @@ void Tilc::Gui::TStyledWindow::RemoveFromParent()
     AllWindows.erase(std::remove(AllWindows.begin(), AllWindows.end(), this), AllWindows.end());
 }
 
+void Tilc::Gui::TStyledWindow::SetSize(float width, float height)
+{
+    TGuiControl::SetSize(width, height);
+    // Jeśli to stylowane okno nie ma rodzica, to zakładamy, że jest to okno główne i w takim przypadku ustawiamy także rozmiar
+    // okna systemowego TWindow
+    if (!m_Parent)
+    {
+        Tilc::TWindow* w = m_ParentSystemWindow;
+        if (w)
+        {
+            w->SetSize(static_cast<int>(width), static_cast<int>(height));
+            if (m_Canvas)
+            {
+                SDL_DestroyTexture(m_Canvas);
+                m_Canvas = SDL_CreateTexture(w->GetRenderer(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, m_Position.w, m_Position.h);
+            }
+        }
+    }
+}
+
 void Tilc::Gui::TStyledWindow::Draw()
 {
     if (!m_Visible || m_ParentSystemWindow->IsMinimized()) return;

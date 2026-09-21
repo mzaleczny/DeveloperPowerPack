@@ -44,6 +44,12 @@ namespace Tilc
 		{
 			return m_IsFullScreen;
 		}
+    	inline void SetSize(int width, int height)
+		{
+			m_WindowWidth = width;
+			m_WindowHeight = height;
+			SDL_SetWindowSize(m_Window, width, height);
+		}
 		inline unsigned int GetWindowWidth() const
 		{
 			return m_WindowWidth;
