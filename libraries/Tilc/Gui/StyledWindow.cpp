@@ -128,48 +128,32 @@ void Tilc::Gui::TStyledWindow::Draw()
     {
         bConvertToGrayscale = false;
     }
+
+    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    TWindow* w = m_ParentSystemWindow;
+    SDL_Texture* TextureMap = t->GuiTextureMap1;
+
+    float x = 0.0f;
+    float y = 0.0f;
+    SDL_FRect rc, DestRect;
+    SDL_FRect RealPosition = GetRealPosition();
+
+    // Tło - wypełnienie kolorem lub tapetą ryujemy tylko jeśli m_WithBackground == true, jesli m_WithBackground == false
+	// to wypełniamy kno przezroczystością. Jest to potrzebne, żeby zawartość okna była czyszczona kolorem, tłem, lub przezroczystością
+    if (!m_Parent)
+    {
+        DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
+    }
+    else
+    {
+        DestRect = { 0, 0, m_Position.w, m_Position.h };
+    }
+	DrawBackground(&DestRect);
+
     if (m_NeedUpdate == ENeedUpdate::ENU_Everything)
     {
-        TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-        TWindow* w = m_ParentSystemWindow;
-        SDL_Texture* TextureMap = t->GuiTextureMap1;
-
-        float x = 0.0f;
-        float y = 0.0f;
-        SDL_FRect rc, DestRect;
-        SDL_FRect RealPosition = GetRealPosition();
-
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_Canvas);
-
-        if (!m_Parent)
-        {
-            DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
-        }
-        else
-        {
-            DestRect = { 0, 0, m_Position.w, m_Position.h };
-        }
-        // Tło - wypełnienie kolorem lub tapetą ryujemy tylko jeśli m_WithBackground == true
-        if (m_WithBackground)
-        {
-            if (!m_Bg)
-            {
-                // Full Canvas of window is light gray
-                SDL_SetRenderDrawColor(Renderer, 0xa0, 0xa0, 0xa0, 0xff);
-                SDL_RenderFillRect(Renderer, &DestRect);
-            }
-            else
-            {
-                SDL_RenderTexture(Renderer, m_Bg, nullptr, &DestRect);
-            }
-        }
-        else
-        {
-            // Full Canvas of window is transparent if m_WithBackground == false
-            SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0x00);
-            SDL_RenderFillRect(Renderer, &DestRect);
-        }
 
         // ================================================================
         // Rysujemy obramowanie okna
@@ -485,6 +469,29 @@ void Tilc::Gui::TStyledWindow::DrawCaption()
         // ================================================================
 
         DrawCaptionButtons();
+    }
+}
+
+void Tilc::Gui::TStyledWindow::DrawBackground(SDL_FRect* DestRect)
+{
+    if (m_WithBackground)
+    {
+        if (!m_Bg)
+        {
+            // Full Canvas of window is light gray
+            SDL_SetRenderDrawColor(Renderer, 0xa0, 0xa0, 0xa0, 0xff);
+            SDL_RenderFillRect(Renderer, DestRect);
+        }
+        else
+        {
+            SDL_RenderTexture(Renderer, m_Bg, nullptr, DestRect);
+        }
+    }
+    else
+    {
+        // Full Canvas of window is transparent if m_WithBackground == false
+        SDL_SetRenderDrawColor(Renderer, 0xff, 0xff, 0xff, 0x00);
+        SDL_RenderFillRect(Renderer, DestRect);
     }
 }
 

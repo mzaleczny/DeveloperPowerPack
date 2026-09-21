@@ -29,6 +29,7 @@ namespace Tilc {
             virtual void Draw() override;
             void DrawCaptionButtons();
             void DrawCaption();
+            void DrawBackground(SDL_FRect* DestRect);
 
             virtual void LoadGuiLayout(Tilc::TExtString content, bool clearActualContent = true);
             virtual void LoadGuiLayoutFromFile(Tilc::TExtString fname, bool clearActualContent = true);
