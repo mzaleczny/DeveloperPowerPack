@@ -129,31 +129,31 @@ void Tilc::Gui::TStyledWindow::Draw()
         bConvertToGrayscale = false;
     }
 
-    TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    TWindow* w = m_ParentSystemWindow;
-    SDL_Texture* TextureMap = t->GuiTextureMap1;
-
-    float x = 0.0f;
-    float y = 0.0f;
-    SDL_FRect rc, DestRect;
-    SDL_FRect RealPosition = GetRealPosition();
-
-    // Tło - wypełnienie kolorem lub tapetą ryujemy tylko jeśli m_WithBackground == true, jesli m_WithBackground == false
-	// to wypełniamy kno przezroczystością. Jest to potrzebne, żeby zawartość okna była czyszczona kolorem, tłem, lub przezroczystością
-    if (!m_Parent)
-    {
-        DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
-    }
-    else
-    {
-        DestRect = { 0, 0, m_Position.w, m_Position.h };
-    }
-	DrawBackground(&DestRect);
-
     if (m_NeedUpdate == ENeedUpdate::ENU_Everything)
     {
+        TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+        TWindow* w = m_ParentSystemWindow;
+        SDL_Texture* TextureMap = t->GuiTextureMap1;
+
+        float x = 0.0f;
+        float y = 0.0f;
+        SDL_FRect rc, DestRect;
+        SDL_FRect RealPosition = GetRealPosition();
+
         SDL_Texture* OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_Canvas);
+
+        // Tło - wypełnienie kolorem lub tapetą ryujemy tylko jeśli m_WithBackground == true, jesli m_WithBackground == false
+        // to wypełniamy kno przezroczystością. Jest to potrzebne, żeby zawartość okna była czyszczona kolorem, tłem, lub przezroczystością
+        if (!m_Parent)
+        {
+            DestRect = { 0, 0, static_cast<float>(w->GetWindowWidth()), static_cast<float>(w->GetWindowHeight()) };
+        }
+        else
+        {
+            DestRect = { 0, 0, m_Position.w, m_Position.h };
+        }
+        DrawBackground(&DestRect);
 
         // ================================================================
         // Rysujemy obramowanie okna
