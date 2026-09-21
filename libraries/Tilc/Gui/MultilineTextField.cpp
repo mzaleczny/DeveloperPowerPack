@@ -165,6 +165,7 @@ void Tilc::Gui::TMultilineTextField::Draw()
         m_HbTextLayoutCache->RenderSegmentsInSingleThread(m_TopLine, GetNumberOfVisibleLines());
 #else
         m_HbTextLayoutCache->RenderSegmentsInBackground(m_TopLine, GetNumberOfVisibleLines());
+        //m_HbTextLayoutCache->RenderSegmentsInSingleThread(m_TopLine, GetNumberOfVisibleLines());
 #endif
     }
     AttachRenderedSegmentsToCache();
@@ -990,6 +991,8 @@ void Tilc::Gui::TMultilineTextField::MoveCaretOneCharLeft()
         {
             --m_CaretAtChar;
             // opcjonalnie scrollujemy content jeśli jesteśmy przy prawym brzegu kontrolki i nadal idziemy w prawo
+            SDL_Log("m_CurrentLine: %d, m_CaretAtChar: %d,  Line.CaretX.size(): %lu,  Line.Text32.length(): %lu",
+                m_CurrentLine, m_CaretAtChar, Line.CaretX.size(), Line.Text32.length());
             if (Line.CaretX[m_CaretAtChar] - m_ScrollOffsetX < 75)
             {
                 if (m_HScrollBar)
@@ -1268,6 +1271,11 @@ bool Tilc::Gui::TMultilineTextField::OnTextInput(const SDL_Event& event)
                     m_HbTextLayoutCache->InsertText(m_CurrentLine, m_CaretAtChar, InsertString32);
                     // i przesuwamy karetkę w prawo
                     m_CaretAtChar += InsertString32.length();
+                    /*
+                    SDL_Log("m_CaretAtChar: %d,  InsertString32.length(): %lu,  Text: %s,  kontrolka: %s",
+                        m_CaretAtChar, InsertString32.length(), m_HbTextLayoutCache->GetLineUtf8(m_CurrentLine).c_str(),
+                        m_Name.c_str());
+                    */
                 }
                 else
                 {
@@ -1653,6 +1661,7 @@ bool Tilc::Gui::TMultilineTextField::GetTextWrap() const
 void Tilc::Gui::TMultilineTextField::SetText(const Tilc::TExtString& Text)
 {
     m_RenderedTextToUpdate = true;
+    Reset();
     if (m_HbTextLayoutCache)
     {
         m_HbTextLayoutCache->ClearLines();
@@ -1862,4 +1871,16 @@ void Tilc::Gui::TMultilineTextField::MoveVerticalScrollBarAccordingToTopLine(boo
         }
         m_VScrollBar->SetPosition(position, DoTriggerEvent);
     }
+}
+
+void Tilc::Gui::TMultilineTextField::Reset()
+{
+    m_RenderedTextToUpdate = true;
+    m_CaretAtChar = 0;
+    m_SelectionLineStart = 0;
+    m_SelectionLineEnd = 0;
+    m_SelectionLineBegin = 0;
+    m_TopLine = 0;
+    m_ScrollOffsetX = 0;
+    m_ScrollOffsetY = 0;
 }
