@@ -291,9 +291,11 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
         t->listbox_header_left_pushed_rc, t->listbox_header_middle_pushed_rc, t->listbox_header_right_pushed_rc
     );
 
-    Position->y += t->listbox_header_middle_rc.h;
+    SDL_FRect ContentPosition = *Position;
+    ContentPosition.y += t->listbox_header_middle_rc.h;
+    ContentPosition.h -= t->listbox_header_middle_rc.h;
     DrawCommonComplex(
-        *Position,
+        ContentPosition,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
@@ -303,7 +305,7 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br
     );
 
-    rc = *Position;
+    rc = ContentPosition;
     rc.x += t->listbox_frame_left_rc.w;
     rc.y += t->listbox_frame_top_rc.h;
     rc.w -= t->listbox_frame_left_rc.w + t->listbox_frame_right_rc.w;
