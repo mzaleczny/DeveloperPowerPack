@@ -6,7 +6,7 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
-#include <svg_raster.h>
+#include <resvg.h>
 namespace fs = std::filesystem;
 
 bool UseSDLSvgRasterizer = false;
@@ -31,6 +31,7 @@ constexpr const int DEFAULT_COLUMN_WIDTH = 80;
 
 void SaveTextureToFile(SDL_Texture* Texture);
 std::string FindThemeDir();
+SDL_Surface* load_svg_to_surface(const char* svg_path, float target_width, float target_height);
 SDL_Texture* LoadSVG(const char* Filename, int Width, int Height);
 void RenderWindow();
 void RenderFullNonScaledTexture(std::string FileName, float x, float y, int& TexWidth, int& TexHeight);
@@ -189,7 +190,7 @@ void SaveTextureToFile(SDL_Texture* Texture)
 
 std::string FindThemeDir()
 {
-    return "d:/repos/DeveloperPowerPack/examples/07_Gui/assets/themes/Blue";
+    return "/home/mzaleczny/repos/DeveloperPowerPack/examples/07_Gui/assets/themes/Blue";
     /*
     std::string Dir = fs::current_path().string();
     bool Found = false;
@@ -1002,28 +1003,13 @@ SDL_Texture* LoadSVG(const char* Filename, int Width, int Height)
     }
     else
     {
-        SvgBitmap bmp{};
-        if (render_svg_to_rgba_scaled(Filename, Width, Height, &bmp) != 0)
-        {
-            return nullptr;
-        }
-
-        SDL_Surface* surf = SDL_CreateSurfaceFrom(
-            bmp.width,
-            bmp.height,
-            SDL_PIXELFORMAT_RGBA32,
-            bmp.data,
-            bmp.width * 4
-        );
+        SDL_Surface* surf = load_svg_to_surface(Filename, Width, Height);
 
         // używasz surf - tworzysz teksturę:
         Texture = SDL_CreateTextureFromSurface(renderer, surf);
 
         // po użyciu:
         SDL_DestroySurface(surf);
-
-        // UWAGA: SDL nie zwalnia bmp.data — musisz zrobić to sam:
-        free_svg_bitmap(bmp.data, bmp.len);
     }
 
     return Texture;
@@ -1062,4 +1048,55 @@ void AddY(int Value, int NextItemHeight)
         return;
     }
     Y += Value;
+}
+
+SDL_Surface* load_svg_to_surface(const char* svg_path, float target_width, float target_height) {
+    // 1. Opcje resvg
+    resvg_options* opt = resvg_options_create();
+
+    // 2. Deklaracja wskaźnika typu resvg_render_tree
+    resvg_render_tree* tree = NULL;
+    int err = resvg_parse_tree_from_file(svg_path, opt, &tree);
+    resvg_options_destroy(opt);
+
+    if (err != RESVG_OK) {
+        printf("Błąd parsowania SVG: %d [%s]\n", err, svg_path);
+        return NULL;
+    }
+
+    // Pobranie rozmiarów SVG
+    resvg_size size = resvg_get_image_size(tree);
+    int width = (target_width > 0) ? (int)target_width : (int)size.width;
+    int height = (target_height > 0) ? (int)target_height : (int)size.height;
+
+    // 3. Tworzenie powierzchni SDL_Surface
+    SDL_Surface* surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_ABGR8888);
+    if (!surface) {
+        printf("Błąd tworzenia SDL_Surface: %s\n", SDL_GetError());
+        resvg_tree_destroy(tree);
+        return NULL;
+    }
+
+    // 4. Transformacja (skalowanie)
+    float scale_x = (float)width / size.width;
+    float scale_y = (float)height / size.height;
+    resvg_transform transform = { scale_x, 0.0f, 0.0f, scale_y, 0.0f, 0.0f };
+
+    // 5. Renderowanie do bufora pikseli SDL
+    SDL_LockSurface(surface);
+
+    resvg_render(
+        tree,
+        transform,
+        surface->w,
+        surface->h,
+        (char*)surface->pixels
+    );
+
+    SDL_UnlockSurface(surface);
+
+    // Czyszczenie zasobów resvg
+    resvg_tree_destroy(tree);
+
+    return surface;
 }
