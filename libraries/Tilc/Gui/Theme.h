@@ -370,6 +370,13 @@ namespace Tilc {
             SDL_FRect option_checked_hover_rc;
 
             // listbox bitmaps
+            SDL_FRect listbox_header_rc;
+            SDL_FRect listbox_header_disabled_rc;
+            SDL_FRect listbox_header_focused_rc;
+            SDL_FRect listbox_header_hover_focused_rc;
+            SDL_FRect listbox_header_hover_rc;
+            SDL_FRect listbox_header_pushed_focused_rc;
+            SDL_FRect listbox_header_pushed_rc;
             SDL_FRect listbox_frame_top_left_rc;
             SDL_FRect listbox_frame_top_rc;
             SDL_FRect listbox_frame_top_right_rc;
