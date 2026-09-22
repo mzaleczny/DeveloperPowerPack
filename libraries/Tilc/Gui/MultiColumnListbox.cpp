@@ -242,6 +242,27 @@ void Tilc::Gui::TMultiColumnListbox::DeleteItem(size_t Index)
     }
 }
 
+void Tilc::Gui::TMultiColumnListbox::SetHeaderCaptions(std::initializer_list<char* const> Items, bool redraw)
+{
+    size_t i = 0;
+    for (auto it = Items.begin(); it != Items.end(); ++it)
+    {
+        if (i == 0)
+        {
+            m_Header.m_Value = *it;
+        }
+        else
+        {
+            m_Header.m_Columns.emplace_back(*it);
+        }
+        ++i;
+    }
+    if (redraw)
+    {
+        Invalidate();
+    }
+}
+
 void Tilc::Gui::TMultiColumnListbox::Draw()
 {
     if (!m_Visible) return;
@@ -280,20 +301,47 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
     // ================================================================
     // Draw TMultiColumnListbox
     // ================================================================
-    DrawCommon(
-        *Position,
-        t->listbox_header_left_rc, t->listbox_header_middle_rc, t->listbox_header_right_rc,
-        t->listbox_header_left_disabled_rc, t->listbox_header_middle_disabled_rc, t->listbox_header_right_disabled_rc,
-        t->listbox_header_left_focused_rc, t->listbox_header_middle_focused_rc, t->listbox_header_right_focused_rc,
-        t->listbox_header_left_hover_focused_rc, t->listbox_header_middle_hover_focused_rc, t->listbox_header_right_hover_focused_rc,
-        t->listbox_header_left_pushed_focused_rc, t->listbox_header_middle_pushed_focused_rc, t->listbox_header_right_pushed_focused_rc,
-        t->listbox_header_left_hover_rc, t->listbox_header_middle_hover_rc, t->listbox_header_right_hover_rc,
-        t->listbox_header_left_pushed_rc, t->listbox_header_middle_pushed_rc, t->listbox_header_right_pushed_rc
-    );
-
     SDL_FRect ContentPosition = *Position;
-    ContentPosition.y += t->listbox_header_middle_rc.h;
-    ContentPosition.h -= t->listbox_header_middle_rc.h;
+
+    float HeaderOffsetX = 0.0f;
+    if (m_ColumnWidths.size() > 0)
+    {
+        for (size_t i = 0; i < m_ColumnWidths.size(); ++i)
+        {
+            SDL_FRect rc = ContentPosition;
+            rc.x += HeaderOffsetX;
+            rc.w = m_ColumnWidths[i];
+            if (i == m_ColumnWidths.size() - 1)
+            {
+                rc.w += m_ColumnWidths.size() - 1;
+            }
+            DrawCommon(
+                rc,
+                t->listbox_header_left_rc, t->listbox_header_middle_rc, t->listbox_header_right_rc,
+                t->listbox_header_left_disabled_rc, t->listbox_header_middle_disabled_rc, t->listbox_header_right_disabled_rc,
+                t->listbox_header_left_focused_rc, t->listbox_header_middle_focused_rc, t->listbox_header_right_focused_rc,
+                t->listbox_header_left_hover_focused_rc, t->listbox_header_middle_hover_focused_rc, t->listbox_header_right_hover_focused_rc,
+                t->listbox_header_left_pushed_focused_rc, t->listbox_header_middle_pushed_focused_rc, t->listbox_header_right_pushed_focused_rc,
+                t->listbox_header_left_hover_rc, t->listbox_header_middle_hover_rc, t->listbox_header_right_hover_rc,
+                t->listbox_header_left_pushed_rc, t->listbox_header_middle_pushed_rc, t->listbox_header_right_pushed_rc
+            );
+            rc.x += 6;
+            rc.y += 1;
+            font->SetColor({0xff, 0xff, 0xff, 0xff});
+            if (i == 0)
+            {
+                font->DrawString(Renderer, m_Header.m_Value.c_str(), &rc);
+            }
+            else
+            {
+                font->DrawString(Renderer, m_Header.m_Columns[i - 1].c_str(), &rc);
+            }
+            HeaderOffsetX += m_ColumnWidths[i] - 1.0f;
+        }
+        ContentPosition.y += t->listbox_header_middle_rc.h;
+        ContentPosition.h -= t->listbox_header_middle_rc.h;
+    }
+
     DrawCommonComplex(
         ContentPosition,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,
