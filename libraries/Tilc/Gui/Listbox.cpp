@@ -8,6 +8,11 @@
 #include <algorithm>
 #include <ranges>
 
+Tilc::Gui::TGuiControlItem::TGuiControlItem(const Tilc::TExtString& value, bool selected, bool checked, int imageIndex, long long data)
+    : m_Value(value), m_Selected(selected), m_Checked(checked), m_ImageIndex(imageIndex), m_Data(data), m_Size(0)
+{
+}
+
 
 void Tilc::Gui::TListbox::CommonInit(const std::initializer_list<const char*>& items)
 {

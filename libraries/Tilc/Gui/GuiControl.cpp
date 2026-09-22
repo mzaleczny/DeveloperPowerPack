@@ -17,11 +17,6 @@
 
 Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::m_ControlThatCapturedMouse{};
 
-Tilc::Gui::TGuiControlItem::TGuiControlItem(const Tilc::TExtString& value, bool selected, bool checked, int imageIndex, long long data)
-    : m_Value(value), m_Selected(selected), m_Checked(checked), m_ImageIndex(imageIndex), m_Data(data), m_Size(0)
-{
-}
-
 
 Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, Tilc::Gui::EControlType ControlType, bool editable)
     : m_ControlType(ControlType)
@@ -1858,7 +1853,8 @@ void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRe
     x += ctrl_left.w;
 
     float middle_width = Position.w - frame_left_width - frame_right_width;
-    RenderTexture(TextureMap, &ctrl_middle, x, y, middle_width, ctrl_middle.h);
+    DestRect = {x, y, middle_width, ctrl_middle.h};
+    RenderTiledTexture(TextureMap, &ctrl_middle, &DestRect);
     x += middle_width;
 
     RenderTexture(TextureMap, &ctrl_right, x, y);
