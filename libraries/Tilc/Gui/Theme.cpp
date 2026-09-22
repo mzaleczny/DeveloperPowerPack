@@ -937,21 +937,7 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
             sw = sw.substr(0, sw.length() - 1);
             //sh = sh.substr(0, sh.length() - 1);
 
-            if (Item == "listbox_header_rc")
-                listbox_header_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "listbox_header_disabled_rc")
-                listbox_header_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "listbox_header_focused_rc")
-                listbox_header_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "listbox_header_hover_focused_rc")
-                listbox_header_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "listbox_header_hover_rc")
-                listbox_header_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "listbox_header_pushed_focused_rc")
-                listbox_header_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "listbox_header_pushed_rc")
-                listbox_header_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
-            else if (Item == "listbox_frame_top_left_rc")
+            if (Item == "listbox_frame_top_left_rc")
                 listbox_frame_top_left_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
             else if (Item == "listbox_frame_top_right_rc")
                 listbox_frame_top_right_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
@@ -970,8 +956,22 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
             else if (Item == "listbox_bg_rc")
                 listbox_bg_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
             else if (Item == "listbox_bg_selected_rc")
-            {
                 listbox_bg_selected_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "listbox_header_rc")
+                listbox_header_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "listbox_header_disabled_rc")
+                listbox_header_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "listbox_header_focused_rc")
+                listbox_header_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "listbox_header_hover_focused_rc")
+                listbox_header_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "listbox_header_hover_rc")
+                listbox_header_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "listbox_header_pushed_focused_rc")
+                listbox_header_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            else if (Item == "listbox_header_pushed_rc")
+            {
+                listbox_header_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 break;
             }
         }
