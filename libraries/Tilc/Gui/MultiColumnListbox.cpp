@@ -373,10 +373,10 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
         Tilc::Gui::TGuiControlItem* item;
         if (font)
         {
-            SDL_FPoint innerSize = GetInnerSize(Position);
+            SDL_FPoint innerSize = GetInnerSize(&ContentPosition);
             SDL_FPoint size{ static_cast<float>(m_SpaceWidth), static_cast<float>(m_SpaceHeight) };
-            x = GetInnerTopLeftX() + Position->x;
-            y = GetInnerTopLeftY() + Position->y;
+            x = GetInnerTopLeftX() + ContentPosition.x;
+            y = GetInnerTopLeftY() + ContentPosition.y;
             SDL_FRect itemRect {static_cast<float>(x), static_cast<float>(y), static_cast<float>(innerSize.x), static_cast<float>(size.y)};
             SDL_FRect SubItemRect;
             SDL_Rect OrigClipRect, ControlClipRect;
@@ -385,13 +385,13 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
             {
                 int Left = itemRect.x;
                 int TotalWidth;
-                if (itemRect.y + size.y > Position->y + m_Padding + innerSize.y)
+                if (itemRect.y + size.y > ContentPosition.y + m_Padding + innerSize.y)
                 {
                     break;
                 }
-                if (itemRect.y + itemRect.h >= Position->y + m_Padding + innerSize.y)
+                if (itemRect.y + itemRect.h >= ContentPosition.y + m_Padding + innerSize.y)
                 {
-                    itemRect.h = Position->y + m_Padding + innerSize.y - itemRect.y;
+                    itemRect.h = ContentPosition.y + m_Padding + innerSize.y - itemRect.y;
                 }
                 if (i - m_TopItemIndex + 1 == m_VisibleItems)
                 {
