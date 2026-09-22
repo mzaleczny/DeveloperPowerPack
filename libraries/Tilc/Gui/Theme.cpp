@@ -969,7 +969,7 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_rc.x = listbox_header_right_rc.x + listbox_header_right_rc.w - 2;
                 listbox_header_right_rc.w = 2;
             }
-            else if (Item == "listbox_header_disabled_rc")
+            else if (Item == "listbox_header-disabled_rc")
             {
                 SDL_FRect listbox_header_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 listbox_header_left_disabled_rc = listbox_header_disabled_rc;
@@ -981,7 +981,7 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_disabled_rc.x = listbox_header_right_disabled_rc.x + listbox_header_right_disabled_rc.w - 2;
                 listbox_header_right_disabled_rc.w = 2;
             }
-            else if (Item == "listbox_header_focused_rc")
+            else if (Item == "listbox_header-focused_rc")
             {
                 SDL_FRect listbox_header_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 listbox_header_left_focused_rc = listbox_header_focused_rc;
@@ -993,7 +993,7 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_focused_rc.x = listbox_header_right_focused_rc.x + listbox_header_right_focused_rc.w - 2;
                 listbox_header_right_focused_rc.w = 2;
             }
-            else if (Item == "listbox_header_hover_focused_rc")
+            else if (Item == "listbox_header-hover-focused_rc")
             {
                 SDL_FRect listbox_header_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 listbox_header_left_hover_focused_rc = listbox_header_hover_focused_rc;
@@ -1005,7 +1005,7 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_hover_focused_rc.x = listbox_header_right_hover_focused_rc.x + listbox_header_right_hover_focused_rc.w - 2;
                 listbox_header_right_hover_focused_rc.w = 2;
             }
-            else if (Item == "listbox_header_hover_rc")
+            else if (Item == "listbox_header-hover_rc")
             {
                 SDL_FRect listbox_header_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 listbox_header_left_hover_rc = listbox_header_hover_rc;
@@ -1017,7 +1017,7 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_hover_rc.x = listbox_header_right_hover_rc.x + listbox_header_right_hover_rc.w - 2;
                 listbox_header_right_hover_rc.w = 2;
             }
-            else if (Item == "listbox_header_pushed_focused_rc")
+            else if (Item == "listbox_header-pushed-focused_rc")
             {
                 SDL_FRect listbox_header_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 listbox_header_left_pushed_focused_rc = listbox_header_pushed_focused_rc;
@@ -1029,7 +1029,7 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_pushed_focused_rc.x = listbox_header_right_pushed_focused_rc.x + listbox_header_right_pushed_focused_rc.w - 2;
                 listbox_header_right_pushed_focused_rc.w = 2;
             }
-            else if (Item == "listbox_header_pushed_rc")
+            else if (Item == "listbox_header-pushed_rc")
             {
                 SDL_FRect listbox_header_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
                 listbox_header_left_pushed_rc = listbox_header_pushed_rc;
