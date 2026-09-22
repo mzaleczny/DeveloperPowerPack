@@ -147,6 +147,18 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     X = CurrentColumnWidth;
     CurrentColumnX = X;
     Y = 0;
+    RenderButtonsByNamesHorizontal({ "listbox_header", "listbox_header-disabled"}, 75, 12, 2);
+    AddY(12, 0);
+    X = CurrentColumnWidth;
+    RenderButtonsByNamesHorizontal({ "listbox_header-focused", "listbox_header-hover-focused"}, 75, 12, 2);
+    AddY(12, 0);
+    X = CurrentColumnWidth;
+    RenderButtonsByNamesHorizontal({ "listbox_header-hover", "listbox_header-pushed-focused"}, 75, 12, 2);
+    AddY(12, 0);
+    X = CurrentColumnWidth;
+    RenderButtonsByNamesHorizontal({ "listbox_header-pushed"}, 75, 12, 2);
+    AddY(12, 0);
+    X = CurrentColumnWidth;
     RenderButtonsByNamesHorizontal({ "combobox_frame_top_left", "combobox_frame_top_right", "combobox_frame_bottom_left", "combobox_frame_bottom_right" }, 2, 2, 10);
     AddX(4 * 2, 0);
     RenderButtonsByNamesHorizontal({ "combobox_frame_left", "combobox_frame_right" }, 2, 1, 10);
@@ -1085,6 +1097,9 @@ SDL_Surface* load_svg_to_surface(const char* svg_path, float target_width, float
     // 5. Renderowanie do bufora pikseli SDL
     SDL_LockSurface(surface);
 
+    // Wypełnij całą powierzchnię pełną przezroczystością (wszystkie bajty na 0)
+    SDL_memset(surface->pixels, 0, surface->h * surface->pitch);
+
     resvg_render(
         tree,
         transform,
@@ -1097,6 +1112,9 @@ SDL_Surface* load_svg_to_surface(const char* svg_path, float target_width, float
 
     // Czyszczenie zasobów resvg
     resvg_tree_destroy(tree);
+
+    // Zapewnij prawidłowe mieszanie przezroczystości w SDL3
+    SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
 
     return surface;
 }
