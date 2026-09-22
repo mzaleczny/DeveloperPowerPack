@@ -370,13 +370,27 @@ namespace Tilc {
             SDL_FRect option_checked_hover_rc;
 
             // listbox bitmaps
-            SDL_FRect listbox_header_rc;
-            SDL_FRect listbox_header_disabled_rc;
-            SDL_FRect listbox_header_focused_rc;
-            SDL_FRect listbox_header_hover_focused_rc;
-            SDL_FRect listbox_header_hover_rc;
-            SDL_FRect listbox_header_pushed_focused_rc;
-            SDL_FRect listbox_header_pushed_rc;
+            SDL_FRect listbox_header_left_rc;
+            SDL_FRect listbox_header_middle_rc;
+            SDL_FRect listbox_header_right_rc;
+            SDL_FRect listbox_header_left_disabled_rc;
+            SDL_FRect listbox_header_middle_disabled_rc;
+            SDL_FRect listbox_header_right_disabled_rc;
+            SDL_FRect listbox_header_left_focused_rc;
+            SDL_FRect listbox_header_middle_focused_rc;
+            SDL_FRect listbox_header_right_focused_rc;
+            SDL_FRect listbox_header_left_hover_focused_rc;
+            SDL_FRect listbox_header_middle_hover_focused_rc;
+            SDL_FRect listbox_header_right_hover_focused_rc;
+            SDL_FRect listbox_header_left_hover_rc;
+            SDL_FRect listbox_header_middle_hover_rc;
+            SDL_FRect listbox_header_right_hover_rc;
+            SDL_FRect listbox_header_left_pushed_focused_rc;
+            SDL_FRect listbox_header_middle_pushed_focused_rc;
+            SDL_FRect listbox_header_right_pushed_focused_rc;
+            SDL_FRect listbox_header_left_pushed_rc;
+            SDL_FRect listbox_header_middle_pushed_rc;
+            SDL_FRect listbox_header_right_pushed_rc;
             SDL_FRect listbox_frame_top_left_rc;
             SDL_FRect listbox_frame_top_rc;
             SDL_FRect listbox_frame_top_right_rc;

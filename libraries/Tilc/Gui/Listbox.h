@@ -8,6 +8,26 @@
 
 namespace Tilc {
     namespace Gui {
+
+
+        class DECLSPEC TGuiControlItem
+        {
+        public:
+            TGuiControlItem() = default;
+            TGuiControlItem(const Tilc::TExtString& value, bool selected = false, bool checked = false, int imageIndex = -1, long long data = 0);
+
+            Tilc::TExtString m_Value;
+            bool m_Selected;
+            bool m_Checked;
+            int m_ImageIndex;
+            long long m_Data;
+            SDL_FPoint m_Size;
+            TStringVector m_Columns;
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> m_Props;
+        };
+        using TGuiControlHeader = TGuiControlItem;
+        using TGuiControlItemList = std::vector<TGuiControlItem*>;
+
         class DECLSPEC TListbox : public TGuiControl
         {
         public:
@@ -75,6 +95,7 @@ namespace Tilc {
             virtual void SetScrollBars() override;
 
         protected:
+            TGuiControlHeader m_Header;
             TGuiControlItemList m_Items;
             SDL_FPoint m_MeasuredTextSize;
             SDL_Color m_TextColor{0xff, 0xff, 0xff, 0xff};

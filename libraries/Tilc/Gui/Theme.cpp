@@ -958,20 +958,88 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
             else if (Item == "listbox_bg_selected_rc")
                 listbox_bg_selected_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
             else if (Item == "listbox_header_rc")
-                listbox_header_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            {
+                SDL_FRect listbox_header_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                listbox_header_left_rc = listbox_header_rc;
+                listbox_header_left_rc.w = 2;
+                listbox_header_middle_rc = listbox_header_rc;
+                listbox_header_middle_rc.x += 2;
+                listbox_header_middle_rc.w = 2;
+                listbox_header_right_rc = listbox_header_rc;
+                listbox_header_right_rc.x = listbox_header_right_rc.x + listbox_header_right_rc.w - 2;
+                listbox_header_right_rc.w = 2;
+            }
             else if (Item == "listbox_header_disabled_rc")
-                listbox_header_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            {
+                SDL_FRect listbox_header_disabled_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                listbox_header_left_disabled_rc = listbox_header_disabled_rc;
+                listbox_header_left_disabled_rc.w = 2;
+                listbox_header_middle_disabled_rc = listbox_header_disabled_rc;
+                listbox_header_middle_disabled_rc.x += 2;
+                listbox_header_middle_disabled_rc.w = 2;
+                listbox_header_right_disabled_rc = listbox_header_disabled_rc;
+                listbox_header_right_disabled_rc.x = listbox_header_right_disabled_rc.x + listbox_header_right_disabled_rc.w - 2;
+                listbox_header_right_disabled_rc.w = 2;
+            }
             else if (Item == "listbox_header_focused_rc")
-                listbox_header_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            {
+                SDL_FRect listbox_header_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                listbox_header_left_focused_rc = listbox_header_focused_rc;
+                listbox_header_left_focused_rc.w = 2;
+                listbox_header_middle_focused_rc = listbox_header_focused_rc;
+                listbox_header_middle_focused_rc.x += 2;
+                listbox_header_middle_focused_rc.w = 2;
+                listbox_header_right_focused_rc = listbox_header_focused_rc;
+                listbox_header_right_focused_rc.x = listbox_header_right_focused_rc.x + listbox_header_right_focused_rc.w - 2;
+                listbox_header_right_focused_rc.w = 2;
+            }
             else if (Item == "listbox_header_hover_focused_rc")
-                listbox_header_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            {
+                SDL_FRect listbox_header_hover_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                listbox_header_left_hover_focused_rc = listbox_header_hover_focused_rc;
+                listbox_header_left_hover_focused_rc.w = 2;
+                listbox_header_middle_hover_focused_rc = listbox_header_hover_focused_rc;
+                listbox_header_middle_hover_focused_rc.x += 2;
+                listbox_header_middle_hover_focused_rc.w = 2;
+                listbox_header_right_hover_focused_rc = listbox_header_hover_focused_rc;
+                listbox_header_right_hover_focused_rc.x = listbox_header_right_hover_focused_rc.x + listbox_header_right_hover_focused_rc.w - 2;
+                listbox_header_right_hover_focused_rc.w = 2;
+            }
             else if (Item == "listbox_header_hover_rc")
-                listbox_header_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            {
+                SDL_FRect listbox_header_hover_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                listbox_header_left_hover_rc = listbox_header_hover_rc;
+                listbox_header_left_hover_rc.w = 2;
+                listbox_header_middle_hover_rc = listbox_header_hover_rc;
+                listbox_header_middle_hover_rc.x += 2;
+                listbox_header_middle_hover_rc.w = 2;
+                listbox_header_right_hover_rc = listbox_header_hover_rc;
+                listbox_header_right_hover_rc.x = listbox_header_right_hover_rc.x + listbox_header_right_hover_rc.w - 2;
+                listbox_header_right_hover_rc.w = 2;
+            }
             else if (Item == "listbox_header_pushed_focused_rc")
-                listbox_header_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+            {
+                SDL_FRect listbox_header_pushed_focused_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                listbox_header_left_pushed_focused_rc = listbox_header_pushed_focused_rc;
+                listbox_header_left_pushed_focused_rc.w = 2;
+                listbox_header_middle_pushed_focused_rc = listbox_header_pushed_focused_rc;
+                listbox_header_middle_pushed_focused_rc.x += 2;
+                listbox_header_middle_pushed_focused_rc.w = 2;
+                listbox_header_right_pushed_focused_rc = listbox_header_pushed_focused_rc;
+                listbox_header_right_pushed_focused_rc.x = listbox_header_right_pushed_focused_rc.x + listbox_header_right_pushed_focused_rc.w - 2;
+                listbox_header_right_pushed_focused_rc.w = 2;
+            }
             else if (Item == "listbox_header_pushed_rc")
             {
-                listbox_header_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                SDL_FRect listbox_header_pushed_rc = SDL_FRect{ sx.toFloat(), sy.toFloat(), sw.toFloat(), sh.toFloat() };
+                listbox_header_left_pushed_rc = listbox_header_pushed_rc;
+                listbox_header_left_pushed_rc.w = 2;
+                listbox_header_middle_pushed_rc = listbox_header_pushed_rc;
+                listbox_header_middle_pushed_rc.x += 2;
+                listbox_header_middle_pushed_rc.w = 2;
+                listbox_header_right_pushed_rc = listbox_header_pushed_rc;
+                listbox_header_right_pushed_rc.x = listbox_header_right_pushed_rc.x + listbox_header_right_pushed_rc.w - 2;
+                listbox_header_right_pushed_rc.w = 2;
                 break;
             }
         }

@@ -280,6 +280,18 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
     // ================================================================
     // Draw TMultiColumnListbox
     // ================================================================
+    DrawCommon(
+        *Position,
+        t->listbox_header_left_rc, t->listbox_header_middle_rc, t->listbox_header_right_rc,
+        t->listbox_header_left_disabled_rc, t->listbox_header_middle_disabled_rc, t->listbox_header_right_disabled_rc,
+        t->listbox_header_left_focused_rc, t->listbox_header_middle_focused_rc, t->listbox_header_right_focused_rc,
+        t->listbox_header_left_hover_focused_rc, t->listbox_header_middle_hover_focused_rc, t->listbox_header_right_hover_focused_rc,
+        t->listbox_header_left_pushed_focused_rc, t->listbox_header_middle_pushed_focused_rc, t->listbox_header_right_pushed_focused_rc,
+        t->listbox_header_left_hover_rc, t->listbox_header_middle_hover_rc, t->listbox_header_right_hover_rc,
+        t->listbox_header_left_pushed_rc, t->listbox_header_middle_pushed_rc, t->listbox_header_right_pushed_rc
+    );
+
+    Position->y += t->listbox_header_middle_rc.h;
     DrawCommonComplex(
         *Position,
         frame_tl, frame_t, frame_tr, frame_l, frame_r, frame_bl, frame_b, frame_br,

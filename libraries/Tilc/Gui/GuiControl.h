@@ -76,23 +76,6 @@ namespace Tilc {
             ECBT_Solid
         };
 
-
-        class DECLSPEC TGuiControlItem
-        {
-        public:
-            TGuiControlItem(const Tilc::TExtString& value, bool selected = false, bool checked = false, int imageIndex = -1, long long data = 0);
-
-            Tilc::TExtString m_Value;
-            bool m_Selected;
-            bool m_Checked;
-            int m_ImageIndex;
-            long long m_Data;
-            SDL_FPoint m_Size;
-            TStringVector m_Columns;
-            std::unordered_map<Tilc::TExtString, Tilc::TExtString> m_Props;
-        };
-        using TGuiControlItemList = std::vector<TGuiControlItem*>;
-
         class DECLSPEC TGuiControl
         {
         public:
