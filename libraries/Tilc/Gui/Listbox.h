@@ -43,6 +43,7 @@ namespace Tilc {
             void SetItems(const Tilc::TStringVector& items, bool redraw = true);
             virtual void SetSize(float width, float height) override;
             void DeleteItem(size_t Index);
+            virtual void DeleteItems();
 
             // zwraca przechowywany w kontrolce tekst
             virtual Tilc::TExtString GetText() override;
@@ -114,7 +115,6 @@ namespace Tilc {
             int GetInnerTopLeftX();
             int GetInnerTopLeftY();
             SDL_FPoint GetInnerSize(SDL_FRect* Position = nullptr);
-            virtual void DeleteItems();
 
             void CommonInit(const std::initializer_list<const char*>& items);
         };
