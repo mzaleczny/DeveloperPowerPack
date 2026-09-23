@@ -47,7 +47,14 @@ namespace Tilc
             void update(TProduct* product) {};
         };
 
-        class DECLSPEC TCategory
+        class DECLSPEC TDataObject
+        {
+        public:
+            virtual Tilc::TExtString GetAllFieldsNames() = 0;
+            virtual Tilc::TExtString ToJson() = 0;
+        };
+
+        class DECLSPEC TCategory : public TDataObject
         {
         public:
             Tilc::TExtString id;
@@ -55,9 +62,14 @@ namespace Tilc
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
             Tilc::TExtString description;
+            Tilc::TExtString GetAllFieldsNames() override
+            {
+                return "id, name, short_description, description";
+            }
+            Tilc::TExtString ToJson() override;
         };
 
-        class DECLSPEC TProduct
+        class DECLSPEC TProduct : public TDataObject
         {
         public:
             Tilc::TExtString id;
@@ -95,6 +107,12 @@ namespace Tilc
                   created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
             {
             }
+
+            Tilc::TExtString GetAllFieldsNames() override
+            {
+                return "id, name, slug, short_description, price, price1, price2, price3, mini_map_file, css_class, code, created, modified";
+            }
+            Tilc::TExtString ToJson() override;
 
             // Observer pattern methods
             void attach(TObserver* observer)
