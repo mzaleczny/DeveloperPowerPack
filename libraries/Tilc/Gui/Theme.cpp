@@ -968,8 +968,6 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_rc = listbox_header_rc;
                 listbox_header_right_rc.x = listbox_header_right_rc.x + listbox_header_right_rc.w - 2;
                 listbox_header_right_rc.w = 2;
-                // do not draw right border to make borders between header columns nice one pixel
-                listbox_header_right_rc = listbox_header_middle_rc;
             }
             else if (Item == "listbox_header-disabled_rc")
             {
@@ -982,8 +980,6 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_disabled_rc = listbox_header_disabled_rc;
                 listbox_header_right_disabled_rc.x = listbox_header_right_disabled_rc.x + listbox_header_right_disabled_rc.w - 2;
                 listbox_header_right_disabled_rc.w = 2;
-                // do not draw right border to make borders between header columns nice one pixel
-                listbox_header_right_disabled_rc = listbox_header_middle_disabled_rc;
             }
             else if (Item == "listbox_header-focused_rc")
             {
@@ -996,8 +992,6 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_focused_rc = listbox_header_focused_rc;
                 listbox_header_right_focused_rc.x = listbox_header_right_focused_rc.x + listbox_header_right_focused_rc.w - 2;
                 listbox_header_right_focused_rc.w = 2;
-                // do not draw right border to make borders between header columns nice one pixel
-                listbox_header_right_focused_rc = listbox_header_middle_focused_rc;
             }
             else if (Item == "listbox_header-hover-focused_rc")
             {
@@ -1010,8 +1004,6 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_hover_focused_rc = listbox_header_hover_focused_rc;
                 listbox_header_right_hover_focused_rc.x = listbox_header_right_hover_focused_rc.x + listbox_header_right_hover_focused_rc.w - 2;
                 listbox_header_right_hover_focused_rc.w = 2;
-                // do not draw right border to make borders between header columns nice one pixel
-                listbox_header_right_hover_focused_rc = listbox_header_middle_hover_focused_rc;
             }
             else if (Item == "listbox_header-hover_rc")
             {
@@ -1024,8 +1016,6 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_hover_rc = listbox_header_hover_rc;
                 listbox_header_right_hover_rc.x = listbox_header_right_hover_rc.x + listbox_header_right_hover_rc.w - 2;
                 listbox_header_right_hover_rc.w = 2;
-                // do not draw right border to make borders between header columns nice one pixel
-                listbox_header_right_hover_rc = listbox_header_middle_hover_rc;
             }
             else if (Item == "listbox_header-pushed-focused_rc")
             {
@@ -1038,8 +1028,6 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_pushed_focused_rc = listbox_header_pushed_focused_rc;
                 listbox_header_right_pushed_focused_rc.x = listbox_header_right_pushed_focused_rc.x + listbox_header_right_pushed_focused_rc.w - 2;
                 listbox_header_right_pushed_focused_rc.w = 2;
-                // do not draw right border to make borders between header columns nice one pixel
-                listbox_header_right_pushed_focused_rc = listbox_header_middle_pushed_focused_rc;
             }
             else if (Item == "listbox_header-pushed_rc")
             {
@@ -1052,8 +1040,6 @@ void Tilc::Gui::TTheme::LoadListboxSkinResources(Tilc::TExtString themeName)
                 listbox_header_right_pushed_rc = listbox_header_pushed_rc;
                 listbox_header_right_pushed_rc.x = listbox_header_right_pushed_rc.x + listbox_header_right_pushed_rc.w - 2;
                 listbox_header_right_pushed_rc.w = 2;
-                // do not draw right border to make borders between header columns nice one pixel
-                listbox_header_right_pushed_rc = listbox_header_middle_pushed_rc;
                 break;
             }
         }

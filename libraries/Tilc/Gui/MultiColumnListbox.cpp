@@ -438,27 +438,46 @@ void Tilc::Gui::TMultiColumnListbox::Draw(SDL_Texture* Canvas, SDL_FRect* Positi
 
     // Draw Headers
     ContentPosition = *Position;
+    ContentPosition.h = t->listbox_header_middle_rc.h;
     float HeaderOffsetX = 0.0f;
     if (m_ColumnWidths.size() > 0)
     {
         for (size_t i = 0; i < m_ColumnWidths.size(); ++i)
         {
+            SDL_FRect right_rc, right_disabled_rc, right_focused_rc, right_hover_focused_rc, right_pushed_focused_rc, right_hover_rc, right_pushed_rc;
             SDL_FRect rc = ContentPosition;
             rc.x += HeaderOffsetX;
             rc.w = m_ColumnWidths[i];
             if (i == m_ColumnWidths.size() - 1)
             {
                 rc.w += m_ColumnWidths.size() - 1;
+                right_rc = t->listbox_header_right_rc;
+                right_disabled_rc = t->listbox_header_right_disabled_rc;
+                right_focused_rc = t->listbox_header_right_focused_rc;
+                right_hover_focused_rc = t->listbox_header_right_hover_focused_rc;
+                right_pushed_focused_rc = t->listbox_header_right_pushed_focused_rc;
+                right_hover_rc = t->listbox_header_right_hover_rc;
+                right_pushed_rc = t->listbox_header_right_pushed_rc;
+            }
+            else
+            {
+                right_rc = t->listbox_header_middle_rc;
+                right_disabled_rc = t->listbox_header_middle_disabled_rc;
+                right_focused_rc = t->listbox_header_middle_focused_rc;
+                right_hover_focused_rc = t->listbox_header_middle_hover_focused_rc;
+                right_pushed_focused_rc = t->listbox_header_middle_pushed_focused_rc;
+                right_hover_rc = t->listbox_header_middle_hover_rc;
+                right_pushed_rc = t->listbox_header_middle_pushed_rc;
             }
             DrawCommon(
                 rc,
-                t->listbox_header_left_rc, t->listbox_header_middle_rc, t->listbox_header_right_rc,
-                t->listbox_header_left_disabled_rc, t->listbox_header_middle_disabled_rc, t->listbox_header_right_disabled_rc,
-                t->listbox_header_left_focused_rc, t->listbox_header_middle_focused_rc, t->listbox_header_right_focused_rc,
-                t->listbox_header_left_hover_focused_rc, t->listbox_header_middle_hover_focused_rc, t->listbox_header_right_hover_focused_rc,
-                t->listbox_header_left_pushed_focused_rc, t->listbox_header_middle_pushed_focused_rc, t->listbox_header_right_pushed_focused_rc,
-                t->listbox_header_left_hover_rc, t->listbox_header_middle_hover_rc, t->listbox_header_right_hover_rc,
-                t->listbox_header_left_pushed_rc, t->listbox_header_middle_pushed_rc, t->listbox_header_right_pushed_rc
+                t->listbox_header_left_rc, t->listbox_header_middle_rc, right_rc,
+                t->listbox_header_left_disabled_rc, t->listbox_header_middle_disabled_rc, right_disabled_rc,
+                t->listbox_header_left_focused_rc, t->listbox_header_middle_focused_rc, right_focused_rc,
+                t->listbox_header_left_hover_focused_rc, t->listbox_header_middle_hover_focused_rc, right_hover_focused_rc,
+                t->listbox_header_left_pushed_focused_rc, t->listbox_header_middle_pushed_focused_rc, right_pushed_focused_rc,
+                t->listbox_header_left_hover_rc, t->listbox_header_middle_hover_rc, right_hover_rc,
+                t->listbox_header_left_pushed_rc, t->listbox_header_middle_pushed_rc, right_pushed_rc
             );
             rc.x += 6;
             rc.y += 1;
