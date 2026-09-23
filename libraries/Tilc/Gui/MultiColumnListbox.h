@@ -19,7 +19,7 @@ namespace Tilc {
             void SetItems(const std::vector<std::vector<Tilc::TExtString>>& Items, bool redraw = true);
             void SetColumnWidths(std::initializer_list<float> ColumnWidths);
             void DeleteItem(size_t Index);
-            void SetHeaderCaptions(std::initializer_list<char* const> Items, bool redraw = true);
+            void SetHeaderCaptions(std::initializer_list<const char*> Items, bool redraw = true);
 
             // Funkcje obsługi zdarzeń
             virtual void Draw() override;
@@ -27,9 +27,10 @@ namespace Tilc {
             virtual bool OnMouseButtonDown(const SDL_Event& event) override;
             virtual void OnThumbChange(int oldPosition, int curPosition, TScrollBar* scrollbar) override;
 
+            virtual void DeleteItems() override;
+
         protected:
             std::vector<float> m_ColumnWidths;
-            virtual void DeleteItems() override;
             virtual void SetScrollBars() override;
             void SetColumns();
         };
