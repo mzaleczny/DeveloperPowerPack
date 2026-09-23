@@ -6,12 +6,12 @@ std::vector<Tilc::Commerce::TProduct*> Tilc::Commerce::TObserver::products;
 Tilc::TExtString Tilc::Commerce::TCategory::ToJson()
 {
     Tilc::TExtString n{name}, sd{short_description}, d{description};
-    n.StrReplace("\"", "&quot;");
-    n.StrReplace("\n", "{NL}");
-    sd.StrReplace("\"", "&quot;");
-    sd.StrReplace("\n", "{NL}");
-    d.StrReplace("\"", "&quot;");
-    d.StrReplace("\n", "{NL}");
+    n.StrReplace("\"", "{{[[&quot;]]}}");
+    n.StrReplace("\n", "{{[[NL]]}}");
+    sd.StrReplace("\"", "{{[[&quot;]]}}");
+    sd.StrReplace("\n", "{{[[NL]]}}");
+    d.StrReplace("\"", "{{[[&quot;]]}}");
+    d.StrReplace("\n", "{{[[NL]]}}");
     return Tilc::TExtString("{\n") +
             "\"id\": \"" + id + "\",\n" +
             "\"name\": \"" + n + "\",\n" +
