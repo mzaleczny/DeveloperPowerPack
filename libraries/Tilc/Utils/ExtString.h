@@ -331,6 +331,7 @@ namespace Tilc
     DECLSPEC TExtString FormatHexValue(int value, int align, char fillChar, int width, bool prepend0x, bool appendH, bool useSmallAlpha, int minLen);
 	DECLSPEC TExtString RemoveDiacritics(TExtString& input);
 	DECLSPEC TExtString ToSlug(TExtString& text);
+	DECLSPEC TExtString StrReplace(Tilc::TExtString& What, Tilc::TExtString& ReplaceWith, Tilc::TExtString Where);
 
 	template <typename CharT>
 	using tstring = std::basic_string<CharT, std::char_traits<CharT>, std::allocator<CharT>>;

@@ -2208,3 +2208,9 @@ DECLSPEC Tilc::TExtString Tilc::ToSlug(Tilc::TExtString& text)
 
     return slug;
 }
+
+DECLSPEC Tilc::TExtString StrReplace(Tilc::TExtString& What, Tilc::TExtString& ReplaceWith, Tilc::TExtString Where)
+{
+	Where.StrReplace(What, ReplaceWith);
+	return Where;
+}
