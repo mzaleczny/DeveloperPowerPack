@@ -44,6 +44,7 @@ namespace Tilc {
             virtual void SetSize(float width, float height) override;
             void DeleteItem(size_t Index);
             virtual void DeleteItems();
+            TGuiControlItemList& GetItems() { return m_Items; }
 
             // zwraca przechowywany w kontrolce tekst
             virtual Tilc::TExtString GetText() override;
