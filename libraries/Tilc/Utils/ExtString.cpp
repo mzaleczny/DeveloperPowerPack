@@ -1466,6 +1466,20 @@ DECLSPEC Tilc::TExtString Tilc::Implode(char ImplodeChar, std::initializer_list<
     return Result;
 }
 
+DECLSPEC Tilc::TExtString Tilc::Implode(char ImplodeChar, const std::vector<const char*>& Items)
+{
+    Tilc::TExtString Result;
+    for (auto it = Items.begin(); it != Items.end(); ++it)
+    {
+        if (it != Items.begin())
+        {
+            Result.push_back(ImplodeChar);
+        }
+        Result.append(*it);
+    }
+    return Result;
+}
+
 DECLSPEC Tilc::TExtString Tilc::Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items)
 {
     Tilc::TExtString Result;

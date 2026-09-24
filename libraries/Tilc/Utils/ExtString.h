@@ -294,6 +294,7 @@ namespace Tilc
 
     DECLSPEC TExtString Implode(char Implodechar, std::vector<int>& Items);
     DECLSPEC TExtString Implode(char ImplodeChar, std::initializer_list<const char*>& Items);
+    DECLSPEC TExtString Implode(char ImplodeChar, const std::vector<const char*>& Items);
     DECLSPEC TExtString Implode(char ImplodeChar, std::vector<Tilc::TExtString>& Items);
 	DECLSPEC TExtString ImplodeRepeatedString(char ImplodeChar, const char* RepeatString, int Count);
 
@@ -423,17 +424,6 @@ namespace Tilc
 		}
 
 		return tokens;
-	}
-
-	inline Tilc::TExtString ListToString(std::initializer_list<const char*> list)
-	{
-		Tilc::TExtString Result;
-		for (auto* item : list)
-		{
-			Result += item + ",";
-		}
-		Result.RTrim(',');
-		return Result;
 	}
 
 	/*
