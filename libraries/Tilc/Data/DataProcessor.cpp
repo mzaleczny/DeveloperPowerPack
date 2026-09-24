@@ -26,6 +26,28 @@ std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data
     return os;
 }
 
+std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, const std::vector<const char*>& Fields)
+{
+    Tilc::TExtString FieldsList{Tilc::Implode(',', Fields)};
+    Tilc::TExtString SqlStr{Sql};
+    SqlStr.StrReplace("%s", FieldsList);
+
+    Tilc::Data::TDBDataRows Data;
+    DB.Select(SqlStr.c_str(), Data);
+    Tilc::TExtString Error = DB.GetErrorMessage();
+    if (!Error.empty())
+    {
+        os << Error << ": " << SqlStr << "\n";
+    }
+
+    os << "{\"items\":";
+    Tilc::PrintVectorAsJsonArray(os, Fields, Data);
+    os << ",\"items_count\":\"" << Data.size() << "\"";
+    //os << ",\"Sql\":\"" << SqlStr << "\"";
+    os << "}";
+    return os;
+}
+
 std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data::TDB& DB, const char* TableName, const Tilc::TExtString& JsonCommand)
 {
     Tilc::TJsonParser Parser;

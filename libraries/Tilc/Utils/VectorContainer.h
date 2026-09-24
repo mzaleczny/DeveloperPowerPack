@@ -13,6 +13,7 @@ namespace Tilc
 {
 
     DECLSPEC std::ostream& PrintVectorAsJsonArray(std::ostream& os, std::initializer_list<const char*> FieldNames, const Tilc::Data::TDBDataRows& Items);
+    DECLSPEC std::ostream& PrintVectorAsJsonArray(std::ostream& os, const std::vector<const char*>& FieldNames, const Tilc::Data::TDBDataRows& Items);
 
     template <Tilc::Comparable T>
     class TExtVectorContainer : public std::vector<T>
