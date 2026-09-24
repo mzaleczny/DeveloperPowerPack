@@ -130,7 +130,7 @@ namespace Tilc
             {
                 return {"id", "name", "slug", "short_description", "price", "price1", "price2", "price3", "mini_map_file", "css_class", "code", "created", "modified"};
             }
-            Tilc::TExtString ToJson() override;
+            Tilc::TExtString ToJson() override { return Tilc::TExtString("{}"); };
 
             // Observer pattern methods
             void attach(TObserver* observer)
