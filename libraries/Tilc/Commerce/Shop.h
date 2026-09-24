@@ -51,6 +51,7 @@ namespace Tilc
         {
         public:
             Tilc::TExtString TableName;
+            int64_t Tag;
             virtual std::vector<const char*> GetAllFieldsNamesList() = 0;
             inline Tilc::TExtString GetAllFieldsNames()
             {
