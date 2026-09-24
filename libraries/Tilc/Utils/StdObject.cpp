@@ -149,6 +149,14 @@ Tilc::TExtString Tilc::TStdObjectProperty::getAsString()
     return "";
 }
 
+Tilc::TExtString Tilc::TStdObjectProperty::getAsStringEscaped()
+{
+    Tilc::TExtString Result = getAsString();
+    Result.StrReplace("{{[[NL]]}}", "\n");
+    Result.StrReplace("{{[[&quot;]]}}", "\"");
+    return Result;
+}
+
 bool Tilc::TStdObjectProperty::hasOnlyScalars()
 {
     if (this->type == PROPERTY_VALUE || this->type == PROPERTY_VALUE_INT || this->type == PROPERTY_VALUE_DOUBLE)
@@ -366,6 +374,14 @@ Tilc::TExtString Tilc::TStdObject::getAsString(const Tilc::TExtString& name)
         }
     }
     return "";
+}
+
+Tilc::TExtString Tilc::TStdObject::getAsStringEscaped(const Tilc::TExtString& name)
+{
+    Tilc::TExtString Result = getAsString(name);
+    Result.StrReplace("{{[[NL]]}}", "\n");
+    Result.StrReplace("{{[[&quot;]]}}", "\"");
+    return Result;
 }
 
 int64_t Tilc::TStdObject::getAsInt(const Tilc::TExtString& name)

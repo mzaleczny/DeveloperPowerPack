@@ -333,6 +333,7 @@ namespace Tilc
 	DECLSPEC TExtString RemoveDiacritics(TExtString& input);
 	DECLSPEC TExtString ToSlug(TExtString& text);
 	DECLSPEC TExtString StrReplace(Tilc::TExtString& What, Tilc::TExtString& ReplaceWith, Tilc::TExtString Where);
+	DECLSPEC TExtString EscapeString(Tilc::TExtString Content);
 
 	template <typename CharT>
 	using tstring = std::basic_string<CharT, std::char_traits<CharT>, std::allocator<CharT>>;

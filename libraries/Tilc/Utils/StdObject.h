@@ -52,6 +52,7 @@ namespace Tilc {
         bool hasOnlyScalars();
         TStdObjectProperty* clone();
         Tilc::TExtString getAsString();
+        Tilc::TExtString getAsStringEscaped();
 
     protected:
         TStdObjectProperty() {};
@@ -75,6 +76,7 @@ namespace Tilc {
         void set(const Tilc::TExtString& name, TStdObject* oValue);
         TStdObjectProperty* get(const Tilc::TExtString& name);
         Tilc::TExtString getAsString(const Tilc::TExtString& name);
+        Tilc::TExtString getAsStringEscaped(const Tilc::TExtString& name);
         int64_t getAsInt(const Tilc::TExtString& name);
         double getAsDouble(const Tilc::TExtString& name);
         TPropertiesVector* getAsArray(const Tilc::TExtString& name);

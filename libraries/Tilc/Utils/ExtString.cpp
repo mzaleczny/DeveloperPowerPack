@@ -2223,8 +2223,15 @@ DECLSPEC Tilc::TExtString Tilc::ToSlug(Tilc::TExtString& text)
     return slug;
 }
 
-DECLSPEC Tilc::TExtString StrReplace(Tilc::TExtString& What, Tilc::TExtString& ReplaceWith, Tilc::TExtString Where)
+DECLSPEC Tilc::TExtString Tilc::StrReplace(Tilc::TExtString& What, Tilc::TExtString& ReplaceWith, Tilc::TExtString Where)
 {
 	Where.StrReplace(What, ReplaceWith);
 	return Where;
+}
+
+DECLSPEC Tilc::TExtString Tilc::EscapeString(Tilc::TExtString Content)
+{
+	Content.StrReplace("\"", "{{[[&quot;]]}}");
+	Content.StrReplace("\n", "{{[[NL]]}}");
+	return Content;
 }
