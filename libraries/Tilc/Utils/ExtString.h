@@ -425,6 +425,17 @@ namespace Tilc
 		return tokens;
 	}
 
+	inline Tilc::TExtString ListToString(std::initializer_list<const char*> list)
+	{
+		Tilc::TExtString Result;
+		for (auto* item : list)
+		{
+			Result += item + ",";
+		}
+		Result.RTrim(',');
+		return Result;
+	}
+
 	/*
     struct TConcatProxy
     {
