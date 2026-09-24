@@ -50,7 +50,11 @@ namespace Tilc
         class DECLSPEC TDataObject
         {
         public:
-            virtual Tilc::TExtString GetAllFieldsNames() = 0;
+            virtual std::initializer_list<const char*> GetAllFieldsNamesList() = 0;
+            inline Tilc::TExtString GetAllFieldsNames()
+            {
+                return ListToString(GetAllFieldsNamesList());
+            }
             virtual Tilc::TExtString ToJson() = 0;
         };
 
@@ -62,9 +66,9 @@ namespace Tilc
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
             Tilc::TExtString description;
-            Tilc::TExtString GetAllFieldsNames() override
+            std::initializer_list<const char*> GetAllFieldsNamesList() override
             {
-                return "id, name, short_description, description";
+                return {"id", "name", "short_description", "description"};
             }
             Tilc::TExtString ToJson() override;
         };
@@ -108,9 +112,9 @@ namespace Tilc
             {
             }
 
-            Tilc::TExtString GetAllFieldsNames() override
+            std::initializer_list<const char*> GetAllFieldsNamesList() override
             {
-                return "id, name, slug, short_description, price, price1, price2, price3, mini_map_file, css_class, code, created, modified";
+                return {"id", "name", "slug", "short_description", "price", "price1", "price2", "price3", "mini_map_file", "css_class", "code", "created", "modified"};
             }
             Tilc::TExtString ToJson() override;
 
