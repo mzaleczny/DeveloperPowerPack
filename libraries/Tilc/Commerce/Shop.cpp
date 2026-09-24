@@ -51,12 +51,10 @@ Tilc::TExtString Tilc::Commerce::TCategory::ToJson()
 
 void Tilc::Commerce::TCategory::FromJson(const Tilc::TExtString& JsonContent)
 {
-    std::cout << JsonContent << "!!!!!!!!!!!!!!!!!!" << std::endl;
     Tilc::TStdObject* JsonObject = GetDataObject(JsonContent);
     if (JsonObject)
     {
         id = JsonObject->getAsString("id");
-        std::cout << id << "!!!!!!!!!!!!!!!!!!" << std::endl;
         name = JsonObject->getAsStringUnescaped("name");
         slug = JsonObject->getAsStringUnescaped("slug");
         short_description = JsonObject->getAsStringUnescaped("short_description");
