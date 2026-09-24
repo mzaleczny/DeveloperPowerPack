@@ -8,6 +8,8 @@
 
 namespace Tilc
 {
+    class TStdObject;
+
     namespace Commerce
     {
         class TProduct;
@@ -58,6 +60,9 @@ namespace Tilc
                 return Tilc::Implode(',', GetAllFieldsNamesList());
             }
             virtual Tilc::TExtString ToJson() = 0;
+            virtual void FromJson(const Tilc::TExtString& JsonContent) = 0;
+            // Returned pointer **MUST** be deleted: delete obj;
+            Tilc::TStdObject* GetDataObject(const Tilc::TExtString& JsonContent);
         };
 
         class DECLSPEC TCategory : public TDataObject
@@ -79,6 +84,7 @@ namespace Tilc
                 return {"id", "name", "slug", "short_description", "description"};
             }
             Tilc::TExtString ToJson() override;
+            void FromJson(const Tilc::TExtString& JsonContent) override;
         };
 
         class DECLSPEC TProduct : public TDataObject
@@ -131,6 +137,7 @@ namespace Tilc
                 return {"id", "name", "slug", "short_description", "price", "price1", "price2", "price3", "mini_map_file", "css_class", "code", "created", "modified"};
             }
             Tilc::TExtString ToJson() override { return Tilc::TExtString("{}"); };
+            void FromJson(const Tilc::TExtString& JsonContent) override {};
 
             // Observer pattern methods
             void attach(TObserver* observer)

@@ -1,8 +1,40 @@
 #include "Tilc/Commerce/Shop.h"
+#include "Tilc/Utils/JsonParser.h"
 #include <iostream>
+
+#include "Tilc/Utils/StdObject.h"
 
 std::vector<Tilc::Commerce::TProduct*> Tilc::Commerce::TObserver::products;
 
+Tilc::TStdObject* Tilc::Commerce::TDataObject::GetDataObject(const Tilc::TExtString& JsonContent)
+{
+    Tilc::TJsonParser JsonParser;
+    Tilc::TStdObject* JsonRoot = JsonParser.parse(JsonContent);
+    Tilc::TStdObject* JsonObject{};
+    if (JsonRoot)
+    {
+        JsonObject = JsonRoot->getAsObject("root");
+        if (!JsonObject)
+        {
+            JsonObject = JsonRoot;
+        }
+        if (JsonObject)
+        {
+            Tilc::TPropertiesVector* Items = JsonObject->getAsArray("items");
+            if (Items && Items->size() == 1)
+            {
+                JsonObject = (*Items)[0]->oValue;
+            }
+        }
+        if (JsonObject)
+        {
+            JsonObject = JsonObject->clone();
+        }
+        delete JsonRoot;
+        return JsonObject;
+    }
+    return nullptr;
+}
 Tilc::TExtString Tilc::Commerce::TCategory::ToJson()
 {
     Tilc::TExtString n = EscapeString(name);
@@ -15,6 +47,22 @@ Tilc::TExtString Tilc::Commerce::TCategory::ToJson()
             "\"short_description\": \"" + sd + "\",\n" +
             "\"description\": \"" + d + "\"\n" +
         "}";
+}
+
+void Tilc::Commerce::TCategory::FromJson(const Tilc::TExtString& JsonContent)
+{
+    std::cout << JsonContent << "!!!!!!!!!!!!!!!!!!" << std::endl;
+    Tilc::TStdObject* JsonObject = GetDataObject(JsonContent);
+    if (JsonObject)
+    {
+        id = JsonObject->getAsString("id");
+        std::cout << id << "!!!!!!!!!!!!!!!!!!" << std::endl;
+        name = JsonObject->getAsStringUnescaped("name");
+        slug = JsonObject->getAsStringUnescaped("slug");
+        short_description = JsonObject->getAsStringUnescaped("short_description");
+        description = JsonObject->getAsStringUnescaped("description");
+        delete JsonObject;
+    }
 }
 
 
