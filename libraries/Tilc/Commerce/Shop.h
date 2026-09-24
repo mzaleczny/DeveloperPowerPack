@@ -76,7 +76,7 @@ namespace Tilc
 
             std::vector<const char*> GetAllFieldsNamesList() override
             {
-                return {"id", "name", "short_description", "description"};
+                return {"id", "name", "slug", "short_description", "description"};
             }
             Tilc::TExtString ToJson() override;
         };
