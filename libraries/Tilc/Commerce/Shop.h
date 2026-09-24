@@ -50,6 +50,7 @@ namespace Tilc
         class DECLSPEC TDataObject
         {
         public:
+            Tilc::TExtString TableName;
             virtual std::initializer_list<const char*> GetAllFieldsNamesList() = 0;
             inline Tilc::TExtString GetAllFieldsNames()
             {
@@ -66,6 +67,12 @@ namespace Tilc
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
             Tilc::TExtString description;
+
+            TCategory()
+            {
+                TableName = "categories";
+            }
+
             std::initializer_list<const char*> GetAllFieldsNamesList() override
             {
                 return {"id", "name", "short_description", "description"};
@@ -95,13 +102,18 @@ namespace Tilc
             double averageReviewScore;
 
             // Constructor
-            TProduct() = default;
+            TProduct()
+            {
+                TableName = "products";
+            }
+
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
                     Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
                     Tilc::TExtString created = "", Tilc::TExtString modified = "")
                 : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
                   created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
             {
+                TableName = "products";
             }
 
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price, int inventoryLevel,
@@ -110,6 +122,7 @@ namespace Tilc
                 : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
                   created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
             {
+                TableName = "products";
             }
 
             std::initializer_list<const char*> GetAllFieldsNamesList() override
