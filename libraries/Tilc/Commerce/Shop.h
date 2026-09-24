@@ -51,10 +51,10 @@ namespace Tilc
         {
         public:
             Tilc::TExtString TableName;
-            virtual std::initializer_list<const char*> GetAllFieldsNamesList() = 0;
+            virtual std::vector<const char*> GetAllFieldsNamesList() = 0;
             inline Tilc::TExtString GetAllFieldsNames()
             {
-                return ListToString(GetAllFieldsNamesList());
+                return Tilc::Implode(',', GetAllFieldsNamesList());
             }
             virtual Tilc::TExtString ToJson() = 0;
         };
@@ -73,7 +73,7 @@ namespace Tilc
                 TableName = "categories";
             }
 
-            std::initializer_list<const char*> GetAllFieldsNamesList() override
+            std::vector<const char*> GetAllFieldsNamesList() override
             {
                 return {"id", "name", "short_description", "description"};
             }
@@ -125,7 +125,7 @@ namespace Tilc
                 TableName = "products";
             }
 
-            std::initializer_list<const char*> GetAllFieldsNamesList() override
+            std::vector<const char*> GetAllFieldsNamesList() override
             {
                 return {"id", "name", "slug", "short_description", "price", "price1", "price2", "price3", "mini_map_file", "css_class", "code", "created", "modified"};
             }
