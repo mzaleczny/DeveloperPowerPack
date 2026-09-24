@@ -149,7 +149,7 @@ Tilc::TExtString Tilc::TStdObjectProperty::getAsString()
     return "";
 }
 
-Tilc::TExtString Tilc::TStdObjectProperty::getAsStringEscaped()
+Tilc::TExtString Tilc::TStdObjectProperty::getAsStringUnescaped()
 {
     Tilc::TExtString Result = getAsString();
     Result.StrReplace("{{[[NL]]}}", "\n");
@@ -376,7 +376,7 @@ Tilc::TExtString Tilc::TStdObject::getAsString(const Tilc::TExtString& name)
     return "";
 }
 
-Tilc::TExtString Tilc::TStdObject::getAsStringEscaped(const Tilc::TExtString& name)
+Tilc::TExtString Tilc::TStdObject::getAsStringUnescaped(const Tilc::TExtString& name)
 {
     Tilc::TExtString Result = getAsString(name);
     Result.StrReplace("{{[[NL]]}}", "\n");
