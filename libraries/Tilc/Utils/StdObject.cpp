@@ -47,6 +47,8 @@ Tilc::TStdObjectProperty::TStdObjectProperty(const Tilc::TStdObjectProperty& cop
     this->type = copyObj.type;
     this->name = copyObj.name;
     this->value = copyObj.value;
+    this->iValue = copyObj.iValue;
+    this->fValue = copyObj.fValue;
     size_t size = (copyObj.aValue) ? copyObj.aValue->size() : 0UL;
     if (size > 0)
     {
@@ -132,6 +134,7 @@ void Tilc::TStdObjectProperty::FreeAValue()
 Tilc::TStdObjectProperty* Tilc::TStdObjectProperty::clone()
 {
     Tilc::TStdObjectProperty* newValue = new Tilc::TStdObjectProperty(*this);
+    //std::cout << "Clone: " << this->name << "   " << this->iValue << " => " << newValue->iValue << std::endl;
     return newValue;
 }
 
@@ -360,16 +363,20 @@ Tilc::TStdObjectProperty* Tilc::TStdObject::get(const Tilc::TExtString& name)
 
 Tilc::TExtString Tilc::TStdObject::getAsString(const Tilc::TExtString& name)
 {
+    //std::cout << "Tilc::TStdObject::getAsString: " << name << std::endl;
     Tilc::TStdObjectProperty* property = this->get(name);
     if (property)
     {
         switch (property->type)
         {
             case PROPERTY_VALUE:
+                //std::cout << "    PROPERTY_VALUE: " << property->value << std::endl;
                 return property->value;
             case PROPERTY_VALUE_INT:
+                //std::cout << "    PROPERTY_VALUE_INT: " << property->iValue << std::endl;
                 return Tilc::TExtString(std::to_string(property->iValue));
             case PROPERTY_VALUE_DOUBLE:
+                //std::cout << "    PROPERTY_VALUE_DOUBLE: " << property->fValue << std::endl;
                 return Tilc::TExtString(std::to_string(property->fValue));
         }
     }
