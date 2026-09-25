@@ -613,6 +613,30 @@ void Tilc::Gui::TGuiControl::SetChildText(const Tilc::TExtString& name, const Ti
     }
 }
 
+void Tilc::Gui::TGuiControl::SetChildrenTextes(std::unordered_map<TExtString, TExtString>& ControlsTextesToSet)
+{
+    for (auto [name, text] : ControlsTextesToSet)
+    {
+        SetChildText(name, text);
+    }
+}
+
+std::unordered_map<Tilc::TExtString, Tilc::TExtString> Tilc::Gui::TGuiControl::GetChildrenTextes()
+{
+    std::unordered_map<Tilc::TExtString, Tilc::TExtString> Textes;
+    for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
+    {
+        Textes[(*it)->m_Name] = (*it)->GetText();
+        /*
+        if (!(*it)->m_Children.empty())
+        {
+            Control = (*it)->GetChild(name);
+            if (Control) return Control;
+        }*/
+    }
+    return Textes;
+}
+
 void Tilc::Gui::TGuiControl::GetCurrentMousePosition(float* x, float* y)
 {
     float mx, my;

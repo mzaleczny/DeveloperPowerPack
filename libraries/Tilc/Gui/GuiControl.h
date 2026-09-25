@@ -401,6 +401,8 @@ namespace Tilc {
             TExtString GetChildText(const Tilc::TExtString& name);
             void SetChildValue(const Tilc::TExtString& name, const Tilc::TExtString& value);
             void SetChildText(const Tilc::TExtString& name, const Tilc::TExtString& text);
+            void SetChildrenTextes(std::unordered_map<TExtString, TExtString>& ControlsTextesToSet);
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetChildrenTextes();
 
             inline SDL_Renderer* GetRenderer()
             {
