@@ -15,6 +15,7 @@ namespace Tilc {
         public:
             TGuiControlItem() = default;
             TGuiControlItem(const Tilc::TExtString& value, bool selected = false, bool checked = false, int imageIndex = -1, long long data = 0);
+            void SetFromColumnList(const TStringVector& Columns);
 
             Tilc::TExtString m_Value;
             bool m_Selected;

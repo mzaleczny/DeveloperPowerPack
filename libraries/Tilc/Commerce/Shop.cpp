@@ -56,11 +56,40 @@ void Tilc::Commerce::TCategory::FromJson(const Tilc::TExtString& JsonContent)
     {
         id = JsonObject->getAsString("id");
         name = JsonObject->getAsStringUnescaped("name");
-        slug = JsonObject->getAsStringUnescaped("slug");
+        slug = JsonObject->getAsString("slug");
         short_description = JsonObject->getAsStringUnescaped("short_description");
         description = JsonObject->getAsStringUnescaped("description");
         delete JsonObject;
     }
+}
+
+bool Tilc::Commerce::TCategory::IsEmpty()
+{
+    return id.empty() && name.empty() && short_description.empty() && description.empty();
+}
+
+std::unordered_map<Tilc::TExtString, Tilc::TExtString> Tilc::Commerce::TCategory::GetDataMap()
+{
+    std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data;
+    Data["txtId"] = id;
+    Data["txtName"] = name;
+    Data["txtSlug"] = slug;
+    Data["txtShortDescription"] = short_description;
+    Data["txtDescription"] = description;
+    return Data;
+}
+
+void Tilc::Commerce::TCategory::SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Data)
+{
+    name = Data["txtName"];
+    slug = Tilc::ToSlug(name);
+    short_description = Data["txtShortDescription"];
+    description = Data["txtDescription"];
+}
+
+std::vector<Tilc::TExtString> Tilc::Commerce::TCategory::GetDataForListColumns()
+{
+    return {name, slug, short_description};
 }
 
 

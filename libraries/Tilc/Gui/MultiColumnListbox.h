@@ -18,8 +18,10 @@ namespace Tilc {
             void SetItems(const std::vector<std::initializer_list<const char*>>& Items, bool redraw = true);
             void SetItems(const std::vector<std::vector<Tilc::TExtString>>& Items, bool redraw = true);
             void SetColumnWidths(std::initializer_list<float> ColumnWidths);
+            void SetColumnWidths(std::vector<float> ColumnWidths);
             void DeleteItem(size_t Index);
             void SetHeaderCaptions(std::initializer_list<const char*> Items, bool redraw = true);
+            void SetHeaderCaptions(std::vector<Tilc::TExtString> Items, bool redraw = true);
 
             // Funkcje obsługi zdarzeń
             virtual void Draw() override;

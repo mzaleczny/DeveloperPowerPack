@@ -13,6 +13,16 @@ Tilc::Gui::TGuiControlItem::TGuiControlItem(const Tilc::TExtString& value, bool 
 {
 }
 
+void Tilc::Gui::TGuiControlItem::SetFromColumnList(const TStringVector& Columns)
+{
+    m_Value = Columns[0];
+    m_Columns.resize(Columns.size() - 1);
+    for (size_t i = 1; i < Columns.size(); ++i)
+    {
+        m_Columns[i-1] = Columns[i];
+    }
+}
+
 
 void Tilc::Gui::TListbox::CommonInit(const std::initializer_list<const char*>& items)
 {

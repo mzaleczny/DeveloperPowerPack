@@ -5,6 +5,7 @@
 #include "Tilc/Commerce/Money.h"
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 namespace Tilc
 {
@@ -53,6 +54,9 @@ namespace Tilc
         {
         public:
             Tilc::TExtString TableName;
+            Tilc::TExtString ListLabel;
+            Tilc::TExtString AddLabel;
+            Tilc::TExtString EditLabel;
             int64_t Tag;
             virtual std::vector<const char*> GetAllFieldsNamesList() = 0;
             inline Tilc::TExtString GetAllFieldsNames()
@@ -63,6 +67,10 @@ namespace Tilc
             virtual void FromJson(const Tilc::TExtString& JsonContent) = 0;
             // Returned pointer **MUST** be deleted: delete obj;
             Tilc::TStdObject* GetDataObject(const Tilc::TExtString& JsonContent);
+            virtual bool IsEmpty() = 0;
+            virtual std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() = 0;
+            virtual void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Data) = 0;
+            virtual std::vector<Tilc::TExtString> GetDataForListColumns() = 0;
         };
 
         class DECLSPEC TCategory : public TDataObject
@@ -77,6 +85,9 @@ namespace Tilc
             TCategory()
             {
                 TableName = "categories";
+                ListLabel = "Lista kategorii";
+                AddLabel = "Dodaj nową kategorię";
+                EditLabel = "Edytuj kategorię";
             }
 
             std::vector<const char*> GetAllFieldsNamesList() override
@@ -85,6 +96,10 @@ namespace Tilc
             }
             Tilc::TExtString ToJson() override;
             void FromJson(const Tilc::TExtString& JsonContent) override;
+            bool IsEmpty() override;
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() override;
+            void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Data) override;
+            std::vector<Tilc::TExtString> GetDataForListColumns() override;
         };
 
         class DECLSPEC TProduct : public TDataObject
@@ -114,13 +129,21 @@ namespace Tilc
                 TableName = "products";
             }
 
+            void CommonInit()
+            {
+                TableName = "products";
+                ListLabel = "Lista prodktów";
+                AddLabel = "Dodaj nowy produkt";
+                EditLabel = "Edytuj produkt";
+            }
+
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
                     Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
                     Tilc::TExtString created = "", Tilc::TExtString modified = "")
                 : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
                   created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
             {
-                TableName = "products";
+                CommonInit();
             }
 
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price, int inventoryLevel,
@@ -129,7 +152,7 @@ namespace Tilc
                 : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
                   created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
             {
-                TableName = "products";
+                CommonInit();
             }
 
             std::vector<const char*> GetAllFieldsNamesList() override

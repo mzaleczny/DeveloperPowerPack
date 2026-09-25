@@ -233,6 +233,12 @@ void Tilc::Gui::TMultiColumnListbox::SetColumnWidths(std::initializer_list<float
     std::ranges::for_each(ColumnWidths, [this](float ItemWidth) { m_ColumnWidths.push_back(ItemWidth); });
 }
 
+void Tilc::Gui::TMultiColumnListbox::SetColumnWidths(std::vector<float> ColumnWidths)
+{
+    m_ColumnWidths.clear();
+    std::ranges::for_each(ColumnWidths, [this](float ItemWidth) { m_ColumnWidths.push_back(ItemWidth); });
+}
+
 void Tilc::Gui::TMultiColumnListbox::DeleteItem(size_t Index)
 {
     if (Index < m_Items.size())
@@ -243,6 +249,27 @@ void Tilc::Gui::TMultiColumnListbox::DeleteItem(size_t Index)
 }
 
 void Tilc::Gui::TMultiColumnListbox::SetHeaderCaptions(std::initializer_list<const char*> Items, bool redraw)
+{
+    size_t i = 0;
+    for (auto it = Items.begin(); it != Items.end(); ++it)
+    {
+        if (i == 0)
+        {
+            m_Header.m_Value = *it;
+        }
+        else
+        {
+            m_Header.m_Columns.emplace_back(*it);
+        }
+        ++i;
+    }
+    if (redraw)
+    {
+        Invalidate();
+    }
+}
+
+void Tilc::Gui::TMultiColumnListbox::SetHeaderCaptions(std::vector<Tilc::TExtString> Items, bool redraw)
 {
     size_t i = 0;
     for (auto it = Items.begin(); it != Items.end(); ++it)
