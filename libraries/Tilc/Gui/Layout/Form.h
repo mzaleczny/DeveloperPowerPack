@@ -360,6 +360,32 @@ namespace Tilc {
                 TFormPackage::ShowListWindow(ListWindow);
                 return 0;
             }
+
+            int OnSyncClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
+            {
+                auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
+                auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
+                auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
+                if (FormPackage->lbList)
+                {
+                    // Tutaj usuwamy puste pozycje z listy pozycji zmienionych, bo nie chcemy ich zapisać w bazie oraz konieczność poprawności mapowania indeksów
+                    // nie jest juz konieczna ze względu na to, ze po zapisie lista pozycji jest pobierana na nowo i wektory zmian są zerowane. Czyli stan formularza
+                    // zostaje zresetowany do stanu początkowego z uaktualnioną listą
+                    Tilc::TExtString ItemsJson;
+                    if (FormPackage->m_ItemsToDelete.size() > 0)
+                    {
+                        ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, FormPackage->m_ItemsToDelete);
+                    }
+                    if (FormPackage->m_ChangedItems.size() > 0)
+                    {
+                        ItemsJson = Tilc::Apps::Www::Save<Tilc::Commerce::TCategory>(Url_Save, FormPackage->m_ChangedItems);
+                    }
+                    TFormPackage::RefreshList(FormPackage->lbList, ItemsJson);
+                }
+                FormPackage->m_ItemsToDelete.clear();
+                FormPackage->m_ChangedItems.clear();
+                return 0;
+            }
             // *******************************************************************************************************************
             // *******************************************************************************************************************
 
