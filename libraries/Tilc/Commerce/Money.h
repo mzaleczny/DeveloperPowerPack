@@ -71,6 +71,7 @@ namespace Tilc
 
             Tilc::TExtString ToString() const;
             Tilc::TExtString ToString(char Separator) const;
+            void FromString(Tilc::TExtString str, char Separator);
             Tilc::TExtString ToSpeech() const;
             Tilc::TExtString GetFormattedKasa(Tilc::TExtString format = "") const;
 

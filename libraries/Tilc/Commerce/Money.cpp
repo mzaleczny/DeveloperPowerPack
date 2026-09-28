@@ -38,56 +38,7 @@ Tilc::Commerce::TMoney& Tilc::Commerce::TMoney::operator=(double Total)
 
 Tilc::Commerce::TMoney& Tilc::Commerce::TMoney::operator=(Tilc::TExtString str)
 {
-    Tilc::TExtString tmp;
-    int i;
-
-    // sprawdzaj każdy znak danego łańcucha
-    for (i = 0; i < str.length(); ++i)
-    {
-        // Jeżeli jest spacją, to po prostu omiń
-        if (str[i] == ' ')
-        {
-            continue;
-        }
-        // i jeśli jest cyfrą, do doklejaj do tmp
-        else if (str[i] >= '0' && str[i] <= '9')
-        {
-            tmp += str[i];
-        }
-        // jeśli jest kropką, to wyjdź z pętli
-        else if (str[i] == m_Separator)
-        {
-            break;
-        }
-        else
-        {
-            m_Amount = -1;
-            m_Decimals = -1;
-            return *this;
-        }
-    }
-    // tmp zawiera teraz z│ote
-    m_Amount = std::atoi(tmp.c_str());
-
-
-    // ustaw Decimals
-    if (i + 1 < str.length())
-    {
-        tmp.assign(&str[i + 1], 1);
-        if (i + 2 < str.length())
-        {
-            tmp += str[i + 2];
-        }
-        else
-        {
-            tmp += "0";
-        }
-    }//if
-    else
-    {
-        tmp = "0";
-    }
-    m_Decimals = std::atoi(tmp.c_str());
+    FromString(std::move(str), m_Separator);
     return *this;
 }
 
@@ -193,6 +144,60 @@ Tilc::TExtString Tilc::Commerce::TMoney::ToString(char Separator) const
     tmp += std::to_string(m_Decimals);
 
     return tmp;
+}
+
+void Tilc::Commerce::TMoney::FromString(Tilc::TExtString str, char Separator)
+{
+    Tilc::TExtString tmp;
+    int i;
+
+    // sprawdzaj każdy znak danego łańcucha
+    for (i = 0; i < str.length(); ++i)
+    {
+        // Jeżeli jest spacją, to po prostu omiń
+        if (str[i] == ' ')
+        {
+            continue;
+        }
+        // i jeśli jest cyfrą, do doklejaj do tmp
+        else if (str[i] >= '0' && str[i] <= '9')
+        {
+            tmp += str[i];
+        }
+        // jeśli jest kropką, to wyjdź z pętli
+        else if (str[i] == Separator)
+        {
+            break;
+        }
+        else
+        {
+            m_Amount = -1;
+            m_Decimals = -1;
+            return;
+        }
+    }
+    // tmp zawiera teraz zlote
+    m_Amount = std::atoi(tmp.c_str());
+
+
+    // ustaw Decimals
+    if (i + 1 < str.length())
+    {
+        tmp.assign(&str[i + 1], 1);
+        if (i + 2 < str.length())
+        {
+            tmp += str[i + 2];
+        }
+        else
+        {
+            tmp += "0";
+        }
+    }//if
+    else
+    {
+        tmp = "0";
+    }
+    m_Decimals = std::atoi(tmp.c_str());
 }
 
 Tilc::TExtString Tilc::Commerce::TMoney::ToSpeech() const
