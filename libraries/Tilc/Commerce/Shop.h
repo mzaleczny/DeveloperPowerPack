@@ -65,12 +65,13 @@ namespace Tilc
             }
             virtual Tilc::TExtString ToJson() = 0;
             virtual void FromJson(const Tilc::TExtString& JsonContent) = 0;
+            virtual void FromJsonObject(Tilc::TStdObject* JsonObject) = 0;
             // Returned pointer **MUST** be deleted: delete obj;
             Tilc::TStdObject* GetDataObject(const Tilc::TExtString& JsonContent);
-            virtual bool IsEmpty() = 0;
-            virtual std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() = 0;
-            virtual void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Data) = 0;
-            virtual std::vector<Tilc::TExtString> GetDataForListColumns() = 0;
+            virtual bool IsEmpty() const = 0;
+            virtual std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() const = 0;
+            virtual void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data) = 0;
+            virtual std::vector<Tilc::TExtString> GetDataForListColumns() const = 0;
         };
 
         class DECLSPEC TCategory : public TDataObject
@@ -96,10 +97,11 @@ namespace Tilc
             }
             Tilc::TExtString ToJson() override;
             void FromJson(const Tilc::TExtString& JsonContent) override;
-            bool IsEmpty() override;
-            std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() override;
-            void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Data) override;
-            std::vector<Tilc::TExtString> GetDataForListColumns() override;
+            void FromJsonObject(Tilc::TStdObject* JsonObject) override;
+            bool IsEmpty() const override;
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() const override;
+            void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data) override;
+            std::vector<Tilc::TExtString> GetDataForListColumns() const override;
         };
 
         class DECLSPEC TProduct : public TDataObject
@@ -108,59 +110,69 @@ namespace Tilc
             Tilc::TExtString id;
             Tilc::TExtString name;
             Tilc::TExtString slug;
+            Tilc::TExtString name_en;
             Tilc::TExtString short_description;
+            Tilc::TExtString description;
             TMoney price;
-            TMoney price1;
-            TMoney price2;
-            TMoney price3;
+            TMoney price_1;
+            TMoney price_2;
+            TMoney price_3;
             Tilc::TExtString mini_map_file;
             Tilc::TExtString css_class;
-            Tilc::TExtString code;
+            Tilc::TExtString product_code;
             Tilc::TExtString created;
             Tilc::TExtString modified;
             int inventoryLevel;
             std::vector<TObserver*> observers;
             std::vector<TReview*> reviews;
             double averageReviewScore;
+            std::vector<Tilc::TExtString> pictures;
 
             // Constructor
             TProduct()
             {
-                TableName = "products";
+                CommonInit();
             }
 
             void CommonInit()
             {
                 TableName = "products";
-                ListLabel = "Lista prodktów";
+                ListLabel = "Lista produktów";
                 AddLabel = "Dodaj nowy produkt";
                 EditLabel = "Edytuj produkt";
             }
 
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
-                    Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
+                    Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString product_code = "",
                     Tilc::TExtString created = "", Tilc::TExtString modified = "")
-                : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
+                : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), product_code(product_code),
                   created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
             {
                 CommonInit();
             }
 
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price, int inventoryLevel,
-                    Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
+                    Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString product_code = "",
                     Tilc::TExtString created = "", Tilc::TExtString modified = "")
-                : name(name), slug(slug), short_description(short_description), price(price), mini_map_file(mini_map_file), css_class(css_class), code(code),
-                  created(created), modified(modified), inventoryLevel(inventoryLevel), averageReviewScore(0.0)
+                : TProduct(name, slug, short_description, 0, inventoryLevel, mini_map_file, css_class, product_code,
+                  created, modified)
             {
-                CommonInit();
+                this->price = price;
             }
 
             std::vector<const char*> GetAllFieldsNamesList() override
             {
-                return {"id", "name", "slug", "short_description", "price", "price1", "price2", "price3", "mini_map_file", "css_class", "code", "created", "modified"};
+                return {"id", "name", "slug", "short_description", "description", "price", "price_1", "price_2", "price_3", "mini_map_file", "css_class", "product_code", "created", "modified"};
             }
-            Tilc::TExtString ToJson() override { return Tilc::TExtString("{}"); };
-            void FromJson(const Tilc::TExtString& JsonContent) override {};
+            Tilc::TExtString ToJson() override;
+            void FromJson(const Tilc::TExtString& JsonContent) override;
+            void FromJsonObject(Tilc::TStdObject* JsonObject) override;
+            bool IsEmpty() const override;
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() const override;
+            void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data) override;
+            std::vector<Tilc::TExtString> GetDataForListColumns() const override;
+
+
 
             // Observer pattern methods
             void attach(TObserver* observer)
@@ -200,28 +212,6 @@ namespace Tilc
             {
                 this->inventoryLevel = inventoryLevel;
                 notify();
-            }
-        };
-
-        class DECLSPEC TProductFull : public TProduct
-        {
-        public:
-            Tilc::TExtString name_en;
-            Tilc::TExtString description;
-            double price_1;
-            double price_2;
-            double price_3;
-            std::vector<Tilc::TExtString> pictures;
-
-            // Constructor
-            TProductFull(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, double price, int inventoryLevel,
-                Tilc::TExtString mini_map_file = "", Tilc::TExtString css_class = "", Tilc::TExtString code = "",
-                Tilc::TExtString created = "", Tilc::TExtString modified = "",
-                Tilc::TExtString name_en = "", Tilc::TExtString description = "", int price_1 = 0, int price_2 = 0, int price_3 = 0
-                
-            ) : TProduct(name, slug, short_description, price, inventoryLevel, mini_map_file, css_class, code, created, modified),
-                name_en(name_en), description(description), price_1(price_1), price_2(price_2), price_3(price_3)
-            {
             }
         };
 

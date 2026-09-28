@@ -11,7 +11,7 @@
 #include "Tilc/Gui/Listbox.h"
 #include "Tilc/Gui/MultiColumnListbox.h"
 #include "Tilc/Game.h"
-#include "Tilc/Apps/Www/RestAPI.h"
+#include "Tilc/Apps/Www/Api/RestAPI.h"
 #include <SDL3/SDL.h>
 
 namespace Tilc {
@@ -62,11 +62,16 @@ namespace Tilc {
                 std::initializer_list<Tilc::TExtString> ListColumnsCaptions,
                 std::initializer_list<std::initializer_list<const char*>> EditFormFields,
                 std::function<void()>&& HideFunc,
-                Tilc::Gui::TLabel* TitleLabel
+                Tilc::Gui::TLabel* TitleLabel,
+                const Tilc::TExtString& URL_GetItem,
+                const Tilc::TExtString& URL_List,
+                const Tilc::TExtString& URL_Save,
+                const Tilc::TExtString& URL_Delete
                 )
                 : m_ParentWindow(ParentWindow), m_Name(Name), m_Position(Position),
                     lbListColumnsWidths(ListColumnsWidths), lbListColumnsCaptions(ListColumnsCaptions),
-                    HideAllWindowsFromParent(HideFunc), lblTitle(TitleLabel)
+                    HideAllWindowsFromParent(HideFunc), lblTitle(TitleLabel),
+                    Url_GetItem(URL_GetItem), Url_List(URL_List), Url_Save(URL_Save), Url_Delete(URL_Delete)
             {
                 InitListWindow(m_ParentWindow);
                 InitEditWindow(m_ParentWindow, EditFormFields);
@@ -93,29 +98,64 @@ namespace Tilc {
                 if (WndListForm)    WndListForm->Hide();
                 if (WndEditForm)    WndEditForm->Hide();
             }
+            int Synchronize()
+            {
+                if (lbList)
+                {
+                    // Tutaj usuwamy puste pozycje z listy pozycji zmienionych, bo nie chcemy ich zapisać w bazie oraz konieczność poprawności mapowania indeksów
+                    // nie jest juz konieczna ze względu na to, ze po zapisie lista pozycji jest pobierana na nowo i wektory zmian są zerowane. Czyli stan formularza
+                    // zostaje zresetowany do stanu początkowego z uaktualnioną listą
+                    Tilc::TExtString ItemsJson;
+                    if (m_ItemsToDelete.size() > 0)
+                    {
+                        ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete);
+                    }
+                    if (m_ChangedItems.size() > 0)
+                    {
+                        ItemsJson = Tilc::Apps::Www::Save<TItemType>(Url_Save, m_ChangedItems);
+                    }
+                    if (!ItemsJson.empty())
+                    {
+                        TFormPackage::RefreshList(lbList, ItemsJson);
+                    }
+                }
+                m_ItemsToDelete.clear();
+                m_ChangedItems.clear();
+                return 0;
+            }
 
             static void* GetPointer(Tilc::Gui::TGuiControl* Control, const char* WindowType)
             {
                 if (Control->m_Props.find(WindowType) != Control->m_Props.end())
                 {
-                    uintptr_t StyledWindowPointer = std::stoull(Control->m_Props[WindowType]);
+                    uintptr_t StyledWindowPointer = std::stoull(Control->m_Props[WindowType].substr(2), 0, 16);
                     return reinterpret_cast<void*>(StyledWindowPointer);
                 }
 
-                Tilc::Gui::TStyledWindow* ParentWindow = Control->GetParentWindow();
+                Tilc::Gui::TStyledWindow* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
                 if (!ParentWindow)
                 {
                     return nullptr;
                 }
 
-                uintptr_t StyledWindowPointer = std::stoull(ParentWindow->m_Props[WindowType]);
+                uintptr_t StyledWindowPointer = std::stoull(ParentWindow->m_Props[WindowType].substr(2), 0, 16);
                 return reinterpret_cast<void*>(StyledWindowPointer);
             }
 
-            static void ShowEditWindow(Tilc::Gui::TStyledWindow* EditWindow, const TItemType& Item, int Index = -1)
+            static void ShowEditWindow(TFormPackage* Pack, TItemType Item, int Index = -1)
             {
+                Tilc::Gui::TStyledWindow* EditWindow = Pack->WndEditForm;
                 if (EditWindow)
                 {
+                    auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(EditWindow, "FormPackage"));
+                    if (FormPackage)
+                    {
+                        if (FormPackage->HideAllWindowsFromParent)
+                        {
+                            FormPackage->HideAllWindowsFromParent();
+                        }
+                    }
+
                     EditWindow->Show();
                     EditWindow->Focus();
                     EditWindow->m_Props["IndexInChangedList"] = std::to_string(Index);
@@ -129,17 +169,16 @@ namespace Tilc {
                         Caption = Item.EditLabel;
                     }
                     EditWindow->SetChildrenTextes(Item.GetDataMap());
-
-                    auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(EditWindow, "FormPackage"));
                     if (FormPackage)
                     {
                         FormPackage->lblTitle->SetText(Caption);
                     }
                 }
             }
-            static void ShowListWindow(Tilc::Gui::TStyledWindow* ListWindow)
+            static void ShowListWindow(TFormPackage* Pack)
             {
                 static bool FetchItemsFromDatabase = true;
+                Tilc::Gui::TStyledWindow* ListWindow = Pack->WndListForm;
                 if (ListWindow)
                 {
                     if (auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(ListWindow, "FormPackage")); FormPackage)
@@ -157,7 +196,7 @@ namespace Tilc {
                             FetchItemsFromDatabase = false;
                             if (FormPackage->lbList)
                             {
-                                FormPackage->RefreshList(FormPackage->lbList, Fetch(FormPackage->Url_List));
+                                FormPackage->RefreshList(FormPackage->lbList, Tilc::Apps::Www::Fetch(FormPackage->Url_List));
                             }
                         }
                     }
@@ -176,14 +215,14 @@ namespace Tilc {
                     auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
                     if (EditWindow)
                     {
-                        if (auto* btnSave = EditWindow->GetChild("btnSave"); btnSave)
+                        if (auto* btnSave = EditWindow->GetChild("SaveButton"); btnSave)
                         {
                             btnSave->SetText("Dodaj");
                             if (FormPackage->HideAllWindowsFromParent)
                             {
                                 FormPackage->HideAllWindowsFromParent();
                             }
-                            TFormPackage::ShowEditWindow(EditWindow, {});
+                            TFormPackage::ShowEditWindow(FormPackage, {});
                             if (FormPackage->lblTitle)
                             {
                                 Tilc::TExtString Caption = "Dodaj kategorię";
@@ -204,14 +243,8 @@ namespace Tilc {
                     auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
                     if (EditWindow)
                     {
-                        if (auto* btnSave = EditWindow->GetChild("btnSave"); btnSave)
+                        if (auto* btnSave = EditWindow->GetChild("SaveButton"); btnSave)
                         {
-                            btnSave->SetText("Zapisz");
-                            if (FormPackage->HideAllWindowsFromParent)
-                            {
-                                FormPackage->HideAllWindowsFromParent();
-                            }
-
                             if (FormPackage->lbList)
                             {
                                 Tilc::Gui::TGuiControlItem* SelectedItem = FormPackage->lbList->GetSelectedItem();
@@ -242,13 +275,19 @@ namespace Tilc {
                                         else
                                         {
                                             // Tutaj pobieramy dane kategorii z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
-                                            Item = Fetch<TItemType>(FormPackage->Url_GetItem, Id);
+                                            Item = Tilc::Apps::Www::Fetch<TItemType>(FormPackage->Url_GetItem, Id);
                                             FormPackage->m_ChangedItems.push_back(Item);
                                             Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
                                         }
                                     }
 
-                                    TFormPackage::ShowEditWindow(EditWindow, Item, Index);
+                                    btnSave->SetText("Zapisz");
+                                    if (FormPackage->HideAllWindowsFromParent)
+                                    {
+                                        FormPackage->HideAllWindowsFromParent();
+                                    }
+
+                                    TFormPackage::ShowEditWindow(FormPackage, Item, Index);
 
                                     FormPackage->lblTitle->SetText(Item.EditLabel);
                                 }
@@ -283,7 +322,7 @@ namespace Tilc {
                         {
                             FormPackage->m_ItemsToDelete.push_back(std::stoi(SelectedItem->m_Props["id"]));
                         }
-                        FormPackage->DeleteItem(Index);
+                        FormPackage->lbList->DeleteItem(Index);
                     }
                 }
                 return 0;
@@ -309,10 +348,10 @@ namespace Tilc {
                         }
                         else
                         {
-                            NewItem = Tilc::Apps::Www::Fetch<Tilc::Commerce::TCategory>(FormPackage->Url_GetItem, SelectedItem->m_Props["id"]);
+                            NewItem = Tilc::Apps::Www::Fetch<TItemType>(FormPackage->Url_GetItem, SelectedItem->m_Props["id"]);
                         }
                         NewItem.id = "";
-                        FormPackage->m_ChangedCategories.push_back(NewItem);
+                        FormPackage->m_ChangedItems.push_back(NewItem);
                         Tilc::Gui::TGuiControlItem* Item = FormPackage->lbList->AddItem(NewItem.GetDataForListColumns());
                         Item->m_Props["id"] = "";
                         Item->m_Props["IndexInChangedList"] = std::to_string(FormPackage->m_ChangedItems.size() - 1);
@@ -336,8 +375,9 @@ namespace Tilc {
                     {
                         FormPackage->m_ChangedItems.push_back(Item);
                         Tilc::Gui::TGuiControlItem* lbItem = FormPackage->lbList->AddItem(Item.GetDataForListColumns());
-                        Item->m_Props["id"] = "";
-                        Item->m_Props["IndexInChangedList"] = std::to_string(FormPackage->m_ChangedItems.size() - 1);
+                        int AddedIndex = FormPackage->m_ChangedItems.size() - 1;
+                        lbItem->m_Props["id"] = "";
+                        lbItem->m_Props["IndexInChangedList"] = std::to_string(AddedIndex);
                     }
                     else
                     {
@@ -350,40 +390,15 @@ namespace Tilc {
                     }
 
                 }
-                TFormPackage::ShowListWindow(ListWindow);
+                TFormPackage::ShowListWindow(FormPackage);
                 return 0;
             }
 
             static int OnEditCancelClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
             {
                 auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
-                TFormPackage::ShowListWindow(ListWindow);
-                return 0;
-            }
-
-            int OnSyncClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
-            {
-                auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
-                auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
                 auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
-                if (FormPackage->lbList)
-                {
-                    // Tutaj usuwamy puste pozycje z listy pozycji zmienionych, bo nie chcemy ich zapisać w bazie oraz konieczność poprawności mapowania indeksów
-                    // nie jest juz konieczna ze względu na to, ze po zapisie lista pozycji jest pobierana na nowo i wektory zmian są zerowane. Czyli stan formularza
-                    // zostaje zresetowany do stanu początkowego z uaktualnioną listą
-                    Tilc::TExtString ItemsJson;
-                    if (FormPackage->m_ItemsToDelete.size() > 0)
-                    {
-                        ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, FormPackage->m_ItemsToDelete);
-                    }
-                    if (FormPackage->m_ChangedItems.size() > 0)
-                    {
-                        ItemsJson = Tilc::Apps::Www::Save<Tilc::Commerce::TCategory>(Url_Save, FormPackage->m_ChangedItems);
-                    }
-                    TFormPackage::RefreshList(FormPackage->lbList, ItemsJson);
-                }
-                FormPackage->m_ItemsToDelete.clear();
-                FormPackage->m_ChangedItems.clear();
+                TFormPackage::ShowListWindow(FormPackage);
                 return 0;
             }
             // *******************************************************************************************************************
@@ -520,6 +535,11 @@ namespace Tilc {
                 WndEditForm->Hide();
 
                 Tilc::Gui::TForm::CreateForm(WndEditForm, FormFields);
+
+                Tilc::Gui::TGuiControl* btnSave = WndEditForm->GetChild("SaveButton");
+                btnSave->OnClick = &TFormPackage::OnEditOkClick;
+                Tilc::Gui::TGuiControl* btnCancel = WndEditForm->GetChild("CancelButton");
+                btnCancel->OnClick = &TFormPackage::OnEditCancelClick;
             }
 
             void RefreshList(Tilc::Gui::TMultiColumnListbox* lb, Tilc::TExtString ItemsJson)
@@ -528,13 +548,26 @@ namespace Tilc {
                 lbList->SetColumnWidths(lbListColumnsWidths);
                 lbList->SetHeaderCaptions(lbListColumnsCaptions);
 
-                TItemType Item;
-                Item.FromJson(ItemsJson);
-                auto* lbItem = lb->AddItem(Item.GetDataForListColumns());
-                if (lbItem)
+                Tilc::TJsonParser JsonParser;
+                Tilc::TStdObject* JsonRoot = JsonParser.parse(ItemsJson);
+                if (JsonRoot)
                 {
-                    lbItem->m_Props["id"] = Item.id;
-                    lbItem->m_Props["IndexInChangedList"] = "-1";
+                    for (auto* ItemObject : *JsonRoot->getAsObject("root")->getAsArray("items"))
+                    {
+                        Tilc::TStdObject* o = ItemObject->oValue;
+                        if (o)
+                        {
+                            TItemType Item;
+                            Item.FromJsonObject(o);
+                            auto* lbItem = lb->AddItem(Item.GetDataForListColumns());
+                            if (lbItem)
+                            {
+                                lbItem->m_Props["id"] = Item.id;
+                                lbItem->m_Props["IndexInChangedList"] = "-1";
+                            }
+                        }
+                    }
+                    delete JsonRoot;
                 }
             }
         };

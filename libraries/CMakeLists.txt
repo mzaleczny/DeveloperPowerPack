@@ -423,6 +423,8 @@ AddPlatformSpecificSourcesRecurse(Tilc/OS)
 
 if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
     AddSourcesRecurse(Tilc/Apps/Www)
+else()
+    AddSourcesRecurse(Tilc/Apps/Www/Api)
 endif()
 #################################################################################################
 #################################################################################################

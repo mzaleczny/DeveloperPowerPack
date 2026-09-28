@@ -613,7 +613,7 @@ void Tilc::Gui::TGuiControl::SetChildText(const Tilc::TExtString& name, const Ti
     }
 }
 
-void Tilc::Gui::TGuiControl::SetChildrenTextes(std::unordered_map<TExtString, TExtString>& ControlsTextesToSet)
+void Tilc::Gui::TGuiControl::SetChildrenTextes(std::unordered_map<TExtString, TExtString> ControlsTextesToSet)
 {
     for (auto [name, text] : ControlsTextesToSet)
     {

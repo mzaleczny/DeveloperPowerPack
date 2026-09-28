@@ -6,6 +6,7 @@
 #include "Tilc/Net/Http.h"
 #include "Tilc/Commerce/Shop.h"
 #include <iostream>
+#include <print>
 #include "Tilc/Utils/JsonParser.h"
 
 namespace Tilc
@@ -53,6 +54,7 @@ namespace Tilc
                     "Items": [{ITEMS}]
                 })##";
                 Json.StrReplace("{ITEMS}", JsonItems);
+                //std::print("{}", Json.c_str());
                 return Http.DoPost(std::move(Url), Json, {}, ResultCode);
             }
 

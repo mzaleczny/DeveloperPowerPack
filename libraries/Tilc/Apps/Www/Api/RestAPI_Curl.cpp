@@ -1,6 +1,6 @@
 #ifndef __EMSCRIPTEN__
 
-#include "Tilc/Apps/Www/RestAPI.h"
+#include "Tilc/Apps/Www/Api/RestAPI.h"
 
 Tilc::TExtString Tilc::Apps::Www::Delete(Tilc::TExtString Url, std::vector<int>& Ids)
 {
