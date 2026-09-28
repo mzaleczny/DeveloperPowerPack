@@ -138,10 +138,10 @@ void Tilc::Commerce::TProduct::FromJsonObject(Tilc::TStdObject* JsonObject)
         slug = JsonObject->getAsString("slug");
         short_description = JsonObject->getAsStringUnescaped("short_description");
         description = JsonObject->getAsStringUnescaped("description");
-        price = JsonObject->getAsStringUnescaped("price");
-        price_1 = JsonObject->getAsStringUnescaped("price_1");
-        price_2 = JsonObject->getAsStringUnescaped("price_2");
-        price_3 = JsonObject->getAsStringUnescaped("price_3");
+        price.FromString(JsonObject->getAsStringUnescaped("price"), '.');
+        price_1.FromString(JsonObject->getAsStringUnescaped("price_1"), '.');
+        price_2.FromString(JsonObject->getAsStringUnescaped("price_2"), '.');
+        price_3.FromString(JsonObject->getAsStringUnescaped("price_3"), '.');
         mini_map_file = JsonObject->getAsStringUnescaped("mini_map_file");
         css_class = JsonObject->getAsStringUnescaped("css_class");
         product_code = JsonObject->getAsStringUnescaped("product_code");
