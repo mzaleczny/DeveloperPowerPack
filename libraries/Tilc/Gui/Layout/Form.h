@@ -105,22 +105,54 @@ namespace Tilc {
                     // Tutaj usuwamy puste pozycje z listy pozycji zmienionych, bo nie chcemy ich zapisać w bazie oraz konieczność poprawności mapowania indeksów
                     // nie jest juz konieczna ze względu na to, ze po zapisie lista pozycji jest pobierana na nowo i wektory zmian są zerowane. Czyli stan formularza
                     // zostaje zresetowany do stanu początkowego z uaktualnioną listą
+                    std::erase_if(m_ChangedItems, [](auto x) {
+                        return x.IsEmpty();
+                    });
+
                     Tilc::TExtString ItemsJson;
+                    bool DoRefreshAfterUpdate = m_ItemsToDelete.size() > 0;
+
                     if (m_ItemsToDelete.size() > 0)
                     {
+#ifdef __EMSCRIPTEN__
+                        Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete, [this](Tilc::TExtString ItemsJson) {
+                            m_ItemsToDelete.clear();
+                            if (!DoRefreshAfterUpdate && !ItemsJson.empty())
+                            {
+                                TFormPackage::RefreshList(lbList, ItemsJson);
+                            }
+                        });
+#else
                         ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete);
+                        m_ItemsToDelete.clear();
+                        if (!DoRefreshAfterUpdate && !ItemsJson.empty())
+                        {
+                            TFormPackage::RefreshList(lbList, ItemsJson);
+                        }
+#endif
                     }
+
+
                     if (m_ChangedItems.size() > 0)
                     {
+#ifdef __EMSCRIPTEN__
+                        Tilc::Apps::Www::Save(Url_Save, m_ChangedItems, [this, DoRefreshAfterUpdate](Tilc::TExtString ItemsJson) {
+                            m_ChangedItems.clear();
+                            if (!DoRefreshAfterUpdate && !ItemsJson.empty())
+                            {
+                                TFormPackage::RefreshList(lbList, ItemsJson);
+                            }
+                        });
+#else
                         ItemsJson = Tilc::Apps::Www::Save<TItemType>(Url_Save, m_ChangedItems);
-                    }
-                    if (!ItemsJson.empty())
-                    {
-                        TFormPackage::RefreshList(lbList, ItemsJson);
+                        m_ChangedItems.clear();
+                        if (!ItemsJson.empty())
+                        {
+                            TFormPackage::RefreshList(lbList, ItemsJson);
+                        }
+#endif
                     }
                 }
-                m_ItemsToDelete.clear();
-                m_ChangedItems.clear();
                 return 0;
             }
 
@@ -196,7 +228,13 @@ namespace Tilc {
                             FetchItemsFromDatabase = false;
                             if (FormPackage->lbList)
                             {
+#ifdef __EMSCRIPTEN__
+                                FetchAsync(FormPackage->Url_List, [FormPackage](Tilc::TExtString Json) {
+                                    FormPackage->RefreshList(FormPackage->lbList, Json);
+                                });
+#else
                                 FormPackage->RefreshList(FormPackage->lbList, Tilc::Apps::Www::Fetch(FormPackage->Url_List));
+#endif
                             }
                         }
                     }
@@ -253,11 +291,20 @@ namespace Tilc {
                                     TItemType Item;
                                     Tilc::TExtString Id = SelectedItem->m_Props["id"];
                                     Tilc::TExtString IndexInChangedList = SelectedItem->m_Props["IndexInChangedList"];
+
+                                    btnSave->SetText("Zapisz");
+                                    if (FormPackage->HideAllWindowsFromParent)
+                                    {
+                                        FormPackage->HideAllWindowsFromParent();
+                                    }
+                                    FormPackage->lblTitle->SetText(Item.EditLabel);
+
                                     int Index = -1;
                                     if (IndexInChangedList != "-1")
                                     {
                                         Index = std::stoi(IndexInChangedList);
                                         Item = FormPackage->m_ChangedItems[Index];
+                                        TFormPackage::ShowEditWindow(FormPackage, Item, Index);
                                     }
                                     else
                                     {
@@ -271,25 +318,26 @@ namespace Tilc {
                                         {
                                             Index = static_cast<int>(std::ranges::distance(FormPackage->m_ChangedItems.begin(), it));
                                             Item = FormPackage->m_ChangedItems[Index];
+                                            TFormPackage::ShowEditWindow(FormPackage, Item, Index);
                                         }
                                         else
                                         {
                                             // Tutaj pobieramy dane kategorii z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
+#ifdef __EMSCRIPTEN__
+                                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [&Item, FormPackage](Tilc::TExtString ItemJson) {
+                                                Item.FromJson(ItemJson);
+                                                FormPackage->m_ChangedItems.push_back(Item);
+                                                Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
+                                                TFormPackage::ShowEditWindow(FormPackage, Item, Index);
+                                            });
+#else
                                             Item = Tilc::Apps::Www::Fetch<TItemType>(FormPackage->Url_GetItem, Id);
                                             FormPackage->m_ChangedItems.push_back(Item);
                                             Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
+                                            TFormPackage::ShowEditWindow(FormPackage, Item, Index);
+#endif
                                         }
                                     }
-
-                                    btnSave->SetText("Zapisz");
-                                    if (FormPackage->HideAllWindowsFromParent)
-                                    {
-                                        FormPackage->HideAllWindowsFromParent();
-                                    }
-
-                                    TFormPackage::ShowEditWindow(FormPackage, Item, Index);
-
-                                    FormPackage->lblTitle->SetText(Item.EditLabel);
                                 }
                             }
                         }
@@ -345,16 +393,33 @@ namespace Tilc {
                         {
                             NewItem = FormPackage->m_ChangedItems[std::stoi(IndexInChangedList)];
                             FormPackage->m_ChangedItems.erase(FormPackage->m_ChangedItems.begin() + std::stoi(IndexInChangedList));
+                            NewItem.id = "";
+                            FormPackage->m_ChangedItems.push_back(NewItem);
+                            Tilc::Gui::TGuiControlItem* Item = FormPackage->lbList->AddItem(NewItem.GetDataForListColumns());
+                            Item->m_Props["id"] = "";
+                            Item->m_Props["IndexInChangedList"] = std::to_string(FormPackage->m_ChangedItems.size() - 1);
                         }
                         else
                         {
+#ifdef __EMSCRIPTEN__
+                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [ormPackage](Tilc::TExtString ItemJson) {
+                                TItemType NewItem;
+                                NewItem.FromJson(ItemJson);
+                                NewItem.id = "";
+                                FormPackage->m_ChangedItems.push_back(NewItem);
+                                Tilc::Gui::TGuiControlItem* Item = FormPackage->lbList->AddItem(NewItem.GetDataForListColumns());
+                                Item->m_Props["id"] = "";
+                                Item->m_Props["IndexInChangedList"] = std::to_string(FormPackage->m_ChangedItems.size() - 1);
+                            });
+#else
                             NewItem = Tilc::Apps::Www::Fetch<TItemType>(FormPackage->Url_GetItem, SelectedItem->m_Props["id"]);
+                            NewItem.id = "";
+                            FormPackage->m_ChangedItems.push_back(NewItem);
+                            Tilc::Gui::TGuiControlItem* Item = FormPackage->lbList->AddItem(NewItem.GetDataForListColumns());
+                            Item->m_Props["id"] = "";
+                            Item->m_Props["IndexInChangedList"] = std::to_string(FormPackage->m_ChangedItems.size() - 1);
+#endif
                         }
-                        NewItem.id = "";
-                        FormPackage->m_ChangedItems.push_back(NewItem);
-                        Tilc::Gui::TGuiControlItem* Item = FormPackage->lbList->AddItem(NewItem.GetDataForListColumns());
-                        Item->m_Props["id"] = "";
-                        Item->m_Props["IndexInChangedList"] = std::to_string(FormPackage->m_ChangedItems.size() - 1);
                     }
                 }
                 return 0;
