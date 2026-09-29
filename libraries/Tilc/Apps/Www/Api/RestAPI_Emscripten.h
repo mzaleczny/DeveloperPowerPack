@@ -4,6 +4,8 @@
 
 #include <emscripten/fetch.h>
 #include "Tilc/Utils/ExtString.h"
+#include <iostream>
+#include <functional>
 
 namespace Tilc
 {
@@ -15,7 +17,7 @@ namespace Tilc
             inline void FetchAsync(Tilc::TExtString Url, Callback onComplete)
             {
                 // Tworzymy strukturę danych do przekazania do callbacku
-                auto context = new std::function<void(std::string)>(onComplete);
+                auto context = new std::function<void(Tilc::TExtString)>(onComplete);
 
                 emscripten_fetch_attr_t attr;
                 emscripten_fetch_attr_init(&attr);
@@ -25,7 +27,7 @@ namespace Tilc
                 attr.userData = context; // Przekazujemy wskaźnik do naszej funkcji
 
                 attr.onsuccess = [](emscripten_fetch_t* fetch) {
-                    auto cb = static_cast<std::function<void(std::string)>*>(fetch->userData);
+                    auto cb = static_cast<std::function<void(Tilc::TExtString)>*>(fetch->userData);
                     std::cout << "[C++ WASM] Pobrano " << fetch->numBytes << " bajtów z API.\n";
 
                     Tilc::TExtString json(fetch->data, fetch->numBytes);
@@ -36,7 +38,7 @@ namespace Tilc
                 };
 
                 attr.onerror = [](emscripten_fetch_t* fetch) {
-                    auto cb = static_cast<std::function<void(std::string)>*>(fetch->userData);
+                    auto cb = static_cast<std::function<void(Tilc::TExtString)>*>(fetch->userData);
                     std::cout << "[C++ WASM] Zapytanie do REST API nie powiodło się, status: "
                               << fetch->status << std::endl;
 
@@ -50,52 +52,62 @@ namespace Tilc
             template <typename Callback>
             inline void DoPostAsync(Tilc::TExtString Url, Tilc::TExtString JsonPayload, Callback onComplete)
             {
-                // Tworzymy strukturę danych do przekazania do callbacku
-                auto context = new std::function<void(std::string)>(onComplete);
+                // 1. Tworzymy strukturę, która przechowa ZARÓWNO callback, JAK I kopię danych payloadu
+                struct FetchContext {
+                    std::function<void(Tilc::TExtString)> callback;
+                    std::string payloadData; // Trzymamy dane w pamięci tak długo, jak żyje context
+                };
+
+                auto context = new FetchContext{
+                    onComplete,
+                    std::string(JsonPayload.c_str(), JsonPayload.length()) // Kopia zapasowa danych
+                };
 
                 emscripten_fetch_attr_t attr;
                 emscripten_fetch_attr_init(&attr);
 
-                // 1. Ustawienie metody
                 strcpy(attr.requestMethod, "POST");
-
-                // 2. Wskazanie flagi ładowania do pamięci
                 attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+                attr.userData = context; // Przekazujemy wskaźnik do naszej struktury
 
-                // 3. Nagłówki zapytania (musi kończyć się NULL)
                 const char* headers[] = {
                     "Content-Type", "application/json",
                     NULL
                 };
                 attr.requestHeaders = headers;
 
-                // 4. Treść wiadomości (Body) i jej rozmiar
-                attr.requestData = JsonPayload.c_str();
-                attr.requestDataSize = JsonPayload.length();
+                // 2. Wskazujemy na dane z BEZPIECZNEGO obiektu w context (żyjącego na stercie)
+                attr.requestData = context->payloadData.c_str();
+                attr.requestDataSize = context->payloadData.length();
 
-                // 5. Rejestracja callbacków
-
+                // 3. Callbacki
                 attr.onsuccess = [](emscripten_fetch_t* fetch) {
-                    auto cb = static_cast<std::function<void(std::string)>*>(fetch->userData);
-                    std::cout << "[C++ WASM] Pobrano " << fetch->numBytes << " bajtów z API.\n";
+                    auto ctx = static_cast<FetchContext*>(fetch->userData);
 
                     Tilc::TExtString json(fetch->data, fetch->numBytes);
-                    (*cb)(json);
 
-                    delete cb;
+                    // Wywołujemy callback użytkownika
+                    if (ctx->callback) {
+                        ctx->callback(json);
+                    }
+
+                    // Zwalniamy context DOPERO TERAZ (razem z buforem payloadData)
+                    delete ctx;
                     emscripten_fetch_close(fetch);
                 };
 
                 attr.onerror = [](emscripten_fetch_t* fetch) {
-                    auto cb = static_cast<std::function<void(std::string)>*>(fetch->userData);
+                    auto ctx = static_cast<FetchContext*>(fetch->userData);
+
                     std::cout << "[C++ WASM] Zapytanie do REST API nie powiodło się, status: "
                               << fetch->status << std::endl;
 
-                    delete cb;
+                    // Zwalniamy context w przypadku błędu
+                    delete ctx;
                     emscripten_fetch_close(fetch);
                 };
 
-                // 6. Wysyłanie zapytania w tle
+                // 4. Wysyłanie zapytania
                 emscripten_fetch(&attr, Url.c_str());
             }
 

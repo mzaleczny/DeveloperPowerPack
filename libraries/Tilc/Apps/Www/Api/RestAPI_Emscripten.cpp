@@ -1,6 +1,6 @@
 #ifdef __EMSCRIPTEN__
 
-#include "Tilc/Apps/Www/RestAPI.h"
+#include "Tilc/Apps/Www/Api/RestAPI.h"
 #include <iostream>
 
 #endif

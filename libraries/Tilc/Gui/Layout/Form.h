@@ -115,7 +115,7 @@ namespace Tilc {
                     if (m_ItemsToDelete.size() > 0)
                     {
 #ifdef __EMSCRIPTEN__
-                        Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete, [this](Tilc::TExtString ItemsJson) {
+                        Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete, [this, DoRefreshAfterUpdate](Tilc::TExtString ItemsJson) {
                             m_ItemsToDelete.clear();
                             if (!DoRefreshAfterUpdate && !ItemsJson.empty())
                             {
@@ -229,7 +229,7 @@ namespace Tilc {
                             if (FormPackage->lbList)
                             {
 #ifdef __EMSCRIPTEN__
-                                FetchAsync(FormPackage->Url_List, [FormPackage](Tilc::TExtString Json) {
+                                Tilc::Apps::Www::FetchAsync(FormPackage->Url_List, [FormPackage](Tilc::TExtString Json) {
                                     FormPackage->RefreshList(FormPackage->lbList, Json);
                                 });
 #else
@@ -324,10 +324,11 @@ namespace Tilc {
                                         {
                                             // Tutaj pobieramy dane kategorii z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
 #ifdef __EMSCRIPTEN__
-                                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [&Item, FormPackage](Tilc::TExtString ItemJson) {
+                                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [FormPackage](Tilc::TExtString ItemJson) {
+                                                TItemType Item;
                                                 Item.FromJson(ItemJson);
                                                 FormPackage->m_ChangedItems.push_back(Item);
-                                                Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
+                                                int Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
                                                 TFormPackage::ShowEditWindow(FormPackage, Item, Index);
                                             });
 #else
@@ -402,7 +403,7 @@ namespace Tilc {
                         else
                         {
 #ifdef __EMSCRIPTEN__
-                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [ormPackage](Tilc::TExtString ItemJson) {
+                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, SelectedItem->m_Props["id"], [FormPackage](Tilc::TExtString ItemJson) {
                                 TItemType NewItem;
                                 NewItem.FromJson(ItemJson);
                                 NewItem.id = "";
