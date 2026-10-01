@@ -393,7 +393,6 @@ namespace Tilc {
                         if (IndexInChangedList != "-1")
                         {
                             NewItem = FormPackage->m_ChangedItems[std::stoi(IndexInChangedList)];
-                            FormPackage->m_ChangedItems.erase(FormPackage->m_ChangedItems.begin() + std::stoi(IndexInChangedList));
                             NewItem.id = "";
                             FormPackage->m_ChangedItems.push_back(NewItem);
                             Tilc::Gui::TGuiControlItem* Item = FormPackage->lbList->AddItem(NewItem.GetDataForListColumns());
