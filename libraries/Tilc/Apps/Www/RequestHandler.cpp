@@ -39,6 +39,18 @@ void Tilc::Apps::Www::TRequestHandler::Init()
         if (size_t pos = RequestUri.find("?"); pos != std::string::npos)
         {
             RequestUri = RequestUri.substr(0, pos);
+
+            RequestGetVariables.clear();
+            std::vector<Tilc::TExtString> VariablesPairs, Var;
+            QueryString.Explode('&', VariablesPairs);
+            for (auto pair : VariablesPairs)
+            {
+                pair.Explode('=', Var);
+                if (Var.size() == 2)
+                {
+                    RequestGetVariables[Var[1]] = Var[2];
+                }
+            }
         }
         RequestUri.Explode('/', UriParts);
         // remove all empy UriParts from the beginning

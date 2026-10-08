@@ -62,6 +62,7 @@ namespace Tilc
                 Tilc::TExtString ContentType{"text/html"};
 
                 std::vector<Tilc::TExtString> Headers;
+                std::unordered_map<std::string, Tilc::TExtString> RequestGetVariables;
 
                 // PostData
                 long int ContentLength{ 0 };
