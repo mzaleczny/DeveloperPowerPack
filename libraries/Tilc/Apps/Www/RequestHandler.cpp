@@ -62,7 +62,15 @@ void Tilc::Apps::Www::TRequestHandler::Init()
     }
 
     // Get client request headers
-    Bearer = FCGX_GetParam("HTTP_BEARER", request->envp) ? FCGX_GetParam("HTTP_BEARER", request->envp) : "";
+    Bearer = FCGX_GetParam("Authorization", request->envp) ? FCGX_GetParam("Authorization", request->envp) : "";
+    if (Bearer.empty())
+    {
+        Bearer = FCGX_GetParam("HTTP_BEARER", request->envp) ? FCGX_GetParam("HTTP_BEARER", request->envp) : "";
+    }
+    if (auto pos = Bearer.find("Bearer "); pos != std::string::npos)
+    {
+        Bearer = Bearer.substr(0, pos + 7);
+    }
 }
 
 void Tilc::Apps::Www::TRequestHandler::Cleanup()
