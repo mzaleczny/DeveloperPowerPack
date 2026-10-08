@@ -50,7 +50,7 @@ namespace Tilc
             }
 
             template <typename Callback>
-            inline void DoPostAsync(Tilc::TExtString Url, Tilc::TExtString JsonPayload, Callback onComplete)
+            inline void DoPostAsync(Tilc::TExtString Url, Tilc::TExtString JsonPayload, Callback onComplete, std::initialization_list<const char*> Headers = {})
             {
                 // 1. Tworzymy strukturę, która przechowa ZARÓWNO callback, JAK I kopię danych payloadu
                 struct FetchContext {
@@ -70,11 +70,15 @@ namespace Tilc
                 attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
                 attr.userData = context; // Przekazujemy wskaźnik do naszej struktury
 
-                const char* headers[] = {
+                std::vector<const char*> Hdrs[] = {
                     "Content-Type", "application/json",
-                    NULL
                 };
-                attr.requestHeaders = headers;
+                for (auto Hdr : Headers)
+                {
+                    Hdrs.push_back(Hdr);
+                }
+                Hdrs.push_back(nullptr);
+                attr.requestHeaders = headers.data();
 
                 // 2. Wskazujemy na dane z BEZPIECZNEGO obiektu w context (żyjącego na stercie)
                 attr.requestData = context->payloadData.c_str();
