@@ -14,7 +14,7 @@ namespace Tilc
         namespace Www
         {
             template <typename Callback>
-            inline void FetchAsync(Tilc::TExtString Url, Callback onComplete)
+            inline void FetchAsync(Tilc::TExtString Url, Callback onComplete, std::vector<Tilc::TExtString> Headers = {})
             {
                 // Tworzymy strukturę danych do przekazania do callbacku
                 auto context = new std::function<void(Tilc::TExtString)>(onComplete);
@@ -25,6 +25,16 @@ namespace Tilc
                 strcpy(attr.requestMethod, "GET");
                 attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
                 attr.userData = context; // Przekazujemy wskaźnik do naszej funkcji
+
+                std::vector<const char*> Hdrs[] = {
+                    "Content-Type", "application/json",
+                };
+                for (auto Hdr : Headers)
+                {
+                    Hdrs.push_back(Hdr.c_str());
+                }
+                Hdrs.push_back(nullptr);
+                attr.requestHeaders = headers.data();
 
                 attr.onsuccess = [](emscripten_fetch_t* fetch) {
                     auto cb = static_cast<std::function<void(Tilc::TExtString)>*>(fetch->userData);
