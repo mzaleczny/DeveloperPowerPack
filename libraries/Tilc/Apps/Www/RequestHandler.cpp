@@ -1,5 +1,6 @@
 #include "Tilc/Apps/Www/RequestHandler.h"
 #include "Tilc/Apps/Www/WwwApp.h"
+#include "Tilc/Globals.h"
 
 long long int Tilc::Apps::Www::TRequestHandler::Count = 0;
 
@@ -39,18 +40,6 @@ void Tilc::Apps::Www::TRequestHandler::Init()
         if (size_t pos = RequestUri.find("?"); pos != std::string::npos)
         {
             RequestUri = RequestUri.substr(0, pos);
-
-            RequestGetVariables.clear();
-            std::vector<Tilc::TExtString> VariablesPairs, Var;
-            QueryString.Explode('&', VariablesPairs);
-            for (auto pair : VariablesPairs)
-            {
-                pair.Explode('=', Var);
-                if (Var.size() == 2)
-                {
-                    RequestGetVariables[Var[1]] = Var[2];
-                }
-            }
         }
         RequestUri.Explode('/', UriParts);
         // remove all empy UriParts from the beginning
@@ -131,12 +120,13 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
     switch (RequestMethod)
     {
         case ERequestMethod::ERM_GET:
+            ReadGetData();
             break;
         case ERequestMethod::ERM_POST:
             ReadPostData();
             break;
         default:
-           break;
+            break;
     }
     
     Tilc::TExtString Url = "/" + Tilc::Implode('/', UriParts);
@@ -152,47 +142,39 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
     OutputHeaders();
 }
 
+void Tilc::Apps::Www::TRequestHandler::ExtractVariablesFromQueryString(const Tilc::TExtString QueryString, std::unordered_map<std::string, Tilc::TExtString>& Map)
+{
+    Map.clear();
+    if (QueryString.empty())
+    {
+        return;
+    }
+    std::vector<Tilc::TExtString> VariablesPairs, Var;
+    QueryString.Explode('&', VariablesPairs);
+    for (auto pair : VariablesPairs)
+    {
+        pair.Explode('=', Var);
+        if (Var.size() == 2)
+        {
+            Map[Var[0]] = Var[1];
+        }
+    }
+}
+
+void Tilc::Apps::Www::TRequestHandler::ReadGetData()
+{
+    ExtractVariablesFromQueryString(QueryString, GetVars);
+}
+
 void Tilc::Apps::Www::TRequestHandler::ReadPostData()
 {
-    ContentLength = atoi(FCGX_GetParam("CONTENT_LENGTH", request->envp));
+    using namespace CompUnits;
+    // Content-Length may be max 20MB
+    ContentLength = std::clamp(atoi(FCGX_GetParam("CONTENT_LENGTH", request->envp)), 0, 20_MB);
     Body.assign( (std::istreambuf_iterator<char>(is)),
                  (std::istreambuf_iterator<char>())
     );
-
-    // check if body is ascii-encoded or if it has non printable (binary) characters. If the first case
-    // then do urldecode on it
-    /*
-    bool IsAscii = true;
-    for (int i = 0; i < Body.size(); ++i)
-    {
-        if (!isprint(Body[i]))
-        {
-            IsAscii = false;
-            break;
-        }
-    }
-
-    if (IsAscii)
-    {
-        Body = urldecode(Body);
-    }
-    else
-    {
-
-    }
-    
-    PostVars.clear();
-    std::vector<Tilc::TExtString> Pairs, Variables;
-    Body.Explode('&', Pairs);
-    for (size_t i = 0; i < Pairs.size(); ++i)
-    {
-        Pairs[i].Explode('=', Variables);
-        if (Variables.size() == 2)
-        {
-            PostVars.emplace(Variables[0], Variables[1]);
-        }
-    }
-    */
+    ExtractVariablesFromQueryString(Body, PostVars);
 }
 
 Tilc::Apps::Www::TRequestHandler& Tilc::Apps::Www::TRequestHandler::operator<<(const std::string& val)

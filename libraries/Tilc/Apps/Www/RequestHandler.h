@@ -38,6 +38,7 @@ namespace Tilc
 
                 bool m_HeadersSent {false};
                 void OutputHeaders();
+                void ReadGetData();
                 void ReadPostData();
 
                 fcgi_streambuf cin_fcgi_streambuf;
@@ -61,13 +62,12 @@ namespace Tilc
                 Tilc::TExtString Lang;
                 Tilc::TExtString ContentType{"text/html"};
 
-                std::vector<Tilc::TExtString> Headers;
-                std::unordered_map<std::string, Tilc::TExtString> RequestGetVariables;
-
                 // PostData
                 long int ContentLength{ 0 };
                 Tilc::TExtString Body;
                 Tilc::TExtString Bearer;
+                std::vector<Tilc::TExtString> Headers;
+                std::unordered_map<std::string, Tilc::TExtString> GetVars;
                 std::unordered_map<Tilc::TExtString, Tilc::TExtString> PostVars;
 
                 TRequestHandler& operator<<(const std::string& val);
@@ -81,6 +81,7 @@ namespace Tilc
 
                 TRoutes& m_RequestHandlers;
 
+                void ExtractVariablesFromQueryString(const Tilc::TExtString QueryString, std::unordered_map<std::string, Tilc::TExtString>& Map);
             protected:
                 FCGX_Request* request = nullptr;
             };
