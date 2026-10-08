@@ -26,7 +26,7 @@ namespace Tilc
                 attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
                 attr.userData = context; // Przekazujemy wskaźnik do naszej funkcji
 
-                std::vector<const char*> Hdrs[] = {
+                std::vector<const char*> Hdrs = {
                     "Content-Type", "application/json",
                 };
                 for (auto Hdr : Headers)
@@ -80,7 +80,7 @@ namespace Tilc
                 attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
                 attr.userData = context; // Przekazujemy wskaźnik do naszej struktury
 
-                std::vector<const char*> Hdrs[] = {
+                std::vector<const char*> Hdrs = {
                     "Content-Type", "application/json",
                 };
                 for (auto Hdr : Headers)
