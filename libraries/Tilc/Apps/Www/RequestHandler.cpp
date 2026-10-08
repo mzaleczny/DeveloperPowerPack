@@ -142,7 +142,7 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
     OutputHeaders();
 }
 
-void Tilc::Apps::Www::TRequestHandler::ExtractVariablesFromQueryString(const Tilc::TExtString QueryString, std::unordered_map<std::string, Tilc::TExtString>& Map)
+static void Tilc::Apps::Www::TRequestHandler::ExtractVariablesFromQueryString(Tilc::TExtString& QueryString, std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Map)
 {
     Map.clear();
     if (QueryString.empty())
@@ -170,7 +170,7 @@ void Tilc::Apps::Www::TRequestHandler::ReadPostData()
 {
     using namespace CompUnits;
     // Content-Length may be max 20MB
-    ContentLength = std::clamp(atoi(FCGX_GetParam("CONTENT_LENGTH", request->envp)), 0, 20_MB);
+    ContentLength = std::clamp(atoi(FCGX_GetParam("CONTENT_LENGTH", request->envp)), 0, static_cast<int>(20_MB));
     Body.assign( (std::istreambuf_iterator<char>(is)),
                  (std::istreambuf_iterator<char>())
     );

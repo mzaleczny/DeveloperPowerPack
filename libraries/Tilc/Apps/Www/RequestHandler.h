@@ -67,7 +67,7 @@ namespace Tilc
                 Tilc::TExtString Body;
                 Tilc::TExtString Bearer;
                 std::vector<Tilc::TExtString> Headers;
-                std::unordered_map<std::string, Tilc::TExtString> GetVars;
+                std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetVars;
                 std::unordered_map<Tilc::TExtString, Tilc::TExtString> PostVars;
 
                 TRequestHandler& operator<<(const std::string& val);
@@ -81,7 +81,7 @@ namespace Tilc
 
                 TRoutes& m_RequestHandlers;
 
-                void ExtractVariablesFromQueryString(const Tilc::TExtString QueryString, std::unordered_map<std::string, Tilc::TExtString>& Map);
+                static void ExtractVariablesFromQueryString(Tilc::TExtString& QueryString, std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Map);
             protected:
                 FCGX_Request* request = nullptr;
             };
