@@ -34,7 +34,7 @@ namespace Tilc
                     Hdrs.push_back(Hdr.c_str());
                 }
                 Hdrs.push_back(nullptr);
-                attr.requestHeaders = headers.data();
+                attr.requestHeaders = Hdrs.data();
 
                 attr.onsuccess = [](emscripten_fetch_t* fetch) {
                     auto cb = static_cast<std::function<void(Tilc::TExtString)>*>(fetch->userData);
@@ -88,7 +88,7 @@ namespace Tilc
                     Hdrs.push_back(Hdr.c_str());
                 }
                 Hdrs.push_back(nullptr);
-                attr.requestHeaders = headers.data();
+                attr.requestHeaders = Hdrs.data();
 
                 // 2. Wskazujemy na dane z BEZPIECZNEGO obiektu w context (żyjącego na stercie)
                 attr.requestData = context->payloadData.c_str();
