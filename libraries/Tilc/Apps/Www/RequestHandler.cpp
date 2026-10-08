@@ -36,6 +36,10 @@ void Tilc::Apps::Www::TRequestHandler::Init()
     RequestMethod = ToRequestMethod(FCGX_GetParam("REQUEST_METHOD", request->envp) ? FCGX_GetParam("REQUEST_METHOD", request->envp) : "");
     if (RequestUri.length() > 0)
     {
+        if (size_t pos = RequestUri.find("?"); pos != std::string::npos)
+        {
+            RequestUri = RequestUri.substr(0, pos);
+        }
         RequestUri.Explode('/', UriParts);
         // remove all empy UriParts from the beginning
         while (UriParts.size() > 0 && UriParts[0].length() == 0)
