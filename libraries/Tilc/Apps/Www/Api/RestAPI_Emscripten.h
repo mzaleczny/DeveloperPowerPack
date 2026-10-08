@@ -50,7 +50,7 @@ namespace Tilc
             }
 
             template <typename Callback>
-            inline void DoPostAsync(Tilc::TExtString Url, Tilc::TExtString JsonPayload, Callback onComplete, std::initialization_list<const char*> Headers = {})
+            inline void DoPostAsync(Tilc::TExtString Url, Tilc::TExtString JsonPayload, Callback onComplete, std::vector<Tilc::TExtString> Headers = {})
             {
                 // 1. Tworzymy strukturę, która przechowa ZARÓWNO callback, JAK I kopię danych payloadu
                 struct FetchContext {
@@ -75,7 +75,7 @@ namespace Tilc
                 };
                 for (auto Hdr : Headers)
                 {
-                    Hdrs.push_back(Hdr);
+                    Hdrs.push_back(Hdr.c_str());
                 }
                 Hdrs.push_back(nullptr);
                 attr.requestHeaders = headers.data();
