@@ -142,7 +142,7 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
     OutputHeaders();
 }
 
-static void Tilc::Apps::Www::TRequestHandler::ExtractVariablesFromQueryString(Tilc::TExtString& QueryString, std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Map)
+void Tilc::Apps::Www::TRequestHandler::ExtractVariablesFromQueryString(Tilc::TExtString& QueryString, std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Map)
 {
     Map.clear();
     if (QueryString.empty())
