@@ -25,6 +25,7 @@ DECLSPEC std::string Tilc::Google::get_google_public_key_by_kid(const std::strin
 
 Tilc::TUser Tilc::Google::VerifyGoogleToken(const std::string& Token, const std::string& ClientId)
 {
+    Tilc::TUser Result;
     try
     {
         using json = nlohmann::json;
@@ -35,18 +36,21 @@ Tilc::TUser Tilc::Google::VerifyGoogleToken(const std::string& Token, const std:
         auto iss = decoded.get_issuer();
         if (iss != "https://accounts.google.com" && iss != "accounts.google.com")
         {
-            return {.error = "1"};
+            Result.error = "1";
+            return Result;
         }
 
         // 2. Sprawdzenie odbiorcy (aud)
         if (!decoded.has_audience())
         {
-            return {.error = "2"};
+            Result.error = "2";
+            return Result;
         }
         auto audiences = decoded.get_audience();
         if (audiences.find(ClientId) == audiences.end())
         {
-            return {.error = "3"};
+            Result.error = "3";
+            return Result;
         }
 
         // Wyciągamy dane klucza dla konkretnego kid
@@ -86,6 +90,7 @@ Tilc::TUser Tilc::Google::VerifyGoogleToken(const std::string& Token, const std:
     catch (const std::exception& e)
     {
         // Błąd weryfikacji sygnatury lub wygaśnięcie tokenu
-        return {.error = e.what()};
+        Result.error = e.what();
+        return Result;
     }
 }
