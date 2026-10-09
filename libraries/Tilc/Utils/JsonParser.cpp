@@ -785,7 +785,9 @@ void Tilc::TJsonParser::_onCompleteReadObjectAttributeSimpleValue()
     TStdObject *o = (TStdObject*)entity->entity;
     Tilc::TExtString v = this->_getStringFromCurrentToken();
 	bool isInt, isDouble;
-	if (v.isNumeric(&isInt, &isDouble))
+    // v.length() < 20 - zabezpieczenie przed próbą konwersji na int w przypadku długich strngów liczbowych przekraczających dozwolone wartości
+    // typu uint64_t
+	if (v.isNumeric(&isInt, &isDouble) && v.length() < 20)
     {
 		if (isInt)
         {
