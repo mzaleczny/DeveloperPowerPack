@@ -248,4 +248,36 @@ namespace Tilc
             }
         };
     }
+
+
+    class DECLSPEC TUser : public Commerce::TDataObject
+    {
+    public:
+        Tilc::TExtString id;
+        Tilc::TExtString name;
+        Tilc::TExtString email;
+        Tilc::TExtString sub;
+        Tilc::TExtString picture;
+        Tilc::TExtString error;
+
+        TUser()
+        {
+            TableName = "users";
+            ListLabel = "Lista użytkowników";
+            AddLabel = "Dodaj nowego użytkownika";
+            EditLabel = "Edytuj użytkownika";
+        }
+
+        std::vector<const char*> GetAllFieldsNamesList() override
+        {
+            return {"id", "name", "email", "sub", "picture"};
+        }
+        Tilc::TExtString ToJson() override;
+        void FromJson(const Tilc::TExtString& JsonContent) override;
+        void FromJsonObject(Tilc::TStdObject* JsonObject) override;
+        bool IsEmpty() const override;
+        std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() const override;
+        void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data) override;
+        std::vector<Tilc::TExtString> GetDataForListColumns() const override;
+    };
 }

@@ -35,6 +35,69 @@ Tilc::TStdObject* Tilc::Commerce::TDataObject::GetDataObject(const Tilc::TExtStr
     }
     return nullptr;
 }
+
+Tilc::TExtString Tilc::TUser::ToJson()
+{
+    return Tilc::TExtString("{\n") +
+            "\"id\": \"" + id + "\",\n" +
+            "\"name\": \"" + EscapeString(name) + "\",\n" +
+            "\"email\": \"" + EscapeString(email) + "\",\n" +
+            "\"sub\": \"" + EscapeString(sub) + "\",\n" +
+            "\"picture\": \"" + EscapeString(picture) + "\"\n" +
+        "}";
+}
+
+void Tilc::TUser::FromJson(const Tilc::TExtString& JsonContent)
+{
+    Tilc::TStdObject* JsonObject = GetDataObject(JsonContent);
+    if (JsonObject)
+    {
+        FromJsonObject(JsonObject);
+        delete JsonObject;
+    }
+}
+
+void Tilc::TUser::FromJsonObject(Tilc::TStdObject* JsonObject)
+{
+    if (JsonObject)
+    {
+        id = JsonObject->getAsString("id");
+        name = JsonObject->getAsStringUnescaped("name");
+        email = JsonObject->getAsString("email");
+        sub = JsonObject->getAsStringUnescaped("sub");
+        picture = JsonObject->getAsStringUnescaped("picture");
+    }
+}
+
+bool Tilc::TUser::IsEmpty() const
+{
+    return id.empty() && name.empty() && email.empty() && sub.empty() && picture.empty();
+}
+
+std::unordered_map<Tilc::TExtString, Tilc::TExtString> Tilc::TUser::GetDataMap() const
+{
+    std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data;
+    Data["txtId"] = id;
+    Data["txtName"] = name;
+    Data["txtEmail"] = email;
+    Data["txtSub"] = sub;
+    Data["txtPicture"] = picture;
+    return Data;
+}
+
+void Tilc::TUser::SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data)
+{
+    name = Data["txtName"];
+    email = Data["txtEmail"];
+    sub = Data["txtSub"];
+    picture = Data["txtPicture"];
+}
+
+std::vector<Tilc::TExtString> Tilc::TUser::GetDataForListColumns() const
+{
+    return {name, email, sub, picture};
+}
+
 Tilc::TExtString Tilc::Commerce::TCategory::ToJson()
 {
     Tilc::TExtString n = EscapeString(name);

@@ -23,7 +23,7 @@ DECLSPEC std::string Tilc::Google::get_google_public_key_by_kid(const std::strin
     throw std::runtime_error("Klucz o podanym kid nie został znaleziony w JWKS Google.");
 }
 
-Tilc::Google::TGoogleUser Tilc::Google::VerifyGoogleToken(const std::string& Token, const std::string& ClientId)
+Tilc::TUser Tilc::Google::VerifyGoogleToken(const std::string& Token, const std::string& ClientId)
 {
     try
     {
@@ -35,18 +35,18 @@ Tilc::Google::TGoogleUser Tilc::Google::VerifyGoogleToken(const std::string& Tok
         auto iss = decoded.get_issuer();
         if (iss != "https://accounts.google.com" && iss != "accounts.google.com")
         {
-            return {.Error = "1"};
+            return {.error = "1"};
         }
 
         // 2. Sprawdzenie odbiorcy (aud)
         if (!decoded.has_audience())
         {
-            return {.Error = "2"};
+            return {.error = "2"};
         }
         auto audiences = decoded.get_audience();
         if (audiences.find(ClientId) == audiences.end())
         {
-            return {.Error = "3"};
+            return {.error = "3"};
         }
 
         // Wyciągamy dane klucza dla konkretnego kid
@@ -75,17 +75,17 @@ Tilc::Google::TGoogleUser Tilc::Google::VerifyGoogleToken(const std::string& Tok
         verifier.verify(decoded);
         
         // Z wyczytanego tokenu możemy teraz pobrać dane użytkownika:
-        TGoogleUser u;
-        u.Email = decoded.get_payload_claim("email").as_string();
-        u.Sub = decoded.get_payload_claim("sub").as_string();
-        u.Name = decoded.get_payload_claim("name").as_string();
-        u.Picture = decoded.get_payload_claim("picture").as_string();
+        Tilc::TUser u;
+        u.email = decoded.get_payload_claim("email").as_string();
+        u.sub = decoded.get_payload_claim("sub").as_string();
+        u.name = decoded.get_payload_claim("name").as_string();
+        u.picture = decoded.get_payload_claim("picture").as_string();
 
         return u;
     }
     catch (const std::exception& e)
     {
         // Błąd weryfikacji sygnatury lub wygaśnięcie tokenu
-        return {.Error = e.what()};
+        return {.error = e.what()};
     }
 }
