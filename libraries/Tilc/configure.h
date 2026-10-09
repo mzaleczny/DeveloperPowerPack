@@ -12,4 +12,5 @@
 #define BUILD_WITH_ASSIMP 1
 #define BUILD_WITH_CURL 1
 /* #undef BUILD_WITH_LIBFCGI */
+#define BUILD_WITH_LIBJWT 1
 #define BUILD_WITH_GUI 1

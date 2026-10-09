@@ -43,6 +43,7 @@ set(LOCAL_CACHE_DIR_mariadbconnectorcpp "${LOCAL_CACHE_DIR}/mariadb-connector-cp
 set(LOCAL_CACHE_DIR_CURL_ZIP "${LOCAL_CACHE_DIR}/curl.zip")
 set(LOCAL_CACHE_DIR_CURL_DIRECTORY "${LOCAL_CACHE_DIR}/${CURL_VERSION}")
 set(LOCAL_CACHE_DIR_libfcgi "${LOCAL_CACHE_DIR}/fcgi2")
+set(LOCAL_CACHE_DIR_libjwt "${LOCAL_CACHE_DIR}/jwt-cpp")
 
 set(TAG_SDL3 "release-3.4.10")
 set(TAG_SDL3_image "release-3.4.4")
@@ -51,6 +52,7 @@ set(TAG_SDL3_mixer "release-3.2.4")
 set(TAG_zlib "v1.3.2")
 set(TAG_glm "1.0.3")
 set(TAG_assimp "v6.0.5")
+set(TAG_libjwt "v0.7.2")
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -204,6 +206,24 @@ if(NOT EXISTS "${LOCAL_CACHE_DIR_assimp}" AND "${BUILD_WITH_ASSIMP}" STREQUAL "1
     execute_process(
         COMMAND git submodule update --init --recursive
         WORKING_DIRECTORY "${LOCAL_CACHE_DIR_assimp}"
+    )
+endif()
+if(NOT EXISTS "${LOCAL_CACHE_DIR_libjwt}" AND "${BUILD_WITH_LIBJWT}" STREQUAL "1")
+    message(STATUS "Cache libjwt not found — cloning...")
+    execute_process(
+        COMMAND git clone --recurse-submodules
+                https://github.com/Thalhammer/jwt-cpp
+                "${LOCAL_CACHE_DIR_libjwt}"
+    )
+
+    execute_process(
+        COMMAND git checkout tags/${TAG_libjwt}
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_libjwt}"
+    )
+
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY "${LOCAL_CACHE_DIR_libjwt}"
     )
 endif()
 
@@ -422,9 +442,14 @@ AddSourcesRecurse(Tilc/Utils)
 AddPlatformSpecificSourcesRecurse(Tilc/OS)
 
 if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
-    AddSourcesRecurse(Tilc/Apps/Www)
+    AddSources(Tilc/Apps/Www)
+    AddSourcesRecurse(Tilc/Apps/Www/Api)
 else()
     AddSourcesRecurse(Tilc/Apps/Www/Api)
+endif()
+
+if ("${BUILD_WITH_LIBJWT}" STREQUAL "1")
+    AddSourcesRecurse(Tilc/Apps/Www/Google)
 endif()
 #################################################################################################
 #################################################################################################
@@ -440,6 +465,10 @@ list(REMOVE_DUPLICATES Tilc_HEADERS_OS)
 list(REMOVE_DUPLICATES Tilc_SOURCES_OS)
 
 include(FetchContent)
+
+# if libjwt is included then we include Google Auth functionality
+if ("${BUILD_WITH_LIBJWT}" STREQUAL "1")
+endif()
 
 # konfigurujemy ZLIB
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -694,6 +723,36 @@ if("${BUILD_WITH_ASSIMP}" STREQUAL "1")
     endif()
 endif()
 
+if("${BUILD_WITH_LIBJWT}" STREQUAL "1")
+    message("***********************************************************************")
+    message("Checking for **libjwt** and downloading it when no found")
+    message("***********************************************************************")
+    if(NOT TARGET jwt-cpp::jwt-cpp)
+        if(EXISTS "${LOCAL_CACHE_DIR_libjwt}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_external_libjwt "${LOCAL_CACHE_DIR_libjwt}" CACHE PATH "" FORCE)
+        endif()
+        if(EXISTS "${LOCAL_CACHE_DIR_libjwt}/CMakeLists.txt")
+            # Użyj cache — bez GIT_REPOSITORY
+            set(external_libjwt_SOURCE_DIR "${LOCAL_CACHE_DIR_libjwt}")
+            set(external_libjwt_BINARY_DIR "${CMAKE_BINARY_DIR}/external_libjwt-build")
+        else()
+            # Pobierz z internetu
+            FetchContent_Populate(external_libjwt
+                GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp
+                GIT_TAG        ${TAG_libjwt}
+            )
+        endif()
+        # Teraz dopiero konfiguruj
+        # Wyłączenie kompilacji przykładów i testów dla jwt-cpp
+        set(JWT_BUILD_EXAMPLES OFF CACHE BOOL "disable building examples" FORCE)
+        set(JWT_BUILD_TESTS    OFF CACHE BOOL "disable building tests" FORCE)
+        add_subdirectory(
+            ${external_libjwt_SOURCE_DIR}
+            ${external_libjwt_BINARY_DIR}
+        )
+    endif()
+endif()
+
 if(NOT TARGET ZLIB::ZLIB)
     message(STATUS "Fallback: building our own zlib")
     add_subdirectory(${LOCAL_CACHE_DIR_zlib})
@@ -866,6 +925,15 @@ if ("${BUILD_WITH_LIBFCGI}" STREQUAL "1")
         find_library(FCGIXX_LIBRARY fcgi++ REQUIRED)
         target_link_libraries("${PROJECT_NAME}Shared" PRIVATE ${FCGI_LIBRARY} ${FCGIXX_LIBRARY})
     endif()
+endif()
+
+if ("${BUILD_WITH_LIBJWT}" STREQUAL "1")
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries("${PROJECT_NAME}Shared" PRIVATE
+            "jwt-cpp::jwt-cpp"
+            "OpenSSL::SSL"
+            "OpenSSL::Crypto"
+    )
 endif()
 
 set_target_properties("${PROJECT_NAME}Shared" PROPERTIES
