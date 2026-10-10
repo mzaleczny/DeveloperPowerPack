@@ -109,6 +109,7 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
 
     if (Application && ApplicationRootDir.find(Application->GetAllowedRootDir()) != 0)
     {
+        OutputHeaders();
         return;
     }
 
