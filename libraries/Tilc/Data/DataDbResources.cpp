@@ -400,11 +400,11 @@ int64_t Tilc::Data::TDataDBResources::SetSimpleData(const char* DbFname, const c
     if (DataBuffer)
     {
         Tilc::TStringVector Values = { "", Rows[0][0] };
-        Values[5].append(DataBuffer, DataBufferSize);
+        Values[0].append(DataBuffer, DataBufferSize);
         Sql = std::format("UPDATE {} SET data=? WHERE id=?", Table);
         DB.Update(Sql.c_str(),
             {
-                Tilc::Data::EDBFieldType::EDBFT_TEXT, Tilc::Data::EDBFieldType::EDBFT_INT
+                Tilc::Data::EDBFieldType::EDBFT_BLOB, Tilc::Data::EDBFieldType::EDBFT_INT
             },
             Values);
     }
