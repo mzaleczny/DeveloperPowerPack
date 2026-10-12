@@ -352,6 +352,10 @@ int Tilc::Data::TDataDBResources::CreateSimpleDataDb(const char* DbFname, const 
 
 std::pair<int64_t, Tilc::TExtString> Tilc::Data::TDataDBResources::GetSimpleData(const char* DbFname, const char* Table, const char* VarName)
 {
+    if (!Tilc::FileExists(DbFname))
+    {
+        return {-1, ""};
+    }
     Tilc::Data::TDBSQLite DB(DbFname);
     Tilc::Data::TDBDataRows Rows;
 
