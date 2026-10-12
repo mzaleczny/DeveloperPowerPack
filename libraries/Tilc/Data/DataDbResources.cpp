@@ -343,30 +343,35 @@ int Tilc::Data::TDataDBResources::CreateSimpleDataDb(const char* DbFname, const 
     }
     Tilc::Data::TDBSQLite* DB = new Tilc::Data::TDBSQLite(DbFname);
 
-    std::string Sql = std::format("CREATE TABLE {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, data BLOB);"
+    std::string Sql = std::format("CREATE TABLE {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, data BLOB, modified TIMESTAMP);"
                 "CREATE INDEX \"idx_name\" ON resources(name);", Table);
     int Result = DB->CreateTable(Sql.c_str());
     delete DB;
     return Result;
 }
 
-std::pair<int64_t, Tilc::TExtString> Tilc::Data::TDataDBResources::GetSimpleData(const char* DbFname, const char* Table, const char* VarName)
+std::tuple<int64_t, Tilc::TExtString, std::chrono::system_clock::time_point> Tilc::Data::TDataDBResources::GetSimpleData(const char* DbFname, const char* Table, const char* VarName)
 {
     if (!Tilc::FileExists(DbFname))
     {
-        return {-1, ""};
+        return {-1, "", std::chrono::system_clock::time_point{std::chrono::seconds(0)}};
     }
     Tilc::Data::TDBSQLite DB(DbFname);
     Tilc::Data::TDBDataRows Rows;
 
-    std::string Sql = std::format("SELECT id, data FROM {} WHERE name=? LIMIT 1", Table);
+    std::string Sql = std::format("SELECT id, data, modified FROM {} WHERE name=? LIMIT 1", Table);
     DB.Select(Sql.c_str(), { Tilc::Data::EDBFieldType::EDBFT_TEXT }, { VarName }, Rows);
     if (Rows.size() != 1)
     {
-        return {-1, ""};
+        return {-1, "", std::chrono::system_clock::time_point{std::chrono::seconds(0)}};
     }
 
-    return {std::stoll(Rows[0][0]), Rows[0][1]};
+    std::istringstream in(Rows[0][2]);
+    std::chrono::sys_time<std::chrono::seconds> tp;
+    // Parsowanie formatu %F (data RRRR-MM-DD) oraz %T (czas GG:MM:SS)
+    in >> std::chrono::parse("%F %T", tp);
+
+    return {std::stoll(Rows[0][0]), Rows[0][1], tp};
 }
 
 int64_t Tilc::Data::TDataDBResources::SetSimpleData(const char* DbFname, const char* Table, const char* VarName,
@@ -390,7 +395,7 @@ int64_t Tilc::Data::TDataDBResources::SetSimpleData(const char* DbFname, const c
     DB.Select(Sql.c_str(), Types, Values, Rows);
     if (Rows.size() != 1)
     {
-        Sql = std::format("INSERT INTO {} (name, data) VALUES(?,?)", Table);
+        Sql = std::format("INSERT INTO {} (name, data, modified) VALUES(?,?,datetime('now', 'localtime'))", Table);
 
         Tilc::Data::TDBFieldTypes Types = {
             Tilc::Data::EDBFieldType::EDBFT_TEXT, Tilc::Data::EDBFieldType::EDBFT_BLOB
@@ -405,7 +410,7 @@ int64_t Tilc::Data::TDataDBResources::SetSimpleData(const char* DbFname, const c
     {
         Tilc::TStringVector Values = { "", Rows[0][0] };
         Values[0].append(DataBuffer, DataBufferSize);
-        Sql = std::format("UPDATE {} SET data=? WHERE id=?", Table);
+        Sql = std::format("UPDATE {} SET data=?, modified=datetime('now', 'localtime') WHERE id=?", Table);
         DB.Update(Sql.c_str(),
             {
                 Tilc::Data::EDBFieldType::EDBFT_BLOB, Tilc::Data::EDBFieldType::EDBFT_INT

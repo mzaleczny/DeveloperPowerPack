@@ -4,6 +4,7 @@
 #include <Tilc/Data/DbSQLite.h>
 #include "Tilc/Utils/ExtString.h"
 #include <vector>
+#include <chrono>
 
 namespace Tilc {
     namespace Data {
@@ -27,7 +28,7 @@ namespace Tilc {
 
             static int CreateSimpleDataDb(const char* DbFname, const char* Table);
             // returns id and data for specified name
-            static std::pair<int64_t, Tilc::TExtString> GetSimpleData(const char* DbFname, const char* Table, const char* VarName);
+            static std::tuple<int64_t, Tilc::TExtString, std::chrono::system_clock::time_point> GetSimpleData(const char* DbFname, const char* Table, const char* VarName);
             static int64_t SetSimpleData(const char* DbFname, const char* Table, const char* VarName, const char* DataBuffer, size_t DataBufferSize);
 
             int GetResourceIdOfName(const char* DbFname, const char* Name);
