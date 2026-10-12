@@ -336,6 +336,81 @@ int Tilc::Data::TDataDBResources::GetReferencedResourceByName(const char* DbFnam
     return 0;
 }
 
+int Tilc::Data::TDataDBResources::CreateSimpleDataDb(const char* DbFname, const char* Table) {
+    if (Tilc::FileExists(DbFname))
+    {
+        return -1;
+    }
+    Tilc::Data::TDBSQLite* DB = new Tilc::Data::TDBSQLite(DbFname);
+
+    std::string Sql = std::format("CREATE TABLE {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, data BLOB);"
+                "CREATE INDEX \"idx_name\" ON resources(name);", Table);
+    int Result = DB->CreateTable(Sql.c_str());
+    delete DB;
+    return Result;
+}
+
+std::pair<int64_t, Tilc::TExtString> Tilc::Data::TDataDBResources::GetSimpleData(const char* DbFname, const char* Table, const char* VarName)
+{
+    Tilc::Data::TDBSQLite DB(DbFname);
+    Tilc::Data::TDBDataRows Rows;
+
+    std::string Sql = std::format("SELECT id, data FROM {} WHERE name=? LIMIT 1", Table);
+    DB.Select(Sql.c_str(), { Tilc::Data::EDBFieldType::EDBFT_TEXT }, { VarName }, Rows);
+    if (Rows.size() != 1)
+    {
+        return {-1, ""};
+    }
+
+    return {std::stoll(Rows[0][0]), Rows[0][1]};
+}
+
+int64_t Tilc::Data::TDataDBResources::SetSimpleData(const char* DbFname, const char* Table, const char* VarName,
+    const char* DataBuffer, size_t DataBufferSize)
+{
+    Tilc::Data::TDBSQLite DB(DbFname);
+    char* buffer = NULL;
+    size_t buffer_size = 0;
+    int64_t id = 0;
+
+    if (!Tilc::FileExists(DbFname))
+    {
+        std::cerr << "Plik projektu nie istnieje." << std::endl;
+        return -1;
+    }
+
+    Tilc::TExtString Sql = std::format("SELECT id FROM {} WHERE name=? LIMIT 1", Table);
+    Tilc::Data::TDBFieldTypes Types = {Tilc::Data::EDBFieldType::EDBFT_TEXT};
+    Tilc::TStringVector Values = {VarName};
+    Tilc::Data::TDBDataRows Rows;
+    DB.Select(Sql.c_str(), Types, Values, Rows);
+    if (Rows.size() != 1)
+    {
+        Sql = std::format("INSERT INTO {} (name, data) VALUES(?,?)", Table);
+
+        Tilc::Data::TDBFieldTypes Types = {
+            Tilc::Data::EDBFieldType::EDBFT_TEXT, Tilc::Data::EDBFieldType::EDBFT_BLOB
+        };
+        Tilc::TStringVector Values = { VarName, "" };
+        Values[1].append(DataBuffer, DataBufferSize);
+        int InsertedId = DB.Insert(Sql.c_str(), Types, Values);
+        return InsertedId;
+    }
+
+    if (DataBuffer)
+    {
+        Tilc::TStringVector Values = { "", Rows[0][0] };
+        Values[5].append(DataBuffer, DataBufferSize);
+        Sql = std::format("UPDATE {} SET data=? WHERE id=?", Table);
+        DB.Update(Sql.c_str(),
+            {
+                Tilc::Data::EDBFieldType::EDBFT_TEXT, Tilc::Data::EDBFieldType::EDBFT_INT
+            },
+            Values);
+    }
+    return std::stoll(Rows[0][0]);
+}
+
 int Tilc::Data::TDataDBResources::GetResourceIdOfName(const char* DbFname, const char* Name)
 {
     Tilc::Data::TDBSQLite DB(DbFname);

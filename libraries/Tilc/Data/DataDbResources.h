@@ -25,6 +25,11 @@ namespace Tilc {
             int GetResourceByName(const char* DbFname, const char* Name, Tilc::TExtString& ResOrigPath, char** OutBuffer, size_t* OutBufferSize, int SlotNumber);
             int GetReferencedResourceByName(const char* DbFname, const char* ReferencingResourceName, Tilc::TExtString& ResOrigPath, char** OutBuffer, size_t* OutBufferSize, int SlotNumber);
 
+            int CreateSimpleDataDb(const char* DbFname, const char* Table);
+            // returns id and data for specified name
+            std::pair<int64_t, Tilc::TExtString> GetSimpleData(const char* DbFname, const char* Table, const char* VarName);
+            int64_t SetSimpleData(const char* DbFname, const char* Table, const char* VarName, const char* DataBuffer, size_t DataBufferSize);
+
             int GetResourceIdOfName(const char* DbFname, const char* Name);
 
             int RemoveResource(const char* DbFname, int Id);
