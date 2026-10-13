@@ -367,10 +367,29 @@ std::tuple<int64_t, Tilc::TExtString, std::chrono::system_clock::time_point> Til
     }
 
     std::istringstream in(Rows[0][2]);
+#ifndef __EMSCRIPTEN__
     std::chrono::sys_time<std::chrono::seconds> tp;
     // Parsowanie formatu %F (data RRRR-MM-DD) oraz %T (czas GG:MM:SS)
     in >> std::chrono::parse("%F %T", tp);
+#else
+    // 1. Zdefiniowanie struktury na czas kalendarzowy
+    std::tm tm = {};
 
+    // 2. Wczytanie daty i czasu za pomocą std::get_time (odpowiednik formatu %F %T to %Y-%m-%d %H:%M:%S)
+    in >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+
+    if (in.fail())
+    {
+        // Obsługa błędu parsowania
+        std::cerr << "Błąd parsowania daty!" << std::endl;
+    }
+    else
+    {
+        // 3. Konwersja std::tm na std::chrono::time_point
+        std::time_t time_val = std::mktime(&tm);
+        auto tp = std::chrono::system_clock::from_time_t(time_val);
+    }
+#endif
     return {std::stoll(Rows[0][0]), Rows[0][1], tp};
 }
 
