@@ -367,10 +367,12 @@ std::tuple<int64_t, Tilc::TExtString, std::chrono::system_clock::time_point> Til
     }
 
     std::istringstream in(Rows[0][2]);
+    std::chrono::system_clock::time_point tp;
 #ifndef __EMSCRIPTEN__
-    std::chrono::sys_time<std::chrono::seconds> tp;
+    std::chrono::sys_time<std::chrono::seconds> tps;
     // Parsowanie formatu %F (data RRRR-MM-DD) oraz %T (czas GG:MM:SS)
-    in >> std::chrono::parse("%F %T", tp);
+    in >> std::chrono::parse("%F %T", tps);
+    tp = tps;
 #else
     // 1. Zdefiniowanie struktury na czas kalendarzowy
     std::tm tm = {};
@@ -387,7 +389,7 @@ std::tuple<int64_t, Tilc::TExtString, std::chrono::system_clock::time_point> Til
     {
         // 3. Konwersja std::tm na std::chrono::time_point
         std::time_t time_val = std::mktime(&tm);
-        auto tp = std::chrono::system_clock::from_time_t(time_val);
+        tp = std::chrono::system_clock::from_time_t(time_val);
     }
 #endif
     return {std::stoll(Rows[0][0]), Rows[0][1], tp};
