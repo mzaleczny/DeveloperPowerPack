@@ -2,9 +2,6 @@
 #include "SDL3_image/SDL_image.h"
 #include "Tilc/Game.h"
 #include "Tilc/Resources/TextureManager.h"
-
-#include ".cache/assimp/code/AssetLib/COB/COBScene.h"
-#include ".cache/assimp/code/AssetLib/glTF/glTFAsset.h"
 #include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Graphics/GraphicsUtils.h"
