@@ -2,6 +2,8 @@
 #include "Tilc/Apps/Www/WwwApp.h"
 #include "Tilc/Apps/Www/Google/GoogleAuth.h"
 #include "Tilc/Commerce/Shop.h"
+#include "Tilc/Utils/JsonParser.h"
+#include "Tilc/Utils/StdObject.h"
 #include "Tilc/Globals.h"
 
 long long int Tilc::Apps::Www::TRequestHandler::Count = 0;
