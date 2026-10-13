@@ -4,6 +4,7 @@
 #include "Tilc/Commerce/Shop.h"
 #include "Tilc/Utils/JsonParser.h"
 #include "Tilc/Utils/StdObject.h"
+#include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Globals.h"
 
 long long int Tilc::Apps::Www::TRequestHandler::Count = 0;
