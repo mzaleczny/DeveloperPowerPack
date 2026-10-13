@@ -35,7 +35,7 @@ Tilc::Resources::TResourceTexture::~TResourceTexture()
     }
 }
 
-Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const TResourceInfo& ResourceInfo)
+Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const TResourceInfo& ResourceInfo, bool ForceAddAlpha)
 {
     void* ResourcePointer = nullptr;
     int TexWidth = 0;
@@ -63,6 +63,16 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const 
         {
             SDL_Log("ERROR! Couldn't load image: %s", SDL_GetError());
             return nullptr;
+        }
+        if (Surface && ForceAddAlpha)
+        {
+            // Konwersja wymuszająca format RGBA32
+            SDL_Surface* rgbaSurface = SDL_ConvertSurface(Surface, SDL_PIXELFORMAT_RGBA32);
+            if (rgbaSurface)
+            {
+                SDL_DestroySurface(Surface);
+                Surface = rgbaSurface;
+            }
         }
     }
     else
@@ -395,7 +405,7 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::CreateGLTex
 }
 
 Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResourceFromMemory(const Tilc::TExtString& Id,
-    const unsigned char* data, int size, const Tilc::TExtString& ResourceType)
+    const unsigned char* data, int size, const Tilc::TExtString& ResourceType, bool ForceAddAlpha)
 {
     SDL_Renderer* Renderer = Tilc::GameObject->m_Window->GetRenderer();
     if (Renderer)
@@ -407,13 +417,25 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResource
             return nullptr;
         }
 
-        // 2. Bezpośrednie utworzenie tekstury SDL3 z danych w pamięci przy użyciu SDL3_image
-        // Trzeci argument (true) sprawia, że SDL automatycznie zamknie i zwolni strumień `io` po zakończeniu.
-        SDL_Texture* Texture = IMG_LoadTexture_IO(Renderer, io, true);
+        SDL_Texture* Texture{};
+        SDL_Surface* Surface = IMG_Load_IO(io, true);
+        if (Surface && ForceAddAlpha)
+        {
+            // Konwersja wymuszająca format RGBA32
+            SDL_Surface* rgbaSurface = SDL_ConvertSurface(Surface, SDL_PIXELFORMAT_RGBA32);
+            SDL_DestroySurface(Surface);
+            Surface = rgbaSurface;
+        }
+        if (Surface)
+        {
+            Texture = SDL_CreateTextureFromSurface(Renderer, Surface);
+            SDL_DestroySurface(Surface);
+            Surface = nullptr;
+        }
 
         if (!Texture)
         {
-            std::cerr << "Błąd IMG_LoadTexture_RW: " << SDL_GetError() << std::endl;
+            std::cerr << "Błąd IMG_LoadTexture_IO: " << SDL_GetError() << std::endl;
             return nullptr;
         }
 

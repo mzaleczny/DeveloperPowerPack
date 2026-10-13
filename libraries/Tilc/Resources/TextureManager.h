@@ -57,7 +57,7 @@ namespace Tilc::Resources
 	{
 	public:
 		TTextureManager(const std::string& PathsFileName = Tilc::WorkingDirectory + "data/Resources.cfg") : TResourceManager(PathsFileName) {}
-		TResourceTexture* Load(const TResourceInfo& ResourceInfo);
+		TResourceTexture* Load(const TResourceInfo& ResourceInfo, bool ForceAddAlpha = false);
         // Rasterization width and height are taken in account for svg files.
 		TResourceTexture* LoadFromFile(const Tilc::TExtString& FileName, const Tilc::TExtString& ResourceType, int RasterizationWidth = -1, int RasterizationHeight = -1);
 		TResourceTexture* CreateGLTextureResourceFromSDLSurface(SDL_Surface* Surface);
@@ -71,7 +71,7 @@ namespace Tilc::Resources
             }
             return nullptr;
         }
-        TResourceTexture* AddResourceFromMemory(const Tilc::TExtString& Id, const unsigned char* data, int size, const Tilc::TExtString& ResourceType);
+        TResourceTexture* AddResourceFromMemory(const Tilc::TExtString& Id, const unsigned char* data, int size, const Tilc::TExtString& ResourceType, bool ForceAddAlpha = false);
     };
 
 }
