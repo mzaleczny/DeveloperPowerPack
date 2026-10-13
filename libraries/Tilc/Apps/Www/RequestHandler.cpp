@@ -162,7 +162,7 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
                 Tilc::TExtString DbFname = ApplicationRootDir + "/db/sessions.db";
                 Tilc::TExtString Token;
                 auto [id, data, modified] = Tilc::Data::TDataDBResources::GetSimpleData(DbFname.c_str(), "logins", LoggedUser.c_str());
-                if (id > 0 && std::chrono::duration_cast<std::chrono::seconds>(modified).count() < 15 * 60)
+                if (id > 0 && std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - modified).count() < 15 * 60)
                 {
                     //std::cout << ResultJson << std::endl;
                     Tilc::TJsonParser parser;
