@@ -66,6 +66,7 @@ namespace Tilc
                 long int ContentLength{ 0 };
                 Tilc::TExtString Body;
                 Tilc::TExtString Bearer;
+                Tilc::TExtString LoggedUser, GoogleClientId;
                 std::vector<Tilc::TExtString> Headers;
                 std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetVars;
                 std::unordered_map<Tilc::TExtString, Tilc::TExtString> PostVars;

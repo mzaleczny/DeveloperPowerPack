@@ -1,5 +1,7 @@
 #include "Tilc/Apps/Www/RequestHandler.h"
 #include "Tilc/Apps/Www/WwwApp.h"
+#include "Tilc/Apps/Www/Google/GoogleAuth.h"
+#include "Tilc/Commerce/Shop.h"
 #include "Tilc/Globals.h"
 
 long long int Tilc::Apps::Www::TRequestHandler::Count = 0;
@@ -76,6 +78,7 @@ void Tilc::Apps::Www::TRequestHandler::Init()
     {
         Bearer = Bearer.substr(0, pos + 7);
     }
+    LoggedUser = FCGX_GetParam("LoggedUser", request->envp) ? FCGX_GetParam("LoggedUser", request->envp) : "";
 }
 
 void Tilc::Apps::Www::TRequestHandler::Cleanup()
@@ -131,16 +134,71 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
     }
     
     Tilc::TExtString Url = "/" + Tilc::Implode('/', UriParts);
+    Tilc::TExtString Result;
     //os << "Url: " << Url << "<br/>";
     auto Found = m_RequestHandlers.find(Url);
     if (Found != m_RequestHandlers.end())
     {
-        Found->second(*this, Url);
+        // jeśli Url zawiera słowo 'save' lub 'delete', to chronimy dostęp do tej funkcji mechanizmem logowania
+        // aby to zadziałało w nagłówku trzeba przesłać nazwę/email zalogowanego użytkownika
+        if (Url.find("/save") == std::string::npos && Url.find("/delete") == std::string::npos)
+        {
+            // Do tej trasy dostep nie jest chroniony zalogowaniem, więc wywołujemy obsługe tej trasy
+            Found->second(*this, Url);
+        }
+        else
+        {
+            if (LoggedUser.empty())
+            {
+                Result = R"({"status": "Not Logged In"})";
+            }
+            else
+            {
+                // Sprawdzamy czy user jest zalogowany
+                Tilc::TExtString DbFname = ApplicationRootDir + "/db/sessions.db";
+                Tilc::TExtString Token;
+                auto [id, data, modified] = Tilc::Data::TDataDBResources::GetSimpleData(DbFname.c_str(), "logins", LoggedUser.c_str());
+                if (id > 0 && std::chrono::duration_cast<std::chrono::seconds>(modified).count() < 15 * 60)
+                {
+                    //std::cout << ResultJson << std::endl;
+                    Tilc::TJsonParser parser;
+                    Tilc::TStdObject* Json = parser.parse(data);
+                    if (Json)
+                    {
+                        if (Json->getAsObject("root"))
+                        {
+                            Tilc::TStdObject* User = Json->getAsObject("root")->getAsObject("user");
+                            if (User)
+                            {
+                                Token = User->getAsString("token");
+                            }
+                        }
+                        delete Json;
+                    }
+                    if (!Token.empty())
+                    {
+                        if (Tilc::TUser User = Tilc::Google::VerifyGoogleToken(Token, GoogleClientId); User.error.empty())
+                        {
+                            // Jesteśmy poprawnie zalogowani do zabezpieczonego urla, więc wywołujemy funkcję obsługi tej trasy
+                            Found->second(*this, Url);
+                        }
+                    }
+                }
+                else
+                {
+                    Result = R"({"status": "Not Logged In"})";
+                }
+            }
+        }
     }
 
     // Call below guarantees OutputHeaders even if not << opertor was called. Because by default OutputHeaders is called
     // before first call of <<.
     OutputHeaders();
+    if (!Result.empty())
+    {
+        os << Result;
+    }
 }
 
 void Tilc::Apps::Www::TRequestHandler::ExtractVariablesFromQueryString(Tilc::TExtString& QueryString, std::unordered_map<Tilc::TExtString, Tilc::TExtString>& Map)
