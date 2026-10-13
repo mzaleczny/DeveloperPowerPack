@@ -2,6 +2,9 @@
 #include "SDL3_image/SDL_image.h"
 #include "Tilc/Game.h"
 #include "Tilc/Resources/TextureManager.h"
+
+#include ".cache/assimp/code/AssetLib/COB/COBScene.h"
+#include ".cache/assimp/code/AssetLib/glTF/glTFAsset.h"
 #include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Graphics/GraphicsUtils.h"
@@ -392,4 +395,47 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::CreateGLTex
         }
     }
     return Resource;
+}
+
+Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResourceFromMemory(const Tilc::TExtString& Id,
+    const unsigned char* data, int size, const Tilc::TExtString& ResourceType)
+{
+    SDL_Renderer* Renderer = Tilc::GameObject->m_Window->GetRenderer();
+    if (Renderer)
+    {
+        SDL_IOStream* io = SDL_IOFromMem((void*)data, (size_t)size);
+        if (!io)
+        {
+            std::cerr << "Błąd SDL_IOFromMem: " << SDL_GetError() << std::endl;
+            return nullptr;
+        }
+
+        // 2. Bezpośrednie utworzenie tekstury SDL3 z danych w pamięci przy użyciu SDL3_image
+        // Trzeci argument (true) sprawia, że SDL automatycznie zamknie i zwolni strumień `io` po zakończeniu.
+        SDL_Texture* Texture = IMG_LoadTexture_IO(Renderer, io, true);
+
+        if (!Texture)
+        {
+            std::cerr << "Błąd IMG_LoadTexture_RW: " << SDL_GetError() << std::endl;
+            return nullptr;
+        }
+
+        TResourceTexture* Resource = new (std::nothrow) TResourceTexture(Texture);
+        if (!Resource)
+        {
+            if (Texture)
+            {
+                SDL_DestroyTexture(Texture);
+                Texture = nullptr;
+            }
+            return nullptr;
+        }
+
+        Resource->m_TextureType = ETextureType::SDL_Texture;
+        Resource->m_TexWidth = Texture->w;
+        Resource->m_TexHeight = Texture->h;
+        Resource->m_Format = Texture->format;
+        return Resource;
+    }
+    return nullptr;
 }
