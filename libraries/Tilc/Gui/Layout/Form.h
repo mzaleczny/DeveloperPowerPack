@@ -98,8 +98,11 @@ namespace Tilc {
                 if (WndListForm)    WndListForm->Hide();
                 if (WndEditForm)    WndEditForm->Hide();
             }
+
+            int SynchronizeError{};
             int Synchronize()
             {
+                SynchronizeError = 0;
                 if (lbList)
                 {
                     // Tutaj usuwamy puste pozycje z listy pozycji zmienionych, bo nie chcemy ich zapisać w bazie oraz konieczność poprawności mapowania indeksów
@@ -115,43 +118,75 @@ namespace Tilc {
                     if (m_ItemsToDelete.size() > 0)
                     {
 #ifdef __EMSCRIPTEN__
-                        Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete, [this, DoRefreshAfterUpdate](Tilc::TExtString ItemsJson) {
+                        Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete, [this, DoRefreshAfterUpdate](Tilc::TExtString ItemsJson)
+                        {
+                            if (ItemsJson.find("Not Logged In") != std::string::npos)
+                            {
+                                SynchronizeError = 1;
+                            }
+                            else
+                            {
+                                m_ItemsToDelete.clear();
+                                if (!DoRefreshAfterUpdate && !ItemsJson.empty())
+                                {
+                                    TFormPackage::RefreshList(lbList, ItemsJson);
+                                }
+                            }
+                        });
+#else
+                        ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete);
+                        if (ItemsJson.find("Not Logged In") != std::string::npos)
+                        {
+                            SynchronizeError = 1;
+                        }
+                        else
+                        {
                             m_ItemsToDelete.clear();
                             if (!DoRefreshAfterUpdate && !ItemsJson.empty())
                             {
                                 TFormPackage::RefreshList(lbList, ItemsJson);
                             }
-                        });
-#else
-                        ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete);
-                        m_ItemsToDelete.clear();
-                        if (!DoRefreshAfterUpdate && !ItemsJson.empty())
-                        {
-                            TFormPackage::RefreshList(lbList, ItemsJson);
                         }
 #endif
                     }
 
+                    if (SynchronizeError != 0) return SynchronizeError;
 
                     if (m_ChangedItems.size() > 0)
                     {
 #ifdef __EMSCRIPTEN__
                         Tilc::Apps::Www::Save(Url_Save, m_ChangedItems, [this, DoRefreshAfterUpdate](Tilc::TExtString ItemsJson) {
-                            m_ChangedItems.clear();
-                            if (!DoRefreshAfterUpdate && !ItemsJson.empty())
+                            if (ItemsJson.find("Not Logged In") != std::string::npos)
                             {
-                                TFormPackage::RefreshList(lbList, ItemsJson);
+                                SynchronizeError = 2;
+                            }
+                            else
+                            {
+                                m_ChangedItems.clear();
+                                if (!DoRefreshAfterUpdate && !ItemsJson.empty())
+                                {
+                                    TFormPackage::RefreshList(lbList, ItemsJson);
+                                }
                             }
                         });
 #else
                         ItemsJson = Tilc::Apps::Www::Save<TItemType>(Url_Save, m_ChangedItems);
-                        m_ChangedItems.clear();
-                        if (!ItemsJson.empty())
+                        if (ItemsJson.find("Not Logged In") != std::string::npos)
                         {
-                            TFormPackage::RefreshList(lbList, ItemsJson);
+                            SynchronizeError = 2;
+                        }
+                        else
+                        {
+                            m_ChangedItems.clear();
+                            if (!ItemsJson.empty())
+                            {
+                                TFormPackage::RefreshList(lbList, ItemsJson);
+                            }
                         }
 #endif
                     }
+
+                    if (SynchronizeError != 0) return SynchronizeError;
                 }
                 return 0;
             }
