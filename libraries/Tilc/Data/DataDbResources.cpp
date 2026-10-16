@@ -337,13 +337,9 @@ int Tilc::Data::TDataDBResources::GetReferencedResourceByName(const char* DbFnam
 }
 
 int Tilc::Data::TDataDBResources::CreateSimpleDataDb(const char* DbFname, const char* Table) {
-    if (Tilc::FileExists(DbFname))
-    {
-        return -1;
-    }
     Tilc::Data::TDBSQLite* DB = new Tilc::Data::TDBSQLite(DbFname);
 
-    std::string Sql = std::format("CREATE TABLE {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, data BLOB, modified TIMESTAMP);"
+    std::string Sql = std::format("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, data BLOB, modified TIMESTAMP);"
                 "CREATE INDEX \"idx_name\" ON resources(name);", Table);
     int Result = DB->CreateTable(Sql.c_str());
     delete DB;
