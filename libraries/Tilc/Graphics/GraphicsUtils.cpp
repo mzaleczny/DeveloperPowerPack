@@ -524,3 +524,54 @@ DECLSPEC void Tilc::Graphics::FillTriangle(SDL_Surface* Surface, SDL_Point p0, S
         }
     }
 }
+
+SDL_Surface* Tilc::Graphics::ScaleAndCropSurface(SDL_Surface* src_surface, int target_w, int target_h)
+{
+    if (!src_surface) return nullptr;
+
+    int src_w = src_surface->w;
+    int src_h = src_surface->h;
+
+    // 1. Oblicz współczynniki skali dla szerokości i wysokości
+    float scale_w = (float)target_w / src_w;
+    float scale_h = (float)target_h / src_h;
+
+    // 2. Wybierz WIĘKSZĄ skalę (tryb Cover - wypełnienie całego obszaru)
+    float scale = (scale_w > scale_h) ? scale_w : scale_h;
+
+    // 3. Oblicz, jaki wycinek źródła (w skali oryginalnej) musimy wziąć,
+    // aby po przeskalowaniu idealnie pokrył 240x140 px
+    float crop_w = target_w / scale;
+    float crop_h = target_h / scale;
+
+    SDL_Rect src_rect;
+    src_rect.x = (int)((src_w - crop_w) / 2.0f); // Wyśrodkowanie poziome
+    src_rect.y = (int)((src_h - crop_h) / 2.0f); // Wyśrodkowanie pionowe
+    src_rect.w = (int)crop_w;
+    src_rect.h = (int)crop_h;
+
+    // 4. Utwórz docelową powierzchnię o dokładnie takim rozmiarze, jaki chcesz (np. 240x140)
+    SDL_Surface* dst_surface = SDL_CreateSurface(target_w, target_h, src_surface->format);
+    if (!dst_surface)
+    {
+        SDL_Log("Nie udało się utworzyć powierzchni docelowej: %s", SDL_GetError());
+        return NULL;
+    }
+
+    // 5. Najpierw wycinamy interesujący nas fragment i skalujemy go do nowego bufora.
+    // W SDL3 najwygodniej użyć SDL_ScaleSurface na wycinku lub stworzyć tymczasową powierzchnię,
+    // albo wykonać to operując na blitowaniu ze skalowaniem.
+
+    // Alternatywne podejście z SDL3: Tworzymy tymczasowy wycinek, a potem go skalujemy
+    // (Można też skopiować pod-powierzchnię, ale SDL3 oferuje wygodne SDL_BlitSurfaceScaled)
+
+    SDL_Rect dst_rect = { 0, 0, target_w, target_h };
+
+    // Tworzymy tymczasową powierzchnię będącą wycinkiem (crop)
+    // W SDL3 najprościej przekazać odpowiedni 'srcrect' do funkcji skalującej blit,
+    // ale ponieważ SDL_BlitSurfaceScaled blituje na istniejący docelowy surface:
+
+    SDL_BlitSurfaceScaled(src_surface, &src_rect, dst_surface, &dst_rect, SDL_SCALEMODE_LINEAR);
+
+    return dst_surface; // Zwraca nowy SDL_Surface* o podanych wymiarach
+}

@@ -24,6 +24,7 @@ namespace Tilc::Graphics {
     DECLSPEC void DrawLine(SDL_Surface* Surface, const SDL_Point& p1, const SDL_Point& p2, int color);
     DECLSPEC void FloodFill(SDL_Surface* Surface, int x, int y, int NewColor);
     DECLSPEC void FillTriangle(SDL_Surface* Surface, SDL_Point p0, SDL_Point p1, SDL_Point p2, int Color);
+    DECLSPEC SDL_Surface* ScaleAndCropSurface(SDL_Surface* src_surface, int target_w, int target_h);
     //COLORREF WINAPI HexToRGB(CString hex_color);
 
     template <typename T>
