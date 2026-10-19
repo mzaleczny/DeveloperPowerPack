@@ -468,3 +468,18 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResource
     }
     return nullptr;
 }
+
+Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResourceFromTexture(const Tilc::TExtString& Id,
+    SDL_Texture* Texture)
+{
+    TResourceTexture* Resource = new (std::nothrow) TResourceTexture(Texture);
+    if (!Resource)
+    {
+        return nullptr;
+    }
+    Resource->m_TextureType = ETextureType::SDL_Texture;
+    Resource->m_TexWidth = Texture->w;
+    Resource->m_TexHeight = Texture->h;
+    Resource->m_Format = Texture->format;
+    return Resource;
+}

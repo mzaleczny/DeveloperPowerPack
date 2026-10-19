@@ -72,6 +72,7 @@ namespace Tilc::Resources
             return nullptr;
         }
         TResourceTexture* AddResourceFromMemory(const Tilc::TExtString& Id, const unsigned char* data, int size, const Tilc::TExtString& ResourceType, bool ForceAddAlpha = false);
+        TResourceTexture* AddResourceFromTexture(const Tilc::TExtString& Id, SDL_Texture* Texture);
     };
 
 }
