@@ -417,6 +417,7 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResource
             return nullptr;
         }
 
+        TResourceTexture* Resource{};
         SDL_Texture* Texture{};
         SDL_Surface* Surface = IMG_Load_IO(io, true);
         if (Surface && ForceAddAlpha)
@@ -426,34 +427,43 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResource
             SDL_DestroySurface(Surface);
             Surface = rgbaSurface;
         }
-        if (Surface)
+        if (Surface && ResourceType == "SDL_Texture")
         {
             Texture = SDL_CreateTextureFromSurface(Renderer, Surface);
             SDL_DestroySurface(Surface);
             Surface = nullptr;
-        }
-
-        if (!Texture)
-        {
-            std::cerr << "Błąd IMG_LoadTexture_IO: " << SDL_GetError() << std::endl;
-            return nullptr;
-        }
-
-        TResourceTexture* Resource = new (std::nothrow) TResourceTexture(Texture);
-        if (!Resource)
-        {
-            if (Texture)
+            if (!Texture)
+            {
+                std::cerr << "Błąd IMG_LoadTexture_IO: " << SDL_GetError() << std::endl;
+                return nullptr;
+            }
+            Resource = new (std::nothrow) TResourceTexture(Texture);
+            if (!Resource)
             {
                 SDL_DestroyTexture(Texture);
                 Texture = nullptr;
+                return nullptr;
             }
-            return nullptr;
+            Resource->m_TextureType = ETextureType::SDL_Texture;
+            Resource->m_TexWidth = Texture->w;
+            Resource->m_TexHeight = Texture->h;
+            Resource->m_Format = Texture->format;
+        }
+        else if (Surface && ResourceType == "SDL_Surface")
+        {
+            Resource = new (std::nothrow) TResourceTexture(Surface);
+            if (!Resource)
+            {
+                SDL_DestroySurface(Surface);
+                Surface = nullptr;
+                return nullptr;
+            }
+            Resource->m_TextureType = ETextureType::SDL_Surface;
+            Resource->m_TexWidth = Surface->w;
+            Resource->m_TexHeight = Surface->h;
+            Resource->m_Format = Surface->format;
         }
 
-        Resource->m_TextureType = ETextureType::SDL_Texture;
-        Resource->m_TexWidth = Texture->w;
-        Resource->m_TexHeight = Texture->h;
-        Resource->m_Format = Texture->format;
         return Resource;
     }
     return nullptr;
