@@ -48,4 +48,5 @@ namespace Tilc::Graphics {
         return Result;
     }
 
+    DECLSPEC Tilc::TExtString SaveSurfaceToPNGMemory(SDL_Surface* surface);
 }

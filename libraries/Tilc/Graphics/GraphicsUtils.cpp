@@ -1,6 +1,7 @@
 #include "Tilc/Graphics/GraphicsUtils.h"
 #include "Tilc/Utils/ExtString.h"
 #include <queue>
+#include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
 
@@ -574,4 +575,42 @@ SDL_Surface* Tilc::Graphics::ScaleAndCropSurface(SDL_Surface* src_surface, int t
     SDL_BlitSurfaceScaled(src_surface, &src_rect, dst_surface, &dst_rect, SDL_SCALEMODE_LINEAR);
 
     return dst_surface; // Zwraca nowy SDL_Surface* o podanych wymiarach
+}
+
+Tilc::TExtString Tilc::Graphics::SaveSurfaceToPNGMemory(SDL_Surface* surface) {
+    if (!surface) return {};
+
+    // 1. Szacowany rozmiar bufora w bajtach
+    size_t estimatedSize = static_cast<size_t>(surface->w) * surface->h * 4;
+    Tilc::TExtString buffer;
+    buffer.resize(estimatedSize);
+
+    // 2. Tworzymy strumień pamięci wskazujący na bufor w std::string
+    // W C++11 i nowszych &buffer[0] lub buffer.data() daje bezpośredni dostęp do modyfikowalnej pamięci
+    SDL_IOStream* io = SDL_IOFromMem(buffer.data(), buffer.size());
+    if (!io) {
+        SDL_Log("Nie udało się utworzyć strumienia pamięci: %s", SDL_GetError());
+        return {};
+    }
+
+    // 3. Zapisujemy powierzchnię do strumienia
+    if (!SDL_SavePNG_IO(surface, io, false)) {
+        SDL_Log("Nie udało się zapisać PNG do pamięci: %s", SDL_GetError());
+        SDL_CloseIO(io);
+        return {};
+    }
+
+    // 4. Pobieramy faktyczny rozmiar zapisanego obrazu PNG
+    Sint64 realSize = SDL_TellIO(io);
+
+    // Zamykamy strumień
+    SDL_CloseIO(io);
+
+    if (realSize < 0) {
+        return {};
+    }
+
+    // Przycinamy stringa do faktycznej liczby zapisanych bajtów
+    buffer.resize(static_cast<size_t>(realSize));
+    return buffer;
 }
