@@ -83,6 +83,10 @@ namespace Tilc::Resources {
 		{
 			return static_cast<Derived*>(this)->LoadFromFile(FileName, ResourceType);
 		}
+		T* LoadFromMemory(const unsigned char* data, int size, const Tilc::TExtString& ResourceType)
+		{
+			return static_cast<Derived*>(this)->LoadFromMemory(data, size, ResourceType);
+		}
 	protected:
 		std::pair<T*, unsigned int>* Find(const std::string& Id)
 		{
@@ -99,7 +103,7 @@ namespace Tilc::Resources {
 			m_Resources.erase(Itr);
 			return true;
 		}
-	private:
+
 		// Map of: Id -> [ResourceTypeName -> Counter of Resource references]
 		std::unordered_map<std::string, std::pair<T*, unsigned int>> m_Resources;
 		// Map of: Id -> ResourceInfo
@@ -117,7 +121,7 @@ namespace Tilc::Resources {
 			return true;
 		}
 
-		auto Info = m_ResourcesInfos.find(Id);
+		const auto Info = m_ResourcesInfos.find(Id);
 		if (Info == m_ResourcesInfos.end())
 		{
 			return false;

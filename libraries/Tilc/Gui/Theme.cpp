@@ -30,7 +30,7 @@ void Tilc::Gui::TTheme::LoadTextureMapForWindowRenderer(Tilc::TWindow* Window)
         }
 
         Tilc::Resources::TTextureManager* tm = GameObject->GetContext()->m_TextureManager;
-        GuiTextureMap1 = tm->LoadFromFile(m_ThemeFilename.c_str(), "SDL_Texture")->AsSDLTexture();
+        GuiTextureMap1 = tm->AddResourceFromFile("GuiTextureMap1", m_ThemeFilename.c_str(), "SDL_Texture")->AsSDLTexture();
         Map_GuiTextureMap1[Window->GetRenderer()] = GuiTextureMap1;
 
         if (ActiveWindow != Window)
@@ -134,7 +134,7 @@ void Tilc::Gui::TTheme::Load(Tilc::TExtString name)
     */
 
     Tilc::Resources::TTextureManager* tm = GameObject->GetContext()->m_TextureManager;
-    GuiTextureMap1 = tm->LoadFromFile(Filename.c_str(), "SDL_Texture")->AsSDLTexture();
+    GuiTextureMap1 = tm->AddResourceFromFile("GuiTextureMap1", Filename.c_str(), "SDL_Texture")->AsSDLTexture();
     Map_GuiTextureMap1[Tilc::GameObject->m_Window->GetRenderer()] = GuiTextureMap1;
     m_ThemeFilename = Filename;
 

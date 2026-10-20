@@ -25,10 +25,12 @@ Tilc::Resources::TResourceTexture::~TResourceTexture()
             SDL_DestroyTexture(static_cast<SDL_Texture*>(m_Resource));
             m_Resource = nullptr;
             break;
+#ifdef BUILD_WITH_OPENGL
         case ETextureType::GL_Texture:
             glDeleteTextures(1, reinterpret_cast<GLuint*>(&m_Resource));
             m_Resource = nullptr;
             break;
+#endif
         default:
             break;
         }
@@ -262,9 +264,8 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::Load(const 
     return Resource;
 }
 
-Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::LoadFromFile(const Tilc::TExtString& FileName, const Tilc::TExtString& ResourceType, int RasterizationWidth, int RasterizationHeight)
+Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::LoadFromFile(const Tilc::TExtString& FileName, const Tilc::TExtString& ResourceType, TResourceInfo& ResourceInfo, bool ForceAddAlpha, int RasterizationWidth, int RasterizationHeight)
 {
-    TResourceInfo ResourceInfo;
     ResourceInfo.m_SlotNumber = -1;
     ResourceInfo.m_Source = FileName;
     ResourceInfo.m_SourceName = "";
@@ -272,7 +273,71 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::LoadFromFil
     ResourceInfo.m_Type = ResourceType;
     ResourceInfo.m_Width = RasterizationWidth;
     ResourceInfo.m_Height = RasterizationHeight;
-    return Load(ResourceInfo);
+    return Load(ResourceInfo, ForceAddAlpha);
+}
+
+Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::LoadFromMemory(const unsigned char* data, int size, const Tilc::TExtString& ResourceType, bool ForceAddAlpha)
+{
+    SDL_Renderer* Renderer = Tilc::GameObject->m_Window->GetRenderer();
+    if (Renderer)
+    {
+        SDL_IOStream* io = SDL_IOFromMem((void*)data, (size_t)size);
+        if (!io)
+        {
+            std::cerr << "Błąd SDL_IOFromMem: " << SDL_GetError() << std::endl;
+            return nullptr;
+        }
+
+        TResourceTexture* Resource{};
+        SDL_Texture* Texture{};
+        SDL_Surface* Surface = IMG_Load_IO(io, true);
+        if (Surface && ForceAddAlpha)
+        {
+            // Konwersja wymuszająca format RGBA32
+            SDL_Surface* rgbaSurface = SDL_ConvertSurface(Surface, SDL_PIXELFORMAT_RGBA32);
+            SDL_DestroySurface(Surface);
+            Surface = rgbaSurface;
+        }
+        if (Surface && ResourceType == "SDL_Texture")
+        {
+            Texture = SDL_CreateTextureFromSurface(Renderer, Surface);
+            SDL_DestroySurface(Surface);
+            Surface = nullptr;
+            if (!Texture)
+            {
+                std::cerr << "Błąd IMG_LoadTexture_IO: " << SDL_GetError() << std::endl;
+                return nullptr;
+            }
+            Resource = new (std::nothrow) TResourceTexture(Texture);
+            if (!Resource)
+            {
+                SDL_DestroyTexture(Texture);
+                Texture = nullptr;
+                return nullptr;
+            }
+            Resource->m_TextureType = ETextureType::SDL_Texture;
+            Resource->m_TexWidth = Texture->w;
+            Resource->m_TexHeight = Texture->h;
+            Resource->m_Format = Texture->format;
+        }
+        else if (Surface && ResourceType == "SDL_Surface")
+        {
+            Resource = new (std::nothrow) TResourceTexture(Surface);
+            if (!Resource)
+            {
+                SDL_DestroySurface(Surface);
+                Surface = nullptr;
+                return nullptr;
+            }
+            Resource->m_TextureType = ETextureType::SDL_Surface;
+            Resource->m_TexWidth = Surface->w;
+            Resource->m_TexHeight = Surface->h;
+            Resource->m_Format = Surface->format;
+        }
+
+        return Resource;
+    }
+    return nullptr;
 }
 
 Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::CreateGLTextureResourceFromSDLSurface(SDL_Surface* Surface)
@@ -404,73 +469,7 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::CreateGLTex
     return Resource;
 }
 
-Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResourceFromMemory(const Tilc::TExtString& Id,
-    const unsigned char* data, int size, const Tilc::TExtString& ResourceType, bool ForceAddAlpha)
-{
-    SDL_Renderer* Renderer = Tilc::GameObject->m_Window->GetRenderer();
-    if (Renderer)
-    {
-        SDL_IOStream* io = SDL_IOFromMem((void*)data, (size_t)size);
-        if (!io)
-        {
-            std::cerr << "Błąd SDL_IOFromMem: " << SDL_GetError() << std::endl;
-            return nullptr;
-        }
-
-        TResourceTexture* Resource{};
-        SDL_Texture* Texture{};
-        SDL_Surface* Surface = IMG_Load_IO(io, true);
-        if (Surface && ForceAddAlpha)
-        {
-            // Konwersja wymuszająca format RGBA32
-            SDL_Surface* rgbaSurface = SDL_ConvertSurface(Surface, SDL_PIXELFORMAT_RGBA32);
-            SDL_DestroySurface(Surface);
-            Surface = rgbaSurface;
-        }
-        if (Surface && ResourceType == "SDL_Texture")
-        {
-            Texture = SDL_CreateTextureFromSurface(Renderer, Surface);
-            SDL_DestroySurface(Surface);
-            Surface = nullptr;
-            if (!Texture)
-            {
-                std::cerr << "Błąd IMG_LoadTexture_IO: " << SDL_GetError() << std::endl;
-                return nullptr;
-            }
-            Resource = new (std::nothrow) TResourceTexture(Texture);
-            if (!Resource)
-            {
-                SDL_DestroyTexture(Texture);
-                Texture = nullptr;
-                return nullptr;
-            }
-            Resource->m_TextureType = ETextureType::SDL_Texture;
-            Resource->m_TexWidth = Texture->w;
-            Resource->m_TexHeight = Texture->h;
-            Resource->m_Format = Texture->format;
-        }
-        else if (Surface && ResourceType == "SDL_Surface")
-        {
-            Resource = new (std::nothrow) TResourceTexture(Surface);
-            if (!Resource)
-            {
-                SDL_DestroySurface(Surface);
-                Surface = nullptr;
-                return nullptr;
-            }
-            Resource->m_TextureType = ETextureType::SDL_Surface;
-            Resource->m_TexWidth = Surface->w;
-            Resource->m_TexHeight = Surface->h;
-            Resource->m_Format = Surface->format;
-        }
-
-        return Resource;
-    }
-    return nullptr;
-}
-
-Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResourceFromTexture(const Tilc::TExtString& Id,
-    SDL_Texture* Texture)
+Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResourceFromTexture(const Tilc::TExtString& Id, SDL_Texture* Texture)
 {
     TResourceTexture* Resource = new (std::nothrow) TResourceTexture(Texture);
     if (!Resource)
@@ -481,5 +480,10 @@ Tilc::Resources::TResourceTexture* Tilc::Resources::TTextureManager::AddResource
     Resource->m_TexWidth = Texture->w;
     Resource->m_TexHeight = Texture->h;
     Resource->m_Format = Texture->format;
-    return Resource;
+    if (AddResource(Id, Resource))
+    {
+        return Resource;
+    }
+    delete Resource;
+    return nullptr;
 }
