@@ -42,7 +42,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.x = PaddingLeft;
             continue;
         }
-        if (std::strncmp(Type, "textfield", 9) == 0)
+        else if (std::strncmp(Type, "textfield", 9) == 0)
         {
             Position.x = PaddingLeft;
             Position.w = Window->m_Position.w - PaddingLeft - PaddingRight;
@@ -60,7 +60,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.y += Position.h + SpacerH;
             continue;
         }
-        if (std::strncmp(Type, "multiline-textfield", 19) == 0)
+        else if (std::strncmp(Type, "multiline-textfield", 19) == 0)
         {
             Position.w = Window->m_Position.w - PaddingLeft - PaddingRight;
             Position.h = 25.0f;
@@ -77,7 +77,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.y += Position.h + SpacerH;
             continue;
         }
-        if (std::strncmp(Type, "button", 6) == 0)
+        else if (std::strncmp(Type, "button", 6) == 0)
         {
             Position.w = std::atoi(*(Item.begin() + 3));
             Position.h = 25.0f;
@@ -85,7 +85,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.x += Position.w + SpacerW;
             continue;
         }
-        if (std::strncmp(Type, "checkbox", 8) == 0)
+        else if (std::strncmp(Type, "checkbox", 8) == 0)
         {
             Position.w = std::atoi(*(Item.begin() + 3));
             Position.h = 25.0f;
@@ -93,7 +93,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.x += Position.w + SpacerW;
             continue;
         }
-        if (std::strncmp(Type, "option", 6) == 0)
+        else if (std::strncmp(Type, "option", 6) == 0)
         {
             int GroupNumber = std::atoi(*(Item.begin() + 3));
             Position.w = std::atoi(*(Item.begin() + 4));
@@ -107,7 +107,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Tilc::Gui::TGuiControl::m_OptionGroups[GroupNumber].AddOptions({ dynamic_cast<Tilc::Gui::TOption*>(gc) });
             continue;
         }
-        if (std::strncmp(Type, "listbox", 7) == 0)
+        else if (std::strncmp(Type, "listbox", 7) == 0)
         {
             Position.w = Window->m_RealPosition.w;
             Position.h = 25.0f;
@@ -133,11 +133,11 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             }
             continue;
         }
-        if (std::strncmp(Type, "multicolumn-listbox", 1) == 0)
+        else if (std::strncmp(Type, "multicolumn-listbox", 1) == 0)
         {
             continue;
         }
-        if (std::strncmp(Type, "grid", 4) == 0)
+        else if (std::strncmp(Type, "grid", 4) == 0)
         {
             Position.w = Window->m_RealPosition.w;
             Position.h = 25.0f;
@@ -155,7 +155,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.y += 10 * 30.0f;
             continue;
         }
-        if (std::strncmp(Type, "slider", 6) == 0)
+        else if (std::strncmp(Type, "slider", 6) == 0)
         {
             Position.w = Window->m_RealPosition.w;
             Position.h = 25.0f;
@@ -182,7 +182,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             }
             continue;
         }
-        if (std::strncmp(Type, "scrollbar", 9) == 0)
+        else if (std::strncmp(Type, "scrollbar", 9) == 0)
         {
             Position.w = Window->m_RealPosition.w;
             Position.h = 25.0f;
@@ -209,9 +209,25 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             }
             continue;
         }
-        if (std::strncmp(Type, "br", 5) == 0)
+        else if (std::strncmp(Type, "br", 5) == 0)
         {
             Position.y += Position.h;
+            continue;
+        }
+        else if (std::strncmp(Type, "pictures", 4) == 0)
+        {
+            Position.w = Window->m_RealPosition.w;
+            Position.h = 25.0f;
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+            Position.x = lbl->m_Position.x + 75.0f;
+            Position.w = 125.0f;
+            gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAddPicture_") + Name, Position, "Dodaj zdjęcie");
+            Position.x += Position.w + SpacerW;
+            Position.y += 10 * 30.0f;
             continue;
         }
     }
