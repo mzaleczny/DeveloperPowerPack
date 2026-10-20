@@ -2,7 +2,8 @@
 
 #include "Tilc/configure.h"
 #include <Tilc/Utils/ExtString.h>
-
+#include <random>
+#include <type_traits>
 
 #if BUILD_WITH_SDL3 == 0
     #define BUILD_WITHOUT_GRAPHICS 1
@@ -108,6 +109,26 @@ namespace Tilc
         return SDL_FRect{ static_cast<float>(x * TileSizeX), static_cast<float>(y * TileSizeY), static_cast<float>(TileSizeX), static_cast<float>(TileSizeY) };
     }
 #endif
+
+    template <typename T,
+          typename D = std::conditional_t<
+                          std::is_integral_v<T>,
+                          std::uniform_int_distribution<T>,
+                          std::uniform_real_distribution<T>>,
+          typename = typename std::enable_if_t<std::is_arithmetic_v<T>>>
+    std::vector<T> GenerateRandomVector(T const min, T const max, size_t const size)
+    {
+        std::vector<T> v(size);
+
+        std::random_device rd{};
+        std::mt19937 mt{ rd() };
+
+        D dist{ min, max };
+
+        std::generate(std::begin(v), std::end(v), [&dist, &mt] {return dist(mt); });
+
+        return v;
+    }
 
     namespace CompUnits
     {
