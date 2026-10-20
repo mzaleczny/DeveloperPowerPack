@@ -81,7 +81,7 @@ namespace Tilc::Resources
         }
         TResourceTexture* AddResourceFromMemory(const Tilc::TExtString& Id, const unsigned char* data, int size, const Tilc::TExtString& ResourceType, bool ForceAddAlpha = false)
         {
-        	TResourceTexture* Resource = LoadFromMemory(data, size, ResourceType);
+        	TResourceTexture* Resource = LoadFromMemory(data, size, ResourceType, ForceAddAlpha);
         	if (Resource)
         	{
         		if (AddResource(Id, Resource))
