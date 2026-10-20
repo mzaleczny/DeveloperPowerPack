@@ -1199,10 +1199,12 @@ void Tilc::Gui::TTheme::CreateComplexRects(const SDL_FRect& LeftRc, const SDL_FR
 
 void Tilc::Gui::TTheme::Unload()
 {
+    /* --> this is released by TextureManager during app cleanup
     for (auto [Renderer, Texture] : Map_GuiTextureMap1)
     {
         SDL_DestroyTexture(Texture);
     }
+    */
     GuiTextureMap1 = nullptr;
     Map_GuiTextureMap1.clear();
     /*
