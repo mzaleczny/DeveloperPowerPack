@@ -35,7 +35,7 @@ namespace Tilc::Resources {
 	class TResourceManager
 	{
 	public:
-		TResourceManager(const std::string& PathsFileName)
+		TResourceManager(const std::string_view PathsFileName)
 		{
 			LoadSources(PathsFileName);
 		}
@@ -71,7 +71,7 @@ namespace Tilc::Resources {
 		}
 		bool RequireResource(const std::string& Id);
 		bool ReleaseResource(const std::string& Id);
-        void LoadSources(const std::string& SourcesFileName);
+        void LoadSources(const std::string_view SourcesFileName);
         void PurgeResources();
 		// Because different resources can have different natures, so to load them it may require to implement subclas off TResourceManager and define in it
 		// custom Load method that handles differentations. In this class there is method Load that cesses loading to that custom Load method.
@@ -148,11 +148,13 @@ namespace Tilc::Resources {
 	}
 
 	template<typename Derived, typename T>
-	void TResourceManager<Derived, T>::LoadSources(const std::string& PathsFileName)
+	void TResourceManager<Derived, T>::LoadSources(const std::string_view PathsFileName)
 	{
-		if (FileExists((std::filesystem::current_path().string() + "/" + PathsFileName).c_str()))
+		std::string FileName(std::filesystem::current_path().string() + "/");
+		FileName += PathsFileName;
+		if (FileExists(FileName.c_str()))
 		{
-			Tilc::TFile File((std::filesystem::current_path().string() + "/" + PathsFileName).c_str());
+			Tilc::TFile File(FileName.c_str());
 			if (File.m_File.is_open())
 			{
 				std::string Line;
@@ -187,7 +189,9 @@ namespace Tilc::Resources {
 			}
 		}
 		else
-			SDL_Log("Resources path file: %s not exists. Skipping...", PathsFileName.c_str());
+		{
+			SDL_Log("Resources path file: %s not exists. Skipping...", FileName.c_str());
+		}
 	}
 
     template<typename Derived, typename T>

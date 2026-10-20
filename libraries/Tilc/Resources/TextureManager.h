@@ -38,12 +38,11 @@ namespace Tilc::Resources
 			}
 			return nullptr;
 		}
-		GLuint AsGLTexture()
+		unsigned int AsGLTexture()
 		{
 			if (m_TextureType == ETextureType::GL_Texture)
 			{
-				unsigned long long Result = reinterpret_cast<unsigned long long>(m_Resource);
-				return Result;
+				return static_cast<unsigned int>(reinterpret_cast<uintptr_t>(m_Resource));
 			}
 			return 0;
 		}

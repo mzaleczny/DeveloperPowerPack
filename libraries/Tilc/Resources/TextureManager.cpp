@@ -18,15 +18,15 @@ Tilc::Resources::TResourceTexture::~TResourceTexture()
         switch (m_TextureType)
         {
         case ETextureType::SDL_Surface:
-            SDL_DestroySurface((SDL_Surface*)m_Resource);
+            SDL_DestroySurface(static_cast<SDL_Surface*>(m_Resource));
             m_Resource = nullptr;
             break;
         case ETextureType::SDL_Texture:
-            SDL_DestroyTexture((SDL_Texture*)m_Resource);
+            SDL_DestroyTexture(static_cast<SDL_Texture*>(m_Resource));
             m_Resource = nullptr;
             break;
         case ETextureType::GL_Texture:
-            glDeleteTextures(1, (GLuint*)&m_Resource);
+            glDeleteTextures(1, reinterpret_cast<GLuint*>(&m_Resource));
             m_Resource = nullptr;
             break;
         default:
