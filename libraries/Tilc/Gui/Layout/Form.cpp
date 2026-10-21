@@ -16,6 +16,7 @@
 #include "Tilc/Gui/SliderHorizontal.h"
 #include "Tilc/Gui/ScrollBarVertical.h"
 #include "Tilc/Gui/ScrollBarHorizontal.h"
+#include "Tilc/Gui/ImageListView.h"
 
 void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields, const char* SaveButtonLabel, float TopY)
 {
@@ -216,6 +217,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         else if (std::strncmp(Type, "pictures", 4) == 0)
         {
+            // Label
             Position.w = Window->m_RealPosition.w;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
@@ -223,11 +225,14 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             {
                 lbl->SetFontToUse("DefaultBold");
             }
+            // Button to the right of label
             Position.x = lbl->m_Position.x + 75.0f;
             Position.w = 125.0f;
             gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAddPicture_") + Name, Position, "Dodaj zdjęcie");
-            Position.x += Position.w + SpacerW;
-            Position.y += 10 * 30.0f;
+            // ImageListView belo the label
+            Position.x = lbl->m_Position.x;
+            Position.y += lbl->m_Position.y + 30.0f;
+            gc = new Tilc::Gui::TImageListView(Window, Tilc::TExtString("lstImageList_") + Name, Position, 96, 96);
             continue;
         }
     }
