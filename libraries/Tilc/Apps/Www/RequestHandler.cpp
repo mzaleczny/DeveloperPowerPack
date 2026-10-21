@@ -212,14 +212,16 @@ void Tilc::Apps::Www::TRequestHandler::ExtractVariablesFromQueryString(Tilc::TEx
     {
         return;
     }
-    std::vector<Tilc::TExtString> VariablesPairs, Var;
+    std::vector<Tilc::TExtString> VariablesPairs;
     QueryString.Explode('&', VariablesPairs);
     for (auto pair : VariablesPairs)
     {
-        pair.Explode('=', Var);
-        if (Var.size() == 2)
+        // Szukamy pierwszego znaku '=', bo wystepuje on po nazwie zmiennej a po nim może jescze wystąpić w danych zakodowanych w base64, więc musimy splitować
+        // po tym pierwszym wystapieniu a nie po wzystkich
+        size_t pos = pair.find('=');
+        if (pos != std::string::npos)
         {
-            Map[Var[0]] = Var[1];
+            Map[pair.substr(0,pos)] = pair.substr(pos + 1);
         }
     }
 }
