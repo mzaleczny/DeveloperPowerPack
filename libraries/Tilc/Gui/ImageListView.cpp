@@ -19,14 +19,22 @@ void Tilc::Gui::TImageListView::Draw()
     if (!m_Visible) return;
     SDL_Renderer* Renderer = Tilc::GameObject->GetContext()->m_Window->GetRenderer();
     Tilc::Resources::TTextureManager* tmgr = Tilc::GameObject->GetContext()->m_TextureManager;
+    SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+    SDL_RenderRect(Renderer, &m_Position);
+
+    float x = m_Position.x;
     float y = m_Position.y;
+    SDL_FRect SrcRect;
     for (int i = 0; i < m_Images.size(); ++i)
     {
-        RenderTexture(tmgr->GetResource(m_Images[i])->AsSDLTexture(), nullptr,
-            m_Position.x + i * (m_ImageWidth+5), y, m_ImageWidth, m_ImageHeight);
+        SDL_Texture* img = tmgr->GetResource(m_Images[i])->AsSDLTexture();
+        SrcRect = {0, 0, static_cast<float>(m_ImageWidth), static_cast<float>(m_ImageHeight) };
+        RenderTexture(img, &SrcRect, x, y, m_ImageWidth, m_ImageHeight);
+        x += m_ImageWidth + 5;
         if (i > 0 && i % m_ImagesPerRow == 0)
         {
             y += m_ImageHeight + 5;
+            x = m_Position.x;
         }
     }
 }
@@ -40,6 +48,7 @@ void Tilc::Gui::TImageListView::RemoveAllImages()
         Tilc::GameObject->GetContext()->m_TextureManager->ReleaseResource(*it);
         m_Images.erase(it, it + 1);
     }
+    UpdateHeight();
 }
 
 void Tilc::Gui::TImageListView::AddImage(const std::string_view ImageBlob)
@@ -60,6 +69,7 @@ void Tilc::Gui::TImageListView::RemoveImage(const std::string_view ImageId)
     m_Images.erase(std::find(m_Images.begin(), m_Images.end(), ImageId));
     // decreases ref counter and if dropped to 0 then deletes resource totally
     Tilc::GameObject->GetContext()->m_TextureManager->ReleaseResource(ImageId.data());
+    UpdateHeight();
 }
 
 void Tilc::Gui::TImageListView::UpdateHeight()
@@ -71,4 +81,5 @@ void Tilc::Gui::TImageListView::UpdateHeight()
         ++m_ImagesPerColumn;
     }
     m_Position.h = m_ImagesPerColumn * (m_ImageHeight + 5);
+    Invalidate();
 }
