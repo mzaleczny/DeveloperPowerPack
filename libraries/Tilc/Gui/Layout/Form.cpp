@@ -227,7 +227,8 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             }
             // Button to the right of label
             Position.x = lbl->m_Position.x + 75.0f;
-            Position.w = 125.0f;
+            Position.w = Window->m_RealPosition.w - 10;
+            Position.h = 96.0f;
             gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAddPicture_") + Name, Position, "Dodaj zdjęcie");
             // ImageListView belo the label
             Position.x = lbl->m_Position.x;
