@@ -225,14 +225,18 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             {
                 lbl->SetFontToUse("DefaultBold");
             }
+
             // Button to the right of label
             Position.x = lbl->m_Position.x + 75.0f;
-            Position.w = Window->m_RealPosition.w - 10;
-            Position.h = 96.0f;
+            Position.w = 125.0f;
+            Position.h = 25.0f;
             gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAddPicture_") + Name, Position, "Dodaj zdjęcie");
+
             // ImageListView belo the label
             Position.x = lbl->m_Position.x;
-            Position.y += lbl->m_Position.y + 30.0f;
+            Position.y = lbl->m_Position.y + 30.0f;
+            Position.w = Window->m_RealPosition.w - 10;
+            Position.h = 96.0f;
             gc = new Tilc::Gui::TImageListView(Window, Tilc::TExtString("lstImageList_") + Name, Position, 96, 96);
             continue;
         }
