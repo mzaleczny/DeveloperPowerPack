@@ -233,7 +233,7 @@ void Tilc::Apps::Www::TRequestHandler::ReadPostData()
 {
     using namespace CompUnits;
     // Content-Length may be max 20MB
-    ContentLength = std::clamp(atoi(FCGX_GetParam("CONTENT_LENGTH", request->envp)), 0, static_cast<int>(20_MB));
+    ContentLength = atoi(FCGX_GetParam("CONTENT_LENGTH", request->envp));
     Body.assign( (std::istreambuf_iterator<char>(is)),
                  (std::istreambuf_iterator<char>())
     );
