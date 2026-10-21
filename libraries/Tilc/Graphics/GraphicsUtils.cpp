@@ -526,7 +526,7 @@ DECLSPEC void Tilc::Graphics::FillTriangle(SDL_Surface* Surface, SDL_Point p0, S
     }
 }
 
-SDL_Surface* Tilc::Graphics::ScaleAndCropSurface(SDL_Surface* src_surface, int target_w, int target_h)
+SDL_Surface* Tilc::Graphics::ScaleAndCropSurfaceInOneStep(SDL_Surface* src_surface, int target_w, int target_h)
 {
     if (!src_surface) return nullptr;
 
@@ -575,6 +575,76 @@ SDL_Surface* Tilc::Graphics::ScaleAndCropSurface(SDL_Surface* src_surface, int t
     SDL_BlitSurfaceScaled(src_surface, &src_rect, dst_surface, &dst_rect, SDL_SCALEMODE_LINEAR);
 
     return dst_surface; // Zwraca nowy SDL_Surface* o podanych wymiarach
+}
+
+SDL_Surface* Tilc::Graphics::ScaleAndCropSurfaceSmooth(SDL_Surface* src_surface, int target_w, int target_h)
+{
+    if (!src_surface) return nullptr;
+
+    int src_w = src_surface->w;
+    int src_h = src_surface->h;
+
+    // 1. Oblicz współczynniki skali (tryb Cover)
+    float scale_w = (float)target_w / src_w;
+    float scale_h = (float)target_h / src_h;
+    float scale = (scale_w > scale_h) ? scale_w : scale_h;
+
+    float crop_w = target_w / scale;
+    float crop_h = target_h / scale;
+
+    SDL_Rect src_rect;
+    src_rect.x = (int)((src_w - crop_w) / 2.0f);
+    src_rect.y = (int)((src_h - crop_h) / 2.0f);
+    src_rect.w = (int)crop_w;
+    src_rect.h = (int)crop_h;
+
+    // 2. Najpierw wycinamy interesujący nas fragment do powierzchni tymczasowej o dokładnych proporcjach cropa
+    SDL_Surface* cropped_surface = SDL_CreateSurface((int)crop_w, (int)crop_h, src_surface->format);
+    if (!cropped_surface) return nullptr;
+
+    SDL_Rect crop_dst_rect = { 0, 0, (int)crop_w, (int)crop_h };
+    SDL_BlitSurface(src_surface, &src_rect, cropped_surface, &crop_dst_rect);
+
+    // 3. Skalowanie stopniowe (wieloetapowe), jeśli pomniejszenie jest duże.
+    // Zamiast skakać od razu do target_w/target_h, schodzimy płynnie w dół.
+    SDL_Surface* current_surf = cropped_surface;
+
+    while (current_surf->w > target_w * 2 || current_surf->h > target_h * 2) {
+        int next_w = current_surf->w / 2;
+        int next_h = current_surf->h / 2;
+        if (next_w < target_w) next_w = target_w;
+        if (next_h < target_h) next_h = target_h;
+
+        SDL_Surface* temp_surf = SDL_CreateSurface(next_w, next_h, current_surf->format);
+        if (!temp_surf) break;
+
+        SDL_Rect intermediate_dst = { 0, 0, next_w, next_h };
+        SDL_BlitSurfaceScaled(current_surf, NULL, temp_surf, &intermediate_dst, SDL_SCALEMODE_LINEAR);
+
+        if (current_surf != cropped_surface) {
+            SDL_DestroySurface(current_surf);
+        }
+        current_surf = temp_surf;
+    }
+
+    // 4. Ostatni krok skalujący do ostatecznych wymiarów target_w x target_h
+    SDL_Surface* dst_surface = SDL_CreateSurface(target_w, target_h, src_surface->format);
+    if (!dst_surface) {
+        if (current_surf != cropped_surface) SDL_DestroySurface(current_surf);
+        SDL_DestroySurface(cropped_surface);
+        return nullptr;
+    }
+
+    SDL_Rect final_dst = { 0, 0, target_w, target_h };
+    SDL_BlitSurfaceScaled(current_surf, NULL, dst_surface, &final_dst, SDL_SCALEMODE_LINEAR);
+
+    // Sprzątanie powierzchni tymczasowych
+    if (current_surf != cropped_surface) {
+        SDL_DestroySurface(current_surf);
+    }
+    SDL_DestroySurface(cropped_surface);
+
+    return dst_surface;
 }
 
 Tilc::TExtString Tilc::Graphics::SaveSurfaceToPNGMemory(SDL_Surface* surface) {
