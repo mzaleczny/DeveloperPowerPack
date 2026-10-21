@@ -67,7 +67,8 @@ namespace Tilc {
             ECT_Listbox,
             ECT_MultiColumnListbox,
             ECT_ComboBox,
-            ECT_PanelMenu
+            ECT_PanelMenu,
+            ECT_ImageListView
         };
 
         enum class EControlBorderType
