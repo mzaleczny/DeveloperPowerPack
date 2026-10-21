@@ -19,7 +19,12 @@ namespace Tilc::Gui
 		void RemoveImage(const std::string_view ImageId);
 		void RemoveAllImages();
 		void UpdateHeight();
-
+		void SetImagesSize(int ImageWidth, int ImageHeight)
+		{
+			m_ImageWidth = ImageWidth;
+			m_ImageHeight = ImageHeight;
+			UpdateHeight();
+		}
 	protected:
 		std::vector<Tilc::TExtString> m_Images;
 		int m_ImageWidth{};
