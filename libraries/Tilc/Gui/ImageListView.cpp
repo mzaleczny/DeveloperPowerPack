@@ -31,13 +31,6 @@ void Tilc::Gui::TImageListView::Draw()
     }
 }
 
-void Tilc::Gui::TImageListView::RemoveImage(const std::string_view ImageId)
-{
-    m_Images.erase(std::find(m_Images.begin(), m_Images.end(), ImageId));
-    // decreases ref counter and if dropped to 0 then deletes resource totally
-    Tilc::GameObject->GetContext()->m_TextureManager->ReleaseResource(ImageId.data());
-}
-
 void Tilc::Gui::TImageListView::RemoveAllImages()
 {
     while (!m_Images.empty())
@@ -49,23 +42,30 @@ void Tilc::Gui::TImageListView::RemoveAllImages()
     }
 }
 
-void Tilc::Gui::TImageListView::AddImage(const Tilc::TExtString& ImageBlob)
+void Tilc::Gui::TImageListView::AddImage(const std::string_view ImageBlob)
 {
     auto now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
     Tilc::TExtString Id = m_Name + "_Picture_" + std::to_string(milliseconds.count());
-    if (Tilc::GameObject->GetContext()->m_TextureManager->AddResourceFromMemory(Id, ImageBlob.data(), ImageBlob.size(), "SDL_Texture", true))
+    if (Tilc::GameObject->GetContext()->m_TextureManager->AddResourceFromMemory(Id, reinterpret_cast<const unsigned char*>(ImageBlob.data()), ImageBlob.size(), "SDL_Texture", true))
     {
         m_Images.push_back(Id);
         UpdateHeight();
     }
 }
 
+void Tilc::Gui::TImageListView::RemoveImage(const std::string_view ImageId)
+{
+    m_Images.erase(std::find(m_Images.begin(), m_Images.end(), ImageId));
+    // decreases ref counter and if dropped to 0 then deletes resource totally
+    Tilc::GameObject->GetContext()->m_TextureManager->ReleaseResource(ImageId.data());
+}
+
 void Tilc::Gui::TImageListView::UpdateHeight()
 {
     m_ImagesPerRow = m_Position.w / (m_ImageWidth+5);
-    m_ImagesPerColumn = m_Images.size() / ImagesPerRow;
+    m_ImagesPerColumn = m_Images.size() / m_ImagesPerRow;
     if (m_Images.size() % m_ImagesPerRow > 0)
     {
         ++m_ImagesPerColumn;
