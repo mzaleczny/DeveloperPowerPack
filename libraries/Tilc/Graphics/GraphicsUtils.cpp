@@ -647,7 +647,23 @@ SDL_Surface* Tilc::Graphics::ScaleAndCropSurfaceSmooth(SDL_Surface* src_surface,
     return dst_surface;
 }
 
-Tilc::TExtString Tilc::Graphics::SaveSurfaceToPNGMemory(SDL_Surface* surface) {
+Tilc::TExtString Tilc::Graphics::SaveSurfaceToPNGMemory(SDL_Surface* surface)
+{
+    return SaveSurfaceToMemory(surface, EFileType::EFT_PNG);
+}
+
+Tilc::TExtString Tilc::Graphics::SaveSurfaceToJPGMemory(SDL_Surface* surface)
+{
+    return SaveSurfaceToMemory(surface, EFileType::EFT_JPG);
+}
+
+Tilc::TExtString Tilc::Graphics::SaveSurfaceToWEBPMemory(SDL_Surface* surface)
+{
+    return SaveSurfaceToMemory(surface, EFileType::EFT_WEBP);
+}
+
+Tilc::TExtString Tilc::Graphics::SaveSurfaceToMemory(SDL_Surface* surface, EFileType FileType)
+{
     if (!surface) return {};
 
     // 1. Szacowany rozmiar bufora w bajtach
@@ -664,8 +680,25 @@ Tilc::TExtString Tilc::Graphics::SaveSurfaceToPNGMemory(SDL_Surface* surface) {
     }
 
     // 3. Zapisujemy powierzchnię do strumienia
-    if (!SDL_SavePNG_IO(surface, io, false)) {
-        SDL_Log("Nie udało się zapisać PNG do pamięci: %s", SDL_GetError());
+    bool Result{};
+    const char* Ext{};
+    switch (FileType)
+    {
+    case EFileType::EFT_PNG:
+        Result = SDL_SavePNG_IO(surface, io, false);
+        Ext = "PNG";
+        break;
+    case EFileType::EFT_JPG:
+        Result = IMG_SaveJPG_IO(surface, io, false, 80);
+        Ext = "JPG";
+        break;
+    case EFileType::EFT_WEBP:
+        Result = IMG_SaveWEBP_IO(surface, io, false, 80);
+        Ext = "WEBP";
+        break;
+    }
+    if (!Result) {
+        SDL_Log("Nie udało się zapisać %s do pamięci: %s", Ext, SDL_GetError());
         SDL_CloseIO(io);
         return {};
     }

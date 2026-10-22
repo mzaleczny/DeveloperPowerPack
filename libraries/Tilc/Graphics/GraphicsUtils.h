@@ -8,6 +8,12 @@
 
 namespace Tilc::Graphics {
 
+    enum class EFileType
+    {
+        EFT_PNG,
+        EFT_JPG,
+        EFT_WEBP
+    };
     // Gets size of Rect available for windows - excluding start bar
     DECLSPEC void GetDesktopResolution(int& Width, int& Height);
     DECLSPEC void GetScreenResolution(int& Width, int& Height);
@@ -27,6 +33,9 @@ namespace Tilc::Graphics {
     DECLSPEC SDL_Surface* ScaleAndCropSurfaceInOneStep(SDL_Surface* src_surface, int target_w, int target_h);
     DECLSPEC SDL_Surface* ScaleAndCropSurfaceSmooth(SDL_Surface* src_surface, int target_w, int target_h);
     DECLSPEC Tilc::TExtString SaveSurfaceToPNGMemory(SDL_Surface* surface);
+    DECLSPEC Tilc::TExtString SaveSurfaceToJPGMemory(SDL_Surface* surface);
+    DECLSPEC Tilc::TExtString SaveSurfaceToWEBPMemory(SDL_Surface* surface);
+    DECLSPEC Tilc::TExtString SaveSurfaceToMemory(SDL_Surface* surface, EFileType FileType);
     //COLORREF WINAPI HexToRGB(CString hex_color);
 
     template <typename T>
