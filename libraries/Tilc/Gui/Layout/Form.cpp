@@ -238,6 +238,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.w = Window->m_RealPosition.w - 10;
             Position.h = 96.0f;
             gc = new Tilc::Gui::TImageListView(Window, Tilc::TExtString("lstImageList_") + Name, Position, 96, 96);
+            Position.y += Position.h + 15.0f;
             continue;
         }
     }
