@@ -82,6 +82,8 @@ namespace Tilc
             Tilc::TExtString slug;
             Tilc::TExtString short_description;
             Tilc::TExtString description;
+            std::vector<Tilc::TExtString> pictures;
+            std::vector<Tilc::TExtString> new_pictures;
 
             TCategory()
             {
@@ -127,6 +129,7 @@ namespace Tilc
             std::vector<TReview*> reviews;
             double averageReviewScore;
             std::vector<Tilc::TExtString> pictures;
+            std::vector<Tilc::TExtString> new_pictures;
 
             // Constructor
             TProduct()
