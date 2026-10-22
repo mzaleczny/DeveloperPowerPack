@@ -13,6 +13,7 @@
 #include "Tilc/Game.h"
 #include "Tilc/Apps/Www/Api/RestAPI.h"
 #include <SDL3/SDL.h>
+#include <unordered_map>
 
 namespace Tilc {
     namespace Gui {
@@ -47,6 +48,7 @@ namespace Tilc {
 
             std::vector<TItemType> m_ChangedItems{};
             std::vector<int> m_ItemsToDelete{};
+            std::unordered_map<Tilc::TExtString, Tilc::TExtString> m_CachedMiniatures;
             Tilc::Gui::TStyledWindow* WndListForm{};
             Tilc::Gui::TStyledWindow* WndEditForm{};
             Tilc::Gui::TLabel* lblTitle{};
@@ -226,7 +228,7 @@ namespace Tilc {
                     EditWindow->Show();
                     EditWindow->Focus();
                     EditWindow->m_Props["IndexInChangedList"] = std::to_string(Index);
-                    Tilc::TExtString Caption;
+                    Tilc::TExtString Caption, Pictures;
                     if (Item.IsEmpty())
                     {
                         Caption = Item.AddLabel;
@@ -234,7 +236,28 @@ namespace Tilc {
                     else
                     {
                         Caption = Item.EditLabel;
+                        // add all pictures assigned to item already
+                        std::for_each(Item.pictures.begin(), Item.pictures.end(), [&Pictures](const Tilc::TExtString& Pic)
+                        {
+                            if (!Pictures.empty())
+                            {
+                                Pictures += ",";
+                            }
+                            Pictures += Pic;
+                        });
                     }
+                    // add all temporary pictures assigned to item during edit but before synchro and saving them to db
+                    std::for_each(Item.new_pictures.begin(), Item.new_pictures.end(), [&Pictures](const Tilc::TExtString& Pic)
+                    {
+                        if (!Pictures.empty())
+                        {
+                            Pictures += ",";
+                        }
+                        Pictures += Pic;
+                    });
+                    // Save added pictures in props
+                    EditWindow->m_Props["Pictures"] = Pictures;
+
                     EditWindow->SetChildrenTextes(Item.GetDataMap());
                     if (FormPackage)
                     {
@@ -242,6 +265,7 @@ namespace Tilc {
                     }
                 }
             }
+
             static void ShowListWindow(TFormPackage* Pack)
             {
                 static bool FetchItemsFromDatabase = true;
@@ -623,11 +647,7 @@ namespace Tilc {
 
             void InitEditWindow(Tilc::Gui::TStyledWindow* ParentWindow, std::initializer_list<std::initializer_list<const char*>> FormFields)
             {
-                SDL_FRect Position;
-                Position.x = 310.0f;
-                Position.y = 120.0f;
-                Position.w = 1180.0f;
-                Position.h = 770.0f;
+                SDL_FRect Position = WndListForm->m_Position;
                 WndEditForm = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, "WndProductEdit", Position);
                 WndEditForm->SetHasBackground(true);
                 WndEditForm->SetHasBorder(true);
