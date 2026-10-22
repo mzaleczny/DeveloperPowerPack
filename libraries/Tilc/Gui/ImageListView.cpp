@@ -80,6 +80,7 @@ void Tilc::Gui::TImageListView::UpdateHeight()
     {
         ++m_ImagesPerColumn;
     }
+    if (m_ImagesPerColumn < 1) m_ImagesPerColumn = 1;
     m_Position.h = m_ImagesPerColumn * (m_ImageHeight + 5);
     Invalidate();
 }
