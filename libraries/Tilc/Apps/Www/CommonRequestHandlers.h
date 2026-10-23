@@ -27,7 +27,7 @@ void FetchItem(Tilc::Apps::Www::TRequestHandler& rh, const Tilc::TExtString Url)
     {
         Tilc::TExtString id = rh.Body.substr(0, 12);
 
-        Tilc::Data::TDBMySQL DB(DBHost, DBName, DBUser, DBPasswd, DBSocket);
+        Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
         T Item;
         PrintItemsList(rh, DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName + " WHERE id=" + id);
     }
@@ -39,7 +39,7 @@ void FetchItemsList(Tilc::Apps::Www::TRequestHandler& rh, const Tilc::TExtString
     rh.ContentType = "application/json";
     rh.OutputHeaders();
 
-    Tilc::Data::TDBMySQL DB(DBHost, DBName, DBUser, DBPasswd, DBSocket);
+    Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
     T Item;
     PrintItemsList(rh, DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
 }
@@ -49,7 +49,7 @@ void SaveItems(Tilc::Apps::Www::TRequestHandler& rh, const Tilc::TExtString Url)
 {
     rh.ContentType = "application/json";
     rh.OutputHeaders();
-    Tilc::Data::TDBMySQL DB(DBHost, DBName, DBUser, DBPasswd, DBSocket);
+    Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
     T Item;
 
     if (rh.Body.length() > 0)
@@ -66,7 +66,7 @@ void DeleteItems(Tilc::Apps::Www::TRequestHandler& rh, const Tilc::TExtString Ur
     rh.ContentType = "application/json";
     rh.OutputHeaders();
 
-    Tilc::Data::TDBMySQL DB(DBHost, DBName, DBUser, DBPasswd, DBSocket);
+    Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
     T Item;
 
     if (rh.Body.length() > 0)
