@@ -62,6 +62,13 @@ void Tilc::TStateManager::Update(float DeltaTime)
 		m_States.back().second->Update(DeltaTime);
 	}
 
+	// Resetujemy jeśli trzeba czas ostatniego kliknięcia, który jest używany do wykrywania double-clicku
+	if (Tilc::GameObject->m_TotalElapsed - Tilc::Gui::TGuiControl::m_LastClickTime > Tilc::Gui::TGuiControl::m_ClickIntervalForDblClick)
+	{
+		Tilc::Gui::TGuiControl::m_LastClickTime = 0;
+		Tilc::Gui::TGuiControl::m_ClicksCount = 0;
+	}
+
     std::for_each(Tilc::Gui::TGuiControl::m_TickableControls.begin(), Tilc::Gui::TGuiControl::m_TickableControls.end(), [&DeltaTime](Tilc::Gui::TGuiControl* ctrl) {
         ctrl->Update(DeltaTime);
     });

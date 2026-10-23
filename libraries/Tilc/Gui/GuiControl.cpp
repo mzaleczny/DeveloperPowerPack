@@ -527,6 +527,11 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonUp(const SDL_Event& event)
                 OnDblClick(event.button.x, event.button.y, event.button.button, this);
             }
         }
+        else
+        {
+            m_LastClickTime = 0;
+            m_ClicksCount = 0;
+        }
 
         return true;
     }

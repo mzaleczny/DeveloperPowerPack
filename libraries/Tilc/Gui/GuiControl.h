@@ -578,6 +578,12 @@ namespace Tilc {
             };
 
             std::unordered_map<Tilc::TExtString, Tilc::TExtString> m_Props;
+
+            // Poniższe trzy zmienne są używane do wykrywania double-clicku
+            inline static uint64_t m_LastClickTime{};
+            inline static int m_ClicksCount{};
+            inline static const int m_ClickIntervalForDblClick = 250;
+
         protected:
             SDL_Texture* m_Canvas{};
             // m_Icons is not owning pointer
@@ -642,9 +648,6 @@ namespace Tilc {
             // Zmienne poniżej kontrolują przewijanie zawartości okienka w zależności od wartości suwaków pionowego i poziomego
             float m_OffsetX{};
             float m_OffsetY{};
-            uint64_t m_LastClickTime{};
-            int m_ClicksCount{};
-            const int m_ClickIntervalForDblClick = 500;
 
             // List of child controls
             std::list<TGuiControl*> m_Children;
