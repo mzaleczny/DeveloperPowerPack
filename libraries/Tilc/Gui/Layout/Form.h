@@ -13,7 +13,9 @@
 #include "Tilc/Gui/ImageListView.h"
 #include "Tilc/Game.h"
 #include "Tilc/Apps/Www/Api/RestAPI.h"
+#ifndef __EMSCRIPTEN__
 #include "Tilc/Net/Http.h"
+#endif
 #include "Tilc/Utils/Base64.h"
 #include <SDL3/SDL.h>
 #include <unordered_map>
@@ -267,23 +269,27 @@ namespace Tilc {
                     auto lstImageListView = dynamic_cast<Tilc::Gui::TImageListView*>(EditWindow->GetChild("lstImageList_ProductPictures"));
                     if (lstImageListView)
                     {
-#ifdef __EMSCRIPTEN__
-                        Tilc::Apps::Www::PostAsync(FormPackage->Url_GetMiniatures, [FormPackage](Tilc::TExtString MinituresBase64List) {
-                            FormPackage->LoadMiniatures(MinituresBase64List);
-                        });
-#else
-                        std::thread Thread([&Pictures, &FormPackage, &lstImageListView]()
+                        lstImageListView->RemoveAllImages();
+                        if (!Pictures.empty())
                         {
-                            Tilc::Net::THttp Http;
-                            Tilc::TExtString ResultCode, MinituresBase64List;
-                            MinituresBase64List = Http.DoPost(FormPackage->Url_GetMiniatures, Pictures, {}, ResultCode);
-                            if (!MinituresBase64List.empty())
-                            {
+#ifdef __EMSCRIPTEN__
+                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetMiniatures, Pictures, [FormPackage](Tilc::TExtString MinituresBase64List) {
                                 FormPackage->LoadMiniatures(MinituresBase64List);
-                            }
-                        });
-                        Thread.detach();
+                            });
+#else
+                            std::thread Thread([&Pictures, &FormPackage, &lstImageListView]()
+                            {
+                                Tilc::Net::THttp Http;
+                                Tilc::TExtString ResultCode, MinituresBase64List;
+                                MinituresBase64List = Http.DoPost(FormPackage->Url_GetMiniatures, Pictures, {}, ResultCode);
+                                if (!MinituresBase64List.empty())
+                                {
+                                    FormPackage->LoadMiniatures(MinituresBase64List);
+                                }
+                            });
+                            Thread.detach();
 #endif
+                        }
                     }
 
                     EditWindow->SetChildrenTextes(Item.GetDataMap());
