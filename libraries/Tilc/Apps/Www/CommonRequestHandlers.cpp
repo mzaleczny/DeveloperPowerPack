@@ -4,7 +4,7 @@
 #include "Tilc/Net/Http.h"
 #include "Tilc/Utils/Base64.h"
 
-void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
+void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
 {
     Tilc::TExtString GoogleAuthToken = rh.PostVars["token"];
 
@@ -85,7 +85,7 @@ void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
     }
 }
 
-void CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
+void Tilc::Apps::Www::CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
 {
     rh.ContentType = "application/json";
     Tilc::TExtString Result;
