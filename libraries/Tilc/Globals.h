@@ -75,6 +75,8 @@ namespace Tilc
     using TStringVector = std::vector<Tilc::TExtString>;
 
     extern std::default_random_engine RandomGenerator;
+    extern const char* GoogleClientId;
+
 
 #if BUILD_WITHOUT_GRAPHICS == 0
     inline SDL_Rect FRectToRectFloor(SDL_FRect* Rect)
