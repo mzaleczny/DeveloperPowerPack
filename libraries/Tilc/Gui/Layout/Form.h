@@ -10,10 +10,14 @@
 #include "Tilc/Gui/Button.h"
 #include "Tilc/Gui/Listbox.h"
 #include "Tilc/Gui/MultiColumnListbox.h"
+#include "Tilc/Gui/ImageListView.h"
 #include "Tilc/Game.h"
 #include "Tilc/Apps/Www/Api/RestAPI.h"
+#include "Tilc/Net/Http.h"
+#include "Tilc/Utils/Base64.h"
 #include <SDL3/SDL.h>
 #include <unordered_map>
+#include <thread>
 
 namespace Tilc {
     namespace Gui {
@@ -45,6 +49,7 @@ namespace Tilc {
             Tilc::TExtString Url_List;
             Tilc::TExtString Url_Save;
             Tilc::TExtString Url_Delete;
+            Tilc::TExtString Url_GetMiniatures;
 
             std::vector<TItemType> m_ChangedItems{};
             std::vector<int> m_ItemsToDelete{};
@@ -68,12 +73,14 @@ namespace Tilc {
                 const Tilc::TExtString& URL_GetItem,
                 const Tilc::TExtString& URL_List,
                 const Tilc::TExtString& URL_Save,
-                const Tilc::TExtString& URL_Delete
+                const Tilc::TExtString& URL_Delete,
+                const Tilc::TExtString& URL_GetMiniatures
                 )
                 : m_ParentWindow(ParentWindow), m_Name(Name), m_Position(Position),
                     lbListColumnsWidths(ListColumnsWidths), lbListColumnsCaptions(ListColumnsCaptions),
                     HideAllWindowsFromParent(HideFunc), lblTitle(TitleLabel),
-                    Url_GetItem(URL_GetItem), Url_List(URL_List), Url_Save(URL_Save), Url_Delete(URL_Delete)
+                    Url_GetItem(URL_GetItem), Url_List(URL_List), Url_Save(URL_Save), Url_Delete(URL_Delete),
+                    Url_GetMiniatures(URL_GetMiniatures)
             {
                 InitListWindow(m_ParentWindow);
                 InitEditWindow(m_ParentWindow, EditFormFields);
@@ -257,6 +264,27 @@ namespace Tilc {
                     });
                     // Save added pictures in props
                     EditWindow->m_Props["Pictures"] = Pictures;
+                    auto lstImageListView = dynamic_cast<Tilc::Gui::TImageListView*>(EditWindow->GetChild("lstImageList_ProductPictures"));
+                    if (lstImageListView)
+                    {
+#ifdef __EMSCRIPTEN__
+                        Tilc::Apps::Www::PostAsync(FormPackage->Url_GetMiniatures, [FormPackage](Tilc::TExtString MinituresBase64List) {
+                            FormPackage->LoadMiniatures(MinituresBase64List);
+                        });
+#else
+                        std::thread Thread([&Pictures, &FormPackage, &lstImageListView]()
+                        {
+                            Tilc::Net::THttp Http;
+                            Tilc::TExtString ResultCode, MinituresBase64List;
+                            MinituresBase64List = Http.DoPost(FormPackage->Url_GetMiniatures, Pictures, {}, ResultCode);
+                            if (!MinituresBase64List.empty())
+                            {
+                                FormPackage->LoadMiniatures(MinituresBase64List);
+                            }
+                        });
+                        Thread.detach();
+#endif
+                    }
 
                     EditWindow->SetChildrenTextes(Item.GetDataMap());
                     if (FormPackage)
@@ -688,6 +716,28 @@ namespace Tilc {
                         }
                     }
                     delete JsonRoot;
+                }
+            }
+
+            void LoadMiniatures(Tilc::TExtString& FetchedMiniatures)
+            {
+                auto lstImageListView = dynamic_cast<Tilc::Gui::TImageListView*>(WndEditForm->GetChild("lstImageList_ProductPictures"));
+                if (lstImageListView)
+                {
+                    std::vector<Tilc::TExtString> Miniatures;
+                    Tilc::TExtString MiniatureBlob;
+
+                    lstImageListView->RemoveAllImages();
+                    FetchedMiniatures.Explode('&', Miniatures);
+
+                    for (auto const &m : Miniatures)
+                    {
+                        if (auto pos = m.find("="); pos != std::string::npos)
+                        {
+                            Tilc::TBase64::Decode(m.substr(pos+1), MiniatureBlob);
+                            lstImageListView->AddImage(MiniatureBlob);
+                        }
+                    }
                 }
             }
         };
