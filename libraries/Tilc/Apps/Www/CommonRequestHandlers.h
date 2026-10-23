@@ -121,7 +121,7 @@ namespace Tilc
                 Tilc::TExtString MiniaturesList = rh.Body;
                 Tilc::Data::TDBSQLite DB(DbFname.c_str());
                 Tilc::Data::TDBDataRows Rows;
-                DB.Select("SELECT name, data FROM miniatures WHERE name IN (?) ORDER BY id ASC", Miniatures, Rows);
+                DB.Select("SELECT name, data FROM miniatures WHERE name IN (?) ORDER BY id ASC", {Tilc::Data::EDBFT_TEXT }, {MiniaturesList}, Rows);
                 bool First = true;
                 for (auto const& Row : Rows)
                 {
