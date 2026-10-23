@@ -28,7 +28,7 @@ void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
 
 
     // Weryfikacja tokenu
-    Tilc::TUser User = Tilc::Google::VerifyGoogleToken(GoogleAuthToken, GoogleClientId);
+    Tilc::TUser User = Tilc::Google::VerifyGoogleToken(GoogleAuthToken, Tilc::GoogleClientId);
     Tilc::TExtString DbFname = rh.ApplicationRootDir + "/db/sessions.db";
     //rh << "Error: " << User.error << "\n";
     //rh << GoogleAuthToken << "\n";

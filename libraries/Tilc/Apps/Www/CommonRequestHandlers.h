@@ -7,7 +7,6 @@
 #include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Commerce/Shop.h"
 #include "Tilc/Utils/Base64.h"
-#include "../config.h"
 #include <chrono>
 
 template <typename T>
