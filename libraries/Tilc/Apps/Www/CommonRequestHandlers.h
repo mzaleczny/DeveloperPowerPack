@@ -113,6 +113,30 @@ namespace Tilc
                 rh << "OK:" << VarName;
             }
 
+            template <typename T>
+            void GetMiniatures(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
+            {
+                T Item;
+                Tilc::TExtString DbFname = rh.ApplicationRootDir + "/db/" + Item.TableName + "_pictures.db";
+                Tilc::TExtString MiniaturesList = rh.Body;
+                Tilc::Data::TDBSQLite DB(DbFname.c_str());
+                Tilc::Data::TDBDataRows Rows;
+                DB.Select("SELECT name, data FROM miniatures WHERE name IN (?) ORDER BY id ASC", Miniatures, Rows);
+                bool First = true;
+                for (auto const& Row : Rows)
+                {
+                    if (!First)
+                    {
+                        std::cout << "&";
+                    }
+                    else
+                    {
+                        First = false;
+                    }
+                    std::cout << Row[0] << "=" << Row[1];
+                }
+            }
+
             void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
             void CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
 
