@@ -82,6 +82,9 @@ namespace Tilc {
         public:
             // Event Handlers
             std::function<int(float x, float y, int MouseButton, TGuiControl* Self)> OnClick;
+            std::function<int(float x, float y, int MouseButton, TGuiControl* Self)> OnDblClick;
+            std::function<int(TGuiControl* Self)> OnShow;
+            std::function<int(TGuiControl* Self)> OnHide;
 
             // Current position of control inside window
             SDL_FRect m_Position;
@@ -241,6 +244,10 @@ namespace Tilc {
                 {
                     m_Visible = true;
                     m_NeedUpdate = ENeedUpdate::ENU_Everything;
+                    if (OnShow)
+                    {
+                        OnShow(this);
+                    }
                 }
             }
             virtual void Hide();
@@ -635,6 +642,9 @@ namespace Tilc {
             // Zmienne poniżej kontrolują przewijanie zawartości okienka w zależności od wartości suwaków pionowego i poziomego
             float m_OffsetX{};
             float m_OffsetY{};
+            uint64_t m_LastClickTime{};
+            int m_ClicksCount{};
+            const int m_ClickIntervalForDblClick = 500;
 
             // List of child controls
             std::list<TGuiControl*> m_Children;

@@ -318,6 +318,10 @@ void Tilc::Gui::TGuiControl::Hide()
         {
             m_Parent->m_NeedUpdate = ENeedUpdate::ENU_Everything;
         }
+        if (OnHide)
+        {
+            OnHide(this);
+        }
     }
 }
 
@@ -505,10 +509,25 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonUp(const SDL_Event& event)
             SetState(CONTROL_STATE_HOVER | CONTROL_STATE_FOCUSED);
         }
 
-        if ((event.button.button == SDL_BUTTON_LEFT) && OnClick)
+        if (m_ClicksCount < 1)
         {
-            OnClick(event.button.x, event.button.y, event.button.button, this);
+            m_LastClickTime = Tilc::GameObject->m_TotalElapsed;
+            ++m_ClicksCount;
+            if (OnClick)
+            {
+                OnClick(event.button.x, event.button.y, event.button.button, this);
+            }
         }
+        else if (Tilc::GameObject->m_TotalElapsed - m_LastClickTime < m_ClickIntervalForDblClick)
+        {
+            m_LastClickTime = 0;
+            m_ClicksCount = 0;
+            if (OnDblClick)
+            {
+                OnDblClick(event.button.x, event.button.y, event.button.button, this);
+            }
+        }
+
         return true;
     }
 
