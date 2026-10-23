@@ -77,6 +77,15 @@ namespace Tilc
     extern std::default_random_engine RandomGenerator;
     extern const char* GoogleClientId;
 
+    struct TDbConnectionParams
+    {
+        Tilc::TExtString DBHost;
+        Tilc::TExtString DBName;
+        Tilc::TExtString DBUser;
+        Tilc::TExtString DBPasswd;
+        Tilc::TExtString DBSocket;
+    };
+    extern TDbConnectionParams DbConnectionParams;
 
 #if BUILD_WITHOUT_GRAPHICS == 0
     inline SDL_Rect FRectToRectFloor(SDL_FRect* Rect)

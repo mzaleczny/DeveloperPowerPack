@@ -2,3 +2,4 @@
 
 std::default_random_engine Tilc::RandomGenerator = std::default_random_engine{ std::random_device{}() };
 const char* Tilc::GoogleClientId = "";
+Tilc::TDbConnectionParams Tilc::DbConnectionParams;
