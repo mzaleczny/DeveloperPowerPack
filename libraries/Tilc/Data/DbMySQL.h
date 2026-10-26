@@ -30,6 +30,7 @@ namespace Tilc {
             virtual int Update(const char* UpdateSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) override {
                 return ExecQuery(UpdateSql, FieldTypes, FieldValues);
             }
+            virtual unsigned long long GetLastInsertId() override { return tilc_mysql_insert_id(m_Conn); }
             void PrintError();
             void PrintStmtError(MYSQL_STMT* stmt);
 

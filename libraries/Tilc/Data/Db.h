@@ -47,6 +47,7 @@ namespace Tilc {
             virtual int Insert(const char* InsertSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) { return 0; }
             virtual int Update(const char* UpdateSql, const TDBFieldTypes& FieldTypes, const TStringVector& FieldValues) { return 0; }
             virtual int Delete(const char* DeleteSql, int Id) { return 0; }
+            virtual unsigned long long GetLastInsertId() { return 0; }
             virtual Tilc::TExtString GetErrorMessage() { return LastError; }
         protected:
             char Buffer[2048]{};

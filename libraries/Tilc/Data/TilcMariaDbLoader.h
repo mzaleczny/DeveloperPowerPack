@@ -23,6 +23,7 @@ typedef MYSQL_RES* (*mysql_stmt_result_metadata_fn)(MYSQL_STMT* stmt);
 typedef MYSQL_FIELD* (*mysql_fetch_fields_fn)(MYSQL_RES* meta);
 typedef void (*mysql_stmt_bind_result_fn)(MYSQL_STMT* stmt, MYSQL_BIND* bind);
 typedef int (*mysql_stmt_bind_param_fn)(MYSQL_STMT *stmt, MYSQL_BIND *bind);
+typedef unsigned long long (*mysql_insert_id_fn)(MYSQL*);
 typedef void (*mysql_close_fn)(MYSQL*);
 typedef const char* (*mysql_error_fn)(MYSQL*);
 
@@ -43,6 +44,7 @@ extern mysql_stmt_result_metadata_fn tilc_mysql_stmt_result_metadata;
 extern mysql_fetch_fields_fn tilc_mysql_fetch_fields;
 extern mysql_stmt_bind_result_fn tilc_mysql_stmt_bind_result;
 extern mysql_stmt_bind_param_fn tilc_mysql_stmt_bind_param;
+extern mysql_insert_id_fn tilc_mysql_insert_id;
 extern mysql_close_fn tilc_mysql_close;
 extern mysql_error_fn tilc_mysql_error;
 

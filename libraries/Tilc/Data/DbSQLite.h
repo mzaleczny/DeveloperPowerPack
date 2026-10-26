@@ -23,7 +23,7 @@ namespace Tilc {
                 return ExecQuery(UpdateSql, FieldTypes, FieldValues);
             };
             virtual int Delete(const char* DeleteSql, int Id) override;
-
+            virtual unsigned long long GetLastInsertId() override { return sqlite3_last_insert_rowid(DB); }
         private:
             sqlite3* DB;
             char* ErrMsg = 0;

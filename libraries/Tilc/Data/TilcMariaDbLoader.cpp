@@ -57,6 +57,7 @@ void* TilcLoadMariaDb(const char* path)
     tilc_mysql_fetch_fields = (MYSQL_FIELD* (*)(MYSQL_RES*))dlsym(handle, "mysql_fetch_fields");
     tilc_mysql_stmt_bind_result = (void (*)(MYSQL_STMT*, MYSQL_BIND*))dlsym(handle, "mysql_stmt_bind_result");
     tilc_mysql_stmt_bind_param = (int (*)(MYSQL_STMT*, MYSQL_BIND*))dlsym(handle, "mysql_stmt_bind_param");
+    tilc_mysql_insert_id = (unsigned long long (*)(MYSQL*))dlsym(handle, "mysql_insert_id");
     tilc_mysql_close = (void (*)(MYSQL*))dlsym(handle, "mysql_close");
     tilc_mysql_error = (const char* (*)(MYSQL*))dlsym(handle, "mysql_error");
 #elifdef _WIN32
@@ -87,7 +88,7 @@ void* TilcLoadMariaDb(const char* path)
         !tilc_mysql_stmt_field_count || !tilc_mysql_stmt_result_metadata ||
         !tilc_mysql_fetch_fields || !tilc_mysql_stmt_bind_result ||
         !tilc_mysql_stmt_bind_param ||
-        !tilc_mysql_close || !tilc_mysql_error)
+        !tilc_mysql_insert_id || !tilc_mysql_close || !tilc_mysql_error)
     {
         if (handle)
         {
