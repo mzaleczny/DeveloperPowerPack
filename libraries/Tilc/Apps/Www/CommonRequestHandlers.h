@@ -114,6 +114,41 @@ namespace Tilc
                 rh << "OK:" << ServerVarName << ":" << ClientVarName;
             }
 
+            template <typename T>
+            void GetPictures(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
+            {
+                T Item;
+                Tilc::TExtString ItemId = rh.GetVars["ItemId"];
+                Tilc::TExtString DbFname = rh.ApplicationRootDir + "/db/" + Item.TableName + "_pictures_" + ItemId + ".db";
+                Tilc::Data::TDBSQLite DB(DbFname.c_str());
+                Tilc::Data::TDBDataRows Rows;
+
+                // First get miniatures
+                DB.Select("SELECT name, data FROM miniatures ORDER BY id ASC", {}, {}, Rows);
+                bool First = true;
+                for (auto const& Row : Rows)
+                {
+                    if (!First)
+                    {
+                        std::cout << "&";
+                    }
+                    else
+                    {
+                        First = false;
+                    }
+                    std::cout << Row[0] << "_mini=" << Row[1];
+                }
+
+                // Next get original pictures
+                Rows.clear();
+                DB.Select("SELECT name, data FROM pictures ORDER BY id ASC", {}, {}, Rows);
+                for (auto const& Row : Rows)
+                {
+                    std::cout << "&";
+                    std::cout << Row[0] << "_pic=" << Row[1];
+                }
+            }
+
             void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
             void CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
 
