@@ -97,7 +97,8 @@ namespace Tilc
                 Tilc::TExtString DecodedBlobPicture, DecodedBlobScaledPicture;
                 Tilc::TExtString ItemId = rh.PostVars["ItemId"];
 
-                Tilc::TExtString VarName = "Pic_" + ItemId + "_" + std::to_string(milliseconds);
+                Tilc::TExtString ClientVarName = rh.PostVars["ClientPicVarName"];
+                Tilc::TExtString ServerVarName = "Pic_" + ItemId + "_" + std::to_string(milliseconds);
 
                 Tilc::TBase64::Decode(rh.PostVars["BlobPicture"], DecodedBlobPicture);
                 Tilc::TBase64::Decode(rh.PostVars["BlobScaledPicture"], DecodedBlobScaledPicture);
@@ -105,12 +106,12 @@ namespace Tilc
                 Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFname.c_str(), "pictures");
                 Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFname.c_str(), "miniatures");
 
-                Tilc::Data::TDataDBResources::SetSimpleData(DbFname.c_str(), "pictures", VarName.c_str(),
+                Tilc::Data::TDataDBResources::SetSimpleData(DbFname.c_str(), "pictures", ServerVarName.c_str(),
                     DecodedBlobPicture.c_str(), DecodedBlobPicture.length());
-                Tilc::Data::TDataDBResources::SetSimpleData(DbFname.c_str(), "miniatures", VarName.c_str(),
+                Tilc::Data::TDataDBResources::SetSimpleData(DbFname.c_str(), "miniatures", ServerVarName.c_str(),
                     DecodedBlobScaledPicture.c_str(), DecodedBlobScaledPicture.length());
 
-                rh << "OK:" << VarName;
+                rh << "OK:" << ServerVarName << ":" << ClientVarName;
             }
 
             template <typename T>
