@@ -108,7 +108,9 @@ Tilc::TExtString Tilc::Commerce::TCategory::ToJson()
             "\"name\": \"" + n + "\",\n" +
             "\"slug\": \"" + slug + "\",\n" +
             "\"short_description\": \"" + sd + "\",\n" +
-            "\"description\": \"" + d + "\"\n" +
+            "\"description\": \"" + d + "\",\n" +
+            "\"pictures\": \"" + Tilc::Implode(',', pictures) + "\",\n" +
+            "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"\n" +
         "}";
 }
 
@@ -131,6 +133,9 @@ void Tilc::Commerce::TCategory::FromJsonObject(Tilc::TStdObject* JsonObject)
         slug = JsonObject->getAsString("slug");
         short_description = JsonObject->getAsStringUnescaped("short_description");
         description = JsonObject->getAsStringUnescaped("description");
+        Tilc::TExtString Pictures = id = JsonObject->getAsString("pictures");
+        Pictures.Explode(',', pictures);
+        new_pictures.clear();
     }
 }
 
@@ -178,7 +183,9 @@ Tilc::TExtString Tilc::Commerce::TProduct::ToJson()
             "\"price_3\": \"" + price_3.ToString('.') + "\",\n" +
             "\"mini_map_file\": \"" + EscapeString(mini_map_file) + "\",\n" +
             "\"css_class\": \"" + EscapeString(css_class) + "\",\n" +
-            "\"product_code\": \"" + EscapeString(product_code) + "\"\n" +
+            "\"product_code\": \"" + EscapeString(product_code) + "\",\n" +
+            "\"pictures\": \"" + Tilc::Implode(',', pictures) + "\",\n" +
+            "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"\n" +
         "}";
 }
 
@@ -208,6 +215,9 @@ void Tilc::Commerce::TProduct::FromJsonObject(Tilc::TStdObject* JsonObject)
         mini_map_file = JsonObject->getAsStringUnescaped("mini_map_file");
         css_class = JsonObject->getAsStringUnescaped("css_class");
         product_code = JsonObject->getAsStringUnescaped("product_code");
+        Tilc::TExtString Pictures = id = JsonObject->getAsString("pictures");
+        Pictures.Explode(',', pictures);
+        new_pictures.clear();
     }
 }
 
