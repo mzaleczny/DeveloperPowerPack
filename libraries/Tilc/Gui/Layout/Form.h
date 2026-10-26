@@ -538,8 +538,6 @@ namespace Tilc {
                         // załaduj do obiektu listę obrazków (naw wygenerowanych przez serwer)
                         std::vector<Tilc::TExtString>& PicturesVector = FormPackage->m_ChangedItems[FormPackage->m_ChangedItems.size()-1].new_pictures;
                         EditWindow->m_Props["Pictures"].Explode(',', PicturesVector);
-                        std::cout << "Add: " << EditWindow->m_Props["Pictures"] << std::endl;
-                        std::cout << "Add: " << FormPackage->m_ChangedItems[FormPackage->m_ChangedItems.size()-1].new_pictures.size() << std::endl;
 
                         Tilc::Gui::TGuiControlItem* lbItem = FormPackage->lbList->AddItem(Item.GetDataForListColumns());
                         int AddedIndex = FormPackage->m_ChangedItems.size() - 1;
@@ -554,7 +552,6 @@ namespace Tilc {
                         // załaduj do obiektu listę obrazków (naw wygenerowanych przez serwer)
                         std::vector<Tilc::TExtString>& PicturesVector = FormPackage->m_ChangedItems[Index].new_pictures;
                         EditWindow->m_Props["Pictures"].Explode(',', PicturesVector);
-                        std::cout << "Edit: " << FormPackage->m_ChangedItems[FormPackage->m_ChangedItems.size()-1].new_pictures.size() << std::endl;
 
                         Tilc::Gui::TGuiControlItem* lbItem = FormPackage->lbList->GetSelectedItem();
                         lbItem->SetFromColumnList(Item.GetDataForListColumns());
