@@ -168,7 +168,7 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
             if (LoggedUser.empty())
             {
                 // to wyciągamy go z jsona przesłanego w Body
-                auto pos = rh->Body.find("\"LoggedUser\"");
+                auto pos = Body.find("\"LoggedUser\"");
                 if (pos != std::string::npos)
                 {
                     pos += 12;
