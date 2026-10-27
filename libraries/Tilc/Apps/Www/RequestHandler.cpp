@@ -96,7 +96,17 @@ void Tilc::Apps::Www::TRequestHandler::OutputHeaders()
         Headers.push_back("Content-type: " + ContentType + "; charset=utf-8");
         if (Application)
         {
-            Headers.push_back("Access-Control-Allow-Origin: " + Application->GetAllowOrigin());
+            if (!Application->GetAllowOrigin().empty())
+            {
+                Headers.push_back("Access-Control-Allow-Origin: " + Application->GetAllowOrigin());
+            }
+            else
+            {
+                Headers.push_back("Access-Control-Allow-Origin: http://localhost");
+            }
+            Headers.push_back("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+            Headers.push_back("Access-Control-Allow-Headers: Content-Type, X-Logged-User, LoggedUser");
+            Headers.push_back("Access-Control-Allow-Credentials: true");
         }
 
         m_HeadersSent = true;
