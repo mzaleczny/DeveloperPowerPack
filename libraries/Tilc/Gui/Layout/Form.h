@@ -129,7 +129,7 @@ namespace Tilc {
             }
 
             int SynchronizeError{};
-            int Synchronize()
+            int Synchronize(const Tilc::TExtString& LoggedUser)
             {
                 SynchronizeError = 0;
                 if (lbList)
@@ -197,7 +197,7 @@ namespace Tilc {
                                     TFormPackage::RefreshList(lbList, ItemsJson);
                                 }
                             }
-                        });
+                        }, {"LoggedUser: " + LoggedUser});
 #else
                         ItemsJson = Tilc::Apps::Www::Save<TItemType>(Url_Save, m_ChangedItems);
                         if (ItemsJson.find("Not Logged In") != std::string::npos)
