@@ -1,6 +1,7 @@
 #pragma once
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Data/Db.h"
+#include "Tilc/Data/TilcMariaDbLoader.h"
 #include "mysql.h"
 
 namespace Tilc {
