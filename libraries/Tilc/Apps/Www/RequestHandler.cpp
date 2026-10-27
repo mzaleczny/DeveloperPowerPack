@@ -164,6 +164,26 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
         }
         else
         {
+            // Jesli LoggedUser jest puste (a powinno być, bo przekazywanie go w nagłówku nie działało w Emscripten)
+            if (LoggedUser.empty())
+            {
+                // to wyciągamy go z jsona przesłanego w Body
+                auto pos = rh->Body.find("\"LoggedUser\"");
+                if (pos != std::string::npos)
+                {
+                    pos += 12;
+                    while (pos < Body.length() && Body[pos] != '\"')
+                    {
+                        ++pos;
+                    }
+                    ++pos;
+                    while (pos < Body.length() && Body[pos] != '\"')
+                    {
+                        LoggedUser.push_back(Body[pos]);
+                        ++pos;
+                    }
+                }
+            }
             if (LoggedUser.empty())
             {
                 Result = R"({"status": "Not Logged In"})";
