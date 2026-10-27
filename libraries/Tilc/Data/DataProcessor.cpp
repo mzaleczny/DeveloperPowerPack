@@ -147,6 +147,7 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                             {
                                 if (Pictures.find(Row[0]) == std::string::npos) continue;
                                 else if (
+                                    Pictures == Row[0] ||
                                     Pictures.find(Row[0] + ",") == 0 ||
                                     Pictures.find("," + Row[0] + ",") != std::string::npos ||
                                     Pictures.find("," + Row[0]) == Pictures.length() - Row[0].length() - 1
