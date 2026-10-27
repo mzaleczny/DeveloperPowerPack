@@ -82,7 +82,9 @@ void Tilc::Apps::Www::TRequestHandler::Init()
     {
         Bearer = Bearer.substr(0, pos + 7);
     }
-    LoggedUser = FCGX_GetParam("LoggedUser", request->envp) ? FCGX_GetParam("LoggedUser", request->envp) : "";
+    // Reset LoggedUser variable it is passed as part of json with command to execute as passing it by header name was blocked by web browser
+    // for some unknown for me reason
+    LoggedUser = "";
 }
 
 void Tilc::Apps::Www::TRequestHandler::Cleanup()

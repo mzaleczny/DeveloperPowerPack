@@ -36,7 +36,7 @@ namespace Tilc
 
 
             template <typename T>
-            Tilc::TExtString Save(Tilc::TExtString Url, std::vector<T>& Items)
+            Tilc::TExtString Save(Tilc::TExtString Url, std::vector<T>& Items, Tilc::TExtString LoggedUser)
             {
                 Tilc::TExtString ResultCode;
                 Tilc::Net::THttp Http;
@@ -51,15 +51,17 @@ namespace Tilc
                 Json = R"##(
                 {
                     "Action": "Save",
+                    "LoggedUser": "{LOGGED_USER}",
                     "Items": [{ITEMS}]
                 })##";
                 Json.StrReplace("{ITEMS}", JsonItems);
+                Json.StrReplace("{LOGGED_USER}", LoggedUser);
                 //std::print("Url: {}\n{}", Url.c_str(), Json.c_str());
                 return Http.DoPost(std::move(Url), Json, {}, ResultCode);
             }
 
 
-            Tilc::TExtString Delete(Tilc::TExtString Url, std::vector<int>& Ids);
+            Tilc::TExtString Delete(Tilc::TExtString Url, std::vector<int>& Ids, Tilc::TExtString LoggedUser);
         }
     }
 }

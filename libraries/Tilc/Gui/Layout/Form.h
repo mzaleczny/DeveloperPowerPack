@@ -163,7 +163,7 @@ namespace Tilc {
                             }
                         });
 #else
-                        ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete);
+                        ItemsJson = Tilc::Apps::Www::Delete(Url_Delete, m_ItemsToDelete, LoggedUser);
                         if (ItemsJson.find("Not Logged In") != std::string::npos)
                         {
                             SynchronizeError = 1;
@@ -197,9 +197,9 @@ namespace Tilc {
                                     TFormPackage::RefreshList(lbList, ItemsJson);
                                 }
                             }
-                        }, {"LoggedUser: " + LoggedUser});
+                        });
 #else
-                        ItemsJson = Tilc::Apps::Www::Save<TItemType>(Url_Save, m_ChangedItems);
+                        ItemsJson = Tilc::Apps::Www::Save<TItemType>(Url_Save, m_ChangedItems, LoggedUser);
                         if (ItemsJson.find("Not Logged In") != std::string::npos)
                         {
                             SynchronizeError = 2;

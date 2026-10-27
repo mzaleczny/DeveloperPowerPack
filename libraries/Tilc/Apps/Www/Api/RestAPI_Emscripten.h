@@ -152,7 +152,7 @@ namespace Tilc
             }
 
             template <typename T, typename Callback>
-            void Save(Tilc::TExtString Url, std::vector<T>& Items, Callback onComplete, std::vector<Tilc::TExtString> Headers = {})
+            void Save(Tilc::TExtString Url, std::vector<T>& Items, Callback onComplete, Tilc::TExtString LoggedUser, std::vector<Tilc::TExtString> Headers = {})
             {
                 Tilc::TExtString Json;
                 Tilc::TExtString JsonItems;
@@ -165,22 +165,26 @@ namespace Tilc
                 Json = R"##(
                 {
                     "Action": "Save",
+                    "LoggedUser": "{LOGGED_USER}",
                     "Items": [{ITEMS}]
                 })##";
                 Json.StrReplace("{ITEMS}", JsonItems);
+                Json.StrReplace("{LOGGED_USER}", LoggedUser);
                 DoPostAsync(Url, Json, onComplete, Headers);
             }
 
             template <typename Callback>
-            void Delete(Tilc::TExtString Url, std::vector<int>& Ids, Callback onComplete, std::vector<Tilc::TExtString> Headers = {})
+            void Delete(Tilc::TExtString Url, std::vector<int>& Ids, Callback onComplete, Tilc::TExtString LoggedUser, std::vector<Tilc::TExtString> Headers = {})
             {
                 Tilc::TExtString Json;
                 Json = R"##(
                 {
                     "Action": "Delete",
+                    "LoggedUser": "{LOGGED_USER}",
                     "Ids": [{IDS}]
                 })##";
                 Json.StrReplace("{IDS}", Tilc::Implode(',', Ids));
+                Json.StrReplace("{LOGGED_USER}", LoggedUser);
                 DoPostAsync(Url, Json, onComplete, Headers);
             }
 
