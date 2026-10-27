@@ -23,6 +23,7 @@ mysql_stmt_result_metadata_fn tilc_mysql_stmt_result_metadata{};
 mysql_fetch_fields_fn tilc_mysql_fetch_fields{};
 mysql_stmt_bind_result_fn tilc_mysql_stmt_bind_result{};
 mysql_stmt_bind_param_fn tilc_mysql_stmt_bind_param{};
+mysql_insert_id_fn tilc_mysql_insert_id{};
 mysql_close_fn tilc_mysql_close{};
 mysql_error_fn tilc_mysql_error{};
 
