@@ -134,48 +134,8 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                         // Teraz przenosimy nowe zdjęcia do pliku zdjęć encji, jeśli został podany
                         if (!NewPictures.empty())
                         {
-                            Tilc::TExtString DbFnameSrc = Tilc::TExtString("/var/www/shop.pl/public_html/fcgi/db/") + TableName + "_pictures.db";
-                            Tilc::TExtString DbFnameDest = Tilc::TExtString("/var/www/shop.pl/public_html/fcgi/db/") + TableName + "_pictures_" + Id + ".db";
-
-                            Tilc::Data::TDBSQLite DBSrc(DbFnameSrc.c_str());
-                            Tilc::Data::TDBDataRows Rows;
-
-                            // First get miniatures
-                            DBSrc.Select("SELECT name, data FROM miniatures ORDER BY id ASC", {}, {}, Rows);
-                            bool First = true;
-                            for (auto const& Row : Rows)
-                            {
-                                if (NewPictures.find(Row[0]) == std::string::npos) continue;
-                                else if (
-                                    NewPictures == Row[0] ||
-                                    NewPictures.find(Row[0] + ",") == 0 ||
-                                    NewPictures.find("," + Row[0] + ",") != std::string::npos ||
-                                    NewPictures.find("," + Row[0]) == Pictures.length() - Row[0].length() - 1
-                                    )
-                                {
-                                    Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFnameDest.c_str(), "miniatures");
-                                    Tilc::Data::TDataDBResources::SetSimpleData(DbFnameDest.c_str(), "miniatures", Row[0].c_str(),
-                                        Row[1].c_str(), Row[1].length());
-                                }
-                            }
-
-                            // Next get original pictures
-                            Rows.clear();
-                            DBSrc.Select("SELECT name, data FROM pictures ORDER BY id ASC", {}, {}, Rows);
-                            for (auto const& Row : Rows)
-                            {
-                                if (Pictures.find(Row[0]) == std::string::npos) continue;
-                                else if (
-                                    Pictures.find(Row[0] + ",") == 0 ||
-                                    Pictures.find("," + Row[0] + ",") != std::string::npos ||
-                                    Pictures.find("," + Row[0]) == Pictures.length() - Row[0].length() - 1
-                                    )
-                                {
-                                    Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFnameDest.c_str(), "pictures");
-                                    Tilc::Data::TDataDBResources::SetSimpleData(DbFnameDest.c_str(), "pictures", Row[0].c_str(),
-                                        Row[1].c_str(), Row[1].length());
-                                }
-                            }
+                            Tilc::Data::TDataProcessor::CopyPictures("products", Id, NewPictures, "miniatures");
+                            Tilc::Data::TDataProcessor::CopyPictures("products", Id, NewPictures, "pictures");
                         }
                     }
                 }
@@ -218,4 +178,31 @@ std::ostream& Tilc::Data::TDataProcessor::DeleteItems(std::ostream& os, Tilc::Da
         delete JsonInput;
     }
     return os;
+}
+
+int Tilc::Data::TDataProcessor::CopyPictures(const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType)
+{
+    Tilc::TExtString DbFnameSrc = Tilc::TExtString("./db/") + TableName.data() + "_pictures.db";
+    Tilc::TExtString DbFnameDest = Tilc::TExtString("./db/") + TableName.data() + "_pictures_" + ItemId.data() + ".db";
+
+    Tilc::Data::TDBSQLite DBSrc(DbFnameSrc.c_str());
+    Tilc::Data::TDBDataRows Rows;
+
+    // First get miniatures
+    DBSrc.Select(std::format("SELECT name, data FROM {} ORDER BY id ASC", PictureType).c_str(), {}, {}, Rows);
+    for (auto const& Row : Rows)
+    {
+        if (NewPictures.find(Row[0]) == std::string::npos) continue;
+        else if (
+            NewPictures == Row[0] ||
+            NewPictures.find(Row[0] + ",") == 0 ||
+            NewPictures.find("," + Row[0] + ",") != std::string::npos ||
+            NewPictures.find("," + Row[0]) == NewPictures.length() - Row[0].length() - 1
+            )
+        {
+            Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFnameDest.c_str(), PictureType.data());
+            Tilc::Data::TDataDBResources::SetSimpleData(DbFnameDest.c_str(), PictureType.data(), Row[0].c_str(),
+                Row[1].c_str(), Row[1].length());
+        }
+    }
 }

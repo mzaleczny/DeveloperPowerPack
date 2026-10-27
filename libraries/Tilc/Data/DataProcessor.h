@@ -60,6 +60,7 @@ namespace Tilc {
         private:
             TDataProcessor() {}
             virtual ~TDataProcessor() {}
+            static int CopyPictures(const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType);
         };
     }
 }
