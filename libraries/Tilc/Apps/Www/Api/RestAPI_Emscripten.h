@@ -1,7 +1,8 @@
 #pragma once
 
 #ifdef __EMSCRIPTEN__
-
+#include <string>
+#include <vector>
 #include <emscripten/fetch.h>
 #include "Tilc/Utils/ExtString.h"
 #include <iostream>
@@ -66,6 +67,8 @@ namespace Tilc
                 struct FetchContext {
                     std::function<void(Tilc::TExtString)> callback;
                     std::string payloadData; // Trzymamy dane w pamięci tak długo, jak żyje context
+                    std::vector<std::string> headers;
+                    std::vector<const char*> c_headers;
                 };
 
                 auto context = new FetchContext{
@@ -80,17 +83,28 @@ namespace Tilc
                 attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
                 attr.userData = context; // Przekazujemy wskaźnik do naszej struktury
 
-                std::vector<const char*> Hdrs = {
-                    "Content-Type", "application/json",
-                };
+                context->headers.push_back("Content-Type: application/json");
+                context->headers.push_back("X-Logged-User: mailgate8@gmail.com");
+                /*
                 for (auto Hdr : Headers)
                 {
-                    Hdrs.push_back(Hdr.c_str());
+                    Tilc::TExtString trimmed = Hdr;
+                    trimmed.Trim();
+                    if (!trimmed.empty())
+                    {
+                        context->headers.push_back(trimmed);
+                    }
                 }
-                Hdrs.push_back(nullptr);
-                attr.requestHeaders = Hdrs.data();
+                */
+                context->c_headers.reserve(context->headers.size() + 1);
+                for (auto& Hdr : context->headers)
+                {
+                    std::cout << "Header line: " << Hdr << std::endl;
+                    context->c_headers.push_back(Hdr.c_str());
+                }
+                context->c_headers.push_back(nullptr);
+                attr.requestHeaders = context->c_headers.data();
 
-                // 2. Wskazujemy na dane z BEZPIECZNEGO obiektu w context (żyjącego na stercie)
                 attr.requestData = context->payloadData.c_str();
                 attr.requestDataSize = context->payloadData.length();
 
@@ -126,7 +140,7 @@ namespace Tilc
             }
 
             template <typename T, typename Callback>
-            void Save(Tilc::TExtString Url, std::vector<T>& Items, Callback onComplete)
+            void Save(Tilc::TExtString Url, std::vector<T>& Items, Callback onComplete, std::vector<Tilc::TExtString> Headers = {})
             {
                 Tilc::TExtString Json;
                 Tilc::TExtString JsonItems;
@@ -142,11 +156,11 @@ namespace Tilc
                     "Items": [{ITEMS}]
                 })##";
                 Json.StrReplace("{ITEMS}", JsonItems);
-                DoPostAsync(Url, Json, onComplete);
+                DoPostAsync(Url, Json, onComplete, Headers);
             }
 
             template <typename Callback>
-            void Delete(Tilc::TExtString Url, std::vector<int>& Ids, Callback onComplete)
+            void Delete(Tilc::TExtString Url, std::vector<int>& Ids, Callback onComplete, std::vector<Tilc::TExtString> Headers = {})
             {
                 Tilc::TExtString Json;
                 Json = R"##(
@@ -155,7 +169,7 @@ namespace Tilc
                     "Ids": [{IDS}]
                 })##";
                 Json.StrReplace("{IDS}", Tilc::Implode(',', Ids));
-                DoPostAsync(Url, Json, onComplete);
+                DoPostAsync(Url, Json, onComplete, Headers);
             }
 
         }
