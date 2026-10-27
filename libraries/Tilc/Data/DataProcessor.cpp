@@ -188,6 +188,7 @@ int Tilc::Data::TDataProcessor::CopyPictures(const std::string_view TableName, c
     Tilc::Data::TDBSQLite DBSrc(DbFnameSrc.c_str());
     Tilc::Data::TDBDataRows Rows;
 
+    int Counter{};
     // First get miniatures
     DBSrc.Select(std::format("SELECT name, data FROM {} ORDER BY id ASC", PictureType).c_str(), {}, {}, Rows);
     for (auto const& Row : Rows)
@@ -203,6 +204,9 @@ int Tilc::Data::TDataProcessor::CopyPictures(const std::string_view TableName, c
             Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFnameDest.c_str(), PictureType.data());
             Tilc::Data::TDataDBResources::SetSimpleData(DbFnameDest.c_str(), PictureType.data(), Row[0].c_str(),
                 Row[1].c_str(), Row[1].length());
+            ++Counter;
         }
     }
+
+    return Counter;
 }
