@@ -203,11 +203,7 @@ void Tilc::Apps::Www::TRequestHandler::HandleRequest()
                     {
                         if (Json->getAsObject("root"))
                         {
-                            Tilc::TStdObject* User = Json->getAsObject("root")->getAsObject("user");
-                            if (User)
-                            {
-                                Token = User->getAsString("token");
-                            }
+                            Token = Json->getAsObject("root")->getAsString("token");
                         }
                         delete Json;
                     }
