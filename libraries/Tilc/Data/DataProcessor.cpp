@@ -145,12 +145,12 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                             bool First = true;
                             for (auto const& Row : Rows)
                             {
-                                if (Pictures.find(Row[0]) == std::string::npos) continue;
+                                if (NewPictures.find(Row[0]) == std::string::npos) continue;
                                 else if (
-                                    Pictures == Row[0] ||
-                                    Pictures.find(Row[0] + ",") == 0 ||
-                                    Pictures.find("," + Row[0] + ",") != std::string::npos ||
-                                    Pictures.find("," + Row[0]) == Pictures.length() - Row[0].length() - 1
+                                    NewPictures == Row[0] ||
+                                    NewPictures.find(Row[0] + ",") == 0 ||
+                                    NewPictures.find("," + Row[0] + ",") != std::string::npos ||
+                                    NewPictures.find("," + Row[0]) == Pictures.length() - Row[0].length() - 1
                                     )
                                 {
                                     Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFnameDest.c_str(), "miniatures");
