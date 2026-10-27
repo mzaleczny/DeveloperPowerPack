@@ -17,8 +17,17 @@ namespace Tilc
             template <typename Callback>
             inline void FetchAsync(Tilc::TExtString Url, Callback onComplete, std::vector<Tilc::TExtString> Headers = {})
             {
+                struct FetchContext {
+                    std::function<void(Tilc::TExtString)> callback;
+                    std::string payloadData; // Trzymamy dane w pamięci tak długo, jak żyje context
+                    std::vector<std::string> headers;
+                    std::vector<const char*> c_headers;
+                };
+
                 // Tworzymy strukturę danych do przekazania do callbacku
-                auto context = new std::function<void(Tilc::TExtString)>(onComplete);
+                auto context = new FetchContext{
+                    onComplete
+                };
 
                 emscripten_fetch_attr_t attr;
                 emscripten_fetch_attr_init(&attr);
@@ -27,33 +36,40 @@ namespace Tilc
                 attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
                 attr.userData = context; // Przekazujemy wskaźnik do naszej funkcji
 
-                std::vector<const char*> Hdrs = {
-                    "Content-Type", "application/json",
-                };
+                context->headers.push_back("Content-Type: application/json");
                 for (auto Hdr : Headers)
                 {
-                    Hdrs.push_back(Hdr.c_str());
+                    Tilc::TExtString trimmed = Hdr;
+                    trimmed.Trim();
+                    if (!trimmed.empty())
+                    {
+                        context->headers.push_back(trimmed);
+                    }
                 }
-                Hdrs.push_back(nullptr);
-                attr.requestHeaders = Hdrs.data();
+                context->c_headers.reserve(context->headers.size() + 1);
+                for (auto& Hdr : context->headers)
+                {
+                    context->c_headers.push_back(Hdr.c_str());
+                }
+                context->c_headers.push_back(nullptr);
+                attr.requestHeaders = context->c_headers.data();
 
                 attr.onsuccess = [](emscripten_fetch_t* fetch) {
-                    auto cb = static_cast<std::function<void(Tilc::TExtString)>*>(fetch->userData);
-                    std::cout << "[C++ WASM] Pobrano " << fetch->numBytes << " bajtów z API.\n";
-
                     Tilc::TExtString json(fetch->data, fetch->numBytes);
-                    (*cb)(json);
-
-                    delete cb;
+                    auto ctx = static_cast<FetchContext*>(fetch->userData);
+                    // Wywołujemy callback użytkownika
+                    if (ctx->callback) {
+                        ctx->callback(json);
+                    }
+                    // Zwalniamy context DOPERO TERAZ (razem z buforem payloadData)
+                    delete ctx;
                     emscripten_fetch_close(fetch);
                 };
 
                 attr.onerror = [](emscripten_fetch_t* fetch) {
-                    auto cb = static_cast<std::function<void(Tilc::TExtString)>*>(fetch->userData);
-                    std::cout << "[C++ WASM] Zapytanie do REST API nie powiodło się, status: "
-                              << fetch->status << std::endl;
-
-                    delete cb;
+                    auto ctx = static_cast<FetchContext*>(fetch->userData);
+                    // Zwalniamy context w przypadku błędu
+                    delete ctx;
                     emscripten_fetch_close(fetch);
                 };
 
@@ -84,8 +100,6 @@ namespace Tilc
                 attr.userData = context; // Przekazujemy wskaźnik do naszej struktury
 
                 context->headers.push_back("Content-Type: application/json");
-                context->headers.push_back("X-Logged-User: mailgate8@gmail.com");
-                /*
                 for (auto Hdr : Headers)
                 {
                     Tilc::TExtString trimmed = Hdr;
@@ -95,11 +109,9 @@ namespace Tilc
                         context->headers.push_back(trimmed);
                     }
                 }
-                */
                 context->c_headers.reserve(context->headers.size() + 1);
                 for (auto& Hdr : context->headers)
                 {
-                    std::cout << "Header line: " << Hdr << std::endl;
                     context->c_headers.push_back(Hdr.c_str());
                 }
                 context->c_headers.push_back(nullptr);
