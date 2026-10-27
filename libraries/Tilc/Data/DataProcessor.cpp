@@ -134,8 +134,8 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                         // Teraz przenosimy nowe zdjęcia do pliku zdjęć encji, jeśli został podany
                         if (!NewPictures.empty())
                         {
-                            Tilc::TExtString DbFnameSrc = Tilc::TExtString("./db/") + TableName + "_pictures.db";
-                            Tilc::TExtString DbFnameDest = Tilc::TExtString("./db/") + TableName + "_pictures_" + Id + ".db";
+                            Tilc::TExtString DbFnameSrc = Tilc::TExtString("/var/www/shop.pl/public_html/fcgi/db/") + TableName + "_pictures.db";
+                            Tilc::TExtString DbFnameDest = Tilc::TExtString("/var/www/shop.pl/public_html/fcgi/db/") + TableName + "_pictures_" + Id + ".db";
 
                             Tilc::Data::TDBSQLite DBSrc(DbFnameSrc.c_str());
                             Tilc::Data::TDBDataRows Rows;
