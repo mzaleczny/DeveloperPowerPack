@@ -3,6 +3,7 @@
 #include "Tilc/Utils/VectorContainer.h"
 #include "Tilc/Utils/JsonParser.h"
 #include "Tilc/Utils/StdObject.h"
+#include "Tilc/Utils/Base64.h"
 #include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Data/DbSQLite.h"
 #include <filesystem>
@@ -100,7 +101,9 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
                 AllFields.push_back("pictures");
                 Data[0].push_back(Pictures);
                 AllFields.push_back("pictures_blobs");
-                Data[0].push_back(PicturesBlobs);
+                Tilc::TExtString b64;
+                Tilc::TBase64::Encode(reinterpret_cast<const unsigned char*>(PicturesBlobs.c_str()), PicturesBlobs.length(), b64);
+                Data[0].push_back(b64);
             }
             else
             {
