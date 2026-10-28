@@ -417,7 +417,7 @@ namespace Tilc {
                                         }
                                         else
                                         {
-                                            // Tutaj pobieramy dane kategorii z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
+                                            // Tutaj pobieramy dane encji z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
 #ifdef __EMSCRIPTEN__
                                             Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [FormPackage](Tilc::TExtString ItemJson) {
                                                 TItemType Item;
@@ -761,6 +761,21 @@ namespace Tilc {
                         }
                     }
                 }
+            }
+
+            bool HasPicturesList()
+            {
+                if (WndEditForm)
+                {
+                    for (auto const c : WndEditForm->GetChildren())
+                    {
+                        if (c->m_ControlType == Tilc::Gui::EControlType::ECT_ImageListView)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
             }
         };
     }
