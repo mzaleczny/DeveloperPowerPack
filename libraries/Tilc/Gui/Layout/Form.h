@@ -420,11 +420,7 @@ namespace Tilc {
                                             // Tutaj pobieramy dane encji z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
 #ifdef __EMSCRIPTEN__
                                             Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [FormPackage](Tilc::TExtString ItemJson) {
-                                                TItemType Item;
-                                                Item.FromJson(ItemJson);
-                                                FormPackage->m_ChangedItems.push_back(Item);
-                                                int Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
-                                                TFormPackage::ShowEditWindow(FormPackage, Item, Index);
+                                                InitializeItemFromJson(FormPackage, ItemJson);
                                             });
 #else
                                             Item = Tilc::Apps::Www::Fetch<TItemType>(FormPackage->Url_GetItem, Id);
@@ -440,6 +436,53 @@ namespace Tilc {
                     }
                 }
                 return 0;
+            }
+
+            static void InitializeItemFromJson(Tilc::Gui::TFormPackage<TItemType>* FormPackage, Tilc::TExtString& ItemJson)
+            {
+                TItemType Item;
+                Item.FromJson(ItemJson);
+
+                auto it = std::find_if(FormPackage->m_ChangedItems.begin(), FormPackage->m_ChangedItems.end(), [&Item](const TItemType& e)
+                {
+                    return Item.id == e.id;
+                });
+                if (it != FormPackage->m_ChangedItems.end())
+                {
+                    return;
+                }
+
+                Tilc::TExtString PicturesBlobs;
+                Tilc::TJsonParser JsonParser;
+                Tilc::TStdObject* JsonRoot = JsonParser.parse(ItemJson);
+                if (JsonRoot)
+                {
+                    if (auto& ItemObject = *JsonRoot->getAsObject("root")->getAsArray("items"); ItemObject.size() == 1 && ItemObject[0])
+                    {
+                        Tilc::TStdObject* o = ItemObject[0]->oValue;
+                        if (o)
+                        {
+                            PicturesBlobs = o->getAsString("pictures_blobs");
+                        }
+                    }
+                    delete JsonRoot;
+                }
+
+                Tilc::TStringVector Blobs;
+                Tilc::TExtString Blob;
+                int i = 0;
+                PicturesBlobs.Explode('&', Blobs);
+                for (auto b : Blobs)
+                {
+                    Tilc::TBase64::Decode(b, Blob);
+                    FormPackage->m_CachedMiniaturesMap[Item.pictures[i]] = Item.pictures[i];
+                    FormPackage->m_CachedMiniatures[Item.pictures[i]] = Blob;
+                    ++i;
+                }
+
+                FormPackage->m_ChangedItems.push_back(Item);
+                int Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
+                TFormPackage::ShowEditWindow(FormPackage, Item, Index);
             }
 
             static int OnListDeleteClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
@@ -750,10 +793,10 @@ namespace Tilc {
 
                     for (auto const &m : Miniatures)
                     {
-                        std::cout << "Find for server name: " << m << std::endl;
+                        //std::cout << "Find for server name: " << m << std::endl;
                         if (auto p1 = m_CachedMiniaturesMap.find(m); p1 != m_CachedMiniaturesMap.end())
                         {
-                            std::cout << "Find for client name: " << p1->second << std::endl;
+                            //std::cout << "Find for client name: " << p1->second << std::endl;
                             if (auto p2 = m_CachedMiniatures.find(p1->second); p2 != m_CachedMiniatures.end())
                             {
                                 lstImageListView->AddImage(p2->second);
