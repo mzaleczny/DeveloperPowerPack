@@ -215,7 +215,7 @@ void Tilc::Commerce::TProduct::FromJsonObject(Tilc::TStdObject* JsonObject)
         mini_map_file = JsonObject->getAsStringUnescaped("mini_map_file");
         css_class = JsonObject->getAsStringUnescaped("css_class");
         product_code = JsonObject->getAsStringUnescaped("product_code");
-        Tilc::TExtString Pictures = id = JsonObject->getAsString("pictures");
+        Tilc::TExtString Pictures = JsonObject->getAsString("pictures");
         Pictures.Explode(',', pictures);
         new_pictures.clear();
     }
