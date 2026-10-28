@@ -5,6 +5,7 @@
 #include "Tilc/Utils/StdObject.h"
 #include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Data/DbSQLite.h"
+#include <filesystem>
 
 std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields)
 {
@@ -40,6 +41,75 @@ std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data
     if (!Error.empty())
     {
         os << Error << ": " << SqlStr << "\n";
+    }
+
+    os << "{\"items\":";
+    Tilc::PrintVectorAsJsonArray(os, Fields, Data);
+    os << ",\"items_count\":\"" << Data.size() << "\"";
+    //os << ",\"Sql\":\"" << SqlStr << "\"";
+    os << "}";
+    return os;
+}
+
+std::ostream& Tilc::Data::TDataProcessor::PrintListWithPictures(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::vector<const char*>& Fields, std::string_view TableName, std::string_view ItemId)
+{
+    Tilc::TExtString FieldsList{Tilc::Implode(',', Fields)};
+    Tilc::TExtString SqlStr{Sql};
+    SqlStr.StrReplace("%s", FieldsList);
+
+    Tilc::Data::TDBDataRows Data;
+    DB.Select(SqlStr.c_str(), Data);
+    Tilc::TExtString Error = DB.GetErrorMessage();
+    if (!Error.empty())
+    {
+        os << Error << ": " << SqlStr << "\n";
+    }
+
+
+    // Jeśli pobieramy tylko jedną pozycję (Sql ma substring "WHERE id="), to pobieramy także zdjęcia dodane do encji o ile są
+    if (Tilc::TExtString(Sql).find("WHERE id=") != std::string::npos)
+    {
+        Tilc::TExtString DbFname = Tilc::TExtString("./db/") + TableName.data() + "_pictures_" + ItemId.data() + ".db";
+        if (std::filesystem::exists(DbFname.c_str()))
+        {
+            Tilc::Data::TDBSQLite DB(DbFname.c_str());
+            Tilc::Data::TDBDataRows Rows;
+            Tilc::TExtString Pictures, PicturesBlobs;
+
+            // First get miniatures
+            DB.Select("SELECT name, data FROM miniatures ORDER BY id ASC", {}, {}, Rows);
+            bool First = true;
+            for (auto const& Row : Rows)
+            {
+                if (!First)
+                {
+                    Pictures += ",";
+                    PicturesBlobs += "&";
+                }
+                else
+                {
+                    First = false;
+                }
+                Pictures += Row[0];
+                PicturesBlobs += Row[1];
+            }
+
+            // Jesli pobrano zdjęcia, to ustaw je w jsonie
+            if (!Pictures.empty())
+            {
+                Fields.push_back("pictures");
+                Data[0].push_back(Pictures);
+                Fields.push_back("pictures_blobs");
+                Data[0].push_back(PicturesBlobs);
+            }
+            else
+            {
+                Fields.push_back("pictures");
+                Data[0].push_back("");
+                Fields.push_back("pictures_blobs");
+                Data[0].push_back("");
+            }
+        }
     }
 
     os << "{\"items\":";
