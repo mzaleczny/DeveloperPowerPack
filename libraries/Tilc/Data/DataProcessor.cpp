@@ -51,7 +51,7 @@ std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data
     return os;
 }
 
-std::ostream& Tilc::Data::TDataProcessor::PrintListWithPictures(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::vector<const char*>& Fields, std::string_view TableName, std::string_view ItemId)
+std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::vector<const char*>& Fields, std::string_view TableName, std::string_view ItemId)
 {
     Tilc::TExtString FieldsList{Tilc::Implode(',', Fields)};
     Tilc::TExtString SqlStr{Sql};
