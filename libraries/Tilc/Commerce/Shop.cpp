@@ -133,7 +133,7 @@ void Tilc::Commerce::TCategory::FromJsonObject(Tilc::TStdObject* JsonObject)
         slug = JsonObject->getAsString("slug");
         short_description = JsonObject->getAsStringUnescaped("short_description");
         description = JsonObject->getAsStringUnescaped("description");
-        Tilc::TExtString Pictures = id = JsonObject->getAsString("pictures");
+        Tilc::TExtString Pictures = JsonObject->getAsString("pictures");
         Pictures.Explode(',', pictures);
         new_pictures.clear();
     }
