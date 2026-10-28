@@ -34,7 +34,8 @@ namespace Tilc
 
                     Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
                     T Item;
-                    Tilc::Data::TDataProcessor::PrintItemWithPictures(rh, DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName + " WHERE id=" + id, Item.TableName, id);
+                    Tilc::Data::TDataProcessor::PrintItemWithPictures(rh.os, DB, (Tilc::TExtString("SELECT %s FROM ") + Item.TableName + " WHERE id=" + id).c_str(),
+                        Item.GetAllFieldsNamesList(), Item.TableName, id);
                 }
             }
 

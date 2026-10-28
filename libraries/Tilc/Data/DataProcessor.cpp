@@ -51,7 +51,7 @@ std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data
     return os;
 }
 
-std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::vector<const char*>& Fields, std::string_view TableName, std::string_view ItemId)
+std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, const std::vector<const char*>& Fields, std::string_view TableName, std::string_view ItemId)
 {
     Tilc::TExtString FieldsList{Tilc::Implode(',', Fields)};
     Tilc::TExtString SqlStr{Sql};
@@ -65,7 +65,7 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
         os << Error << ": " << SqlStr << "\n";
     }
 
-
+    std::vector<const char*> AllFields = Fields;
     // Jeśli pobieramy tylko jedną pozycję (Sql ma substring "WHERE id="), to pobieramy także zdjęcia dodane do encji o ile są
     if (Tilc::TExtString(Sql).find("WHERE id=") != std::string::npos)
     {
@@ -97,23 +97,23 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
             // Jesli pobrano zdjęcia, to ustaw je w jsonie
             if (!Pictures.empty())
             {
-                Fields.push_back("pictures");
+                AllFields.push_back("pictures");
                 Data[0].push_back(Pictures);
-                Fields.push_back("pictures_blobs");
+                AllFields.push_back("pictures_blobs");
                 Data[0].push_back(PicturesBlobs);
             }
             else
             {
-                Fields.push_back("pictures");
+                AllFields.push_back("pictures");
                 Data[0].push_back("");
-                Fields.push_back("pictures_blobs");
+                AllFields.push_back("pictures_blobs");
                 Data[0].push_back("");
             }
         }
     }
 
     os << "{\"items\":";
-    Tilc::PrintVectorAsJsonArray(os, Fields, Data);
+    Tilc::PrintVectorAsJsonArray(os, AllFields, Data);
     os << ",\"items_count\":\"" << Data.size() << "\"";
     //os << ",\"Sql\":\"" << SqlStr << "\"";
     os << "}";
