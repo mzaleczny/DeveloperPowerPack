@@ -92,7 +92,9 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
                     First = false;
                 }
                 Pictures += Row[0];
-                PicturesBlobs += Row[1];
+                Tilc::TExtString b64;
+                Tilc::TBase64::Encode(reinterpret_cast<const unsigned char*>(Row[1].c_str()), Row[1].length(), b64);
+                PicturesBlobs += b64;
             }
 
             // Jesli pobrano zdjęcia, to ustaw je w jsonie
@@ -101,9 +103,7 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
                 AllFields.push_back("pictures");
                 Data[0].push_back(Pictures);
                 AllFields.push_back("pictures_blobs");
-                Tilc::TExtString b64;
-                Tilc::TBase64::Encode(reinterpret_cast<const unsigned char*>(PicturesBlobs.c_str()), PicturesBlobs.length(), b64);
-                Data[0].push_back(b64);
+                Data[0].push_back(PicturesBlobs);
             }
             else
             {
