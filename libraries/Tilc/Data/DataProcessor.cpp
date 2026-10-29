@@ -240,6 +240,10 @@ std::ostream& Tilc::Data::TDataProcessor::DeleteItems(std::ostream& os, Tilc::Da
                     }
                     Ids += std::to_string((*IdsVec)[i]->iValue);
                 }
+                else if ((*IdsVec)[i]->type == Tilc::PROPERTY_VALUE)
+                {
+                    Ids += (*IdsVec)[i]->value;
+                }
             }
             if (Ids.length() > 0)
             {
