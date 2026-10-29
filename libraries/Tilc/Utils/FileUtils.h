@@ -50,18 +50,51 @@ namespace Tilc
         void OpenFile(const char* FileName, const char* OpenMode = "r");
     };
 
-	DECLSPEC bool DirectoryExists(const Tilc::TExtString& Path);
-	DECLSPEC bool FileExists(const Tilc::TExtString& Path);
+	inline bool DirectoryExists(const Tilc::TExtString& Path)
+	{
+		auto err = std::error_code{};
+		auto path = std::filesystem::path(Path.c_str());
+		return std::filesystem::exists(path) && std::filesystem::is_directory(path, err);
+	}
+	inline bool FileExists(const Tilc::TExtString& Path)
+	{
+		auto err = std::error_code{};
+		auto path = std::filesystem::path(Path.c_str());
+		return std::filesystem::exists(path) && std::filesystem::is_regular_file(path, err);
+	}
+
 	DECLSPEC TExtString GetAppDataFolder();
-	DECLSPEC TExtString GetTmpFolder();
+	inline TExtString GetTmpFolder()
+	{
+		return std::filesystem::temp_directory_path().c_str();
+	}
 	DECLSPEC void FilePutContents(const Tilc::TExtString& Path, const Tilc::TExtString& Content);
 	DECLSPEC void FilePutContentsRaw(Tilc::TExtString Path, Tilc::TExtString Content);
 	DECLSPEC void FilePutContentsRaw(Tilc::TExtString Path, const char* Buffer, size_t BufferSize);
 	DECLSPEC Tilc::TExtString FileGetContents(const Tilc::TExtString& Path);
 	DECLSPEC void FileGetContents(const char* Path, char** DataBuffer, size_t* DataBufferSize);
-	DECLSPEC size_t GetFileSize(const char* Path);
-	DECLSPEC Tilc::TExtString GetFileBasename(const Tilc::TExtString& Path);
-	DECLSPEC Tilc::TExtString GetFileExt(const Tilc::TExtString& Path);
+	inline uintmax_t GetFileSize(const char* Path)
+	{
+		auto err = std::error_code{};
+		return std::filesystem::file_size(std::filesystem::path(Path), err);
+	}
+	inline Tilc::TExtString GetFileBasename(const Tilc::TExtString& Path)
+	{
+		return std::filesystem::path(Path.c_str()).filename().c_str();
+	}
+	inline Tilc::TExtString GetFileExt(const Tilc::TExtString& Path)
+    {
+    	return std::filesystem::path(Path.c_str()).extension().c_str();
+    }
+	inline Tilc::TExtString GetFileExtWithoutDot(const Tilc::TExtString& Path)
+    {
+    	Tilc::TExtString Result = std::filesystem::path(Path.c_str()).extension().string();
+		if (!Result.empty())
+		{
+			return Result.substr(1);
+		}
+		return "";
+    }
     DECLSPEC inline Tilc::TExtString GetRealPath(const Tilc::TExtString& Path)
     {
         return std::filesystem::path(Path.c_str()).lexically_normal().string();

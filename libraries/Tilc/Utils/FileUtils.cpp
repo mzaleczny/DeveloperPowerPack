@@ -206,16 +206,6 @@ void Tilc::TCFile::OpenFile(const char* FileName, const char* OpenMode)
 }
 
 
-bool Tilc::DirectoryExists(const Tilc::TExtString& Path)
-{
-    return std::filesystem::is_directory(std::filesystem::path(Path.c_str()));
-}
-
-bool Tilc::FileExists(const Tilc::TExtString& Path)
-{
-    return std::filesystem::is_regular_file(std::filesystem::path(Path.c_str()));
-}
-
 Tilc::TExtString Tilc::GetAppDataFolder()
 {
 #ifdef _WIN32
@@ -239,34 +229,6 @@ Tilc::TExtString Tilc::GetAppDataFolder()
     HomeDir += "\\AppData\\Local";
 #else
     HomeDir += "/.local/bin";
-#endif
-    
-    return std::move(HomeDir);
-}
-
-Tilc::TExtString Tilc::GetTmpFolder()
-{
-#ifdef _WIN32
-    constexpr const char* HOME = "USERPROFILE";
-#else
-    constexpr const char* HOME = "HOME";
-#endif
-
-#ifdef __EMSCRIPTEN__
-    Tilc::TExtString HomeDir = getenv(HOME);
-#elif defined(__linux__)
-    Tilc::TExtString HomeDir = getenv(HOME);
-#else
-    char* buf;
-    size_t bufsize;
-    _dupenv_s(&buf, &bufsize, HOME);
-    Tilc::TExtString HomeDir = buf;
-#endif
-
-#ifdef _WIN32
-    HomeDir += "\\AppData\\Local\\Temp";
-#else
-    HomeDir += "/tmp";
 #endif
     
     return std::move(HomeDir);
@@ -332,36 +294,6 @@ void Tilc::FileGetContents(const char* Path, char** DataBuffer, size_t* DataBuff
         File.read(*DataBuffer, *DataBufferSize);
     }
     File.close();
-}
-
-size_t Tilc::GetFileSize(const char* Path)
-{
-    size_t FileSize;
-    std::fstream File(Path, std::ios::in | std::ios::binary);
-    File.seekg(0, std::ios_base::end);
-    FileSize = File.tellg();
-    File.close();
-    return FileSize;
-}
-
-Tilc::TExtString Tilc::GetFileBasename(const Tilc::TExtString& Path)
-{
-    size_t Pos = Path.find_last_of('\\');
-    if (Pos != std::string::npos)
-    {
-        return Path.substr(Pos + 1);
-    }
-    return "";
-}
-
-Tilc::TExtString Tilc::GetFileExt(const Tilc::TExtString& Path)
-{
-    size_t Pos = Path.find_last_of('.');
-    if (Pos != std::string::npos)
-    {
-        return Path.substr(Pos + 1);
-    }
-    return "";
 }
 
 unsigned long Tilc::AppendToFile(const TExtString& fname, const TExtString& Content)
