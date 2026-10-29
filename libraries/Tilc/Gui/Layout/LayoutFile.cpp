@@ -488,8 +488,8 @@ void Tilc::Gui::TLayoutFile::processButtonItem(Tilc::TStdObject* item, Tilc::Gui
             if (Icon)
             {
                 Tilc::TExtString IconsTexName = item->getAsString("iconsTexName");
-                gc->SetIconRect(Tilc::GetRect(static_cast<int>((*Icon)[0]->iValue), static_cast<int>((*Icon)[1]->iValue),
-                    static_cast<int>((*Icon)[2]->iValue), static_cast<int>((*Icon)[3]->iValue)));
+                gc->SetIconRect(Tilc::GetRect(static_cast<int>((*Icon)[0]->getAsInt()), static_cast<int>((*Icon)[1]->getAsInt()),
+                    static_cast<int>((*Icon)[2]->getAsInt()), static_cast<int>((*Icon)[3]->getAsInt())));
                 gc->SetIconsTexture(Tilc::GameObject->GetContext()->m_TextureManager->GetResource(IconsTexName)->AsSDLTexture());
                 // Jesli rysujemy ikonę, to ustawiamy rozmiar z pliku z layoutem, bo nie chcemy domyślnej wysokości przycisku
                 gc->m_Position.h = height;
@@ -903,10 +903,10 @@ Tilc::Gui::TPanelMenuItem Tilc::Gui::TLayoutFile::processPanelMenuItem_ReadPanel
         Tilc::TPropertiesVector* Icon = item->getAsArray("icon");
         if (Icon)
         {
-            PanelMenuItem.m_IconPosition.x = (*Icon)[0]->iValue;
-            PanelMenuItem.m_IconPosition.y = (*Icon)[1]->iValue;
-            PanelMenuItem.m_IconPosition.w = (*Icon)[2]->iValue;
-            PanelMenuItem.m_IconPosition.h = (*Icon)[3]->iValue;
+            PanelMenuItem.m_IconPosition.x = static_cast<int>((*Icon)[0]->getAsInt());
+            PanelMenuItem.m_IconPosition.y = static_cast<int>((*Icon)[1]->getAsInt());
+            PanelMenuItem.m_IconPosition.w = static_cast<int>((*Icon)[2]->getAsInt());
+            PanelMenuItem.m_IconPosition.h = static_cast<int>((*Icon)[3]->getAsInt());
         }
         PanelMenuItem.m_Caption = item->getAsString("text");
         Tilc::TPropertiesVector* SubItems = item->getAsArray("subitems");
