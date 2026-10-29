@@ -961,6 +961,10 @@ void Tilc::Gui::TLayoutFile::getDimensionProperties(Tilc::TStdObject* item, floa
         {
             *width = item->getAsDouble("width");
         }
+        else if (property->type == PROPERTY_VALUE)
+        {
+            *width = static_cast<float>(std::stod(item->getAsString("width")));
+        }
     }
 
     property = item->get("height");
@@ -969,6 +973,10 @@ void Tilc::Gui::TLayoutFile::getDimensionProperties(Tilc::TStdObject* item, floa
         if (property->type == PROPERTY_VALUE_INT || property->type == PROPERTY_VALUE_DOUBLE)
         {
             *height = item->getAsDouble("height");
+        }
+        else if (property->type == PROPERTY_VALUE)
+        {
+            *height = static_cast<float>(std::stod(item->getAsString("height")));
         }
     }
 
@@ -986,6 +994,10 @@ void Tilc::Gui::TLayoutFile::getDimensionProperties(Tilc::TStdObject* item, floa
             {
                 *x = (m_Wnd->m_RealPosition.w - *width) / 2;
             }
+            else
+            {
+                *x = static_cast<float>(std::stod(sValue));
+            }
         }
     }
 
@@ -1002,6 +1014,10 @@ void Tilc::Gui::TLayoutFile::getDimensionProperties(Tilc::TStdObject* item, floa
             if (sValue == "center")
             {
                 *y = (m_Wnd->m_RealPosition.h - *height) / 2;
+            }
+            else
+            {
+                *y = static_cast<float>(std::stod(sValue));
             }
         }
     }
