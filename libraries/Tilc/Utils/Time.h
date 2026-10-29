@@ -3,8 +3,11 @@
 #include <ctime>
 #include <chrono>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include "Tilc/DllGlobals.h"
+#include "Tilc/Utils/ExtString.h"
 
 namespace Tilc {
     class DECLSPEC TDate {
@@ -59,4 +62,13 @@ namespace Tilc {
         return system_clock::to_time_t(sctp);
     }
 
+    inline Tilc::TExtString GetCurrentDateTime()
+    {
+        auto now = std::chrono::system_clock::now();
+        auto stime = std::chrono::system_clock::to_time_t(now);
+        auto ltime = std::localtime(&stime);
+        std::ostringstream os;
+        os << std::put_time(ltime, "%F %T");
+        return os.str();
+    }
 }
