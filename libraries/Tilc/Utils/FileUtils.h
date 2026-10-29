@@ -105,6 +105,21 @@ namespace Tilc
     {
         return std::filesystem::current_path().string();
     }
+	DECLSPEC inline TExtString GetLinuxPerms(const Tilc::TExtString& Path)
+    {
+    	auto err = std::error_code{};
+    	auto status = std::filesystem::status(std::filesystem::path(Path.c_str()), err);
+    	auto p = status.permissions();
+    	return Tilc::TExtString() + ((p & std::filesystem::perms::owner_read) != std::filesystem::perms::none ? "r" : "-")
+    		+ ((p & std::filesystem::perms::owner_write) != std::filesystem::perms::none ? "w" : "-")
+			+ ((p & std::filesystem::perms::owner_exec) != std::filesystem::perms::none ? "x" : "-")
+			+ ((p & std::filesystem::perms::group_read) != std::filesystem::perms::none ? "r" : "-")
+			+ ((p & std::filesystem::perms::group_write) != std::filesystem::perms::none ? "w" : "-")
+			+ ((p & std::filesystem::perms::group_exec) != std::filesystem::perms::none ? "x" : "-")
+			+ ((p & std::filesystem::perms::others_read) != std::filesystem::perms::none ? "r" : "-")
+			+ ((p & std::filesystem::perms::others_write) != std::filesystem::perms::none ? "w" : "-")
+			+ ((p & std::filesystem::perms::others_exec) != std::filesystem::perms::none ? "x" : "-");
+    }
 	/*
 	DECLSPEC std::list<TExtString> GetDirectoryContent(const TExtString& dir);
 	DECLSPEC std::list<TExtString> GetDirectoryDirs(const TExtString& dir);
