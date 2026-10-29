@@ -150,7 +150,7 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                         {
                             Id = Field->getAsString();
                             IdFieldName = Field->name;
-                            if (Id.empty() || Field->iValue < 1)
+                            if (Id.empty() || std::stoll(Id) < 1)
                             {
                                 Id = "";
                                 IdFieldName = "";
