@@ -629,6 +629,7 @@ int Tilc::TJsonParser::_onExpectArrayValueInQuote(char quoteType, char ch)
             TPointerList *a = (TPointerList*)entity->entity;
             TStdObjectProperty *p = nullptr;
 			bool isInt, isDouble;
+            /*
 			if (v.isNumeric(&isInt, &isDouble))
             {
 				if (isInt)
@@ -649,6 +650,8 @@ int Tilc::TJsonParser::_onExpectArrayValueInQuote(char quoteType, char ch)
             {
 				p = new TStdObjectProperty(Tilc::TExtString(std::to_string(a->size())), v);
 			}
+			*/
+            p = new TStdObjectProperty(Tilc::TExtString(std::to_string(a->size())), v);
             a->push_back(p);
             this->_current_state.pop_back();
             this->_current_state.push_back(JSONPARSER_STATE_EXPECT_COMMA_OR_CLOSE_SQUARE_BRACE);
@@ -787,6 +790,7 @@ void Tilc::TJsonParser::_onCompleteReadObjectAttributeSimpleValue()
 	bool isInt, isDouble;
     // v.length() < 20 - zabezpieczenie przed próbą konwersji na int w przypadku długich strngów liczbowych przekraczających dozwolone wartości
     // typu uint64_t
+    /*
 	if (v.isNumeric(&isInt, &isDouble) && v.length() < 20)
     {
 		if (isInt)
@@ -807,6 +811,8 @@ void Tilc::TJsonParser::_onCompleteReadObjectAttributeSimpleValue()
     {
 		o->set(this->_current_object_attribute_name, v);
 	}
+	*/
+    o->set(this->_current_object_attribute_name, v);
     this->_current_object_attribute_name = "";
     this->_current_token[0] = 0;
     this->_current_token_length = 0;
