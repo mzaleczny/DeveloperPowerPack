@@ -275,8 +275,11 @@ int Tilc::Data::TDataProcessor::CopyPictures(const std::string_view TableName, c
             )
         {
             Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFnameDest.c_str(), PictureType.data());
-            Tilc::Data::TDataDBResources::SetSimpleData(DbFnameDest.c_str(), PictureType.data(), Row[0].c_str(),
-                Row[1].c_str(), Row[1].length());
+            Tilc::TExtString What = "_-1_";
+            Tilc::TExtString ReplaceWith = std::format("_{}_", ItemId);
+            Tilc::TExtString Pic = StrReplace(What, ReplaceWith, Row[0]);
+            Tilc::Data::TDataDBResources::SetSimpleData(DbFnameDest.c_str(), PictureType.data(),
+                Pic.c_str(), Row[1].c_str(), Row[1].length());
             ++Counter;
         }
     }
