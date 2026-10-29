@@ -62,6 +62,12 @@ namespace Tilc
 		auto path = std::filesystem::path(Path.c_str());
 		return std::filesystem::exists(path) && std::filesystem::is_regular_file(path, err);
 	}
+	inline bool IsSymlink(const Tilc::TExtString& Path)
+	{
+		auto err = std::error_code{};
+		auto path = std::filesystem::path(Path.c_str());
+		return std::filesystem::is_symlink(path, err);
+	}
 
 	DECLSPEC TExtString GetAppDataFolder();
 	inline TExtString GetTmpFolder()
