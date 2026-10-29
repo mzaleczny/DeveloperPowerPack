@@ -781,7 +781,7 @@ namespace Tilc {
 
             void LoadMiniatures(Tilc::TExtString MiniaturesServerNames)
             {
-                std::cout << "LoadMiniatures: " << MiniaturesServerNames << std::endl;
+                //std::cout << "LoadMiniatures: " << MiniaturesServerNames << std::endl;
                 auto lstImageListView = dynamic_cast<Tilc::Gui::TImageListView*>(WndEditForm->GetChild("lstImageList_ProductPictures"));
                 if (lstImageListView)
                 {
