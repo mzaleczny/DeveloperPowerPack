@@ -15,7 +15,8 @@ namespace Tilc::Gui
 		TImageListView(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, int ImageWidth, int ImageHeight);
 		~TImageListView();
 		virtual void Draw() override;
-		void AddImage(const std::string_view ImageBlob);
+		// if image name is "" then resource is created and added otherwise returned is image of the name if exists, if not exists then resource is created and returned
+		void AddImage(const std::string_view ImageBlob, const std::string_view ImageName = "");
 		void RemoveImage(const std::string_view ImageId);
 		void RemoveAllImages();
 		void UpdateHeight();
@@ -25,11 +26,16 @@ namespace Tilc::Gui
 			m_ImageHeight = ImageHeight;
 			UpdateHeight();
 		}
+		inline void SetAllowRemoveImage(bool Value)
+		{
+			m_AllowRemoveImage = Value;
+		}
 	protected:
 		std::vector<Tilc::TExtString> m_Images;
 		int m_ImageWidth{};
 		int m_ImageHeight{};
 		int m_ImagesPerRow{};
 		int m_ImagesPerColumn{};
+		bool m_AllowRemoveImage{};
 	};
 }
