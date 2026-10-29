@@ -791,6 +791,7 @@ namespace Tilc {
                     lstImageListView->RemoveAllImages();
                     MiniaturesServerNames.Explode(',', Miniatures);
 
+                    //int i = 0;
                     for (auto const &m : Miniatures)
                     {
                         //std::cout << "Find for server name: " << m << std::endl;
@@ -799,7 +800,8 @@ namespace Tilc {
                             //std::cout << "Find for client name: " << p1->second << std::endl;
                             if (auto p2 = m_CachedMiniatures.find(p1->second); p2 != m_CachedMiniatures.end())
                             {
-                                lstImageListView->AddImage(p2->second);
+                                //std::cout << "Dodaję " << ++i << std::endl;
+                                lstImageListView->AddImage(p2->second, m);
                             }
                         }
                     }
