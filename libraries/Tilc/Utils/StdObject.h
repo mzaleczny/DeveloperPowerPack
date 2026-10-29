@@ -52,6 +52,14 @@ namespace Tilc {
         bool hasOnlyScalars();
         TStdObjectProperty* clone();
         Tilc::TExtString getAsString();
+        inline int64_t getAsInt()
+        {
+            return std::stoll(this->value);
+        };
+        inline double getAsDouble()
+        {
+            return std::stod(this->value);
+        };
         Tilc::TExtString getAsStringUnescaped();
 
     protected:
