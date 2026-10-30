@@ -204,11 +204,15 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                         {
                             Id = std::to_string(DB.GetLastInsertId());
                         }
-                        // Teraz przenosimy nowe zdjęcia do pliku zdjęć encji, jeśli został podany
                         if (!NewPictures.empty())
                         {
-                            Tilc::Data::TDataProcessor::CopyPictures("products", Id, NewPictures, "miniatures");
-                            Tilc::Data::TDataProcessor::CopyPictures("products", Id, NewPictures, "pictures");
+                            // Najpierw usuwamy zdjęcie, których nie ma już na nowych listach
+                            Tilc::Data::TDataProcessor::DeletePictures(TableName, Id, NewPictures, "miniatures");
+                            Tilc::Data::TDataProcessor::DeletePictures(TableName, Id, NewPictures, "pictures");
+
+                            // Teraz przenosimy nowe zdjęcia do pliku zdjęć encji, jeśli został podany
+                            Tilc::Data::TDataProcessor::CopyPictures(TableName, Id, NewPictures, "miniatures");
+                            Tilc::Data::TDataProcessor::CopyPictures(TableName, Id, NewPictures, "pictures");
                         }
                     }
                 }
@@ -286,6 +290,38 @@ int Tilc::Data::TDataProcessor::CopyPictures(const std::string_view TableName, c
                 Pic.c_str(), Row[1].c_str(), Row[1].length());
             ++Counter;
         }
+    }
+
+    return Counter;
+}
+
+int Tilc::Data::TDataProcessor::DeletePictures(const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType)
+{
+    Tilc::TExtString DbFname = Tilc::TExtString("./db/") + TableName.data() + "_pictures_" + ItemId.data() + ".db";
+
+    Tilc::Data::TDBSQLite DB(DbFname.c_str());
+    Tilc::Data::TDBDataRows Rows;
+
+    Tilc::TStringVector Ids;
+    int Counter{};
+    // First get miniatures
+    DB.Select(std::format("SELECT id, name FROM {} ORDER BY id ASC", PictureType).c_str(), {}, {}, Rows);
+    for (auto const& Row : Rows)
+    {
+        if (!(
+            NewPictures == Row[1] ||
+            NewPictures.find(Row[1] + ",") == 0 ||
+            NewPictures.find("," + Row[1] + ",") != std::string::npos ||
+            NewPictures.find("," + Row[1]) == NewPictures.length() - Row[0].length() - 1
+            ))
+        {
+            Ids.push_back(Row[0]);
+        }
+    }
+
+    if (!Ids.empty())
+    {
+        DB.ExecQuery(std::format("DELETE FROM {} WHERE id IN ({})", PictureType, Tilc::Implode(',', Ids)).c_str(), {}, {});
     }
 
     return Counter;
