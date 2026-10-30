@@ -268,6 +268,7 @@ namespace Tilc {
                     });
                     // Save added pictures in props
                     EditWindow->m_Props["Pictures"] = Pictures;
+                    EditWindow->m_Props["OriginalPictures"] = Pictures;
                     auto lstImageListView = dynamic_cast<Tilc::Gui::TImageListView*>(EditWindow->GetChild("lstImageList_ProductPictures"));
                     if (lstImageListView)
                     {
@@ -593,7 +594,13 @@ namespace Tilc {
             static int OnEditCancelClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
             {
                 auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
+                auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
                 auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
+                if (EditWindow)
+                {
+                    // Restore original pictures
+                    EditWindow->m_Props["Pictures"] = EditWindow->m_Props["OriginalPictures"];
+                }
                 TFormPackage::ShowListWindow(FormPackage);
                 return 0;
             }

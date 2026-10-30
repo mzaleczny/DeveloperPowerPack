@@ -295,22 +295,6 @@ int Tilc::Gui::OnRemoveMiniatures(TImageListView* ListView, int ImageIndex, Tilc
                 int Removed = 0;
                 Tilc::TExtString Miniature = ImageName.substr(pos);
 
-                // Usuwamy miniatuurę z list cachujących
-                CachedMiniatures->erase(Miniature);
-                for (auto it = CachedMiniaturesMap->begin(); it != CachedMiniaturesMap->end(); )
-                {
-                    if (it->second == Miniature)
-                    {
-                        it = CachedMiniaturesMap->erase(it); // erase zwraca iterator do kolejnego elementu
-                        Removed = 1;
-                        break;
-                    }
-                    else
-                    {
-                        ++it;
-                    }
-                }
-
                 // Usuwamy miniaturę z listy plików przypisanych do itemu
                 Tilc::TStringVector v;
                 ParentWindow->m_Props["Pictures"].Explode(',', v);
