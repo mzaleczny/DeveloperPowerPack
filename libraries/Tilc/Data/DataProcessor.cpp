@@ -298,7 +298,6 @@ int Tilc::Data::TDataProcessor::CopyPictures(std::ostream& os, const std::string
 int Tilc::Data::TDataProcessor::DeletePictures(std::ostream& os, const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType)
 {
     Tilc::TExtString DbFname = Tilc::TExtString("./db/") + TableName.data() + "_pictures_" + ItemId.data() + ".db";
-    os << DbFname << "\n";
 
     Tilc::Data::TDBSQLite DB(DbFname.c_str());
     Tilc::Data::TDBDataRows Rows;
@@ -307,14 +306,13 @@ int Tilc::Data::TDataProcessor::DeletePictures(std::ostream& os, const std::stri
     int Counter{};
     // First get miniatures
     DB.Select(std::format("SELECT id, name FROM {} ORDER BY id ASC", PictureType).c_str(), {}, {}, Rows);
-    os << std::format("SELECT id, name FROM {} ORDER BY id ASC", PictureType) << "\n";
     for (auto const& Row : Rows)
     {
         if (!(
             NewPictures == Row[1] ||
             NewPictures.find(Row[1] + ",") == 0 ||
             NewPictures.find("," + Row[1] + ",") != std::string::npos ||
-            NewPictures.find("," + Row[1]) == NewPictures.length() - Row[0].length() - 1
+            NewPictures.find("," + Row[1]) == NewPictures.length() - Row[1].length() - 1
             ))
         {
             Ids.push_back(Row[0]);
@@ -323,8 +321,7 @@ int Tilc::Data::TDataProcessor::DeletePictures(std::ostream& os, const std::stri
 
     if (!Ids.empty())
     {
-        DB.ExecQuery(std::format("DELETE FROM {} WHERE id IN ({})", PictureType, Tilc::Implode(',', Ids)).c_str(), {}, {});
-        std::cout << std::format("DELETE FROM {} WHERE id IN ({})", PictureType, Tilc::Implode(',', Ids)) << "\n";
+        DB.ExecQuery(std::format("DELETE FROM {} WHERE id IN ({})", PictureType, Tilc::Implode(',', Ids).c_str()).c_str(), {}, {});
     }
 
     return Counter;
