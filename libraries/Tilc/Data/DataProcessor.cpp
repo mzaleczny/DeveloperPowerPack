@@ -207,12 +207,12 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                         if (!NewPictures.empty())
                         {
                             // Najpierw usuwamy zdjęcie, których nie ma już na nowych listach
-                            Tilc::Data::TDataProcessor::DeletePictures(TableName, Id, NewPictures, "miniatures");
-                            Tilc::Data::TDataProcessor::DeletePictures(TableName, Id, NewPictures, "pictures");
+                            Tilc::Data::TDataProcessor::DeletePictures(os, TableName, Id, NewPictures, "miniatures");
+                            Tilc::Data::TDataProcessor::DeletePictures(os, TableName, Id, NewPictures, "pictures");
 
                             // Teraz przenosimy nowe zdjęcia do pliku zdjęć encji, jeśli został podany
-                            Tilc::Data::TDataProcessor::CopyPictures(TableName, Id, NewPictures, "miniatures");
-                            Tilc::Data::TDataProcessor::CopyPictures(TableName, Id, NewPictures, "pictures");
+                            Tilc::Data::TDataProcessor::CopyPictures(os, TableName, Id, NewPictures, "miniatures");
+                            Tilc::Data::TDataProcessor::CopyPictures(os, TableName, Id, NewPictures, "pictures");
                         }
                     }
                 }
@@ -261,7 +261,7 @@ std::ostream& Tilc::Data::TDataProcessor::DeleteItems(std::ostream& os, Tilc::Da
     return os;
 }
 
-int Tilc::Data::TDataProcessor::CopyPictures(const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType)
+int Tilc::Data::TDataProcessor::CopyPictures(std::ostream& os, const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType)
 {
     Tilc::TExtString DbFnameSrc = Tilc::TExtString("./db/") + TableName.data() + "_pictures.db";
     Tilc::TExtString DbFnameDest = Tilc::TExtString("./db/") + TableName.data() + "_pictures_" + ItemId.data() + ".db";
@@ -295,9 +295,10 @@ int Tilc::Data::TDataProcessor::CopyPictures(const std::string_view TableName, c
     return Counter;
 }
 
-int Tilc::Data::TDataProcessor::DeletePictures(const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType)
+int Tilc::Data::TDataProcessor::DeletePictures(std::ostream& os, const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType)
 {
     Tilc::TExtString DbFname = Tilc::TExtString("./db/") + TableName.data() + "_pictures_" + ItemId.data() + ".db";
+    os << DbFname << "\n";
 
     Tilc::Data::TDBSQLite DB(DbFname.c_str());
     Tilc::Data::TDBDataRows Rows;
@@ -306,6 +307,7 @@ int Tilc::Data::TDataProcessor::DeletePictures(const std::string_view TableName,
     int Counter{};
     // First get miniatures
     DB.Select(std::format("SELECT id, name FROM {} ORDER BY id ASC", PictureType).c_str(), {}, {}, Rows);
+    os << std::format("SELECT id, name FROM {} ORDER BY id ASC", PictureType) << "\n";
     for (auto const& Row : Rows)
     {
         if (!(
@@ -322,6 +324,7 @@ int Tilc::Data::TDataProcessor::DeletePictures(const std::string_view TableName,
     if (!Ids.empty())
     {
         DB.ExecQuery(std::format("DELETE FROM {} WHERE id IN ({})", PictureType, Tilc::Implode(',', Ids)).c_str(), {}, {});
+        std::cout << std::format("DELETE FROM {} WHERE id IN ({})", PictureType, Tilc::Implode(',', Ids)) << "\n";
     }
 
     return Counter;

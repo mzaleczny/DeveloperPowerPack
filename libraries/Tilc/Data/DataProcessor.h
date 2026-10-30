@@ -61,8 +61,8 @@ namespace Tilc {
         private:
             TDataProcessor() {}
             virtual ~TDataProcessor() {}
-            static int CopyPictures(const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType);
-            static int DeletePictures(const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType);
+            static int CopyPictures(std::ostream& os, const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType);
+            static int DeletePictures(std::ostream& os, const std::string_view TableName, const std::string_view ItemId, const std::string_view NewPictures, const std::string_view PictureType);
         };
     }
 }
