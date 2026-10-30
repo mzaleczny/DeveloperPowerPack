@@ -28,6 +28,8 @@ namespace Tilc {
         class TStyledWindow;
 
 
+        DECLSPEC void* GetPointer(Tilc::Gui::TGuiControl* Control, const char* PropName);
+
         class DECLSPEC TForm
         {
         public:
@@ -218,24 +220,6 @@ namespace Tilc {
                     if (SynchronizeError != 0) return SynchronizeError;
                 }
                 return 0;
-            }
-
-            static void* GetPointer(Tilc::Gui::TGuiControl* Control, const char* WindowType)
-            {
-                if (Control->m_Props.find(WindowType) != Control->m_Props.end())
-                {
-                    uintptr_t StyledWindowPointer = std::stoull(Control->m_Props[WindowType].substr(2), 0, 16);
-                    return reinterpret_cast<void*>(StyledWindowPointer);
-                }
-
-                Tilc::Gui::TStyledWindow* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
-                if (!ParentWindow)
-                {
-                    return nullptr;
-                }
-
-                uintptr_t StyledWindowPointer = std::stoull(ParentWindow->m_Props[WindowType].substr(2), 0, 16);
-                return reinterpret_cast<void*>(StyledWindowPointer);
             }
 
             static void ShowEditWindow(TFormPackage* Pack, TItemType Item, int Index = -1)
@@ -621,13 +605,21 @@ namespace Tilc {
             {
                 if (WndListForm && WndEditForm)
                 {
+                    TItemType item;
+
+                    WndListForm->m_Props["TableName"] = item.TableName;
                     WndListForm->m_Props["ListWindow"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(WndListForm));
                     WndListForm->m_Props["EditWindow"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(WndEditForm));
                     WndListForm->m_Props["FormPackage"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(this));
+                    WndListForm->m_Props["CachedMiniatures"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(&this->m_CachedMiniatures));
+                    WndListForm->m_Props["CachedMiniaturesMap"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(&this->m_CachedMiniaturesMap));
 
+                    WndEditForm->m_Props["TableName"] = item.TableName;
                     WndEditForm->m_Props["ListWindow"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(WndListForm));
                     WndEditForm->m_Props["EditWindow"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(WndEditForm));
                     WndEditForm->m_Props["FormPackage"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(this));
+                    WndEditForm->m_Props["CachedMiniatures"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(&this->m_CachedMiniatures));
+                    WndEditForm->m_Props["CachedMiniaturesMap"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(&this->m_CachedMiniaturesMap));
                 }
             }
 
@@ -737,17 +729,20 @@ namespace Tilc {
             {
                 SDL_FRect Position = WndListForm->m_Position;
                 WndEditForm = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, "WndProductEdit", Position);
-                WndEditForm->SetHasBackground(true);
-                WndEditForm->SetHasBorder(true);
-                WndEditForm->SetHasCaption(false);
-                WndEditForm->Hide();
+                if (WndEditForm)
+                {
+                    WndEditForm->SetHasBackground(true);
+                    WndEditForm->SetHasBorder(true);
+                    WndEditForm->SetHasCaption(false);
+                    WndEditForm->Hide();
 
-                Tilc::Gui::TForm::CreateForm(WndEditForm, FormFields);
+                    Tilc::Gui::TForm::CreateForm(WndEditForm, FormFields);
 
-                Tilc::Gui::TGuiControl* btnSave = WndEditForm->GetChild("SaveButton");
-                btnSave->OnClick = &TFormPackage::OnEditOkClick;
-                Tilc::Gui::TGuiControl* btnCancel = WndEditForm->GetChild("CancelButton");
-                btnCancel->OnClick = &TFormPackage::OnEditCancelClick;
+                    Tilc::Gui::TGuiControl* btnSave = WndEditForm->GetChild("SaveButton");
+                    btnSave->OnClick = &TFormPackage::OnEditOkClick;
+                    Tilc::Gui::TGuiControl* btnCancel = WndEditForm->GetChild("CancelButton");
+                    btnCancel->OnClick = &TFormPackage::OnEditCancelClick;
+                }
             }
 
             void RefreshList(Tilc::Gui::TMultiColumnListbox* lb, Tilc::TExtString ItemsJson)
@@ -823,5 +818,7 @@ namespace Tilc {
                 return false;
             }
         };
+
+        int OnRemoveMiniatures(TImageListView* ListView, int ImageIndex, Tilc::TExtString& ImageName);
     }
 }

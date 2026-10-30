@@ -18,6 +18,25 @@
 #include "Tilc/Gui/ScrollBarHorizontal.h"
 #include "Tilc/Gui/ImageListView.h"
 
+
+DECLSPEC void* Tilc::Gui::GetPointer(Tilc::Gui::TGuiControl* Control, const char* PropName)
+{
+    if (Control->m_Props.find(PropName) != Control->m_Props.end())
+    {
+        uintptr_t StyledWindowPointer = std::stoull(Control->m_Props[PropName].substr(2), 0, 16);
+        return reinterpret_cast<void*>(StyledWindowPointer);
+    }
+
+    Tilc::Gui::TStyledWindow* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
+    if (!ParentWindow)
+    {
+        return nullptr;
+    }
+
+    uintptr_t StyledWindowPointer = std::stoull(ParentWindow->m_Props[PropName].substr(2), 0, 16);
+    return reinterpret_cast<void*>(StyledWindowPointer);
+}
+
 void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields, const char* SaveButtonLabel, float TopY)
 {
     float const PaddingLeft = 10.0f;
@@ -237,7 +256,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.y = lbl->m_Position.y + 30.0f;
             Position.w = Window->m_RealPosition.w - 10;
             Position.h = 96.0f;
-            gc = new Tilc::Gui::TImageListView(Window, Tilc::TExtString("lstImageList_") + Name, Position, 96, 96);
+            Tilc::Gui::TImageListView* lst = new Tilc::Gui::TImageListView(Window, Tilc::TExtString("lstImageList_") + Name, Position, 96, 96);
+            if (lst)
+            {
+                lst->SetAllowRemoveImage(true);
+                lst->OnRemoveImage = OnRemoveMiniatures;
+            }
             Position.y += Position.h + 15.0f;
             continue;
         }
@@ -254,4 +278,40 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
     gc = new Tilc::Gui::TButton(Window, "SaveButton", Position, SaveButtonText);
     Position.x += Position.w + SpacerW;
     gc = new Tilc::Gui::TButton(Window, "CancelButton", Position, "Anuluj");
+}
+
+int Tilc::Gui::OnRemoveMiniatures(TImageListView* ListView, int ImageIndex, Tilc::TExtString& ImageName)
+{
+    TStyledWindow* ParentWindow = ListView->GetParentWindow();
+    if (ParentWindow)
+    {
+        auto* CachedMiniatures = reinterpret_cast<std::unordered_map<Tilc::TExtString, Tilc::TExtString>*>(GetPointer(ParentWindow, "CachedMiniatures"));
+        auto* CachedMiniaturesMap = reinterpret_cast<std::unordered_map<Tilc::TExtString, Tilc::TExtString>*>(GetPointer(ParentWindow, "CachedMiniaturesMap"));
+        Tilc::TExtString TableName = ParentWindow->m_Props["TableName"];
+        if (CachedMiniatures && CachedMiniaturesMap)
+        {
+            if (auto pos = ImageName.find("Pic_"); pos != std::string::npos)
+            {
+                int Removed = 0;
+                Tilc::TExtString Miniature = ImageName.substr(pos);
+                CachedMiniatures->erase(Miniature);
+                for (auto it = CachedMiniaturesMap->begin(); it != CachedMiniaturesMap->end(); )
+                {
+                    if (it->second == Miniature)
+                    {
+                        it = CachedMiniaturesMap->erase(it); // erase zwraca iterator do kolejnego elementu
+                        Removed = 1;
+                        break;
+                    }
+                    else
+                    {
+                        ++it;
+                    }
+                }
+                ListView->Invalidate();
+                return Removed;
+            }
+        }
+    }
+    return 0;
 }
