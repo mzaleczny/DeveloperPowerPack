@@ -30,6 +30,10 @@ namespace Tilc::Gui
 		{
 			m_AllowRemoveImage = Value;
 		}
+
+		std::function<int(TImageListView* Self, int ImageIndex, Tilc::TExtString& ImageName)> OnRemoveImage;
+		virtual bool OnMouseButtonUp(const SDL_Event& event) override;
+
 	protected:
 		std::vector<Tilc::TExtString> m_Images;
 		int m_ImageWidth{};

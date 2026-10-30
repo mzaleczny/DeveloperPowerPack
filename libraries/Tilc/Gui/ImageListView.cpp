@@ -37,11 +37,11 @@ void Tilc::Gui::TImageListView::Draw()
         // Jeśli pozwalamy na usunięcie obrazka, to wyświetlamy białego X na czerwonym kwadracie w prawym górnym rogu obrazka
         if (m_AllowRemoveImage)
         {
-            SrcRect = {SrcRect.x + SrcRect.w - 20, SrcRect.y, 20.0f, 20.0f};
+            SrcRect = {x + SrcRect.w - 20, y, 20.0f, 20.0f};
             SDL_SetRenderDrawColorFloat(Renderer, 1.0f, 0.0f, 0.0f, 1.0f);
             SDL_RenderFillRect(Renderer, &SrcRect);
             t->DefaultFontBold->SetColor({0xff, 0xff, 0xff, 0xff});
-            t->DefaultFontBold->DrawString(Renderer, "X", SrcRect.x + 5.0f, SrcRect.y + 5.0f);
+            t->DefaultFontBold->DrawString(Renderer, "X", SrcRect.x + 5.0f, SrcRect.y + 2.0f);
         }
 
         x += m_ImageWidth + 5;
@@ -111,4 +111,47 @@ void Tilc::Gui::TImageListView::UpdateHeight()
     if (m_ImagesPerColumn < 1) m_ImagesPerColumn = 1;
     m_Position.h = m_ImagesPerColumn * (m_ImageHeight + 5);
     Invalidate();
+}
+
+bool Tilc::Gui::TImageListView::OnMouseButtonUp(const SDL_Event& event)
+{
+    bool Result = TGuiControl::OnMouseButtonUp(event);
+
+    if (m_AllowRemoveImage)
+    {
+        if (PointIn(event.button.x, event.button.y))
+        {
+            Tilc::Resources::TTextureManager* tmgr = Tilc::GameObject->GetContext()->m_TextureManager;
+            SDL_FRect Position{ GetRealPosition() };
+            float x = Position.x;
+            float y = Position.y;
+            SDL_FRect SrcRect;
+            for (int i = 0; i < m_Images.size(); ++i)
+            {
+                if (event.button.x >= x + m_ImageWidth - 20.0f && event.button.x <= x + m_ImageWidth && event.button.y >= y && event.button.y <= y + 20.0f)
+                {
+                    auto pos = m_Images[i].find("Pic_");
+                    if (pos != std::string::npos)
+                    {
+                        tmgr->ReleaseResource(m_Images[i]);
+                        if (OnRemoveImage)
+                        {
+                            OnRemoveImage(this, i, m_Images[i]);
+                        }
+                        m_Images.erase(m_Images.begin() + i);
+                        break;
+                    }
+                }
+
+                x += m_ImageWidth + 5;
+                if (i > 0 && i % m_ImagesPerRow == 0)
+                {
+                    y += m_ImageHeight + 5;
+                    x = m_Position.x;
+                }
+            }
+        }
+    }
+
+    return Result;
 }
