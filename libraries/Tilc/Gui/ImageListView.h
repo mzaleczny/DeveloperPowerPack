@@ -19,6 +19,14 @@ namespace Tilc::Gui
 		void AddImage(const std::string_view ImageBlob, const std::string_view ImageName = "");
 		void RemoveImage(const std::string_view ImageId);
 		void RemoveAllImages();
+		std::vector<Tilc::TExtString>& GetImages()
+		{
+			return m_Images;
+		}
+		Tilc::TExtString GetAllImagesCommaSeparated()
+		{
+			return Tilc::Implode(',', m_Images);
+		}
 		void UpdateHeight();
 		void SetImagesSize(int ImageWidth, int ImageHeight)
 		{

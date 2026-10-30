@@ -562,7 +562,7 @@ namespace Tilc {
                     {
                         FormPackage->m_ChangedItems.push_back(Item);
 
-                        // załaduj do obiektu listę obrazków (naw wygenerowanych przez serwer)
+                        // załaduj do obiektu listę obrazków (nazw wygenerowanych przez serwer)
                         std::vector<Tilc::TExtString>& PicturesVector = FormPackage->m_ChangedItems[FormPackage->m_ChangedItems.size()-1].new_pictures;
                         EditWindow->m_Props["Pictures"].Explode(',', PicturesVector);
 

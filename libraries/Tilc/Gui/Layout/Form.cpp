@@ -282,7 +282,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
 
 int Tilc::Gui::OnRemoveMiniatures(TImageListView* ListView, int ImageIndex, Tilc::TExtString& ImageName)
 {
-    TStyledWindow* ParentWindow = ListView->GetParentWindow();
+    auto *ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(ListView->GetParent());
     if (ParentWindow)
     {
         auto* CachedMiniatures = reinterpret_cast<std::unordered_map<Tilc::TExtString, Tilc::TExtString>*>(GetPointer(ParentWindow, "CachedMiniatures"));
@@ -294,6 +294,8 @@ int Tilc::Gui::OnRemoveMiniatures(TImageListView* ListView, int ImageIndex, Tilc
             {
                 int Removed = 0;
                 Tilc::TExtString Miniature = ImageName.substr(pos);
+
+                // Usuwamy miniatuurę z list cachujących
                 CachedMiniatures->erase(Miniature);
                 for (auto it = CachedMiniaturesMap->begin(); it != CachedMiniaturesMap->end(); )
                 {
@@ -308,6 +310,13 @@ int Tilc::Gui::OnRemoveMiniatures(TImageListView* ListView, int ImageIndex, Tilc
                         ++it;
                     }
                 }
+
+                // Usuwamy miniaturę z listy plików przypisanych do itemu
+                Tilc::TStringVector v;
+                ParentWindow->m_Props["Pictures"].Explode(',', v);
+                v.erase(std::remove(v.begin(), v.end(), Miniature), v.end());
+                ParentWindow->m_Props["Pictures"] = Tilc::Implode(',', v);
+
                 ListView->Invalidate();
                 return Removed;
             }
