@@ -5,7 +5,8 @@
 #include "Tilc/Resources/TextureManager.h"
 #include <chrono>
 
-#include "Font.h"
+#include "Tilc/Gui/Font.h"
+#include "Tilc/Gui/StyledWindow.h"
 
 Tilc::Gui::TImageListView::TImageListView(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, int ImageWidth, int ImageHeight)
 	: Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_ImageListView), m_ImageWidth(ImageWidth), m_ImageHeight(ImageHeight)
@@ -23,7 +24,7 @@ void Tilc::Gui::TImageListView::Draw()
     SDL_Renderer* Renderer = Tilc::GameObject->GetContext()->m_Window->GetRenderer();
     Tilc::Resources::TTextureManager* tmgr = Tilc::GameObject->GetContext()->m_TextureManager;
     TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
-    SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(Renderer, 0, 0, 125, 255);
     SDL_RenderRect(Renderer, &m_Position);
 
     float x = m_Position.x;
@@ -55,7 +56,14 @@ void Tilc::Gui::TImageListView::Draw()
 
     if (m_PreviewImage)
     {
-        SDL_RenderTexture(Renderer, m_PreviewImage, nullptr, &m_PreviewCurrentRect);
+        Tilc::Gui::TStyledWindow* MainWindow = GetParentWindow();
+        if (MainWindow)
+        {
+            SDL_Texture* rt = SDL_GetRenderTarget(Renderer);
+            SDL_SetRenderTarget(Renderer, MainWindow->GetCanvas());
+            SDL_RenderTexture(Renderer, m_PreviewImage, nullptr, &m_PreviewCurrentRect);
+            SDL_SetRenderTarget(Renderer, rt);
+        }
     }
 }
 
@@ -75,6 +83,7 @@ bool Tilc::Gui::TImageListView::Update(float DeltaTime)
                     m_PreviewAnimProgress = 1.0f;
                     m_IsPreviewAnimating = false;
                 }
+                Invalidate();
             }
             else
             {
@@ -84,6 +93,7 @@ bool Tilc::Gui::TImageListView::Update(float DeltaTime)
                     m_PreviewAnimProgress = 0.0f;
                     m_IsPreviewAnimating = false;
                 }
+                Invalidate();
             }
         }
 
@@ -219,7 +229,7 @@ void Tilc::Gui::TImageListView::StartPreview()
 {
     if (!m_PreviewImage) return;
 
-    m_IsExpanded = false;
+    m_IsExpanded = true;
     m_IsPreviewAnimating = true;
     m_PreviewAnimProgress = 0.0f; // 0.0 (thumbnail) to 1.0 (original)
 
@@ -256,13 +266,15 @@ void Tilc::Gui::TImageListView::StartPreview()
         targetW,
         targetH
     };
+
+    //std::cout << "m_PreviewStartRect: " << Tilc::FRectToString(&m_PreviewStartRect) << std::endl;
+    //std::cout << "m_PreviewTargetRect: " << Tilc::FRectToString(&m_PreviewTargetRect) << std::endl;
+    //std::cout << "WindowWidth: " << WindowWidth << "  WindowHeight: " << WindowHeight << std::endl;
 }
 
 SDL_FRect Tilc::Gui::TImageListView::GetLastClickedImageRect()
 {
     SDL_FRect Rect{};
-    Rect.w = m_ImageWidth;
-    Rect.h = m_ImageHeight;
     if (m_Images.size() == 0)
     {
         return Rect;
@@ -271,6 +283,8 @@ SDL_FRect Tilc::Gui::TImageListView::GetLastClickedImageRect()
     SDL_FRect Position{ GetRealPosition() };
     Rect.x = Position.x;
     Rect.y = Position.y;
+    Rect.w = m_ImageWidth;
+    Rect.h = m_ImageHeight;
     for (int i = 0; i < m_LastCickedImageIndex; ++i)
     {
         Rect.x += m_ImageWidth + 5;
