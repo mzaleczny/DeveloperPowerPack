@@ -114,9 +114,9 @@ namespace Tilc
                 sqlite3_bind_text(stmt, 1, rh.GetVars["name"].c_str(), -1, SQLITE_STATIC);
                 if (sqlite3_step(stmt) == SQLITE_ROW)
                 {
-                    rh << "Content-Type: image/webp; charset=utf-8\r\n";
-                    rh << "Content-Length: " << sqlite3_column_bytes(stmt, 0) << "\r\n";
-                    rh << "\r\n";
+                    rh.ContentType = "image/webp";
+                    rh.Headers.push_back(std::format("Content-Length: {}", sqlite3_column_bytes(stmt, 0)));
+                    rh.OutputHeaders();
                     rh << static_cast<const char*>(sqlite3_column_blob(stmt, 0));
                 }
                 sqlite3_finalize(stmt);
