@@ -3,11 +3,13 @@
 #include "Tilc/Tilc.h"
 #include "Tilc/Apps/Www/RequestHandler.h"
 #include "Tilc/Data/DbMySQL.h"
+#include "Tilc/Data/DbSQLite.h"
 #include "Tilc/Data/DataProcessor.h"
 #include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Commerce/Shop.h"
 #include "Tilc/Utils/Base64.h"
 #include <chrono>
+#include <ctype>
 
 namespace Tilc
 {
@@ -15,6 +17,8 @@ namespace Tilc
     {
         namespace Www
         {
+            DECLSPEC void Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh);
+
             template <typename T>
             void PrintItemsList(Tilc::Apps::Www::TRequestHandler& rh, Tilc::Data::TDBMySQL& DB, T& Item, const Tilc::TExtString& SelectSQL)
             {
@@ -48,6 +52,75 @@ namespace Tilc
                 Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
                 T Item;
                 PrintItemsList(rh, DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
+            }
+
+            template <typename T>
+            void GetImage(Tilc::Apps::Www::TRequestHandler& rh, const Tilc::TExtString Url)
+            {
+                // sprawdzamy poprawnosc zmiennej name
+                if (rh.GetVars.find("name") == rh.GetVars.end())
+                {
+                    Tilc::Apps::Www::Return_404_NotFound(rh);
+                    return;
+                }
+                else
+                {
+                    for (auto const& ch : rh.GetVars["name"])
+                    {
+                        if (!std::is_alnum(ch) && ch != '_' && ch != '-')
+                        {
+                            Tilc::Apps::Www::Return_404_NotFound(rh);
+                            return;
+                        }
+                    }
+                }
+
+                // sprawdzamy poprawnosc zmiennej name
+                if (rh.GetVars.find("id") == rh.GetVars.end())
+                {
+                    Tilc::Apps::Www::Return_404_NotFound(rh);
+                    return;
+                }
+                else
+                {
+                    if (!rh.GetVars["id"].isInt())
+                    {
+                        Tilc::Apps::Www::Return_404_NotFound(rh);
+                        return;
+                    }
+                }
+
+                T Item;
+                Tilc::TExtString DbFname = rh.ApplicationRootDir + "/db/" + Item.TableName + "_pictures_" + rh.GetVars["id"] + ".db";
+                sqlite3* db;
+                sqlite3_open(DbFname.c_str(), &db);
+
+                const char* ImageType = "pictures";
+                if (rh.GetVars["type"] == "miniatures")
+                {
+                    ImageType = "miniatures";
+                }
+                Tilc::TExtString SqlQuery = std::format("SELECT data FROM {} WHERE name=?;", ImageType);
+                sqlite3_exec(db, SqlQuery.c_str(), nullptr, nullptr, nullptr);
+
+                sqlite3_stmt* stmt;
+                int rc = sqlite3_prepare_v2(db, SqlQuery.c_str(), -1, &stmt, nullptr);
+                if (rc != SQLITE_OK)
+                {
+                    sqlite3_close(db);
+                    Tilc::Apps::Www::Return_404_NotFound(rh);
+                    return;
+                }
+                sqlite3_bind_text(stmt, 1, rh.GetVars["name"].c_str(), -1, SQLITE_STATIC);
+                if (sqlite3_step(stmt) == SQLITE_ROW)
+                {
+                    rh << "Content-Type: image/webp; charset=utf-8\r\n";
+                    rh << "Content-Length: " << sqlite3_column_bytes(stmt, 0) << "\r\n";
+                    rh << "\r\n";
+                    rh << static_cast<const char*>(sqlite3_column_blob(stmt, 0));
+                }
+                sqlite3_finalize(stmt);
+                sqlite3_close(db);
             }
 
             template <typename T>
@@ -150,8 +223,8 @@ namespace Tilc
                 }
             }
 
-            void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
-            void CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
+            DECLSPEC void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
+            DECLSPEC void CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
 
         }
     }

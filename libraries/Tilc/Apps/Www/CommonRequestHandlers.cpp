@@ -4,7 +4,22 @@
 #include "Tilc/Net/Http.h"
 #include "Tilc/Utils/Base64.h"
 
-void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
+DECLSPEC void Tilc::Apps::Www::Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh)
+{
+    // 1. Wysyłamy nagłówek Status z błędem 404
+    rh << "Status: 404 Not Found\r\n";
+    // 2. Nagłówek typu treści
+    rh << "Content-Type: text/html; charset=utf-8\r\n";
+    // 3. Pusta linia oddzielająca nagłówki od treści
+    rh << "\r\n";
+
+    // 4. Treść strony błędu
+    rh << "<!DOCTYPE html>";
+    rh << "<html><head><title>404 Nie znaleziono</title></head>";
+    rh << "<body><h1>404 Not Found</h1><p>Szukana strona nie istnieje.</p></body></html>";
+}
+
+DECLSPEC void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
 {
     Tilc::TExtString GoogleAuthToken = rh.PostVars["token"];
 
@@ -85,7 +100,7 @@ void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TE
     }
 }
 
-void Tilc::Apps::Www::CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
+DECLSPEC void Tilc::Apps::Www::CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
 {
     rh.ContentType = "application/json";
     Tilc::TExtString Result;
