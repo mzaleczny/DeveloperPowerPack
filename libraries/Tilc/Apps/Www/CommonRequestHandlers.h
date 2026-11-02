@@ -9,7 +9,7 @@
 #include "Tilc/Commerce/Shop.h"
 #include "Tilc/Utils/Base64.h"
 #include <chrono>
-#include <ctype>
+#include <cctype>
 
 namespace Tilc
 {
@@ -67,7 +67,7 @@ namespace Tilc
                 {
                     for (auto const& ch : rh.GetVars["name"])
                     {
-                        if (!std::is_alnum(ch) && ch != '_' && ch != '-')
+                        if (!std::isalnum(ch) && ch != '_' && ch != '-')
                         {
                             Tilc::Apps::Www::Return_404_NotFound(rh);
                             return;
