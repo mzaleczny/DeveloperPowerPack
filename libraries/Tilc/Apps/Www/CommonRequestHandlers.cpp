@@ -4,19 +4,22 @@
 #include "Tilc/Net/Http.h"
 #include "Tilc/Utils/Base64.h"
 
-DECLSPEC void Tilc::Apps::Www::Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh)
+DECLSPEC void Tilc::Apps::Www::Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh, const std::string_view Body404)
 {
-    // 1. Wysyłamy nagłówek Status z błędem 404
-    rh << "Status: 404 Not Found\r\n";
-    // 2. Nagłówek typu treści
-    rh << "Content-Type: text/html; charset=utf-8\r\n";
-    // 3. Pusta linia oddzielająca nagłówki od treści
-    rh << "\r\n";
+    rh.Headers.push_back("Status: 404 Not Found");
+    rh.ContentType = "text/html; charset=utf-8";
+    rh.OutputHeaders();
 
-    // 4. Treść strony błędu
-    rh << "<!DOCTYPE html>";
-    rh << "<html><head><title>404 Nie znaleziono</title></head>";
-    rh << "<body><h1>404 Not Found</h1><p>Szukana strona nie istnieje.</p></body></html>";
+    if (Body404.length() == 0)
+    {
+        rh << "<!DOCTYPE html>";
+        rh << "<html><head><title>404 Nie znaleziono</title></head>";
+        rh << "<body><h1>404 Not Found</h1><p>Szukana strona nie istnieje.</p></body></html>";
+    }
+    else
+    {
+        rh << Body404.data();
+    }
 }
 
 DECLSPEC void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)

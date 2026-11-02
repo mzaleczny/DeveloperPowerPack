@@ -17,7 +17,7 @@ namespace Tilc
     {
         namespace Www
         {
-            DECLSPEC void Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh);
+            DECLSPEC void Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh, const std::string_view Body404 = "");
 
             template <typename T>
             void PrintItemsList(Tilc::Apps::Www::TRequestHandler& rh, Tilc::Data::TDBMySQL& DB, T& Item, const Tilc::TExtString& SelectSQL)
