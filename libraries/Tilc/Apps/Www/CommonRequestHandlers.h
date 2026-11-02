@@ -103,6 +103,7 @@ namespace Tilc
                 Tilc::TExtString SqlQuery = std::format("SELECT data FROM {} WHERE name=?;", ImageType);
                 sqlite3_exec(db, SqlQuery.c_str(), nullptr, nullptr, nullptr);
 
+                bool Exists = false;
                 sqlite3_stmt* stmt;
                 int rc = sqlite3_prepare_v2(db, SqlQuery.c_str(), -1, &stmt, nullptr);
                 if (rc != SQLITE_OK)
@@ -114,13 +115,23 @@ namespace Tilc
                 sqlite3_bind_text(stmt, 1, rh.GetVars["name"].c_str(), -1, SQLITE_STATIC);
                 if (sqlite3_step(stmt) == SQLITE_ROW)
                 {
-                    rh.ContentType = "image/webp";
-                    rh.Headers.push_back(std::format("Content-Length: {}", sqlite3_column_bytes(stmt, 0)));
-                    rh.OutputHeaders();
-                    rh << static_cast<const char*>(sqlite3_column_blob(stmt, 0));
+                    int ContentLength = sqlite3_column_bytes(stmt, 0);
+                    if (ContentLength > 0)
+                    {
+                        rh.ContentType = "image/webp";
+                        rh.Headers.push_back(std::format("Content-Length: {}", ContentLength));
+                        rh.OutputHeaders();
+                        rh << static_cast<const char*>(sqlite3_column_blob(stmt, 0));
+                        Exists = true;
+                    }
                 }
                 sqlite3_finalize(stmt);
                 sqlite3_close(db);
+                if (!Exists)
+                {
+                    Tilc::Apps::Www::Return_404_NotFound(rh);
+                    return;
+                }
             }
 
             template <typename T>
