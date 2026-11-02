@@ -49,10 +49,14 @@ namespace Tilc::Gui
 			m_PreviewImage = ImagePreview;
 			m_PreviewImageRect = GetLastClickedImageRect();
 			SetTickable(ImagePreview != nullptr);
-			TogglePreview();
+			StartPreview();
 		}
 
-		void TogglePreview();
+		void StartPreview();
+		inline void TogglePreview()
+		{
+			m_IsExpanded = !m_IsExpanded;
+		}
 		SDL_FRect GetLastClickedImageRect();
 
 	protected:

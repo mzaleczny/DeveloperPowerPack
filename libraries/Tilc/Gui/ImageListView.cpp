@@ -213,11 +213,11 @@ bool Tilc::Gui::TImageListView::OnMouseButtonUp(const SDL_Event& event)
     return Result;
 }
 
-void Tilc::Gui::TImageListView::TogglePreview()
+void Tilc::Gui::TImageListView::StartPreview()
 {
     if (!m_PreviewImage) return;
 
-    m_IsExpanded = !m_IsExpanded;
+    m_IsExpanded = false;
     m_IsPreviewAnimating = true;
     m_PreviewAnimProgress = 0.0f; // 0.0 (thumbnail) to 1.0 (original)
 
