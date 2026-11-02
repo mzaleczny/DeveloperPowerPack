@@ -584,6 +584,10 @@ namespace Tilc {
             inline static int m_ClicksCount{};
             inline static const int m_ClickIntervalForDblClick = 250;
 
+            inline SDL_Texture* GetCanvas() { return m_Canvas; };
+            void AddToPrivilegedList();
+            void RemoveFromPrivilegedList();
+
         protected:
             SDL_Texture* m_Canvas{};
             // m_Icons is not owning pointer

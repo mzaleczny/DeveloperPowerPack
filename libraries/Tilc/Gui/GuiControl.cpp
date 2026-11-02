@@ -2134,3 +2134,22 @@ void Tilc::Gui::TGuiControl::MoveAllSubWindowsToTheEndOfGlobalWindowsOrder()
         }
     }
 }
+
+
+void Tilc::Gui::TGuiControl::AddToPrivilegedList()
+{
+    std::list<Tilc::Gui::TGuiControl*>& lst = Tilc::Gui::TGuiControl::m_HighPrivilegedControls;
+    if (std::find(lst.begin(), lst.end(), this) == lst.end())
+    {
+        lst.push_back(this);
+    }
+}
+
+void Tilc::Gui::TGuiControl::RemoveFromPrivilegedList()
+{
+    std::list<Tilc::Gui::TGuiControl*>& lst = Tilc::Gui::TGuiControl::m_HighPrivilegedControlsToRemove;
+    if (std::find(lst.begin(), lst.end(), this) == lst.end())
+    {
+        lst.push_back(this);
+    }
+}
