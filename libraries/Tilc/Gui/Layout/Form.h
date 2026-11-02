@@ -102,9 +102,9 @@ namespace Tilc {
             }
             ~TFormPackage()
             {
-                std::for_each(m_CachedOriginalPictures.begin(), m_CachedOriginalPictures.end(), [](SDL_Texture* Texture)
+                std::for_each(m_CachedOriginalPictures.begin(), m_CachedOriginalPictures.end(), [](auto& PicPair)
                 {
-                    if (Texture) SDL_DestroyTexture(Texture);
+                    if (PicPair.second) SDL_DestroyTexture(PicPair.second);
                 });
                 m_CachedOriginalPictures.clear();
                 if (WndListForm)
@@ -292,9 +292,9 @@ namespace Tilc {
                         // domyślnie na start czyścimy liste zcachowanych oryginalnych obrazków, żeby zwolnić pamięć. Obrazki do tego cache będą dodawane
                         // podczas uploadu nowych zdjęć lub podczas kliknięcia w istniejące zdjęcie po to żeby je pwiększyć (w tym przypadku jest ono pobierane
                         // oddzielnym fetchem z serwera)
-                        std::for_each(FormPackage->m_CachedOriginalPictures.begin(), FormPackage->m_CachedOriginalPictures.end(), [](SDL_Texture* Texture)
+                        std::for_each(FormPackage->m_CachedOriginalPictures.begin(), FormPackage->m_CachedOriginalPictures.end(), [](auto& PicPair)
                         {
-                            if (Texture) SDL_DestroyTexture(Texture);
+                            if (PicPair.second) SDL_DestroyTexture(PicPair.second);
                         });
                         FormPackage->m_CachedOriginalPictures.clear();
                     }
