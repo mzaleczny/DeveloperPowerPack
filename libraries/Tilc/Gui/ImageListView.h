@@ -44,7 +44,7 @@ namespace Tilc::Gui
 		std::function<int(TImageListView* Self, int ImageIndex, Tilc::TExtString& ImageName)> OnRemoveImage;
 		virtual bool OnMouseButtonUp(const SDL_Event& event) override;
 
-		inline void SetImagePreview(SDL3_Texture* ImagePreview)
+		inline void SetImagePreview(SDL_Texture* ImagePreview)
 		{
 			m_PreviewImage = ImagePreview;
 			m_PreviewImageRect = GetLastClickedImageRect();
@@ -63,7 +63,7 @@ namespace Tilc::Gui
 		int m_ImagesPerColumn{};
 		int m_LastCickedImageIndex{};
 		bool m_AllowRemoveImage{};
-		SDL3_Texture* m_PreviewImage{};
+		SDL_Texture* m_PreviewImage{};
 		SDL_FRect m_PreviewImageRect{};
 
 		bool m_IsExpanded{false};
