@@ -1,5 +1,6 @@
 #include "Tilc/Gui/ImageListView.h"
 #include "Tilc/Data/DataDbResources.h"
+#include "Tilc/Globals.h"
 #include "Tilc/Game.h"
 #include "Tilc/Resources/TextureManager.h"
 #include <chrono>
@@ -50,6 +51,50 @@ void Tilc::Gui::TImageListView::Draw()
             y += m_ImageHeight + 5;
             x = m_Position.x;
         }
+    }
+
+    if (m_PreviewImage)
+    {
+        SDL_RenderTexture(Renderer, m_PreviewImage, nullptr, &m_PreviewCurrentRect);
+    }
+}
+
+bool Tilc::Gui::TImageListView::Update(float DeltaTime)
+{
+    TGuiControl::Update(DeltaTime);
+    if (m_PreviewImage)
+    {
+        if (m_IsPreviewAnimating)
+        {
+            float speed = 1.0f / m_PreviewAnimDuration;
+            if (m_IsExpanded)
+            {
+                m_PreviewAnimProgress += DeltaTime * speed;
+                if (m_PreviewAnimProgress >= 1.0f)
+                {
+                    m_PreviewAnimProgress = 1.0f;
+                    m_IsPreviewAnimating = false;
+                }
+            }
+            else
+            {
+                m_PreviewAnimProgress -= DeltaTime * speed;
+                if (m_PreviewAnimProgress <= 0.0f)
+                {
+                    m_PreviewAnimProgress = 0.0f;
+                    m_IsPreviewAnimating = false;
+                }
+            }
+        }
+
+        // Calculate interpolated current rectangle using smoothstep
+        float t = Tilc::Smoothstep(0.0f, 1.0f, m_PreviewAnimProgress);
+        m_PreviewCurrentRect = {
+            m_PreviewStartRect.x + (m_PreviewTargetRect.x - m_PreviewStartRect.x) * t,
+            m_PreviewStartRect.y + (m_PreviewTargetRect.y - m_PreviewStartRect.y) * t,
+            m_PreviewStartRect.w + (m_PreviewTargetRect.w - m_PreviewStartRect.w) * t,
+            m_PreviewStartRect.h + (m_PreviewTargetRect.h - m_PreviewStartRect.h) * t
+        };
     }
 }
 
@@ -116,6 +161,7 @@ void Tilc::Gui::TImageListView::UpdateHeight()
 bool Tilc::Gui::TImageListView::OnMouseButtonUp(const SDL_Event& event)
 {
     bool Result = TGuiControl::OnMouseButtonUp(event);
+    m_LastCickedImageIndex = -1;
 
     if (m_AllowRemoveImage)
     {
@@ -128,6 +174,11 @@ bool Tilc::Gui::TImageListView::OnMouseButtonUp(const SDL_Event& event)
             SDL_FRect SrcRect;
             for (int i = 0; i < m_Images.size(); ++i)
             {
+                if (event.button.x >= x && event.button.x <= x + m_ImageWidth && event.button.y >= y && event.button.y <= y + m_ImageHeight)
+                {
+                    m_LastCickedImageIndex = i;
+                }
+
                 if (event.button.x >= x + m_ImageWidth - 20.0f && event.button.x <= x + m_ImageWidth && event.button.y >= y && event.button.y <= y + 20.0f)
                 {
                     auto pos = m_Images[i].find("Pic_");
@@ -139,8 +190,14 @@ bool Tilc::Gui::TImageListView::OnMouseButtonUp(const SDL_Event& event)
                             OnRemoveImage(this, i, m_Images[i]);
                         }
                         m_Images.erase(m_Images.begin() + i);
+                        m_LastCickedImageIndex = -1;
                         break;
                     }
+                }
+
+                if (m_LastCickedImageIndex != -1)
+                {
+                    break;
                 }
 
                 x += m_ImageWidth + 5;
@@ -154,4 +211,71 @@ bool Tilc::Gui::TImageListView::OnMouseButtonUp(const SDL_Event& event)
     }
 
     return Result;
+}
+
+void Tilc::Gui::TImageListView::TogglePreview()
+{
+    if (!m_PreviewImage) return;
+
+    m_IsExpanded = !m_IsExpanded;
+    m_IsPreviewAnimating = true;
+    m_PreviewAnimProgress = 0.0f; // 0.0 (thumbnail) to 1.0 (original)
+
+    // Thumbnail initial position and size
+    m_PreviewStartRect = GetLastClickedImageRect();
+
+    unsigned int WindowWidth = Tilc::GameObject->m_Window->GetWindowWidth();
+    unsigned int WindowHeight = Tilc::GameObject->m_Window->GetWindowHeight();
+
+    // Target position and size (centered in the window, keeping original aspect ratio and fitting window bounds)
+    float maxTargetWidth = static_cast<float>(WindowWidth) - 50.0f;
+    float maxTargetHeight = static_cast<float>(WindowHeight) - 50.0f;
+
+    float targetW = static_cast<float>(m_PreviewImage->w);
+    float targetH = static_cast<float>(m_PreviewImage->h);
+
+    // Scale down if it exceeds window bounds while preserving aspect ratio
+    if (targetW > maxTargetWidth)
+    {
+        float scale = maxTargetWidth / targetW;
+        targetW *= scale;
+        targetH *= scale;
+    }
+    if (targetH > maxTargetHeight)
+    {
+        float scale = maxTargetHeight / targetH;
+        targetW *= scale;
+        targetH *= scale;
+    }
+
+    m_PreviewTargetRect = {
+        (WindowWidth - targetW) / 2.0f,
+        (WindowHeight - targetH) / 2.0f,
+        targetW,
+        targetH
+    };
+}
+
+SDL_FRect Tilc::Gui::TImageListView::GetLastClickedImageRect()
+{
+    SDL_FRect Rect{};
+    if (m_Images.size() == 0)
+    {
+        return Rect;
+    }
+
+    SDL_FRect Position{ GetRealPosition() };
+    Rect.x = Position.x;
+    Rect.y = Position.y;
+    for (int i = 0; i < m_LastCickedImageIndex; ++i)
+    {
+        Rect.x += m_ImageWidth + 5;
+        if (i > 0 && i % m_ImagesPerRow == 0)
+        {
+            Rect.y += m_ImageHeight + 5;
+            Rect.x = m_Position.x;
+        }
+    }
+
+    return Rect;
 }
