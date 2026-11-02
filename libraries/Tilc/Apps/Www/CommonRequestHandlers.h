@@ -121,7 +121,7 @@ namespace Tilc
                         rh.ContentType = "image/webp";
                         rh.Headers.push_back(std::format("Content-Length: {}", ContentLength));
                         rh.OutputHeaders();
-                        rh << static_cast<const char*>(sqlite3_column_blob(stmt, 0));
+                        rh.cout_fcgi_streambuf.sputn(static_cast<const char*>(sqlite3_column_blob(stmt, 0)), ContentLength);
                         Exists = true;
                     }
                 }
