@@ -96,6 +96,7 @@ bool Tilc::Gui::TImageListView::Update(float DeltaTime)
             m_PreviewStartRect.h + (m_PreviewTargetRect.h - m_PreviewStartRect.h) * t
         };
     }
+    return true;
 }
 
 void Tilc::Gui::TImageListView::RemoveAllImages()
