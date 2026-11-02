@@ -15,6 +15,9 @@ namespace Tilc::Gui
 	public:
 		TImageListView(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, int ImageWidth, int ImageHeight);
 		~TImageListView();
+
+		std::function<int(TGuiControl* Self, int ClickedImageIndex)> OnImgeClicked;
+
 		virtual void Draw() override;
 		virtual bool Update(float DeltaTime) override;
 		// if image name is "" then resource is created and added otherwise returned is image of the name if exists, if not exists then resource is created and returned
