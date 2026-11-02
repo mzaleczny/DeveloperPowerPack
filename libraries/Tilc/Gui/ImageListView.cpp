@@ -198,7 +198,7 @@ bool Tilc::Gui::TImageListView::OnMouseButtonUp(const SDL_Event& event)
 
                 if (m_LastCickedImageIndex != -1)
                 {
-                    if (OnImgeClicked) OnImgeClicked(this, m_LastCickedImageIndex);
+                    if (OnImageClicked) OnImageClicked(this, m_LastCickedImageIndex);
                     break;
                 }
 
