@@ -16,7 +16,7 @@ namespace Tilc::Gui
 		TImageListView(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, int ImageWidth, int ImageHeight);
 		~TImageListView();
 
-		std::function<int(TGuiControl* Self, int ClickedImageIndex)> OnImageClicked;
+		std::function<int(TImageListView* Self, int ClickedImageIndex)> OnImageClicked;
 
 		virtual void Draw() override;
 		virtual bool Update(float DeltaTime) override;
@@ -51,6 +51,7 @@ namespace Tilc::Gui
 		{
 			m_PreviewImage = ImagePreview;
 			m_PreviewImageRect = GetLastClickedImageRect();
+			std::cout << Tilc::FRectToString(&m_PreviewImageRect) << std::endl;
 			SetTickable(ImagePreview != nullptr);
 			StartPreview();
 		}
