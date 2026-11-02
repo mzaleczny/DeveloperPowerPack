@@ -261,6 +261,8 @@ void Tilc::Gui::TImageListView::StartPreview()
 SDL_FRect Tilc::Gui::TImageListView::GetLastClickedImageRect()
 {
     SDL_FRect Rect{};
+    Rect.w = m_ImageWidth;
+    Rect.h = m_ImageHeight;
     if (m_Images.size() == 0)
     {
         return Rect;
