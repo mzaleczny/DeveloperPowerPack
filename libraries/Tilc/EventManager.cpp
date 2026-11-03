@@ -223,9 +223,9 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             {
                 for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(); ++it)
                 {
-                    if ((*it)->PointIn(pt.x, pt.y))
+                    if ((*it)->IsVisible() && (*it)->PointIn(pt.x, pt.y))
                     {
-                        (*it)->ProcessEvent(*Event);
+                        if ((*it)->ProcessEvent(*Event)) return SDL_APP_CONTINUE;
                     }
                 }
 
