@@ -54,7 +54,6 @@ namespace Tilc
 			{
 				m_PreviewImage = ImagePreview;
 				m_PreviewImageRect = GetLastClickedImageRect();
-				std::cout << Tilc::FRectToString(&m_PreviewImageRect) << std::endl;
 				SetTickable(ImagePreview != nullptr);
 				StartPreview();
 			}
