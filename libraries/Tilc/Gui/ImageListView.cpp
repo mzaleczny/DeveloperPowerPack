@@ -18,7 +18,6 @@ Tilc::Gui::TImageListView::~TImageListView()
 {
     if (m_PreviewPicture)
     {
-        m_PreviewPicture->RemoveFromPrivilegedList();
         delete m_PreviewPicture;
     }
     RemoveAllImages();
@@ -69,6 +68,7 @@ bool Tilc::Gui::TImageListView::Update(float DeltaTime)
         if (m_IsPreviewAnimating)
         {
             float speed = 1.0f / m_PreviewAnimDuration;
+            m_PreviewPicture->Show();
             if (m_IsExpanded)
             {
                 m_PreviewAnimProgress += DeltaTime * speed;
@@ -86,6 +86,9 @@ bool Tilc::Gui::TImageListView::Update(float DeltaTime)
                 {
                     m_PreviewAnimProgress = 0.0f;
                     m_IsPreviewAnimating = false;
+                    m_PreviewPicture->RemoveFromPrivilegedList();
+                    CaptureMouse(this);
+                    m_PreviewPicture->Hide();
                 }
                 Invalidate();
             }
@@ -265,17 +268,19 @@ void Tilc::Gui::TImageListView::StartPreview()
     // if PreviewPicture control was not created then create it now
     if (!m_PreviewPicture)
     {
-        m_PreviewPicture = new Tilc::Gui::TPicture(this, m_Name + "_PreviewPicture", m_Position, m_PreviewImage);
+        m_PreviewPicture = new Tilc::Gui::TPicture(GetParentWindow(), m_Name + "_PreviewPicture", m_Position, m_PreviewImage);
         if (m_PreviewPicture)
         {
+            m_PreviewPicture->OnClick = Tilc::Gui::TImageListView::OnPreviewPictureClick;
             m_PreviewPicture->Hide();
-            m_PreviewPicture->AddToPrivilegedList();
         }
     }
     if (m_PreviewPicture)
     {
+        m_PreviewPicture->AddToPrivilegedList();
         m_PreviewPicture->m_Position = m_PreviewStartRect;
         m_PreviewPicture->Show();
+        CaptureMouse(m_PreviewPicture);
     }
 }
 
@@ -303,4 +308,16 @@ SDL_FRect Tilc::Gui::TImageListView::GetLastClickedImageRect()
     }
 
     return Rect;
+}
+
+int Tilc::Gui::TImageListView::OnPreviewPictureClick(float x, float y, int MouseButton, TGuiControl* Self)
+{
+    Tilc::TExtString ListNameControl = Self->GetName().substr(0, Self->GetName().length() - std::strlen("_PreviewPicture"));
+    Tilc::Gui::TImageListView* lst = dynamic_cast<Tilc::Gui::TImageListView*>(Self->GetParentWindow()->GetChildIncludingAllSubWindows(ListNameControl));
+    std::cout << ListNameControl << ": " << lst << std::endl;
+    if (lst)
+    {
+        lst->TogglePreview();
+    }
+    return 1;
 }

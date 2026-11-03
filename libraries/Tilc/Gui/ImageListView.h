@@ -63,6 +63,7 @@ namespace Tilc
 			inline void TogglePreview()
 			{
 				m_IsExpanded = !m_IsExpanded;
+				m_IsPreviewAnimating = true;
 			}
 			SDL_FRect GetLastClickedImageRect();
 
@@ -82,6 +83,8 @@ namespace Tilc
 			bool m_IsPreviewAnimating{false};
 			float m_PreviewAnimProgress{0.0f}; // 0.0 (thumbnail) to 1.0 (original)
 			const float m_PreviewAnimDuration{0.4f}; // Duration in seconds
+
+			static int OnPreviewPictureClick(float x, float y, int MouseButton, TGuiControl* Self);
 
 		private:
 			SDL_FRect m_PreviewStartRect;
