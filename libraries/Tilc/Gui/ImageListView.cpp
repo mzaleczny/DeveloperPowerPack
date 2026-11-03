@@ -163,7 +163,15 @@ void Tilc::Gui::TImageListView::UpdateHeight()
         ++m_ImagesPerColumn;
     }
     if (m_ImagesPerColumn < 1) m_ImagesPerColumn = 1;
+    float PrevHeight = m_Position.h;
     m_Position.h = m_ImagesPerColumn * (m_ImageHeight + 5);
+    if (std::fabs(m_Position.h - PrevHeight) > 0.1f)
+    {
+        if (OnHeightUpdated)
+        {
+            OnHeightUpdated(this, PrevHeight, m_Position.h);
+        }
+    }
     Invalidate();
 }
 

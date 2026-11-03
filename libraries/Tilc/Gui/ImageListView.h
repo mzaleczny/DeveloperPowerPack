@@ -19,8 +19,6 @@ namespace Tilc
 			TImageListView(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, int ImageWidth, int ImageHeight);
 			~TImageListView();
 
-			std::function<int(TImageListView* Self, int ClickedImageIndex)> OnImageClicked;
-
 			virtual void Draw() override;
 			virtual bool Update(float DeltaTime) override;
 			// if image name is "" then resource is created and added otherwise returned is image of the name if exists, if not exists then resource is created and returned
@@ -47,7 +45,9 @@ namespace Tilc
 				m_AllowRemoveImage = Value;
 			}
 
+			std::function<int(TImageListView* Self, int ClickedImageIndex)> OnImageClicked;
 			std::function<int(TImageListView* Self, int ImageIndex, Tilc::TExtString& ImageName)> OnRemoveImage;
+			std::function<int(TImageListView* Self, float PrevHeight, float NewHeight)> OnHeightUpdated;
 			virtual bool OnMouseButtonUp(const SDL_Event& event) override;
 
 			inline void SetImagePreview(SDL_Texture* ImagePreview)
