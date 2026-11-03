@@ -17,6 +17,24 @@
 
 Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::m_ControlThatCapturedMouse{};
 
+DECLSPEC void* Tilc::Gui::GetPointer(Tilc::Gui::TGuiControl* Control, const char* PropName)
+{
+    if (Control->m_Props.find(PropName) != Control->m_Props.end())
+    {
+        uintptr_t StyledWindowPointer = std::stoull(Control->m_Props[PropName].substr(2), 0, 16);
+        return reinterpret_cast<void*>(StyledWindowPointer);
+    }
+
+    Tilc::Gui::TStyledWindow* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
+    if (!ParentWindow)
+    {
+        return nullptr;
+    }
+
+    uintptr_t StyledWindowPointer = std::stoull(ParentWindow->m_Props[PropName].substr(2), 0, 16);
+    return reinterpret_cast<void*>(StyledWindowPointer);
+}
+
 
 Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString& name, const SDL_FRect& position, Tilc::Gui::EControlType ControlType, bool editable)
     : m_ControlType(ControlType)

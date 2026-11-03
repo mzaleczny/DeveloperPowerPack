@@ -19,24 +19,6 @@
 #include "Tilc/Gui/ImageListView.h"
 
 
-DECLSPEC void* Tilc::Gui::GetPointer(Tilc::Gui::TGuiControl* Control, const char* PropName)
-{
-    if (Control->m_Props.find(PropName) != Control->m_Props.end())
-    {
-        uintptr_t StyledWindowPointer = std::stoull(Control->m_Props[PropName].substr(2), 0, 16);
-        return reinterpret_cast<void*>(StyledWindowPointer);
-    }
-
-    Tilc::Gui::TStyledWindow* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
-    if (!ParentWindow)
-    {
-        return nullptr;
-    }
-
-    uintptr_t StyledWindowPointer = std::stoull(ParentWindow->m_Props[PropName].substr(2), 0, 16);
-    return reinterpret_cast<void*>(StyledWindowPointer);
-}
-
 void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<std::initializer_list<const char*>> FormFields, const char* SaveButtonLabel, float TopY)
 {
     float const PaddingLeft = 10.0f;

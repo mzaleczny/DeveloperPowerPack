@@ -28,8 +28,6 @@ namespace Tilc {
         class TStyledWindow;
 
 
-        DECLSPEC void* GetPointer(Tilc::Gui::TGuiControl* Control, const char* PropName);
-
         class DECLSPEC TForm
         {
         public:
@@ -721,17 +719,23 @@ namespace Tilc {
                     Tilc::Gui::TJsonLayoutFile layout;
                     layout.loadLayout(Json, WndListForm);
 
+                    lbList = dynamic_cast<Tilc::Gui::TMultiColumnListbox*>(WndListForm->GetChild("lbList"));
+                    lbList->m_Position.h = m_Position.h - 20.0f - 25.0f - 10.0f;
+
                     Tilc::Gui::TGuiControl* btnAdd = WndListForm->GetChild("btnAdd");
+                    btnAdd->m_Position.y = lbList->m_Position.y + lbList->m_Position.h + 10.0f;;
                     btnAdd->OnClick = &TFormPackage::OnListAddClick;
                     Tilc::Gui::TGuiControl* btnEdit = WndListForm->GetChild("btnEdit");
+                    btnEdit->m_Position.y = lbList->m_Position.y + lbList->m_Position.h + 10.0f;;
                     btnEdit->OnClick = &TFormPackage::OnListEditClick;
                     Tilc::Gui::TGuiControl* btnDelete = WndListForm->GetChild("btnDelete");
+                    btnDelete->m_Position.y = lbList->m_Position.y + lbList->m_Position.h + 10.0f;;
                     btnDelete->OnClick = &TFormPackage::OnListDeleteClick;
                     Tilc::Gui::TGuiControl* btnDuplicate = WndListForm->GetChild("btnDuplicate");
+                    btnDuplicate->m_Position.y = lbList->m_Position.y + lbList->m_Position.h + 10.0f;;
                     btnDuplicate->OnClick = &TFormPackage::OnListDuplicateClick;
 
 
-                    lbList = dynamic_cast<Tilc::Gui::TMultiColumnListbox*>(WndListForm->GetChild("lbList"));
                     if (lbList)
                     {
                         lbList->SetColumnWidths(lbListColumnsWidths);

@@ -78,6 +78,8 @@ namespace Tilc {
             ECBT_Solid
         };
 
+        DECLSPEC void* GetPointer(Tilc::Gui::TGuiControl* Control, const char* PropName);
+
         class DECLSPEC TGuiControl
         {
         public:
@@ -443,7 +445,6 @@ namespace Tilc {
             inline void CaptureMouse(Tilc::Gui::TGuiControl* Control) {
                 if (!Control && m_ControlThatCapturedMouse)
                 {
-                    //std::cout << "RemoveCapture: " << m_ControlThatCapturedMouse->m_Name << std::endl;
                     m_ControlThatCapturedMouse->SetState(CONTROL_STATE_NORMAL);
                     m_ControlThatCapturedMouse->m_DetailedState = 0;
                 }
