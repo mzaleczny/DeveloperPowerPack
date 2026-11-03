@@ -68,7 +68,8 @@ namespace Tilc {
             ECT_MultiColumnListbox,
             ECT_ComboBox,
             ECT_PanelMenu,
-            ECT_ImageListView
+            ECT_ImageListView,
+            ECT_Picture
         };
 
         enum class EControlBorderType
@@ -251,7 +252,7 @@ namespace Tilc {
                 }
             }
             virtual void Hide();
-            bool IsVisible() const { return m_Visible; }
+            inline bool IsVisible() const { return m_Visible; }
             // Funkcja zwraca TRUE, jesli można do tego sprite'a przejść przy pomocy klawisza TabStop
             // (tzn. przekazać mu focus)
             bool CanTabStop() const { return m_Visible && m_Enabled && m_TabStop; }
@@ -551,7 +552,7 @@ namespace Tilc {
             bool m_IsTickable{};
             // Lista kontrolek rysowanych po narysowaniu wszystkich innych kontrolek. Używana jest do tego, żeby:
             // 1. DropDowny combobox-ów zawsze rysowały się na wierzchu.
-            // Kontrolki te mają także prorytet podczas przetwarzania zdarzeń. Czyli jeśli jedna z nich przesłania inną kontrolkę, to przechwyci ona zdarzenia nawet jeśli ta
+            // Kontrolki te mają także priorytet podczas przetwarzania zdarzeń. Czyli jeśli jedna z nich przesłania inną kontrolkę, to przechwyci ona zdarzenia nawet jeśli ta
             // zasłonieta kontrolka normalnie miałaby priorytet.
             inline static std::list<Tilc::Gui::TGuiControl*> m_HighPrivilegedControls;
             // Poniższa lista słży do usuwania kontrolek z listy wyżej: m_HighPrivilegedControls. Jest to zrobione tak dlatego, że kontrolki priorytetowe mogą być usuwane

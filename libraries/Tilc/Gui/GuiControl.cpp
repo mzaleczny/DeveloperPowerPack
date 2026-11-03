@@ -328,7 +328,6 @@ void Tilc::Gui::TGuiControl::Hide()
 bool Tilc::Gui::TGuiControl::PointIn(float x, float y)
 {
     SDL_FRect Position{ GetRealPosition() };
-    //std::cout << m_Name << ": " << Position.x << ", " << Position.y << std::endl;
     if (
         x >= Position.x && x < Position.x + Position.w &&
         y >= Position.y && y < Position.y + Position.h
@@ -884,7 +883,6 @@ void Tilc::Gui::TGuiControl::SetState(int state, bool redraw)
     if (m_State != state)
     {
         m_State = state;
-        //std::cout << "SetState Redraw: " << m_Name << "  CurrentState: " << m_State << std::endl;
         if (redraw)
         {
             Invalidate();
@@ -1217,7 +1215,13 @@ void Tilc::Gui::TGuiControl::DrawChildren(bool SkipVerticalAndHorizontalScrollBa
     // ================================================================
     for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
     {
+        // Pomijamy rysowanie scrollbarów, jeśli tak zarządano
         if (SkipVerticalAndHorizontalScrollBars && ((*it) == m_VScrollBar || (*it) == m_HScrollBar))
+        {
+            continue;
+        }
+        // Pomijamy rysowanie tutaj kontrolek o wysokim priorytecie, żeby nie wyrysowały się dwa razy
+        if (std::find(Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(), Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(), (*it)) != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end())
         {
             continue;
         }
@@ -1519,7 +1523,7 @@ bool Tilc::Gui::TGuiControl::ProcessEvent(const SDL_Event& event)
         if (OnMouseButtonDown(event)) return true;
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
-        // make sure to uncapture window on mouse up
+       // make sure to uncapture window on mouse up
         if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
         {
             CaptureMouse(nullptr);
@@ -1788,8 +1792,7 @@ void Tilc::Gui::TGuiControl::SetActiveWindow(Tilc::Gui::TStyledWindow* Window, b
         if (it != AllWindows.end())
         {
             AllWindows.splice(AllWindows.end(), AllWindows, it);
-            //std::cout << "Moving: " << (*it)->m_Name << std::endl;
-            // Poniższą metodę musimy wywołać, żeby przeniosła na koniec globalnej listy wszystki podokna tego okna, bo inaczej to okno by je przesłoniło i po jego aktywacji
+           // Poniższą metodę musimy wywołać, żeby przeniosła na koniec globalnej listy wszystki podokna tego okna, bo inaczej to okno by je przesłoniło i po jego aktywacji
             // nie moglibyśmy klikać ani wysyłać zdarzeń do podokien
             (*it)->MoveAllSubWindowsToTheEndOfGlobalWindowsOrder();
         }
@@ -1822,7 +1825,6 @@ void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRe
         ctrl = focused_rc;
         if (m_State & CONTROL_STATE_HOVER)
         {
-            //std::cout << "HOVER: " << m_Name << std::endl;
             ctrl = hover_focused_rc;
         }
         else if (m_State & CONTROL_STATE_PUSHED)
@@ -1867,7 +1869,6 @@ void Tilc::Gui::TGuiControl::DrawCommon(const SDL_FRect& Position, const SDL_FRe
         ctrl_right = right_focused_rc;
         if (m_State & CONTROL_STATE_HOVER)
         {
-            //std::cout << "HOVER: " << m_Name << std::endl;
             ctrl_left = left_hover_focused_rc;
             ctrl_middle = middle_hover_focused_rc;
             ctrl_right = right_hover_focused_rc;
@@ -2126,7 +2127,6 @@ void Tilc::Gui::TGuiControl::MoveAllSubWindowsToTheEndOfGlobalWindowsOrder()
         if (ItMain != AllWindows.end())
         {
             AllWindows.splice(AllWindows.end(), AllWindows, ItMain);
-            //std::cout << "Moving: " << (*it)->m_Name << std::endl;
             if (!(*it)->m_AllWindows.empty())
             {
                 (*it)->MoveAllSubWindowsToTheEndOfGlobalWindowsOrder();
