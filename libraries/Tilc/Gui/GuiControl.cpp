@@ -602,6 +602,18 @@ Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::GetChild(const Tilc::TExtString&
     return nullptr;
 }
 
+Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::GetChildIncludingAllSubWindows(const Tilc::TExtString& name)
+{
+    for (auto wndIt : m_AllWindows)
+    {
+        if (auto child = wndIt->GetChild(name); child)
+        {
+            return child;
+        }
+    }
+    return nullptr;
+}
+
 Tilc::TExtString Tilc::Gui::TGuiControl::GetChildValue(const Tilc::TExtString& name)
 {
     if (auto* Ctrl = GetChild(name); Ctrl)
