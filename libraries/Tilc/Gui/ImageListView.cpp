@@ -7,6 +7,7 @@
 
 #include "Tilc/Gui/Font.h"
 #include "Tilc/Gui/StyledWindow.h"
+#include "Tilc/Gui/Picture.h"
 
 Tilc::Gui::TImageListView::TImageListView(TGuiControl* parent, Tilc::TExtString name, const SDL_FRect& position, int ImageWidth, int ImageHeight)
 	: Tilc::Gui::TGuiControl(parent, name, position, Tilc::Gui::EControlType::ECT_ImageListView), m_ImageWidth(ImageWidth), m_ImageHeight(ImageHeight)
@@ -15,6 +16,11 @@ Tilc::Gui::TImageListView::TImageListView(TGuiControl* parent, Tilc::TExtString 
 
 Tilc::Gui::TImageListView::~TImageListView()
 {
+    if (m_PreviewPicture)
+    {
+        m_PreviewPicture->RemoveFromPrivilegedList();
+        delete m_PreviewPicture;
+    }
     RemoveAllImages();
 }
 
@@ -51,18 +57,6 @@ void Tilc::Gui::TImageListView::Draw()
         {
             y += m_ImageHeight + 5;
             x = m_Position.x;
-        }
-    }
-
-    if (m_PreviewImage)
-    {
-        Tilc::Gui::TStyledWindow* MainWindow = GetParentWindow();
-        if (MainWindow)
-        {
-            SDL_Texture* rt = SDL_GetRenderTarget(Renderer);
-            SDL_SetRenderTarget(Renderer, MainWindow->GetCanvas());
-            SDL_RenderTexture(Renderer, m_PreviewImage, nullptr, &m_PreviewCurrentRect);
-            SDL_SetRenderTarget(Renderer, rt);
         }
     }
 }
@@ -105,6 +99,7 @@ bool Tilc::Gui::TImageListView::Update(float DeltaTime)
             m_PreviewStartRect.w + (m_PreviewTargetRect.w - m_PreviewStartRect.w) * t,
             m_PreviewStartRect.h + (m_PreviewTargetRect.h - m_PreviewStartRect.h) * t
         };
+        m_PreviewPicture->m_Position = m_PreviewCurrentRect;
     }
     return true;
 }
@@ -267,9 +262,21 @@ void Tilc::Gui::TImageListView::StartPreview()
         targetH
     };
 
-    //std::cout << "m_PreviewStartRect: " << Tilc::FRectToString(&m_PreviewStartRect) << std::endl;
-    //std::cout << "m_PreviewTargetRect: " << Tilc::FRectToString(&m_PreviewTargetRect) << std::endl;
-    //std::cout << "WindowWidth: " << WindowWidth << "  WindowHeight: " << WindowHeight << std::endl;
+    // if PreviewPicture control was not created then create it now
+    if (!m_PreviewPicture)
+    {
+        m_PreviewPicture = new Tilc::Gui::TPicture(this, m_Name + "_PreviewPicture", m_Position, m_PreviewImage);
+        if (m_PreviewPicture)
+        {
+            m_PreviewPicture->Hide();
+            m_PreviewPicture->AddToPrivilegedList();
+        }
+    }
+    if (m_PreviewPicture)
+    {
+        m_PreviewPicture->m_Position = m_PreviewStartRect;
+        m_PreviewPicture->Show();
+    }
 }
 
 SDL_FRect Tilc::Gui::TImageListView::GetLastClickedImageRect()
