@@ -253,10 +253,13 @@ void Tilc::Gui::TStyledWindow::Draw()
             RenderTexture(TextureMap, &wnd_caption_right, x, y);
         }
 
-        // Wywołujemy wszystkie priorytetowe kontrolki
-        for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(); ++it)
+        if (!m_Parent)
         {
-            (*it)->Draw();
+            // Wywołujemy wszystkie priorytetowe kontrolki, ale tylko dla okna głównego czyli tego, które nie ma rodzica
+            for (auto it = Tilc::Gui::TGuiControl::m_HighPrivilegedControls.begin(); it != Tilc::Gui::TGuiControl::m_HighPrivilegedControls.end(); ++it)
+            {
+                (*it)->Draw();
+            }
         }
 
         /*
