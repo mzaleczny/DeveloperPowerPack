@@ -340,7 +340,7 @@ int Tilc::Data::TDataDBResources::CreateSimpleDataDb(const char* DbFname, const 
     Tilc::Data::TDBSQLite* DB = new Tilc::Data::TDBSQLite(DbFname);
 
     std::string Sql = std::format("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, data BLOB, modified TIMESTAMP);"
-                "CREATE INDEX \"idx_name\" ON resources(name);", Table);
+                "CREATE INDEX \"idx_name\" ON {}(name);", Table, Table);
     int Result = DB->CreateTable(Sql.c_str());
     delete DB;
     return Result;
