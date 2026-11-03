@@ -277,6 +277,7 @@ void Tilc::Gui::TImageListView::StartPreview()
     }
     if (m_PreviewPicture)
     {
+        m_PreviewPicture->SetPicture(m_PreviewImage);
         m_PreviewPicture->AddToPrivilegedList();
         m_PreviewPicture->m_Position = m_PreviewStartRect;
         m_PreviewPicture->Show();
@@ -314,7 +315,6 @@ int Tilc::Gui::TImageListView::OnPreviewPictureClick(float x, float y, int Mouse
 {
     Tilc::TExtString ListNameControl = Self->GetName().substr(0, Self->GetName().length() - std::strlen("_PreviewPicture"));
     Tilc::Gui::TImageListView* lst = dynamic_cast<Tilc::Gui::TImageListView*>(Self->GetParentWindow()->GetChildIncludingAllSubWindows(ListNameControl));
-    std::cout << ListNameControl << ": " << lst << std::endl;
     if (lst)
     {
         lst->TogglePreview();
