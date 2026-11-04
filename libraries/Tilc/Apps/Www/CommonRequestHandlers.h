@@ -75,7 +75,7 @@ namespace Tilc
                     }
                 }
 
-                // sprawdzamy poprawnosc zmiennej name
+                // sprawdzamy poprawnosc zmiennej id
                 if (rh.GetVars.find("id") == rh.GetVars.end())
                 {
                     Tilc::Apps::Www::Return_404_NotFound(rh);
@@ -93,7 +93,7 @@ namespace Tilc
                 T Item;
                 Tilc::TExtString DbFname;
                 // Jesli w nazwie jest podstring "_-1_", to obrazek jest w pliku schowka nie przypisany jeszcze bezpośrednio do produktu
-                if (rh.GetVars["id"].find("_-1_") != std::string::npos)
+                if (rh.GetVars["name"].find("_-1_") != std::string::npos)
                 {
                     DbFname = rh.ApplicationRootDir + "/db/" + Item.TableName + "_pictures.db";
                 }
