@@ -27,6 +27,9 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
     float const PaddingBottom = (TopY > 10.0f) ? TopY : 10.0f;
     float const SpacerW = 15.0f;
     float const SpacerH = 15.0f;
+    float AvailableWidth = Window->m_Position.w - PaddingLeft - PaddingRight;
+    Tilc::Gui::TTheme* t = Tilc::GameObject->GetContext()->m_Theme;
+    AvailableWidth -= t->scrollbar_vertical_thumb_middle_rc.w;
     SDL_FRect Position{PaddingLeft, PaddingTop, Window->m_Position.w, 25.0f };
     Tilc::Gui::TGuiControl* gc{};
 
@@ -38,7 +41,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
 
         if (std::strncmp(Type, "label", 5) == 0)
         {
-            Position.w = Window->m_Position.w;
+            Position.w = AvailableWidth;
             gc = new Tilc::Gui::TLabel(Window, Name, Position, Label, false);
             Position.y += Position.h;
             Position.x = PaddingLeft;
@@ -47,7 +50,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         else if (std::strncmp(Type, "textfield", 9) == 0)
         {
             Position.x = PaddingLeft;
-            Position.w = Window->m_Position.w - PaddingLeft - PaddingRight;
+            Position.w = AvailableWidth;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -64,7 +67,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         else if (std::strncmp(Type, "multiline-textfield", 19) == 0)
         {
-            Position.w = Window->m_Position.w - PaddingLeft - PaddingRight;
+            Position.w = AvailableWidth;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -111,7 +114,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         else if (std::strncmp(Type, "listbox", 7) == 0)
         {
-            Position.w = Window->m_RealPosition.w;
+            Position.w = AvailableWidth;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -141,7 +144,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         else if (std::strncmp(Type, "grid", 4) == 0)
         {
-            Position.w = Window->m_RealPosition.w;
+            Position.w = AvailableWidth;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -159,7 +162,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         else if (std::strncmp(Type, "slider", 6) == 0)
         {
-            Position.w = Window->m_RealPosition.w;
+            Position.w = AvailableWidth;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -186,7 +189,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         else if (std::strncmp(Type, "scrollbar", 9) == 0)
         {
-            Position.w = Window->m_RealPosition.w;
+            Position.w = AvailableWidth;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -219,7 +222,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         else if (std::strncmp(Type, "pictures", 4) == 0)
         {
             // Label
-            Position.w = Window->m_RealPosition.w;
+            Position.w = AvailableWidth;
             Position.h = 25.0f;
             Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
             if (lbl)
@@ -236,7 +239,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             // ImageListView belo the label
             Position.x = lbl->m_Position.x;
             Position.y = lbl->m_Position.y + 30.0f;
-            Position.w = Window->m_RealPosition.w - 10;
+            Position.w = AvailableWidth;
             Position.h = 96.0f;
             Tilc::Gui::TImageListView* lst = new Tilc::Gui::TImageListView(Window, Tilc::TExtString("lstImageList_") + Name, Position, 96, 96);
             if (lst)
