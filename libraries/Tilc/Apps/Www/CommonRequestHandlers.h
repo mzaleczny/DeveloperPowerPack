@@ -91,7 +91,17 @@ namespace Tilc
                 }
 
                 T Item;
-                Tilc::TExtString DbFname = rh.ApplicationRootDir + "/db/" + Item.TableName + "_pictures_" + rh.GetVars["id"] + ".db";
+                Tilc::TExtString DbFname;
+                // Jesli w nazwie jest podstring "_-1_", to obrazek jest w pliku schowka nie przypisany jeszcze bezpośrednio do produktu
+                if (rh.GetVars["id"].find("_-1_") != std::string::npos)
+                {
+                    DbFname = rh.ApplicationRootDir + "/db/" + Item.TableName + "_pictures.db";
+                }
+                else
+                {
+                    // w przeciwnym razie obrazek pobieramy z pliku obrazków przypisanych do ecji
+                    DbFname = rh.ApplicationRootDir + "/db/" + Item.TableName + "_pictures_" + rh.GetVars["id"] + ".db";
+                }
                 sqlite3* db;
                 sqlite3_open(DbFname.c_str(), &db);
 
