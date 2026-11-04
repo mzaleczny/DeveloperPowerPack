@@ -144,8 +144,16 @@ void Tilc::Gui::TScrollBarVertical::Draw()
 
     TTheme* m_Theme = Tilc::GameObject->GetContext()->m_Theme;
     SDL_Texture* OldRenderTarget{};
-    SDL_FRect RealPosition = GetRealPosition();
-	float x = RealPosition.x;
+    SDL_FRect RealPosition;
+    if (m_Parent->m_ControlType == Tilc::Gui::EControlType::ECT_WindowControl)
+    {
+        RealPosition = m_Position;
+    }
+    else
+    {
+        RealPosition = GetRealPosition();
+    }
+    float x = RealPosition.x;
     float y = RealPosition.y;
     SDL_Texture* TextureMap = m_Theme->GuiTextureMap1;
     SDL_FRect rcAbove = scrollbar_vertical_bg_rc;
@@ -166,6 +174,7 @@ void Tilc::Gui::TScrollBarVertical::Draw()
         OldRenderTarget = SDL_GetRenderTarget(Renderer);
         SDL_SetRenderTarget(Renderer, m_Canvas);
     }
+
     // ================================================================
     // Rysujemy górną strzałkę scrollbara
     // ================================================================
