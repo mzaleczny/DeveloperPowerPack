@@ -8,6 +8,8 @@
 #include "Tilc/Data/DbSQLite.h"
 #include <filesystem>
 
+#include "Tilc/Utils/FileUtils.h"
+
 std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields)
 {
     Tilc::TExtString FieldsList{Tilc::Implode(',', Fields)};
@@ -204,18 +206,28 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                         {
                             Id = std::to_string(DB.GetLastInsertId());
                         }
+
+                        // Najpierw usuwamy zdjęcie, których nie ma już na nowych listach
+                        Tilc::Data::TDataProcessor::DeletePictures(os, TableName, Id, NewPictures, "miniatures");
+                        Tilc::Data::TDataProcessor::DeletePictures(os, TableName, Id, NewPictures, "pictures");
+
+                        // kopiujemy do pliku obrazków encji nowe zdjęcia
                         if (!NewPictures.empty())
                         {
-                            // Najpierw usuwamy zdjęcie, których nie ma już na nowych listach
-                            Tilc::Data::TDataProcessor::DeletePictures(os, TableName, Id, NewPictures, "miniatures");
-                            Tilc::Data::TDataProcessor::DeletePictures(os, TableName, Id, NewPictures, "pictures");
-
                             // Teraz przenosimy nowe zdjęcia do pliku zdjęć encji, jeśli został podany
                             Tilc::Data::TDataProcessor::CopyPictures(os, TableName, Id, NewPictures, "miniatures");
                             Tilc::Data::TDataProcessor::CopyPictures(os, TableName, Id, NewPictures, "pictures");
                         }
                     }
                 }
+            }
+
+            // na koniec usuwamy schowek zdjęć dla danej encji
+            Tilc::TExtString DbFname = Tilc::TExtString("./db/") + TableName + "_pictures.db";
+            if (Tilc::FileExists(DbFname))
+            {
+                auto err = std::error_code{};
+                std::filesystem::remove(DbFname.c_str(), err);
             }
         }
         delete JsonInput;
