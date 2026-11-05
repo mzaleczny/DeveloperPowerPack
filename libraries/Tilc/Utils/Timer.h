@@ -2,6 +2,7 @@
 
 #include <ctime>
 #include <chrono>
+#include <functional>
 #include "Tilc/DllGlobals.h"
 
 namespace Tilc
@@ -31,5 +32,21 @@ namespace Tilc
 	protected:
 		std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 		std::time_t m_CurrentTick;
+	};
+
+	template <typename Time = std::chrono::microseconds, typename Clock = std::chrono::high_resolution_clock>
+	struct PerfTimer
+	{
+		template <typename F, typename... Args>
+		static Time duration(F&& f, Args... args)
+		{
+			auto start = Clock::now();
+
+			std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+
+			auto end = Clock::now();
+
+			return std::chrono::duration_cast<Time>(end - start);
+		}
 	};
 }
