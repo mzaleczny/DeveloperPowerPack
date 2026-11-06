@@ -82,8 +82,11 @@ Tilc::Audio::TMusic::~TMusic()
 {
 	if (m_MixTrack)
 	{
-		Stop();
-		MIX_DestroyTrack(m_MixTrack);
+		Stop(0);
+		if (SDL_WasInit(SDL_INIT_AUDIO))
+		{
+			MIX_DestroyTrack(m_MixTrack);
+		}
 		m_MixTrack = nullptr;
 	}
 	if (m_MixAudio)
@@ -148,6 +151,10 @@ DECLSPEC void Tilc::Audio::Play(const Tilc::TExtString& Filename, float Volume, 
                 MIX_DestroyAudio(MixAudio);
             }
         }
+    	else
+    	{
+    		std::cout << "File not exists" << std::endl;
+    	}
     });
     Thread.detach();
 }
