@@ -31,11 +31,14 @@ namespace Tilc::Audio
         void InitFromFile(const Tilc::TExtString& Filename);
 	};
 
-    // Loop = 1 means endless Loop
-    DECLSPEC inline void Play(MIX_Mixer* MixMixer, MIX_Track* MixTrack, float Volume = 100, int Loops = 1)
+    // Loop = -1 means endless Loop
+    inline void Play(MIX_Mixer* MixMixer, MIX_Track* MixTrack, float Volume = 100, int Loops = -1)
     {
-        MIX_SetMixerGain(MixMixer, Volume / 100.0f);
-        MIX_PlayTrack(MixTrack, Loops);
+    	MIX_SetMixerGain(MixMixer, Volume / 100.0f);
+    	SDL_PropertiesID props = SDL_CreateProperties();
+    	SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, Loops);
+    	MIX_PlayTrack(MixTrack, props);
+    	SDL_DestroyProperties(props);
     }
 
     // Loop = 1 means endless Loop
