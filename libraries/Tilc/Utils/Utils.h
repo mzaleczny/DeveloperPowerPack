@@ -28,6 +28,7 @@ namespace Tilc
         y = std::move(tmp);
     }
 
+#ifndef __EMSCRIPTEN__
     // Parallel map. This function is much faster than parallel version of standard one from std library.
     template <typename Iter, typename F>
     void ParallelMap(Iter begin, Iter end, F&& f)
@@ -105,4 +106,6 @@ namespace Tilc
             return std::accumulate(std::begin(values), std::end(values), init, std::forward<F>(op));
         }
     }
+#endif
+
 }
