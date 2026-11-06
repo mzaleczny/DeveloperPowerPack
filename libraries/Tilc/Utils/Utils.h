@@ -2,6 +2,7 @@
 #include <limits>
 #include <utility>
 #include <thread>
+#include <numeric>
 
 namespace Tilc
 {
