@@ -3,6 +3,7 @@
 #include <utility>
 #include <thread>
 #include <numeric>
+#include <vector>
 
 namespace Tilc
 {
