@@ -240,7 +240,6 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             }
 
             // Pass event to the found styled window
-            //std::cout << "ProcessChildEvents for: " << wnd->GetName() << std::endl;
             wnd->ProcessChildEvent(*Event);
         }
         else
@@ -277,14 +276,12 @@ SDL_AppResult Tilc::TEventManager::HandleEvent(const SDL_Event* Event)
 
 			if (Event->type == SDL_EVENT_KEY_DOWN || Event->type == SDL_EVENT_KEY_UP)
 			{
-                //std::cout << "Event->key.key: " << Event->key.key << ",  Type: " << Event->type << std::endl;
                 if (e_itr.first == EVENT_KEYBOARD)
                 {
                     Bind->m_Details.m_KeyCode = Event->key.key;
                     Bind->m_Details.m_KeyDown = (Event->type == SDL_EVENT_KEY_DOWN);
                     Bind->m_Details.m_KeyUp = (Event->type == SDL_EVENT_KEY_UP);
                     ++(Bind->m_Count);
-                    //std::cout << "  Count: " << Bind->m_Count << std::endl;
                     break;
                 }
 				else if (e_itr.second.m_Code == Event->key.key)
@@ -422,6 +419,8 @@ void Tilc::TEventManager::LoadBindings()
 			Tilc::TExtString KeyVal;
 			Tilc::TExtString EventTypeName;
 			Keystream >> KeyVal;
+			KeyVal.Trim();
+			if (KeyVal.empty()) break;
 			size_t Start = 0;
 			size_t End = KeyVal.find(Delimiter);
 			if (End == Tilc::TExtString::npos)
