@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DllGlobals.h"
 #include "Tilc/configure.h"
 #include <Tilc/Utils/ExtString.h>
 #include <random>
@@ -167,4 +168,11 @@ namespace Tilc
         return x * x * (3.0f - 2.0f * x);
     }
 
+    DECLSPEC struct TAnimationSettings
+    {
+        float AnimProgress{0.0f}; // 0.0 (start anim state) to 1.0 (end anim state)
+        float AnimDuration{0.4f}; // Duration in seconds
+        int Direction{};
+        bool IsAnimating{};
+    };
 }
