@@ -34,11 +34,16 @@ namespace Tilc::Audio
     // Loop = -1 means endless Loop
     inline void Play(MIX_Mixer* MixMixer, MIX_Track* MixTrack, float Volume = 100, int Loops = -1)
     {
-    	MIX_SetMixerGain(MixMixer, Volume / 100.0f);
     	SDL_PropertiesID props = SDL_CreateProperties();
     	SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, Loops);
     	MIX_PlayTrack(MixTrack, props);
     	SDL_DestroyProperties(props);
+		// Set Volume
+    	float gain = Volume / 100.0f;
+    	if (!MIX_SetTrackGain(MixTrack, gain))
+    	{
+    		SDL_Log("Nie udało się ustawić głośności tracka: %s", SDL_GetError());
+    	}
     }
 
     // Loop = 1 means endless Loop
