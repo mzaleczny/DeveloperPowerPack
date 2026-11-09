@@ -919,8 +919,8 @@ namespace Tilc {
                                 }
                             }
                         }
+                        --i;
                         ++Column;
-                        y += 15.0f;
                     }
                     delete JsonRoot;
                 }
