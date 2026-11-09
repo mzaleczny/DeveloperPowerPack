@@ -114,7 +114,6 @@ void Tilc::Gui::TCheckbox::Draw()
     }
 
     SDL_FRect Position = m_Position;
-    std::cout << Tilc::FRectToString(&Position) << std::endl;
     Position.x = x;
     Position.y = y;
     DrawCommon(
@@ -138,7 +137,7 @@ void Tilc::Gui::TCheckbox::Draw()
     {
         Position.x += checkbox_width + m_TextSpacing;
     }
-   t->DefaultFont->SetColor({ 255, 255, 255, 255 });
+    t->DefaultFont->SetColor({ 255, 255, 255, 255 });
     t->DefaultFont->DrawString(GetRenderer(), m_Text.c_str(), &Position, Align_CenterVertical | Align_Left);
     // ================================================================
     // ================================================================
