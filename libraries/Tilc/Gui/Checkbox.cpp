@@ -45,7 +45,7 @@ void Tilc::Gui::TCheckbox::SetText(const Tilc::TExtString& checkedStateText, con
 {
     m_CheckedStateText = checkedStateText;
     m_UncheckedStateText = uncheckedStateText;
-    
+
     Tilc::TExtString text = m_CheckedStateText;
     Tilc::Gui::TTheme* Theme = GetTheme();
     int Width, Height;
@@ -77,7 +77,6 @@ void Tilc::Gui::TCheckbox::SetText(const Tilc::TExtString& checkedStateText, con
         m_Text = m_UncheckedStateText;
     }
     
-    m_Text.RemoveCharsWithCodeLessThan(32);
     if (redraw)
     {
         Invalidate();
