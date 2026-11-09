@@ -214,12 +214,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             }
             continue;
         }
-        else if (std::strncmp(Type, "br", 5) == 0)
+        else if (std::strncmp(Type, "br", 2) == 0)
         {
             Position.y += Position.h;
             continue;
         }
-        else if (std::strncmp(Type, "pictures", 4) == 0)
+        else if (std::strncmp(Type, "pictures", 8) == 0)
         {
             // Label
             Position.w = AvailableWidth;
@@ -247,6 +247,27 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
                 lst->SetAllowRemoveImage(true);
                 lst->OnRemoveImage = OnRemoveMiniatures;
             }
+            Position.y += Position.h + 15.0f;
+            continue;
+        }
+        else if (std::strncmp(Type, "categories", 10) == 0)
+        {
+            // Label
+            Position.w = AvailableWidth;
+            Position.h = 25.0f;
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            if (lbl)
+            {
+                lbl->SetFontToUse("DefaultBold");
+            }
+
+            // Button to the right of label
+            Position.x = lbl->m_Position.x + 300.0f;
+            Position.w = 125.0f;
+            Position.h = 25.0f;
+            gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAssignCategories"), Position, "Ustaw kategorie");
+
+            Position.x = lbl->m_Position.x;
             Position.y += Position.h + 15.0f;
             continue;
         }

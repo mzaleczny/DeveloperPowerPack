@@ -21,12 +21,20 @@
 #include <unordered_map>
 #include <thread>
 
+#include "Tilc/Gui/Checkbox.h"
+
 namespace Tilc {
     namespace Gui {
         class TLayoutFile;
         class TGuiControl;
         class TStyledWindow;
 
+        class DECLSPEC TIdName
+        {
+        public:
+            uint64_t id;
+            Tilc::TExtString m_Name;
+        };
 
         class DECLSPEC TForm
         {
@@ -52,6 +60,7 @@ namespace Tilc {
             Tilc::TExtString Url_Save;
             Tilc::TExtString Url_Delete;
             Tilc::TExtString Url_GetMiniatures;
+            Tilc::TExtString Url_ListCategories;
 
             std::vector<TItemType> m_ChangedItems{};
             std::vector<int> m_ItemsToDelete{};
@@ -66,6 +75,7 @@ namespace Tilc {
 
             Tilc::Gui::TStyledWindow* WndListForm{};
             Tilc::Gui::TStyledWindow* WndEditForm{};
+            Tilc::Gui::TStyledWindow* WndAssignCategoriesForm{};
             Tilc::Gui::TLabel* lblTitle{};
 
             Tilc::Gui::TMultiColumnListbox* lbList{};
@@ -84,13 +94,14 @@ namespace Tilc {
                 const Tilc::TExtString& URL_List,
                 const Tilc::TExtString& URL_Save,
                 const Tilc::TExtString& URL_Delete,
-                const Tilc::TExtString& URL_GetMiniatures
+                const Tilc::TExtString& URL_GetMiniatures,
+                const Tilc::TExtString& URL_ListCategories
                 )
                 : m_ParentWindow(ParentWindow), m_Name(Name), m_Position(Position),
                     lbListColumnsWidths(ListColumnsWidths), lbListColumnsCaptions(ListColumnsCaptions),
                     HideAllWindowsFromParent(HideFunc), lblTitle(TitleLabel),
                     Url_GetItem(URL_GetItem), Url_List(URL_List), Url_Save(URL_Save), Url_Delete(URL_Delete),
-                    Url_GetMiniatures(URL_GetMiniatures)
+                    Url_GetMiniatures(URL_GetMiniatures), Url_ListCategories(URL_ListCategories)
             {
                 InitListWindow(m_ParentWindow);
                 InitEditWindow(m_ParentWindow, EditFormFields);
@@ -114,6 +125,11 @@ namespace Tilc {
                 {
                     delete WndEditForm;
                     WndEditForm = nullptr;
+                }
+                if (WndAssignCategoriesForm)
+                {
+                    delete WndAssignCategoriesForm;
+                    WndAssignCategoriesForm = nullptr;
                 }
             }
 
@@ -332,7 +348,6 @@ namespace Tilc {
                     }
                 }
             }
-
             // *******************************************************************************************************************
             // EVENT HANDLERS
             // *******************************************************************************************************************
@@ -611,6 +626,37 @@ namespace Tilc {
                 TFormPackage::ShowListWindow(FormPackage);
                 return 0;
             }
+
+            static int OnSetCategoriesButtonClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
+            {
+                auto* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
+                if (ParentWindow)
+                {
+                    auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(ParentWindow, "FormPackage"));
+                    if (FormPackage->WndAssignCategoriesForm)
+                    {
+                        delete FormPackage->WndAssignCategoriesForm;
+                        FormPackage->WndAssignCategoriesForm = nullptr;
+                    }
+                    FormPackage->CreateAssignCategoriesWindow(ParentWindow);
+                    if (FormPackage->WndAssignCategoriesForm)
+                    {
+                        FormPackage->WndAssignCategoriesForm->Show();
+                        FormPackage->WndAssignCategoriesForm->Focus();
+                    }
+                }
+                return 0;
+            }
+
+            static int OnSetCategoriesCancelClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
+            {
+                auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
+                auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
+                auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
+                std::cout << EditWindow << std::endl;
+                EditWindow->RemoveChild("WndAssignCategories");
+                return 0;
+            }
             // *******************************************************************************************************************
             // *******************************************************************************************************************
 
@@ -762,6 +808,44 @@ namespace Tilc {
                     btnSave->OnClick = &TFormPackage::OnEditOkClick;
                     Tilc::Gui::TGuiControl* btnCancel = WndEditForm->GetChild("CancelButton");
                     btnCancel->OnClick = &TFormPackage::OnEditCancelClick;
+                    Tilc::Gui::TGuiControl* btnAssignCategories = WndEditForm->GetChild("btnAssignCategories");
+                    btnAssignCategories->OnClick = &TFormPackage::OnSetCategoriesButtonClick;
+                }
+            }
+
+
+            void CreateAssignCategoriesWindow(Tilc::Gui::TStyledWindow* ParentWindow)
+            {
+                auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(WndEditForm, "FormPackage"));
+                if (FormPackage->Url_ListCategories.empty()) return;
+
+                SDL_FRect Position = WndEditForm->m_Position;
+                Position.x = 50.0f;
+                Position.y = 100.0f;
+                Position.w -= 100.0f;
+                Position.h -= 200.0f;
+                WndAssignCategoriesForm = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, "WndAssignCategories", Position);
+                if (WndAssignCategoriesForm)
+                {
+                    WndAssignCategoriesForm->SetHasBackground(true);
+                    WndAssignCategoriesForm->SetHasBorder(true);
+                    WndAssignCategoriesForm->SetHasCaption(false);
+                    WndAssignCategoriesForm->Hide();
+
+                    // Kopy settings
+                    WndAssignCategoriesForm->m_Props["TableName"] = WndEditForm->m_Props["TableName"];
+                    WndAssignCategoriesForm->m_Props["ListWindow"] = WndEditForm->m_Props["ListWindow"];
+                    WndAssignCategoriesForm->m_Props["EditWindow"] = WndEditForm->m_Props["EditWindow"];
+                    WndAssignCategoriesForm->m_Props["FormPackage"] = WndEditForm->m_Props["FormPackage"];
+                    WndAssignCategoriesForm->m_Props["CachedMiniatures"] = WndEditForm->m_Props["CachedMiniatures"];
+                    WndAssignCategoriesForm->m_Props["CachedMiniaturesMap"] = WndEditForm->m_Props["CachedMiniaturesMap"];
+#ifdef __EMSCRIPTEN__
+                    Tilc::Apps::Www::FetchAsync(FormPackage->Url_ListCategories, [this, FormPackage](Tilc::TExtString Json) {
+                        FormPackage->AddCategoriesCheckboxes(WndAssignCategoriesForm, Json);
+                    });
+#else
+                    FormPackage->AddCategoriesCheckboxes(WndAssignCategoriesForm, Tilc::Apps::Www::Fetch(FormPackage->Url_ListCategories));
+#endif
                 }
             }
 
@@ -792,6 +876,61 @@ namespace Tilc {
                     }
                     delete JsonRoot;
                 }
+            }
+
+            void AddCategoriesCheckboxes(Tilc::Gui::TStyledWindow* wnd, Tilc::TExtString ItemsJson)
+            {
+                Tilc::TJsonParser JsonParser;
+                Tilc::TStdObject* JsonRoot = JsonParser.parse(ItemsJson);
+                constexpr int const padding = 10.0f;
+                SDL_FRect Position = {padding, padding, 200.0f, 25.0f};
+                float y = padding;
+                if (JsonRoot)
+                {
+                    constexpr int const ColumnsCount = 4;
+                    size_t CategoriesCount = JsonRoot->getAsObject("root")->getAsArray("items")->size();
+                    size_t CategoriesPerColumn = CategoriesCount / ColumnsCount + 1;
+                    int Column = 0;
+                    int i = 0;
+                    for (auto* ItemObject : *JsonRoot->getAsObject("root")->getAsArray("items"))
+                    {
+                        Tilc::TStdObject* o = ItemObject->oValue;
+                        if (o)
+                        {
+                            TItemType Item;
+                            Item.FromJsonObject(o);
+
+                            Position.x = padding + Column * (200.0f + 50.0f);
+                            Position.y = padding;
+                            for (size_t j = 0; j < CategoriesPerColumn && i < CategoriesCount; ++j, ++i)
+                            {
+                               Tilc::Gui::TCheckbox* Checkbox = new Tilc::Gui::TCheckbox(wnd, "Cat_" + Item.id, Position,
+                                    Item.name, false);
+                                if (Checkbox)
+                                {
+                                    Checkbox->m_Props["id"] = Item.id;
+                                }
+                                Position.y += 25.0f;
+                                if (Position.y > y)
+                                {
+                                    y = Position.y;
+                                }
+                            }
+                            ++Column;
+                        }
+                        y += 15.0f;
+                    }
+                    delete JsonRoot;
+                }
+
+                Position.x = padding;
+                Position.y = y;
+                Position.w = 150.0f;
+                Tilc::Gui::TGuiControl* btnSave = new Tilc::Gui::TButton(wnd, "SaveButton", Position, "Zapisz kategorie");
+                //btnSave->OnClick = &TFormPackage::OnEditOkClick;
+                Position.x += Position.w + 10.0f;
+                Tilc::Gui::TGuiControl* btnCancel = new Tilc::Gui::TButton(wnd, "CancelButton", Position, "Anuluj");
+                btnCancel->OnClick = &TFormPackage::OnSetCategoriesCancelClick;
             }
 
             void LoadMiniatures(Tilc::TExtString MiniaturesServerNames)
@@ -840,5 +979,6 @@ namespace Tilc {
         };
 
         int OnRemoveMiniatures(TImageListView* ListView, int ImageIndex, Tilc::TExtString& ImageName);
+
     }
 }
