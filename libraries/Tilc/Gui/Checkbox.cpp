@@ -104,8 +104,8 @@ void Tilc::Gui::TCheckbox::Draw()
     // ================================================================
     // Draw checkbox
     // ================================================================
-    int checkbox_width = t->checkbox_checked_rc.w;
-    int checkbox_height = t->checkbox_checked_rc.h;
+    float checkbox_width = t->checkbox_checked_rc.w;
+    float checkbox_height = t->checkbox_checked_rc.h;
     float x = m_Position.x;
     float y = m_Position.y + (m_Position.h - checkbox_height) / 2.0f;
     if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_LEFT)
@@ -113,7 +113,8 @@ void Tilc::Gui::TCheckbox::Draw()
         x = m_Position.x + m_TextSize.w + m_TextSpacing;
     }
 
-    SDL_FRect Position = GetRealPosition();
+    SDL_FRect Position = m_Position;
+    std::cout << Tilc::FRectToString(&Position) << std::endl;
     Position.x = x;
     Position.y = y;
     DrawCommon(
@@ -132,18 +133,12 @@ void Tilc::Gui::TCheckbox::Draw()
     // ================================================================
     // Draw label
     // ================================================================
-    Position = GetRealPosition();
-    x = m_Position.x;
+    Position = m_Position;
     if (m_TextPlacement == CONTROL_TEXT_PLACEMENT_RIGHT)
     {
-        x = m_Position.x;
-        if (checkbox_width)
-        {
-            x += checkbox_width + m_TextSpacing;
-        }
+        Position.x += checkbox_width + m_TextSpacing;
     }
-    Position.x += x;
-    t->DefaultFont->SetColor({ 255, 255, 255, 255 });
+   t->DefaultFont->SetColor({ 255, 255, 255, 255 });
     t->DefaultFont->DrawString(GetRenderer(), m_Text.c_str(), &Position, Align_CenterVertical | Align_Left);
     // ================================================================
     // ================================================================
