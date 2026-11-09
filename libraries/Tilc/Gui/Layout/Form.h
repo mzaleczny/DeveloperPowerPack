@@ -925,6 +925,7 @@ namespace Tilc {
                     delete JsonRoot;
                 }
 
+                y += 10.0f;
                 Position.x = padding;
                 Position.y = y;
                 Position.w = 150.0f;
