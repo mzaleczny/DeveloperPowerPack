@@ -650,11 +650,13 @@ namespace Tilc {
 
             static int OnSetCategoriesCancelClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
             {
-                auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
-                auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
-                auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
-                std::cout << EditWindow << std::endl;
-                EditWindow->RemoveChild("WndAssignCategories");
+                auto* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
+                if (ParentWindow)
+                {
+                    auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(ParentWindow, "FormPackage"));
+                    ParentWindow->Destroy();
+                    FormPackage->WndAssignCategoriesForm = nullptr;
+                }
                 return 0;
             }
             // *******************************************************************************************************************
@@ -891,33 +893,33 @@ namespace Tilc {
                     size_t CategoriesCount = JsonRoot->getAsObject("root")->getAsArray("items")->size();
                     size_t CategoriesPerColumn = CategoriesCount / ColumnsCount + 1;
                     int Column = 0;
-                    int i = 0;
-                    for (auto* ItemObject : *JsonRoot->getAsObject("root")->getAsArray("items"))
+                    for (size_t i = 0; i < CategoriesCount; ++i)
                     {
-                        Tilc::TStdObject* o = ItemObject->oValue;
-                        if (o)
+                        Position.x = padding + Column * (200.0f + 50.0f);
+                        Position.y = padding;
+                        for (size_t j = 0; j < CategoriesPerColumn && i < CategoriesCount; ++j, ++i)
                         {
-                            TItemType Item;
-                            Item.FromJsonObject(o);
-
-                            Position.x = padding + Column * (200.0f + 50.0f);
-                            Position.y = padding;
-                            for (size_t j = 0; j < CategoriesPerColumn && i < CategoriesCount; ++j, ++i)
+                            Tilc::TStdObjectProperty* ItemObject = (*JsonRoot->getAsObject("root")->getAsArray("items"))[i];
+                            Tilc::TStdObject* o = ItemObject->oValue;
+                            if (o)
                             {
-                               Tilc::Gui::TCheckbox* Checkbox = new Tilc::Gui::TCheckbox(wnd, "Cat_" + Item.id, Position,
-                                    Item.name, false);
+                                TItemType Item;
+                                Item.FromJsonObject(o);
+
+                                Tilc::Gui::TCheckbox* Checkbox = new Tilc::Gui::TCheckbox(wnd, "Cat_" + Item.id, Position,
+                                        Item.name, false);
                                 if (Checkbox)
                                 {
                                     Checkbox->m_Props["id"] = Item.id;
                                 }
-                                Position.y += 25.0f;
+                                Position.y += 30.0f;
                                 if (Position.y > y)
                                 {
                                     y = Position.y;
                                 }
                             }
-                            ++Column;
                         }
+                        ++Column;
                         y += 15.0f;
                     }
                     delete JsonRoot;
