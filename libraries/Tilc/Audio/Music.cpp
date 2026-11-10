@@ -122,6 +122,37 @@ bool Tilc::Audio::TMusic::IsPlaying()
 
 DECLSPEC void Tilc::Audio::Play(const Tilc::TExtString& Filename, float Volume, int Loops)
 {
+#ifdef __EMSCRIPTEN__
+	if (Tilc::FileExists(Filename))
+	{
+		MIX_Mixer* Mixer = Tilc::GameObject->GetContext()->m_MixMixer;
+		MIX_Audio* MixAudio{};
+		MIX_Track* MixTrack{};
+		//Tilc::Audio::TMusic* m = new Tilc::Audio::TMusic(Mixer, Filename.c_str(), true);
+		//m->Play(100, 0);
+		if (Tilc::GameObject->GetContext()->m_Tracks.find(Filename) == Tilc::GameObject->GetContext()->m_Tracks.end())
+		{
+			MixAudio = MIX_LoadAudio(Mixer, Filename.c_str(), true);
+			if (MixAudio)
+			{
+				MixTrack = MIX_CreateTrack(Mixer);
+				if (!MixTrack)
+				{
+					MIX_DestroyAudio(MixAudio);
+					MixAudio = nullptr;
+					return;
+				}
+				MIX_SetTrackAudio(MixTrack, MixAudio);
+				Tilc::GameObject->GetContext()->m_Tracks[Filename] = std::move(std::make_pair(MixAudio, MixTrack));
+			}
+		}
+		else
+		{
+			MixTrack = Tilc::GameObject->GetContext()->m_Tracks[Filename].second;
+		}
+		Play(Mixer, MixTrack, 100, 0);
+	}
+#elif !defined(__EMSCRIPTEN__)
     std::thread Thread([Filename, Volume, Loops] {
         if (Tilc::FileExists(Filename))
         {
@@ -157,4 +188,5 @@ DECLSPEC void Tilc::Audio::Play(const Tilc::TExtString& Filename, float Volume, 
     	}
     });
     Thread.detach();
+#endif
 }

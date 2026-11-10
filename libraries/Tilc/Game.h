@@ -64,6 +64,7 @@ namespace Tilc
         Tilc::Gui::TClipboard* m_Clipboard{};
         std::unordered_map<TExtString, Tilc::Gui::TFont*> m_Fonts;
         MIX_Mixer* m_MixMixer{};
+		std::unordered_map<Tilc::TExtString, std::pair<MIX_Audio*, MIX_Track*>> m_Tracks{};
 		int m_CurrentCamera = -1;
         std::mutex m_Mutex;
 	};

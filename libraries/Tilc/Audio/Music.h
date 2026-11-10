@@ -47,5 +47,5 @@ namespace Tilc::Audio
     }
 
     // Loop = 1 means endless Loop
-    DECLSPEC void Play(const Tilc::TExtString& Filename, float Volume = 100, int Loops = 1);
+    DECLSPEC void Play(const Tilc::TExtString& Filename, float Volume = 100, int Loops = 0);
 }

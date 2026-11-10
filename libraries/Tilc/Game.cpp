@@ -25,6 +25,7 @@
 #include <sstream>
 #include <fstream>
 #include <filesystem>
+#include <ranges>
 
 namespace Tilc
 {
@@ -68,6 +69,21 @@ Tilc::TGame::TGame(EGameType GameType)
 
 Tilc::TGame::~TGame()
 {
+	if (SDL_WasInit(SDL_INIT_AUDIO))
+	{
+		for (const auto& track : m_Context.m_Tracks | std::views::values)
+		{
+			if (track.second)
+			{
+				MIX_DestroyTrack(track.second);
+			}
+			if (track.first)
+			{
+				MIX_DestroyAudio(track.first);
+			}
+		}
+	}
+	m_Context.m_Tracks.clear();
     if (m_Context.m_Clipboard)
     {
         delete m_Context.m_Clipboard;
