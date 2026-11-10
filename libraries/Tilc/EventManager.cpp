@@ -12,6 +12,8 @@
 #include <thread>
 #include <filesystem>
 
+#include "Utils/FileUtils.h"
+
 Tilc::TEventManager::~TEventManager()
 {
 	for (auto& it : m_Bindings)
@@ -216,7 +218,7 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             RenderWindow->m_LastProcessedWindow = wnd;
         }
 
-        if (RenderWindow->m_ModalStack.empty() || RenderWindow->m_ModalStack.top() == wnd)
+		if (RenderWindow->m_ModalStack.empty() || RenderWindow->m_ModalStack.top() == wnd)
         {
             // Priorytet do zdarzeń MouseEvents mają kontrolki na liście m_HighPrivilegedControls
             if (MouseEvent)
@@ -247,7 +249,32 @@ SDL_AppResult Tilc::TEventManager::DefaultHandleEvent(const SDL_Event* Event)
             if (Event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
             {
                 Tilc::TExtString CurrentDir{ std::filesystem::current_path().string().c_str() };
-                Tilc::Audio::Play(CurrentDir + "/../assets/sfx/SFX_Squeaky_Toy.wav");
+            	Tilc::TExtString Asset = "assets/sfx/SFX_Squeaky_Toy.wav";
+            	if (CurrentDir.empty())
+            	{
+            		CurrentDir = "/";
+            	}
+            	if (CurrentDir.back() != '/')
+            	{
+            		CurrentDir.push_back('/');
+            	}
+
+            	if (Tilc::FileExists(CurrentDir + Asset))
+            	{
+            		Asset = CurrentDir + Asset;
+            	}
+            	else if (Tilc::FileExists(CurrentDir + "../" + Asset))
+            	{
+            		Asset = CurrentDir + "../" + Asset;
+            	}
+            	else
+            	{
+            		Asset = "";
+            	}
+            	if (!Asset.empty())
+            	{
+            		Tilc::Audio::Play(Asset);
+            	}
             }
         }
     }
