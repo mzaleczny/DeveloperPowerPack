@@ -1,7 +1,7 @@
 #include "Tilc/Commerce/Shop.h"
 #include "Tilc/Utils/JsonParser.h"
 #include <iostream>
-
+#include <ranges>
 #include "Tilc/Utils/StdObject.h"
 
 std::vector<Tilc::Commerce::TProduct*> Tilc::Commerce::TObserver::products;
@@ -184,6 +184,7 @@ Tilc::TExtString Tilc::Commerce::TProduct::ToJson()
             "\"mini_map_file\": \"" + EscapeString(mini_map_file) + "\",\n" +
             "\"css_class\": \"" + EscapeString(css_class) + "\",\n" +
             "\"product_code\": \"" + EscapeString(product_code) + "\",\n" +
+            "\"categories\": \"" + Tilc::ImplodeId(categories, ',') + "\",\n" +
             "\"pictures\": \"" + Tilc::Implode(',', pictures) + "\",\n" +
             "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"\n" +
         "}";
