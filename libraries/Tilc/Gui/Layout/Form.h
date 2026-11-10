@@ -147,8 +147,21 @@ namespace Tilc {
 
             void HideAll()
             {
-                if (WndListForm)    WndListForm->Hide();
-                if (WndEditForm)    WndEditForm->Hide();
+                if (WndListForm)
+                {
+                    WndListForm->Hide();
+                }
+                if (WndEditForm)
+                {
+                    auto* CategoriesWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(WndEditForm->GetChildWindow("WndAssignCategories"));
+                    if (CategoriesWindow)
+                    {
+                        auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(CategoriesWindow, "FormPackage"));
+                        CategoriesWindow->Destroy();
+                        FormPackage->WndAssignCategoriesForm = nullptr;
+                    }
+                    WndEditForm->Hide();
+                }
             }
 
             int SynchronizeError{};
@@ -829,9 +842,13 @@ namespace Tilc {
                 WndAssignCategoriesForm = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, "WndAssignCategories", Position);
                 if (WndAssignCategoriesForm)
                 {
+                    WndAssignCategoriesForm->Activate();
+                    WndAssignCategoriesForm->SetModal();
+
+                    WndAssignCategoriesForm->SetText("Wybierz kategorie:");
                     WndAssignCategoriesForm->SetHasBackground(true);
                     WndAssignCategoriesForm->SetHasBorder(true);
-                    WndAssignCategoriesForm->SetHasCaption(false);
+                    WndAssignCategoriesForm->SetHasCaption(true);
                     WndAssignCategoriesForm->Hide();
 
                     // Kopy settings
