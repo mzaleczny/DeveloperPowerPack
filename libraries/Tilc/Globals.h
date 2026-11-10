@@ -182,5 +182,6 @@ namespace Tilc
         uint64_t id;
         Tilc::TExtString m_Name;
     };
+    DECLSPEC Tilc::TExtString ImplodeId(std::vector<Tilc::TIdName> const & items, char ImplodeChar = ',');
 
 }
