@@ -1578,7 +1578,7 @@ bool Tilc::Gui::TGuiControl::ProcessEvent(const SDL_Event& event)
         if (OnMouseButtonUp(event)) return true;
         break;
     }
-    
+
     return false;
 }
 

@@ -86,6 +86,13 @@ namespace Tilc {
                 Tilc::GameObject->GetContext()->m_Window->CenterOnScreen();
             }
 
+            inline void Activate()
+            {
+                if (m_Parent)
+                {
+                    m_Parent->SetActiveWindow(this);
+                }
+            }
             // Method onGetEditedValues is called after child window is closed by button of name:
             // DEFAULT_BTN_OK or DEFAULT_BTN_CANCEL
             // In first case we get as a parameter map CMap object of type: CString (name) => CString (value)
