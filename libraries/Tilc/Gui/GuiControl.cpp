@@ -62,7 +62,6 @@ Tilc::Gui::TGuiControl::TGuiControl(TGuiControl* parent, const Tilc::TExtString&
             Tilc::Gui::TStyledWindow* wnd = reinterpret_cast<Tilc::Gui::TStyledWindow*>(this);
             m_Parent->m_AllWindows.push_back(wnd);
             Tilc::GameObject->GetContext()->m_Window->m_AllWindows.push_back(wnd);
-            m_Parent->SetActiveWindow(wnd, true);
         }
         // w przeciwnym razie dodajemy do listy kontrolek-dzieci
         else
