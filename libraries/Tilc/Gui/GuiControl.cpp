@@ -632,6 +632,24 @@ Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::GetChildIncludingAllSubWindows(c
     return nullptr;
 }
 
+Tilc::Gui::TGuiControl* Tilc::Gui::TGuiControl::GetChildWindow(const Tilc::TExtString& name)
+{
+    if (m_AllWindows.empty()) return nullptr;
+    auto Found = std::find_if(m_AllWindows.begin(), m_AllWindows.end(), [&name](const auto v) { return v->m_Name == name; });
+    if (Found != m_AllWindows.end()) return *Found;
+
+    TGuiControl* Control{ nullptr };
+    for (auto it = m_AllWindows.begin(); it != m_AllWindows.end(); ++it)
+    {
+        if (!(*it)-m_AllWindows.empty())
+        {
+            Control = (*it)->GetChildWindow(name);
+            if (Control) return Control;
+        }
+    }
+    return nullptr;
+}
+
 Tilc::TExtString Tilc::Gui::TGuiControl::GetChildValue(const Tilc::TExtString& name)
 {
     if (auto* Ctrl = GetChild(name); Ctrl)

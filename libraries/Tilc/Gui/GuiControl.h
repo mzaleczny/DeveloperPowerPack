@@ -409,6 +409,7 @@ namespace Tilc {
 
             TGuiControl* GetChild(const Tilc::TExtString& name);
             TGuiControl* GetChildIncludingAllSubWindows(const Tilc::TExtString& name);
+            TGuiControl* GetChildWindow(const Tilc::TExtString& name);
             TExtString GetChildValue(const Tilc::TExtString& name);
             TExtString GetChildText(const Tilc::TExtString& name);
             void SetChildValue(const Tilc::TExtString& name, const Tilc::TExtString& value);
