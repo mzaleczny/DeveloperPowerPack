@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tilc/DllGlobals.h"
+#include "Tilc/Globals.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Commerce/Money.h"
 #include <vector>
@@ -128,6 +129,7 @@ namespace Tilc
             std::vector<TObserver*> observers;
             std::vector<TReview*> reviews;
             double averageReviewScore;
+            std::vector<Tilc::TIdName> categories;
             std::vector<Tilc::TExtString> pictures;
             std::vector<Tilc::TExtString> new_pictures;
 

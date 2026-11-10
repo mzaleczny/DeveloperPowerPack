@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tilc/DllGlobals.h"
+#include "Tilc/Globals.h"
 #include "Tilc/Commerce/Shop.h"
 #include "Tilc/Utils/ExtString.h"
 #include "Tilc/Utils/JsonParser.h"
@@ -28,13 +29,6 @@ namespace Tilc {
         class TLayoutFile;
         class TGuiControl;
         class TStyledWindow;
-
-        class DECLSPEC TIdName
-        {
-        public:
-            uint64_t id;
-            Tilc::TExtString m_Name;
-        };
 
         class DECLSPEC TForm
         {

@@ -175,4 +175,12 @@ namespace Tilc
         int Direction{};
         bool IsAnimating{};
     };
+
+
+    DECLSPEC struct TIdName
+    {
+        uint64_t id;
+        Tilc::TExtString m_Name;
+    };
+
 }
