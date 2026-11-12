@@ -36,6 +36,19 @@ Tilc::TStdObject* Tilc::Commerce::TDataObject::GetDataObject(const Tilc::TExtStr
     return nullptr;
 }
 
+void Tilc::Commerce::TDataObject::InsertRelationships(Tilc::TExtString& json)
+{
+    Tilc::TExtString s;
+    for (auto& rel : Relationships)
+    {
+        if (!s.empty())
+        {
+            s += ",\n";
+        }
+        s += "\"" + rel.OtherPlural + "\": \"" + Tilc::ImplodeId(rel.entities, ',') + "\"";
+    }
+}
+
 Tilc::TExtString Tilc::TUser::ToJson()
 {
     return Tilc::TExtString("{\n") +
@@ -171,7 +184,7 @@ std::vector<Tilc::TExtString> Tilc::Commerce::TCategory::GetDataForListColumns()
 
 Tilc::TExtString Tilc::Commerce::TProduct::ToJson()
 {
-    return Tilc::TExtString("{\n") +
+    Tilc::TExtString json = Tilc::TExtString("{\n") +
             "\"id\": \"" + id + "\",\n" +
             "\"name\": \"" + EscapeString(name) + "\",\n" +
             "\"slug\": \"" + slug + "\",\n" +
@@ -184,10 +197,12 @@ Tilc::TExtString Tilc::Commerce::TProduct::ToJson()
             "\"mini_map_file\": \"" + EscapeString(mini_map_file) + "\",\n" +
             "\"css_class\": \"" + EscapeString(css_class) + "\",\n" +
             "\"product_code\": \"" + EscapeString(product_code) + "\",\n" +
-            "\"categories\": \"" + Tilc::ImplodeId(categories, ',') + "\",\n" +
             "\"pictures\": \"" + Tilc::Implode(',', pictures) + "\",\n" +
             "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"\n" +
+            "{[relationships]}" +
         "}";
+    InsertRelationships(json);
+    return json;
 }
 
 void Tilc::Commerce::TProduct::FromJson(const Tilc::TExtString& JsonContent)

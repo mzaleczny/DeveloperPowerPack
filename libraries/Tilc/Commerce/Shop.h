@@ -51,6 +51,14 @@ namespace Tilc
             void update(TProduct* product) {};
         };
 
+        struct DECLSPEC TRelationship
+        {
+            Tilc::TExtString RelationshipTableName;
+            Tilc::TExtString OtherSingle;
+            Tilc::TExtString OtherPlural;
+            std::vector<Tilc::TIdName> entities;
+        };
+
         class DECLSPEC TDataObject
         {
         public:
@@ -59,6 +67,7 @@ namespace Tilc
             Tilc::TExtString AddLabel;
             Tilc::TExtString EditLabel;
             int64_t Tag;
+            std::vector<TRelationship> Relationships;
             virtual std::vector<const char*> GetAllFieldsNamesList() = 0;
             inline Tilc::TExtString GetAllFieldsNames()
             {
@@ -73,6 +82,7 @@ namespace Tilc
             virtual std::unordered_map<Tilc::TExtString, Tilc::TExtString> GetDataMap() const = 0;
             virtual void SetDataFromMap(std::unordered_map<Tilc::TExtString, Tilc::TExtString> Data) = 0;
             virtual std::vector<Tilc::TExtString> GetDataForListColumns() const = 0;
+            void InsertRelationships(Tilc::TExtString& json);
         };
 
         class DECLSPEC TCategory : public TDataObject
@@ -129,7 +139,6 @@ namespace Tilc
             std::vector<TObserver*> observers;
             std::vector<TReview*> reviews;
             double averageReviewScore;
-            std::vector<Tilc::TIdName> categories;
             std::vector<Tilc::TExtString> pictures;
             std::vector<Tilc::TExtString> new_pictures;
 
@@ -145,6 +154,7 @@ namespace Tilc
                 ListLabel = "Lista produktów";
                 AddLabel = "Dodaj nowy produkt";
                 EditLabel = "Edytuj produkt";
+                Relationships.push_back({"products_categories", "category", "categories"});
             }
 
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
