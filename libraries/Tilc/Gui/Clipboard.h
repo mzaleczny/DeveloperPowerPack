@@ -35,10 +35,10 @@ namespace Tilc
             virtual TExtString GetAllAvailableFormatsDefines(void* Window, const TExtString& separator = " ", bool withNumbers = true) { return ""; }
 
             // umieszcza w schowku tekst
-            virtual bool CopyTextToClipboard(void* Window, const TExtString& s) { return false; }
+            virtual bool CopyTextToClipboard(void* Window, const TExtString& s) { return SDL_SetClipboardText(s.c_str()); }
             // pobiera ze schowka tekst (o ile taki jest dostępny). Jeśli tekst nie jest dostępny, to
             // zwracany jest pusty łańcuch.
-            virtual TExtString GetTextFromClipboard(void* Window) { return ""; }
+            virtual TExtString GetTextFromClipboard(void* Window) { return SDL_GetClipboardText(); }
         };
     }
 }

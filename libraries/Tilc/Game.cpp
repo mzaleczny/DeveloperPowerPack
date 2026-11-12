@@ -452,6 +452,8 @@ void Tilc::TGame::CreateClipboard()
     {
 #ifdef WIN32
         m_Context.m_Clipboard = new Tilc::OS::Gui::TWindowsClipboard();
+#else
+        m_Context.m_Clipboard = new Tilc::Gui::TClipboard();
 #endif
     }
 }
