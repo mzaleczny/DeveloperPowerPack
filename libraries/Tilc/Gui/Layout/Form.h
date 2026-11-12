@@ -71,6 +71,7 @@ namespace Tilc {
             Tilc::Gui::TStyledWindow* WndEditForm{};
             Tilc::Gui::TStyledWindow* WndAssignCategoriesForm{};
             Tilc::Gui::TLabel* lblTitle{};
+            TItemType EditedItem;
 
             Tilc::Gui::TMultiColumnListbox* lbList{};
             std::vector<float> lbListColumnsWidths;
@@ -587,36 +588,36 @@ namespace Tilc {
                 auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
                 auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
                 auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
-                TItemType Item;
-                Item.SetDataFromMap(EditWindow->GetChildrenTextes());
+
+                FormPackage->EditedItem.SetDataFromMap(EditWindow->GetChildrenTextes());
 
                 if (FormPackage->lbList)
                 {
                     int Index = std::stoi(EditWindow->m_Props["IndexInChangedList"]);
                     if (Index == -1)
                     {
-                        FormPackage->m_ChangedItems.push_back(Item);
+                        FormPackage->m_ChangedItems.push_back(FormPackage->EditedItem);
 
                         // załaduj do obiektu listę obrazków (nazw wygenerowanych przez serwer)
                         std::vector<Tilc::TExtString>& PicturesVector = FormPackage->m_ChangedItems[FormPackage->m_ChangedItems.size()-1].new_pictures;
                         EditWindow->m_Props["Pictures"].Explode(',', PicturesVector);
 
-                        Tilc::Gui::TGuiControlItem* lbItem = FormPackage->lbList->AddItem(Item.GetDataForListColumns());
+                        Tilc::Gui::TGuiControlItem* lbItem = FormPackage->lbList->AddItem(FormPackage->EditedItem.GetDataForListColumns());
                         int AddedIndex = FormPackage->m_ChangedItems.size() - 1;
                         lbItem->m_Props["id"] = "";
                         lbItem->m_Props["IndexInChangedList"] = std::to_string(AddedIndex);
                     }
                     else
                     {
-                        Item.id = FormPackage->m_ChangedItems[Index].id;
-                        FormPackage->m_ChangedItems[Index] = Item;
+                        FormPackage->EditedItem.id = FormPackage->m_ChangedItems[Index].id;
+                        FormPackage->m_ChangedItems[Index] = FormPackage->EditedItem;
 
                         // załaduj do obiektu listę obrazków (naw wygenerowanych przez serwer)
                         std::vector<Tilc::TExtString>& PicturesVector = FormPackage->m_ChangedItems[Index].new_pictures;
                         EditWindow->m_Props["Pictures"].Explode(',', PicturesVector);
 
                         Tilc::Gui::TGuiControlItem* lbItem = FormPackage->lbList->GetSelectedItem();
-                        lbItem->SetFromColumnList(Item.GetDataForListColumns());
+                        lbItem->SetFromColumnList(FormPackage->EditedItem.GetDataForListColumns());
                         lbItem->m_Props["IndexInChangedList"] = std::to_string(Index);
                     }
 
@@ -651,6 +652,37 @@ namespace Tilc {
                         FormPackage->WndAssignCategoriesForm->Show();
                         FormPackage->WndAssignCategoriesForm->Focus();
                     }
+                }
+                return 0;
+            }
+
+            static int OnSetCategoriesSaveClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
+            {
+                auto* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
+                if (ParentWindow)
+                {
+                    auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(ParentWindow, "FormPackage"));
+                    auto it = std::find_if(FormPackage->EditedItem.Relationships.begin(), FormPackage->EditedItem.Relationships.end(), [](Tilc::Commerce::TRelationship& r)
+                    {
+                        return r.OtherPlural == "categories";
+                    });
+                    (*it).entities.clear();
+                    for (auto* child : ParentWindow->GetChildren())
+                    {
+                        if (it != FormPackage->EditedItem.Relationships.end())
+                        {
+                            Tilc::Gui::TCheckbox* chkb = dynamic_cast<Tilc::Gui::TCheckbox*>(child);
+                            if (chkb && chkb->IsChecked())
+                            {
+                                Tilc::TIdName entity;
+                                entity.id = std::stoll(chkb->m_Props["id"]);
+                                entity.name = chkb->GetText();
+                                (*it).entities.push_back(entity);
+                            }
+                        }
+                    }
+                    ParentWindow->Destroy();
+                    FormPackage->WndAssignCategoriesForm = nullptr;
                 }
                 return 0;
             }
@@ -845,13 +877,14 @@ namespace Tilc {
                     WndAssignCategoriesForm->SetHasCaption(true);
                     WndAssignCategoriesForm->Hide();
 
-                    // Kopy settings
+                    // Copy settings
                     WndAssignCategoriesForm->m_Props["TableName"] = WndEditForm->m_Props["TableName"];
                     WndAssignCategoriesForm->m_Props["ListWindow"] = WndEditForm->m_Props["ListWindow"];
                     WndAssignCategoriesForm->m_Props["EditWindow"] = WndEditForm->m_Props["EditWindow"];
                     WndAssignCategoriesForm->m_Props["FormPackage"] = WndEditForm->m_Props["FormPackage"];
                     WndAssignCategoriesForm->m_Props["CachedMiniatures"] = WndEditForm->m_Props["CachedMiniatures"];
                     WndAssignCategoriesForm->m_Props["CachedMiniaturesMap"] = WndEditForm->m_Props["CachedMiniaturesMap"];
+                    WndAssignCategoriesForm->m_Props["IndexInChangedList"] = WndEditForm->m_Props["IndexInChangedList"];
 #ifdef __EMSCRIPTEN__
                     Tilc::Apps::Www::FetchAsync(FormPackage->Url_ListCategories, [this, FormPackage](Tilc::TExtString Json) {
                         FormPackage->AddCategoriesCheckboxes(WndAssignCategoriesForm, Json);
@@ -900,6 +933,15 @@ namespace Tilc {
                 float y = padding;
                 if (JsonRoot)
                 {
+                    auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(wnd, "FormPackage"));
+                    int Index = std::stoi(wnd->m_Props["IndexInChangedList"]);
+
+                    auto it = std::find_if(FormPackage->EditedItem.Relationships.begin(), FormPackage->EditedItem.Relationships.end(), [](Tilc::Commerce::TRelationship& r)
+                    {
+                        return r.OtherPlural == "categories";
+                    });
+                    bool HasCategories = it != FormPackage->EditedItem.Relationships.end();
+
                     constexpr int const ColumnsCount = 4;
                     size_t CategoriesCount = JsonRoot->getAsObject("root")->getAsArray("items")->size();
                     size_t CategoriesPerColumn = CategoriesCount / ColumnsCount + 1;
@@ -907,7 +949,7 @@ namespace Tilc {
                     for (size_t i = 0; i < CategoriesCount; ++i)
                     {
                         Position.x = padding + Column * (200.0f + 50.0f);
-                        Position.y = padding;
+                        Position.y = padding + 30.0f;
                         for (size_t j = 0; j < CategoriesPerColumn && i < CategoriesCount; ++j, ++i)
                         {
                             Tilc::TStdObjectProperty* ItemObject = (*JsonRoot->getAsObject("root")->getAsArray("items"))[i];
@@ -922,6 +964,17 @@ namespace Tilc {
                                 if (Checkbox)
                                 {
                                     Checkbox->m_Props["id"] = Item.id;
+                                    if (HasCategories)
+                                    {
+                                        uint64_t CurId = std::stoll(Item.id);
+                                        if (std::find_if((*it).entities.begin(), (*it).entities.end(), [CurId](const Tilc::TIdName& e)
+                                        {
+                                            return e.id == CurId;
+                                        }) != (*it).entities.end())
+                                        {
+                                            Checkbox->SetChecked(true);
+                                        }
+                                    }
                                 }
                                 Position.y += 30.0f;
                                 if (Position.y > y)
@@ -941,7 +994,7 @@ namespace Tilc {
                 Position.y = y;
                 Position.w = 150.0f;
                 Tilc::Gui::TGuiControl* btnSave = new Tilc::Gui::TButton(wnd, "SaveButton", Position, "Zapisz kategorie");
-                //btnSave->OnClick = &TFormPackage::OnEditOkClick;
+                btnSave->OnClick = &TFormPackage::OnSetCategoriesSaveClick;
                 Position.x += Position.w + 10.0f;
                 Tilc::Gui::TGuiControl* btnCancel = new Tilc::Gui::TButton(wnd, "CancelButton", Position, "Anuluj");
                 btnCancel->OnClick = &TFormPackage::OnSetCategoriesCancelClick;
