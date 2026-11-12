@@ -1839,7 +1839,7 @@ void Tilc::Gui::TGuiControl::SetActiveWindow(Tilc::Gui::TStyledWindow* Window, b
         if (it != AllWindows.end())
         {
             AllWindows.splice(AllWindows.end(), AllWindows, it);
-           // Poniższą metodę musimy wywołać, żeby przeniosła na koniec globalnej listy wszystki podokna tego okna, bo inaczej to okno by je przesłoniło i po jego aktywacji
+            // Poniższą metodę musimy wywołać, żeby przeniosła na koniec globalnej listy wszystki podokna tego okna, bo inaczej to okno by je przesłoniło i po jego aktywacji
             // nie moglibyśmy klikać ani wysyłać zdarzeń do podokien
             (*it)->MoveAllSubWindowsToTheEndOfGlobalWindowsOrder();
         }

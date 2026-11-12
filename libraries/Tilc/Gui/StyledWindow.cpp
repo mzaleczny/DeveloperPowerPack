@@ -64,6 +64,12 @@ Tilc::Gui::TStyledWindow::TStyledWindow(TWindow* SystemWindow, TGuiControl* pare
 
 Tilc::Gui::TStyledWindow::~TStyledWindow()
 {
+    // if this being removed window is active window in parent, then nullify m_Parent->m_ActiveWindow property to avoid calling functions of the window
+    // in RemoveFromParent(); method
+    if (m_Parent && m_Parent->GetActiveWindow() == this)
+    {
+        m_Parent->NullifyActiveWindowPointer();
+    }
     RemoveFromParent();
     // Jeśli to okno (wskaznik na nie) jest na szczycie stosu okien modalnych, to ściągamy je z niego
     std::stack<Tilc::Gui::TStyledWindow*>& ModalStack = m_ParentSystemWindow->m_ModalStack;

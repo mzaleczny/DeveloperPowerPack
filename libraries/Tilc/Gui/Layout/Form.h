@@ -265,6 +265,7 @@ namespace Tilc {
                         }
                     }
 
+                    FormPackage->EditedItem = Item;
                     EditWindow->Show();
                     EditWindow->Focus();
                     EditWindow->m_Props["IndexInChangedList"] = std::to_string(Index);

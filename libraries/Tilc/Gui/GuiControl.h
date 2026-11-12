@@ -222,7 +222,7 @@ namespace Tilc {
                 SetState(CONTROL_STATE_NORMAL);
                 m_Dragging = false;
                 m_DetailedState = 0;
-            };
+           };
             void ResetControls(bool Recursively = true);
             // Resets states, by default hover
             virtual bool ResetControlState(int StatesToClear = CONTROL_STATE_HOVER)
@@ -489,7 +489,8 @@ namespace Tilc {
             void SetActiveWindow(Tilc::Gui::TStyledWindow* Window, bool Redraw = true);
 
             std::list<Tilc::Gui::TStyledWindow*>& AllWindowsList() { return m_AllWindows; }
-            Tilc::Gui::TStyledWindow* GetActiveWindow() const { return m_ActiveWindow; }
+            inline Tilc::Gui::TStyledWindow* GetActiveWindow() const { return m_ActiveWindow; }
+            inline void NullifyActiveWindowPointer() { m_ActiveWindow = nullptr; }
 
             SDL_Texture* m_Bg{};
             void LoadBackground(const Tilc::TExtString& Filename);
