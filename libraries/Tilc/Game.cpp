@@ -19,6 +19,10 @@
 #include "Tilc/Gui/StyledWindow.h"
 #ifdef WIN32
 #include "Tilc/OS/Windows/Gui/Clipboard.h"
+#elif defined(__EMSCRIPTEN__)
+#include "Tilc/OS/Emscripten/Gui/Clipboard.h"
+#else
+#include "Tilc/Gui/Clipboard.h"
 #endif
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -452,6 +456,8 @@ void Tilc::TGame::CreateClipboard()
     {
 #ifdef WIN32
         m_Context.m_Clipboard = new Tilc::OS::Gui::TWindowsClipboard();
+#elif defined(__EMSCRIPTEN__)
+        m_Context.m_Clipboard = new Tilc::OS::Gui::TEmscriptenClipboard();
 #else
         m_Context.m_Clipboard = new Tilc::Gui::TClipboard();
 #endif

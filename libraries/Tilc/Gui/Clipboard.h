@@ -2,6 +2,7 @@
 
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Utils/ExtString.h"
+#include <SDL3/SDL_clipboard.h>
 
 namespace Tilc
 {
