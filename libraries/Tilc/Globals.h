@@ -180,7 +180,7 @@ namespace Tilc
     DECLSPEC struct TIdName
     {
         uint64_t id;
-        Tilc::TExtString m_Name;
+        Tilc::TExtString name;
     };
     DECLSPEC Tilc::TExtString ImplodeId(std::vector<Tilc::TIdName> const & items, char ImplodeChar = ',');
 
