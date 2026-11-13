@@ -56,6 +56,8 @@ namespace Tilc
         struct DECLSPEC TRelationship
         {
             Tilc::TExtString RelationshipTableName;
+            Tilc::TExtString ThisSingle;
+            Tilc::TExtString ThisPlural;
             Tilc::TExtString OtherSingle;
             Tilc::TExtString OtherPlural;
             std::vector<Tilc::TIdName> entities;
@@ -104,7 +106,9 @@ namespace Tilc
                 ListLabel = "Lista kategorii";
                 AddLabel = "Dodaj nową kategorię";
                 EditLabel = "Edytuj kategorię";
-                Relationships.push_back({"products_categories", "product", "products"});
+                Relationships.push_back({"products_categories",
+                    "category", "categories",
+                    "product", "products"});
             }
 
             std::vector<const char*> GetAllFieldsNamesList() override
@@ -157,7 +161,9 @@ namespace Tilc
                 ListLabel = "Lista produktów";
                 AddLabel = "Dodaj nowy produkt";
                 EditLabel = "Edytuj produkt";
-                Relationships.push_back({"products_categories", "category", "categories"});
+                Relationships.push_back({"products_categories",
+                    "product", "products",
+                    "category", "categories"});
             }
 
             TProduct(Tilc::TExtString name, Tilc::TExtString slug, Tilc::TExtString short_description, int price, int inventoryLevel,
