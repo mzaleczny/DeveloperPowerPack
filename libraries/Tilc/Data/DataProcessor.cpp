@@ -10,6 +10,9 @@
 
 #include "Tilc/Utils/FileUtils.h"
 
+std::unordered_map<Tilc::TExtString, std::vector<Tilc::Commerce::TRelationship>> Tilc::Data::TDataProcessor::m_Relationships;
+
+
 std::ostream& Tilc::Data::TDataProcessor::PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields)
 {
     Tilc::TExtString FieldsList{Tilc::Implode(',', Fields)};
@@ -200,11 +203,70 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
 
                     if (Sql.length() > 0)
                     {
-                        DB.ExecQuery(Sql.c_str(), FieldTypes, FieldValues);
-                        // jeśli Id jest puste, to musimy pobrać id ostatnio dodanego rekordu
-                        if (Id.empty())
+                        DB.ExecQuery("BEGIN TRANSACTION", {}, {});
+                        try
                         {
-                            Id = std::to_string(DB.GetLastInsertId());
+                            DB.ExecQuery(Sql.c_str(), FieldTypes, FieldValues);
+                            // jeśli Id jest puste, to musimy pobrać id ostatnio dodanego rekordu
+                            if (Id.empty())
+                            {
+                                Id = std::to_string(DB.GetLastInsertId());
+                            }
+
+                            // Teraz zapisujemy relacje
+                            Tilc::TExtString RelationshipsString = Item->getAsString("relationships");
+                            TStringVector Relationships;
+                            Tilc::TExtString Relationship;
+                            RelationshipsString.Explode(',', Relationships);
+                            if (!Relationships.empty() && Relationships.size() == m_Relationships.size())
+                            {
+                                for (size_t i = 0; i < Relationships.size(); ++i)
+                                {
+                                    Relationship = Relationships[i];
+                                    if (Tilc::Data::TDataProcessor::m_Relationships.find(Relationship) == Tilc::Data::TDataProcessor::m_Relationships.end())
+                                    {
+                                        continue;
+                                    }
+                                    std::vector<Tilc::Commerce::TRelationship>& RelVec = Tilc::Data::TDataProcessor::m_Relationships[Relationship];
+                                    if (RelVec.empty())
+                                    {
+                                        continue;
+                                    }
+                                    auto it = std::find_if(RelVec.begin(), RelVec.end(), [&Relationship](Tilc::Commerce::TRelationship& r)
+                                    {
+                                        return r.OtherPlural == Relationship;
+                                    });
+                                    if (it != RelVec.end())
+                                    {
+                                        Tilc::TExtString OtherIdsString = Item->getAsString(Relationship);
+                                        TStringVector OtherIds;
+                                        OtherIdsString.Explode(',', OtherIds);
+                                        if (!OtherIds.empty())
+                                        {
+                                            DB.ExecQuery(
+                                                std::format("DELETE FROM {} WHERE {}=?",
+                                                        (it->RelationshipTableName).c_str(), (it->ThisSingle + "_id").c_str()
+                                                    ).c_str(), {Tilc::Data::EDBFT_INT}, {Id});
+                                            for (auto OtherId: OtherIds)
+                                            {
+                                                DB.ExecQuery(
+                                                    std::format("INSERT INTO {} ({},{}) VALUES (?,?)",
+                                                            (it->RelationshipTableName).c_str(),
+                                                            (it->ThisSingle + "_id").c_str(),
+                                                            (it->OtherSingle + "_id").c_str()
+                                                        ).c_str(),
+                                                    {Tilc::Data::EDBFT_STRING, Tilc::Data::EDBFT_STRING},
+                                                    {Id, OtherId});
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            DB.ExecQuery("COMMIT", {}, {});
+                        }
+                        catch (...)
+                        {
+                            DB.ExecQuery("ROLLBACK", {}, {});
                         }
 
                         // Najpierw usuwamy zdjęcie, których nie ma już na nowych listach

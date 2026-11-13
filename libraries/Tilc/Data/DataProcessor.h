@@ -2,16 +2,20 @@
 
 #include <ostream>
 #include <initializer_list>
-
+#include <vector>
+#include <unordered_map>
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Globals.h"
 #include "Tilc/Data/Db.h"
+#include "Tilc/Commerce/Shop.h"
 
 namespace Tilc {
     namespace Data {
         class DECLSPEC TDataProcessor
         {
         public:
+            static std::unordered_map<Tilc::TExtString, std::vector<Tilc::Commerce::TRelationship>> m_Relationships;
+
             static std::ostream& PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, std::initializer_list<const char*> Fields);
             static std::ostream& PrintList(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, const std::vector<const char*>& Fields);
             static std::ostream& PrintItemWithPictures(std::ostream& os, Tilc::Data::TDB& DB, const char* Sql, const std::vector<const char*>& Fields, std::string_view TableName, std::string_view ItemId);
