@@ -250,7 +250,7 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.y += Position.h + 15.0f;
             continue;
         }
-        else if (std::strncmp(Type, "categories", 10) == 0)
+        else if (std::strncmp(Type, "relationship", 10) == 0)
         {
             // Label
             Position.w = AvailableWidth;
@@ -266,7 +266,11 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.w = 125.0f;
             Position.h = 25.0f;
             gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAssignCategories"), Position, "Ustaw kategorie");
-
+            if (gc)
+            {
+                gc->m_Props["relationship"] = *(Item.begin()+3);
+                gc->m_Props["label"] = Label;
+            }
             Position.x = lbl->m_Position.x;
             Position.y += Position.h + 15.0f;
             continue;

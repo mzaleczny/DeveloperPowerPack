@@ -639,7 +639,7 @@ namespace Tilc {
                 return 0;
             }
 
-            static int OnSetCategoriesButtonClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
+            static int OnSetRelationshipButtonClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
             {
                 auto* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
                 if (ParentWindow)
@@ -653,6 +653,8 @@ namespace Tilc {
                     FormPackage->CreateAssignCategoriesWindow(ParentWindow);
                     if (FormPackage->WndAssignCategoriesForm)
                     {
+                        FormPackage->WndAssignCategoriesForm->SetText(Control->m_Props["label"]);
+                        FormPackage->WndAssignCategoriesForm->m_Props["relationship"] = Control->m_Props["relationship"];
                         FormPackage->WndAssignCategoriesForm->Show();
                         FormPackage->WndAssignCategoriesForm->Focus();
                     }
@@ -660,15 +662,16 @@ namespace Tilc {
                 return 0;
             }
 
-            static int OnSetCategoriesSaveClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
+            static int OnSetRelationshipSaveClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
             {
                 auto* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
                 if (ParentWindow)
                 {
+                    Tilc::TExtString Relationship = ParentWindow->m_Props["relationship"];
                     auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(ParentWindow, "FormPackage"));
-                    auto it = std::find_if(FormPackage->EditedItem.Relationships.begin(), FormPackage->EditedItem.Relationships.end(), [](Tilc::Commerce::TRelationship& r)
+                    auto it = std::find_if(FormPackage->EditedItem.Relationships.begin(), FormPackage->EditedItem.Relationships.end(), [&Relationship](Tilc::Commerce::TRelationship& r)
                     {
-                        return r.OtherPlural == "categories";
+                        return r.OtherPlural == Relationship;
                     });
                     (*it).entities.clear();
                     for (auto* child : ParentWindow->GetChildren())
@@ -691,7 +694,7 @@ namespace Tilc {
                 return 0;
             }
 
-            static int OnSetCategoriesCancelClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
+            static int OnSetRelationshipCancelClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
             {
                 auto* ParentWindow = dynamic_cast<Tilc::Gui::TStyledWindow*>(Control->GetParent());
                 if (ParentWindow)
@@ -854,7 +857,7 @@ namespace Tilc {
                     Tilc::Gui::TGuiControl* btnCancel = WndEditForm->GetChild("CancelButton");
                     btnCancel->OnClick = &TFormPackage::OnEditCancelClick;
                     Tilc::Gui::TGuiControl* btnAssignCategories = WndEditForm->GetChild("btnAssignCategories");
-                    btnAssignCategories->OnClick = &TFormPackage::OnSetCategoriesButtonClick;
+                    btnAssignCategories->OnClick = &TFormPackage::OnSetRelationshipButtonClick;
                 }
             }
 
@@ -891,10 +894,10 @@ namespace Tilc {
                     WndAssignCategoriesForm->m_Props["IndexInChangedList"] = WndEditForm->m_Props["IndexInChangedList"];
 #ifdef __EMSCRIPTEN__
                     Tilc::Apps::Www::FetchAsync(FormPackage->Url_ListCategories, [this, FormPackage](Tilc::TExtString Json) {
-                        FormPackage->AddCategoriesCheckboxes(WndAssignCategoriesForm, Json);
+                        FormPackage->AddRelationshipCheckboxes(WndAssignCategoriesForm, Json);
                     });
 #else
-                    FormPackage->AddCategoriesCheckboxes(WndAssignCategoriesForm, Tilc::Apps::Www::Fetch(FormPackage->Url_ListCategories));
+                    FormPackage->AddRelationshipCheckboxes(WndAssignCategoriesForm, Tilc::Apps::Www::Fetch(FormPackage->Url_ListCategories));
 #endif
                 }
             }
@@ -928,7 +931,7 @@ namespace Tilc {
                 }
             }
 
-            void AddCategoriesCheckboxes(Tilc::Gui::TStyledWindow* wnd, Tilc::TExtString ItemsJson)
+            void AddRelationshipCheckboxes(Tilc::Gui::TStyledWindow* wnd, Tilc::TExtString ItemsJson)
             {
                 Tilc::TJsonParser JsonParser;
                 Tilc::TStdObject* JsonRoot = JsonParser.parse(ItemsJson);
@@ -937,12 +940,13 @@ namespace Tilc {
                 float y = padding;
                 if (JsonRoot)
                 {
+                    Tilc::TExtString Relationship = wnd->m_Props["relationship"];
                     auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(wnd, "FormPackage"));
                     int Index = std::stoi(wnd->m_Props["IndexInChangedList"]);
 
-                    auto it = std::find_if(FormPackage->EditedItem.Relationships.begin(), FormPackage->EditedItem.Relationships.end(), [](Tilc::Commerce::TRelationship& r)
+                    auto it = std::find_if(FormPackage->EditedItem.Relationships.begin(), FormPackage->EditedItem.Relationships.end(), [&Relationship](Tilc::Commerce::TRelationship& r)
                     {
-                        return r.OtherPlural == "categories";
+                        return r.OtherPlural == Relationship;
                     });
                     bool HasCategories = it != FormPackage->EditedItem.Relationships.end();
 
@@ -963,7 +967,7 @@ namespace Tilc {
                                 TItemType Item;
                                 Item.FromJsonObject(o);
 
-                                Tilc::Gui::TCheckbox* Checkbox = new Tilc::Gui::TCheckbox(wnd, "Cat_" + Item.id, Position,
+                                Tilc::Gui::TCheckbox* Checkbox = new Tilc::Gui::TCheckbox(wnd, Relationship + "_Rel_" + Item.id, Position,
                                         Item.name, false);
                                 if (Checkbox)
                                 {
@@ -998,10 +1002,10 @@ namespace Tilc {
                 Position.y = y;
                 Position.w = 150.0f;
                 Tilc::Gui::TGuiControl* btnSave = new Tilc::Gui::TButton(wnd, "SaveButton", Position, "Zapisz kategorie");
-                btnSave->OnClick = &TFormPackage::OnSetCategoriesSaveClick;
+                btnSave->OnClick = &TFormPackage::OnSetRelationshipSaveClick;
                 Position.x += Position.w + 10.0f;
                 Tilc::Gui::TGuiControl* btnCancel = new Tilc::Gui::TButton(wnd, "CancelButton", Position, "Anuluj");
-                btnCancel->OnClick = &TFormPackage::OnSetCategoriesCancelClick;
+                btnCancel->OnClick = &TFormPackage::OnSetRelationshipCancelClick;
             }
 
             void LoadMiniatures(Tilc::TExtString MiniaturesServerNames)
