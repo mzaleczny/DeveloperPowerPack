@@ -23,7 +23,7 @@ namespace Tilc {
 
         using TCachedSize = std::pair<int, int>;
         using TCachedTextSize = std::unordered_map<std::string, TCachedSize>;
-        using TTextSizeCache = std::unordered_map<float, TCachedTextSize>;
+        using TTextSizeCache = std::unordered_map<TTF_Font*, std::unordered_map<float, TCachedTextSize>>;
 
         class DECLSPEC TFont
         {

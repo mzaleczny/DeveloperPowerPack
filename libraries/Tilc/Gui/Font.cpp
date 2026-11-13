@@ -243,11 +243,11 @@ void Tilc::Gui::TFont::GetTextSize(const char* String, int& Width, int& Height)
 	Height = 0;
     std::string s = String;
 
-    if (TextSizesCache.find(m_Size) != TextSizesCache.end())
+    if (TextSizesCache.find(m_Font) != TextSizesCache.end() && TextSizesCache[m_Font].find(m_Size) != TextSizesCache[m_Font].end())
     {
-        if (TextSizesCache[m_Size].find(s) != TextSizesCache[m_Size].end())
+        if (TextSizesCache[m_Font][m_Size].find(s) != TextSizesCache[m_Font][m_Size].end())
         {
-            auto [w, h] = TextSizesCache[m_Size][s];
+            auto [w, h] = TextSizesCache[m_Font][m_Size][s];
             Width = w;
             Height = h;
             return;
@@ -257,7 +257,7 @@ void Tilc::Gui::TFont::GetTextSize(const char* String, int& Width, int& Height)
 	if (TTF_Text* Text = TTF_CreateText(m_Engine, m_Font, String, 0))
 	{
 		TTF_GetTextSize(Text, &Width, &Height);
-        TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+        TextSizesCache[m_Font][m_Size][s] = TCachedSize(Width, Height);
 		TTF_DestroyText(Text);
 	}
 }
@@ -269,11 +269,11 @@ void Tilc::Gui::TFont::GetXCoordForCenteredText(const char* String, float Contai
 	int Width = 0, Height = 0;
     std::string s = String;
 
-    if (TextSizesCache.find(m_Size) != TextSizesCache.end())
-    {
-        if (TextSizesCache[m_Size].find(s) != TextSizesCache[m_Size].end())
-        {
-            auto [Width, Height] = TextSizesCache[m_Size][s];
+	if (TextSizesCache.find(m_Font) != TextSizesCache.end() && TextSizesCache[m_Font].find(m_Size) != TextSizesCache[m_Font].end())
+	{
+		if (TextSizesCache[m_Font][m_Size].find(s) != TextSizesCache[m_Font][m_Size].end())
+		{
+			auto [Width, Height] = TextSizesCache[m_Font][m_Size][s];
             x = (ContainerWidth - Width) / 2.0f;
             return;
         }
@@ -282,7 +282,7 @@ void Tilc::Gui::TFont::GetXCoordForCenteredText(const char* String, float Contai
 	if (TTF_Text* Text = TTF_CreateText(m_Engine, m_Font, String, 0))
 	{
 		TTF_GetTextSize(Text, &Width, &Height);
-        TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+        TextSizesCache[m_Font][m_Size][s] = TCachedSize(Width, Height);
 		x = (ContainerWidth - Width) / 2.0f;
 		TTF_DestroyText(Text);
 	}
@@ -296,12 +296,12 @@ void Tilc::Gui::TFont::GetGetRectForCenteredText(const char* String, float Conta
 	int Width = 0, Height = 0;
     std::string s = String;
 
-    if (TextSizesCache.find(m_Size) != TextSizesCache.end())
-    {
-        if (TextSizesCache[m_Size].find(s) != TextSizesCache[m_Size].end())
-        {
-            auto [Width, Height] = TextSizesCache[m_Size][s];
-            r.x = (ContainerWidth - Width) / 2.0f;
+	if (TextSizesCache.find(m_Font) != TextSizesCache.end() && TextSizesCache[m_Font].find(m_Size) != TextSizesCache[m_Font].end())
+	{
+		if (TextSizesCache[m_Font][m_Size].find(s) != TextSizesCache[m_Font][m_Size].end())
+		{
+			auto [Width, Height] = TextSizesCache[m_Font][m_Size][s];
+			r.x = (ContainerWidth - Width) / 2.0f;
             r.y = 0;
             r.w = static_cast<float>(Width);
             r.h = static_cast<float>(Height);
@@ -312,7 +312,7 @@ void Tilc::Gui::TFont::GetGetRectForCenteredText(const char* String, float Conta
 	if (TTF_Text* Text = TTF_CreateText(m_Engine, m_Font, String, 0))
 	{
 		TTF_GetTextSize(Text, &Width, &Height);
-        TextSizesCache[m_Size][s] = TCachedSize(Width, Height);
+        TextSizesCache[m_Font][m_Size][s] = TCachedSize(Width, Height);
 
 		r.x = (ContainerWidth - Width) / 2.0f;
 		r.y = 0;
