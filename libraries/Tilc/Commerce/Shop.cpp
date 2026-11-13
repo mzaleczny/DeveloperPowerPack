@@ -51,6 +51,7 @@ void Tilc::Commerce::TDataObject::InsertRelationships(Tilc::TExtString& json)
         RelationshipsNames += rel.OtherPlural;
     }
     RelationshipsJson += ",\n\"others\": \"" + RelationshipsNames + "\"";
+    RelationshipsJson += "}";
     if (!RelationshipsNames.empty())
     {
         json.StrReplace("{[relationships]}", RelationshipsJson);
