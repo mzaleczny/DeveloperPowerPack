@@ -302,6 +302,10 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                 std::filesystem::remove(DbFname.c_str(), err);
             }
         }
+        else
+        {
+            os << Parser.getErrorMessage() << "\n";
+        }
         delete JsonInput;
     }
     return os;
