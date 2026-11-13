@@ -52,7 +52,7 @@ void Tilc::Commerce::TDataObject::InsertRelationships(Tilc::TExtString& json)
         RelationshipsIdFields += rel.ThisSingle + "_id," + rel.OtherSingle + "_id";
     }
     s += ",\n\"relationships\": \"" + RelationshipsNames + "\",\n";
-    s += ",\n\"relationships_idfields\": \"" + RelationshipsIdFields + "\"";
+    s += "\"relationships_idfields\": \"" + RelationshipsIdFields + "\"";
     if (!RelationshipsNames.empty())
     {
         json.StrReplace("{[relationships]}", s);
