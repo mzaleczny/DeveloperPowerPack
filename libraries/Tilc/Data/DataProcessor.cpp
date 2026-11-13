@@ -161,6 +161,11 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                                 IdFieldName = "";
                             }
                         }
+                        // poniższe pola w jsonie pomijamy
+                        else if (Field->name == "relationships")
+                        {
+                            continue;
+                        }
                         else if (Field->name != "pictures" && Field->name != "new_pictures")
                         {
                             FieldNames.push_back(Field->name);
@@ -203,7 +208,7 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
 
                     if (Sql.length() > 0)
                     {
-                        DB.ExecQuery("BEGIN TRANSACTION", {}, {});
+                        DB.ExecQuery("START TRANSACTION", {}, {});
                         try
                         {
                             DB.ExecQuery(Sql.c_str(), FieldTypes, FieldValues);
@@ -214,7 +219,12 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                             }
 
                             // Teraz zapisujemy relacje
-                            Tilc::TExtString RelationshipsString = Item->getAsString("relationships");
+                            TStdObject* RelationshipsObj = Item->getAsObject("relationships");
+                            Tilc::TExtString RelationshipsString;
+                            if (RelationshipsObj)
+                            {
+                                RelationshipsString = RelationshipsObj->getAsString("others");
+                            }
                             TStringVector Relationships;
                             Tilc::TExtString Relationship;
                             RelationshipsString.Explode(',', Relationships);
@@ -238,7 +248,7 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                                     });
                                     if (it != RelVec.end())
                                     {
-                                        Tilc::TExtString OtherIdsString = Item->getAsString(Relationship);
+                                        Tilc::TExtString OtherIdsString = RelationshipsObj->getAsString(Relationship);
                                         TStringVector OtherIds;
                                         OtherIdsString.Explode(',', OtherIds);
                                         if (!OtherIds.empty())
