@@ -54,7 +54,7 @@ namespace Tilc {
             Tilc::TExtString Url_Save;
             Tilc::TExtString Url_Delete;
             Tilc::TExtString Url_GetMiniatures;
-            Tilc::TExtString Url_ListCategories;
+            Tilc::Commerce::TUrlsForRelationships Urls_ForRelationships;
 
             std::vector<TItemType> m_ChangedItems{};
             std::vector<int> m_ItemsToDelete{};
@@ -90,13 +90,13 @@ namespace Tilc {
                 const Tilc::TExtString& URL_Save,
                 const Tilc::TExtString& URL_Delete,
                 const Tilc::TExtString& URL_GetMiniatures,
-                const Tilc::TExtString& URL_ListCategories
+                Tilc::Commerce::TUrlsForRelationships& URLS_ForRelationships
                 )
                 : m_ParentWindow(ParentWindow), m_Name(Name), m_Position(Position),
                     lbListColumnsWidths(ListColumnsWidths), lbListColumnsCaptions(ListColumnsCaptions),
                     HideAllWindowsFromParent(HideFunc), lblTitle(TitleLabel),
                     Url_GetItem(URL_GetItem), Url_List(URL_List), Url_Save(URL_Save), Url_Delete(URL_Delete),
-                    Url_GetMiniatures(URL_GetMiniatures), Url_ListCategories(URL_ListCategories)
+                    Url_GetMiniatures(URL_GetMiniatures), Urls_ForRelationships(URLS_ForRelationships)
             {
                 InitListWindow(m_ParentWindow);
                 InitEditWindow(m_ParentWindow, EditFormFields);
@@ -650,11 +650,10 @@ namespace Tilc {
                         delete FormPackage->WndAssignCategoriesForm;
                         FormPackage->WndAssignCategoriesForm = nullptr;
                     }
-                    FormPackage->CreateAssignCategoriesWindow(ParentWindow);
+                    FormPackage->WndAssignCategoriesForm = FormPackage->CreateAssignRelationshipWindow(ParentWindow, Control->m_Props["relationship"]);
                     if (FormPackage->WndAssignCategoriesForm)
                     {
                         FormPackage->WndAssignCategoriesForm->SetText(Control->m_Props["label"]);
-                        FormPackage->WndAssignCategoriesForm->m_Props["relationship"] = Control->m_Props["relationship"];
                         FormPackage->WndAssignCategoriesForm->Show();
                         FormPackage->WndAssignCategoriesForm->Focus();
                     }
@@ -862,44 +861,46 @@ namespace Tilc {
             }
 
 
-            void CreateAssignCategoriesWindow(Tilc::Gui::TStyledWindow* ParentWindow)
+            Tilc::Gui::TStyledWindow* CreateAssignRelationshipWindow(Tilc::Gui::TStyledWindow* ParentWindow, const Tilc::TExtString& Relationship)
             {
                 auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(WndEditForm, "FormPackage"));
-                if (FormPackage->Url_ListCategories.empty()) return;
+                if (FormPackage->Urls_ForRelationships.find(Relationship) == FormPackage->Urls_ForRelationships.end()) return nullptr;
 
                 SDL_FRect Position = WndEditForm->m_Position;
                 Position.x = 50.0f;
                 Position.y = 100.0f;
                 Position.w -= 100.0f;
                 Position.h -= 200.0f;
-                WndAssignCategoriesForm = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, "WndAssignCategories", Position);
-                if (WndAssignCategoriesForm)
+                auto wnd = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, "WndAssignCategories", Position);
+                if (wnd)
                 {
-                    WndAssignCategoriesForm->Activate();
-                    WndAssignCategoriesForm->SetModal();
+                    wnd->m_Props["relationship"] = Relationship;
+                    wnd->Activate();
+                    wnd->SetModal();
 
-                    WndAssignCategoriesForm->SetText("Wybierz kategorie:");
-                    WndAssignCategoriesForm->SetHasBackground(true);
-                    WndAssignCategoriesForm->SetHasBorder(true);
-                    WndAssignCategoriesForm->SetHasCaption(true);
-                    WndAssignCategoriesForm->Hide();
+                    wnd->SetText("Wybierz kategorie:");
+                    wnd->SetHasBackground(true);
+                    wnd->SetHasBorder(true);
+                    wnd->SetHasCaption(true);
+                    wnd->Hide();
 
                     // Copy settings
-                    WndAssignCategoriesForm->m_Props["TableName"] = WndEditForm->m_Props["TableName"];
-                    WndAssignCategoriesForm->m_Props["ListWindow"] = WndEditForm->m_Props["ListWindow"];
-                    WndAssignCategoriesForm->m_Props["EditWindow"] = WndEditForm->m_Props["EditWindow"];
-                    WndAssignCategoriesForm->m_Props["FormPackage"] = WndEditForm->m_Props["FormPackage"];
-                    WndAssignCategoriesForm->m_Props["CachedMiniatures"] = WndEditForm->m_Props["CachedMiniatures"];
-                    WndAssignCategoriesForm->m_Props["CachedMiniaturesMap"] = WndEditForm->m_Props["CachedMiniaturesMap"];
-                    WndAssignCategoriesForm->m_Props["IndexInChangedList"] = WndEditForm->m_Props["IndexInChangedList"];
+                    wnd->m_Props["TableName"] = WndEditForm->m_Props["TableName"];
+                    wnd->m_Props["ListWindow"] = WndEditForm->m_Props["ListWindow"];
+                    wnd->m_Props["EditWindow"] = WndEditForm->m_Props["EditWindow"];
+                    wnd->m_Props["FormPackage"] = WndEditForm->m_Props["FormPackage"];
+                    wnd->m_Props["CachedMiniatures"] = WndEditForm->m_Props["CachedMiniatures"];
+                    wnd->m_Props["CachedMiniaturesMap"] = WndEditForm->m_Props["CachedMiniaturesMap"];
+                    wnd->m_Props["IndexInChangedList"] = WndEditForm->m_Props["IndexInChangedList"];
 #ifdef __EMSCRIPTEN__
-                    Tilc::Apps::Www::FetchAsync(FormPackage->Url_ListCategories, [this, FormPackage](Tilc::TExtString Json) {
-                        FormPackage->AddRelationshipCheckboxes(WndAssignCategoriesForm, Json);
+                    Tilc::Apps::Www::FetchAsync(FormPackage->Urls_ForRelationships[Relationship], [this, FormPackage, wnd](Tilc::TExtString Json) {
+                        FormPackage->AddRelationshipCheckboxes(wnd, Json);
                     });
 #else
-                    FormPackage->AddRelationshipCheckboxes(WndAssignCategoriesForm, Tilc::Apps::Www::Fetch(FormPackage->Url_ListCategories));
+                    FormPackage->AddRelationshipCheckboxes(wnd, Tilc::Apps::Www::Fetch(FormPackage->Urls_ForRelationships[Relationship]));
 #endif
                 }
+                return wnd;
             }
 
             void RefreshList(Tilc::Gui::TMultiColumnListbox* lb, Tilc::TExtString ItemsJson)

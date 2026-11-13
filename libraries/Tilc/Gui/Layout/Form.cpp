@@ -255,17 +255,17 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             // Label
             Position.w = AvailableWidth;
             Position.h = 25.0f;
-            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, true);
             if (lbl)
             {
                 lbl->SetFontToUse("DefaultBold");
             }
 
             // Button to the right of label
-            Position.x = lbl->m_Position.x + 300.0f;
-            Position.w = 125.0f;
+            Position.x = lbl->m_Position.x + lbl->m_Position.w + 10.0f;
+            Position.w = 75.0f;
             Position.h = 25.0f;
-            gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAssignCategories"), Position, "Ustaw kategorie");
+            gc = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnAssignCategories"), Position, "Ustaw");
             if (gc)
             {
                 gc->m_Props["relationship"] = *(Item.begin()+3);

@@ -51,6 +51,8 @@ namespace Tilc
             void update(TProduct* product) {};
         };
 
+        using TUrlsForRelationships = std::unordered_map<Tilc::TExtString, Tilc::TExtString>;
+
         struct DECLSPEC TRelationship
         {
             Tilc::TExtString RelationshipTableName;
@@ -102,6 +104,7 @@ namespace Tilc
                 ListLabel = "Lista kategorii";
                 AddLabel = "Dodaj nową kategorię";
                 EditLabel = "Edytuj kategorię";
+                Relationships.push_back({"products_categories", "product", "products"});
             }
 
             std::vector<const char*> GetAllFieldsNamesList() override
