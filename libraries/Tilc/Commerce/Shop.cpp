@@ -38,22 +38,22 @@ Tilc::TStdObject* Tilc::Commerce::TDataObject::GetDataObject(const Tilc::TExtStr
 
 void Tilc::Commerce::TDataObject::InsertRelationships(Tilc::TExtString& json)
 {
-    Tilc::TExtString Relationships, Ids, RelationshipsNames;
-    Relationships = ",\n\"relationships\": {\n";
+    Tilc::TExtString RelationshipsJson, Ids, RelationshipsNames;
+    RelationshipsJson = ",\n\"relationships\": {\n";
     for (auto& rel : Relationships)
     {
         if (!RelationshipsNames.empty())
         {
             RelationshipsNames += ",";
-            Relationships += ",";
+            RelationshipsJson += ",";
         }
-        Relationships += "\"" + rel.OtherPlural + "\": \"" + Tilc::ImplodeId(rel.entities, ',') + "\"";
+        RelationshipsJson += "\"" + rel.OtherPlural + "\": \"" + Tilc::ImplodeId(rel.entities, ',') + "\"";
         RelationshipsNames += rel.OtherPlural;
     }
-    Relationships += ",\n\"others\": \"" + RelationshipsNames + "\"";
+    RelationshipsJson += ",\n\"others\": \"" + RelationshipsNames + "\"";
     if (!RelationshipsNames.empty())
     {
-        json.StrReplace("{[relationships]}", Relationships);
+        json.StrReplace("{[relationships]}", RelationshipsJson);
     }
     else
     {
