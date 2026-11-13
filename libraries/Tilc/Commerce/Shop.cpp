@@ -38,14 +38,21 @@ Tilc::TStdObject* Tilc::Commerce::TDataObject::GetDataObject(const Tilc::TExtStr
 
 void Tilc::Commerce::TDataObject::InsertRelationships(Tilc::TExtString& json)
 {
-    Tilc::TExtString s;
+    Tilc::TExtString s, rels;
     for (auto& rel : Relationships)
     {
-        if (!s.empty())
+        if (!rels.empty())
         {
-            s += ",\n";
+            rels += ",";
         }
+        s += ",\n";
         s += "\"" + rel.OtherPlural + "\": \"" + Tilc::ImplodeId(rel.entities, ',') + "\"";
+        rels += rel.OtherPlural;
+    }
+    s += ",\n\"relationships\": \"" + rels + "\"";
+    if (!rels.empty())
+    {
+        json.StrReplace("{[relationships]}", s);
     }
 }
 
@@ -116,15 +123,18 @@ Tilc::TExtString Tilc::Commerce::TCategory::ToJson()
     Tilc::TExtString n = EscapeString(name);
     Tilc::TExtString sd = EscapeString(short_description);
     Tilc::TExtString d = EscapeString(description);
-    return Tilc::TExtString("{\n") +
+    Tilc::TExtString json = Tilc::TExtString("{\n") +
             "\"id\": \"" + id + "\",\n" +
             "\"name\": \"" + n + "\",\n" +
             "\"slug\": \"" + slug + "\",\n" +
             "\"short_description\": \"" + sd + "\",\n" +
             "\"description\": \"" + d + "\",\n" +
             "\"pictures\": \"" + Tilc::Implode(',', pictures) + "\",\n" +
-            "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"\n" +
+            "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"" +
+            "{[relationships]}" +
         "}";
+    InsertRelationships(json);
+    return json;
 }
 
 void Tilc::Commerce::TCategory::FromJson(const Tilc::TExtString& JsonContent)
@@ -198,7 +208,7 @@ Tilc::TExtString Tilc::Commerce::TProduct::ToJson()
             "\"css_class\": \"" + EscapeString(css_class) + "\",\n" +
             "\"product_code\": \"" + EscapeString(product_code) + "\",\n" +
             "\"pictures\": \"" + Tilc::Implode(',', pictures) + "\",\n" +
-            "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"\n" +
+            "\"new_pictures\": \"" + Tilc::Implode(',', new_pictures) + "\"" +
             "{[relationships]}" +
         "}";
     InsertRelationships(json);
