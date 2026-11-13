@@ -228,7 +228,7 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                             TStringVector Relationships;
                             Tilc::TExtString Relationship;
                             RelationshipsString.Explode(',', Relationships);
-                            if (!Relationships.empty() && Relationships.size() == m_Relationships.size())
+                            if (!Relationships.empty() && !m_Relationships.empty())
                             {
                                 for (size_t i = 0; i < Relationships.size(); ++i)
                                 {
@@ -274,8 +274,9 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                             }
                             DB.ExecQuery("COMMIT", {}, {});
                         }
-                        catch (...)
+                        catch (const std::exception& e)
                         {
+                            os << "Exception: " << e.what() << "\n";
                             DB.ExecQuery("ROLLBACK", {}, {});
                         }
 
