@@ -223,11 +223,11 @@ std::ostream& Tilc::Data::TDataProcessor::SaveItems(std::ostream& os, Tilc::Data
                                 for (size_t i = 0; i < Relationships.size(); ++i)
                                 {
                                     Relationship = Relationships[i];
-                                    if (Tilc::Data::TDataProcessor::m_Relationships.find(Relationship) == Tilc::Data::TDataProcessor::m_Relationships.end())
+                                    if (Tilc::Data::TDataProcessor::m_Relationships.find(TableName) == Tilc::Data::TDataProcessor::m_Relationships.end())
                                     {
                                         continue;
                                     }
-                                    std::vector<Tilc::Commerce::TRelationship>& RelVec = Tilc::Data::TDataProcessor::m_Relationships[Relationship];
+                                    std::vector<Tilc::Commerce::TRelationship>& RelVec = Tilc::Data::TDataProcessor::m_Relationships[TableName];
                                     if (RelVec.empty())
                                     {
                                         continue;
