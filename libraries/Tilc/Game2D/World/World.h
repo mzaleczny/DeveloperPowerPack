@@ -4,6 +4,7 @@
 #include <vector>
 #include "SDL3/SDL.h"
 #include "Tilc/DllGlobals.h"
+#include "Tilc/Game.h"
 #include "Tilc/Game2D/World/MapLayer.h"
 #include "Tilc/Utils/Vector.h"
 
@@ -23,7 +24,7 @@ namespace Tilc::Game2D
 		// Vector of all unique tiles in image containing tiles
         TTileSet m_TileSet{};
 		// Image containing tileset extracted to member above (m_TileSet)
-        SDL_Surface* m_TileSetImage{};
+        SDL_Texture* m_TileSetTexture{};
 	};
 
 	class DECLSPEC TWorld2D
@@ -33,13 +34,17 @@ namespace Tilc::Game2D
 		~TWorld2D();
 		TMapLayer* AddLayer(int TileSetIndex);
 		TMapLayer* AddLayerFromStringSimplified(int TileSetIndex, const char* Data, int DefaultTileIndex);
-		void Render(SDL_Surface* Destination);
-		void DrawTile(SDL_Surface* Destination, float x, float y, int TileSetIndex, TTileID Tile);
+		void Render(SDL_Renderer* Renderer);
+		inline void RenderTile(SDL_Renderer* Renderer, float x, float y, int TileSetIndex, TTileID Tile)
+		{
+			SDL_FRect DestRect = { x, y, static_cast<float>(m_TileSets[TileSetIndex].m_TileWidth), static_cast<float>(m_TileSets[TileSetIndex].m_TileHeight) };
+			SDL_RenderTexture(Renderer, m_TileSets[TileSetIndex].m_TileSetTexture, &m_TileSets[TileSetIndex].m_TileSet[Tile]->m_TileBoundariesInsideTileSheet, &DestRect);
+		}
 		void Update(float DeltaTime);
 		void MoveLayers(float DeltaTime);
 		void Purge();
 		void LoadLevel(int TileSetIndex, const std::string& FileName);
-		void LoadTiles(const std::string& TilesImageFileName, const std::string& TilesDescriptionFileName, int TileWidth, int TileHeight);
+		void LoadTiles(const std::string& TilesImageResourceName, const std::string& TilesDescriptionFileName, int TileWidth, int TileHeight);
 		void LoadNext()
 		{
 			m_LoadNextMap = true;
@@ -55,7 +60,8 @@ namespace Tilc::Game2D
 		void SetPropertiesOfAllLayers(int TileSetIndex, int ColorKeyR = -1, int ColorKeyG = -1, int ColorKeyB = -1);
 		std::vector<TMapLayer*> m_Layers;
 		std::vector<TMapTileSetData> m_TileSets;
-
+		int m_MapWidth{};
+		int m_MapHeight{};
 	protected:
 		Tilc::TWindow* m_Window = nullptr;
 		SDL_Texture* m_Background = nullptr;

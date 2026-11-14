@@ -26,7 +26,8 @@ namespace Tilc::Game2D
 		TTileInfo(TTileID TileId, int TileSheetWidth, int TileSheetHeight, int TileWidth, int TileHeight);
 		~TTileInfo();
 
-		SDL_Rect m_TileBoundariesInsideTileSheet;
+		// SDL_Rect, w którym leży ten tile wewnątrz tilesheetu
+		SDL_FRect m_TileBoundariesInsideTileSheet;
 		TTileID m_Id;
 		std::string m_Name;
 		Tilc::TVector2D<float> m_Friction;

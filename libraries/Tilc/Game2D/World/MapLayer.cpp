@@ -155,7 +155,7 @@ void Tilc::Game2D::TMapLayer::LoadFromFileSimplified(TTileSet& TileSet, const ch
 	LoadFromStringSimplified(TileSet, Content.c_str(), DefaultTileIndex);
 }
 
-void Tilc::Game2D::TMapLayer::Render(SDL_Surface* Destination)
+void Tilc::Game2D::TMapLayer::Render(SDL_Renderer* Renderer)
 {
 	int MapX, MapY;
 	int FineX, FineY;
@@ -169,25 +169,25 @@ void Tilc::Game2D::TMapLayer::Render(SDL_Surface* Destination)
 	FineX = (int)m_PosX % m_TileWidth;
 	FineY = (int)m_PosY % m_TileHeight;
 
-	TTileID Tile;
-	SDL_Rect DestRect;
-	DestRect.w = m_TileWidth;
-	DestRect.h = m_TileHeight;
+	SDL_FRect DestRect;
+	DestRect.w = static_cast<float>(m_TileWidth);
+	DestRect.h = static_cast<float>(m_TileHeight);
 	for (y = -FineY; y < WindowHeight; y += m_TileHeight, ++MapY)
 	{
 		// First tile in row
-		Tile = MapY * m_MapWidth + MapX;
-		DestRect.y = y;
-		for (x = -FineX; x < WindowWidth; x += m_TileWidth, ++Tile)
+		TTileID Tile = MapY * m_MapWidth + MapX;
+		if (Tile >= m_TileMap.size()) break;
+		DestRect.y = static_cast<float>(y);
+		for (x = -FineX; x < WindowWidth && Tile < m_MapWidth; x += m_TileWidth, ++Tile)
 		{
-			DestRect.x = x;
+			DestRect.x = static_cast<float>(x);
 			if (m_TileMap[Tile])
 			{
-				SDL_BlitSurface(m_Tiles, &m_TileMap[Tile]->m_Properties->m_TileBoundariesInsideTileSheet, Destination, &DestRect);
+				SDL_RenderTexture(Renderer, m_Tiles, &m_TileMap[Tile]->m_Properties->m_TileBoundariesInsideTileSheet, &DestRect);
 			}
-			else
+			else if (m_DefaultTile)
 			{
-				SDL_BlitSurface(m_Tiles, &m_DefaultTile->m_TileBoundariesInsideTileSheet, Destination, &DestRect);
+				SDL_RenderTexture(Renderer, m_Tiles, &m_DefaultTile->m_TileBoundariesInsideTileSheet, &DestRect);
 			}
 		}
 	}
@@ -201,7 +201,7 @@ void Tilc::Game2D::TMapLayer::SetColorKey(int R, int G, int B)
 	if (m_Tiles)
 	{
 		// set colorkey (transparent color) to R,G,B
-		SDL_SetSurfaceColorKey(m_Tiles, true, SDL_MapRGB(SDL_GetPixelFormatDetails(m_Tiles->format), NULL, ColorKeyR, ColorKeyG, ColorKeyB));
+		//SDL_SetSurfaceColorKey(m_Tiles, true, SDL_MapRGB(SDL_GetPixelFormatDetails(m_Tiles->format), NULL, ColorKeyR, ColorKeyG, ColorKeyB));
 	}
 }
 

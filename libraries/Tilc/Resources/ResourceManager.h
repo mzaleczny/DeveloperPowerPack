@@ -154,8 +154,7 @@ namespace Tilc::Resources {
 	template<typename Derived, typename T>
 	void TResourceManager<Derived, T>::LoadSources(const std::string_view PathsFileName)
 	{
-		std::string FileName(std::filesystem::current_path().string() + "/");
-		FileName += PathsFileName;
+		std::string FileName(PathsFileName);
 		if (FileExists(FileName.c_str()))
 		{
 			Tilc::TFile File(FileName.c_str());
@@ -164,6 +163,7 @@ namespace Tilc::Resources {
 				std::string Line;
 				while (std::getline(File.m_File, Line))
 				{
+					if (Line.empty() || Line[0] == '#') continue;
 					TResourceInfo Info;
 					std::stringstream KeyStream(Line);
 					std::string ResourceName;

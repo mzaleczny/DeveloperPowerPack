@@ -125,23 +125,6 @@ SDL_AppResult Tilc::InitTilc()
 void Tilc::CleanupTilc()
 {
 #if BUILD_WITH_SDL3 == 1
-    TSharedContext* ctx = Tilc::GameObject->GetContext();
-	if (ctx->m_Theme)
-	{
-        delete ctx->m_Theme;
-        ctx->m_Theme = nullptr;
-	}
-	if (ctx->m_MixMixer)
-	{
-        MIX_DestroyMixer(ctx->m_MixMixer);
-		ctx->m_MixMixer = nullptr;
-	}
-	if (ctx->m_TextureManager)
-	{
-		delete ctx->m_TextureManager;
-		ctx->m_TextureManager = nullptr;
-	}
-
 	if (Tilc::GameObject)
 	{
 		delete Tilc::GameObject;

@@ -33,13 +33,13 @@ Tilc::Game2D::TMapLayer* Tilc::Game2D::TWorld2D::AddLayer(int TileSetIndex)
 	Tilc::Game2D::TMapLayer* Layer = new Tilc::Game2D::TMapLayer();
 	if (Layer)
 	{
-		Layer->m_MapWidth = m_TileSets[TileSetIndex].m_TileSetImage->w / m_TileSets[TileSetIndex].m_TileWidth;
-		Layer->m_MapHeight = m_TileSets[TileSetIndex].m_TileSetImage->h / m_TileSets[TileSetIndex].m_TileHeight;
+		Layer->m_MapWidth = m_MapWidth;
+		Layer->m_MapHeight = m_MapHeight;
 		Layer->m_TileWidth = m_TileSets[TileSetIndex].m_TileWidth;
 		Layer->m_TileHeight = m_TileSets[TileSetIndex].m_TileHeight;
-		Layer->m_TileSheetWidth = m_TileSets[TileSetIndex].m_TileSetImage->w;
-		Layer->m_TileSheetHeight = m_TileSets[TileSetIndex].m_TileSetImage->h;
-		Layer->m_Tiles = m_TileSets[TileSetIndex].m_TileSetImage;
+		Layer->m_TileSheetWidth = m_TileSets[TileSetIndex].m_TileSetTexture->w;
+		Layer->m_TileSheetHeight = m_TileSets[TileSetIndex].m_TileSetTexture->h;
+		Layer->m_Tiles = m_TileSets[TileSetIndex].m_TileSetTexture;
 		Layer->m_TileMap.reserve(Layer->m_MapWidth * Layer->m_MapHeight);
 		m_Layers.push_back(Layer);
 	}
@@ -57,22 +57,12 @@ Tilc::Game2D::TMapLayer* Tilc::Game2D::TWorld2D::AddLayerFromStringSimplified(in
 	return Layer;
 }
 
-void Tilc::Game2D::TWorld2D::Render(SDL_Surface* Destination)
+void Tilc::Game2D::TWorld2D::Render(SDL_Renderer* Renderer)
 {
 	for (size_t i = 0; i < m_Layers.size(); ++i)
 	{
-		m_Layers[i]->Render(Destination);
+		m_Layers[i]->Render(Renderer);
 	}
-}
-
-void Tilc::Game2D::TWorld2D::DrawTile(SDL_Surface* Destination, float x, float y, int TileSetIndex, TTileID Tile)
-{
-	SDL_Rect DestRect;
-	DestRect.x = (int)x;
-	DestRect.y = (int)y;
-	DestRect.w = m_TileSets[TileSetIndex].m_TileWidth;
-	DestRect.h = m_TileSets[TileSetIndex].m_TileHeight;
-	SDL_BlitSurface(m_TileSets[TileSetIndex].m_TileSetImage, &m_TileSets[TileSetIndex].m_TileSet[Tile]->m_TileBoundariesInsideTileSheet, Destination, &DestRect);
 }
 
 void Tilc::Game2D::TWorld2D::Update(float DeltaTime)
@@ -112,9 +102,9 @@ void Tilc::Game2D::TWorld2D::Purge()
 
 	for (size_t i = 0; i < m_TileSets.size(); ++i)
 	{
-		if (m_TileSets[i].m_TileSetImage)
+		if (m_TileSets[i].m_TileSetTexture)
 		{
-			SDL_DestroySurface(m_TileSets[i].m_TileSetImage);
+			SDL_DestroyTexture(m_TileSets[i].m_TileSetTexture);
 		}
 		for (size_t j = 0; j < m_TileSets[i].m_TileSet.size(); ++j)
 		{
@@ -138,18 +128,27 @@ void Tilc::Game2D::TWorld2D::Purge()
 	m_BackgroundTexture = "";
 }
 
-void Tilc::Game2D::TWorld2D::LoadTiles(const std::string& TilesImageFileName, const std::string& TilesDescriptionFileName, int TileWidth, int TileHeight)
+void Tilc::Game2D::TWorld2D::LoadTiles(const std::string& TilesImageResourceName, const std::string& TilesDescriptionFileName, int TileWidth, int TileHeight)
 {
 	TMapTileSetData TileSet;
 	TileSet.m_TileWidth = TileWidth;
 	TileSet.m_TileHeight = TileHeight;
-	TileSet.m_TileSetImage = IMG_Load(TilesImageFileName.c_str());
-	if (!TileSet.m_TileSetImage)
+	if (!Tilc::GameObject->GetContext()->m_TextureManager->GetResource(TilesImageResourceName))
 	{
-		SDL_Log("Couldn't load tiles form file: %s: %s", TilesImageFileName.c_str(), SDL_GetError());
+		Tilc::GameObject->GetContext()->m_TextureManager->RequireResource(TilesImageResourceName);
+	}
+	if (!Tilc::GameObject->GetContext()->m_TextureManager->GetResource(TilesImageResourceName))
+	{
+		SDL_Log("Couldn't require tiles form file: %s: %s", TilesImageResourceName.c_str(), SDL_GetError());
 		return;
 	}
-	TileSet.m_TileSet.reserve((TileSet.m_TileSetImage->w / TileWidth) * (TileSet.m_TileSetImage->h / TileHeight));
+	TileSet.m_TileSetTexture = Tilc::GameObject->GetContext()->m_TextureManager->GetResource(TilesImageResourceName)->AsSDLTexture();
+	if (!TileSet.m_TileSetTexture)
+	{
+		SDL_Log("Couldn't load tiles form file: %s: %s", TilesImageResourceName.c_str(), SDL_GetError());
+		return;
+	}
+	TileSet.m_TileSet.reserve((TileSet.m_TileSetTexture->w / TileWidth) * (TileSet.m_TileSetTexture->h / TileHeight));
 
 	//SDL_Log("Current Directory: %s\n", std::filesystem::current_path().string().c_str());
 	Tilc::TCFile File(TilesDescriptionFileName.c_str(), "r");
@@ -159,7 +158,7 @@ void Tilc::Game2D::TWorld2D::LoadTiles(const std::string& TilesImageFileName, co
 		while (File.ReadLine(Line))
 		{
 			//std::cout << Line << std::endl;
-			if (Line[0] == '#')
+			if (Line.empty() || Line[0] == '#')
 			{
 				continue;
 			}
@@ -170,7 +169,7 @@ void Tilc::Game2D::TWorld2D::LoadTiles(const std::string& TilesImageFileName, co
 			{
 				continue;
 			}
-			TTileInfo* Tile = new TTileInfo(TileId, TileSet.m_TileSetImage->w, TileSet.m_TileSetImage->h, TileWidth, TileHeight);
+			TTileInfo* Tile = new TTileInfo(TileId, TileSet.m_TileSetTexture->w, TileSet.m_TileSetTexture->h, TileWidth, TileHeight);
 			KeyStream >> Tile->m_Name >> Tile->m_Friction.x >> Tile->m_Friction.y >> Tile->m_Deadly;
 			TileSet.m_TileSet.push_back(Tile);
 		}
@@ -182,7 +181,7 @@ void Tilc::Game2D::TWorld2D::SetPropertiesOfAllLayers(int TileSetIndex, int Colo
 {
 	for (size_t i = 0; i < m_Layers.size(); ++i)
 	{
-		m_Layers[i]->m_Tiles = m_TileSets[TileSetIndex].m_TileSetImage;
+		m_Layers[i]->m_Tiles = m_TileSets[TileSetIndex].m_TileSetTexture;
 		m_Layers[i]->m_TileWidth = m_TileSets[TileSetIndex].m_TileWidth;
 		m_Layers[i]->m_TileHeight = m_TileSets[TileSetIndex].m_TileHeight;
 		m_Layers[i]->m_TileSheetWidth = m_Layers[i]->m_Tiles->w;
@@ -204,15 +203,15 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 		EntityManager = Tilc::GameObject->GetContext()->m_EntityManager;
 	}
 
-	int MaxTileX = CurrentLayer->m_MapWidth - 1;
-	int MaxTileY = CurrentLayer->m_MapHeight - 1;
+	int MaxTileX = -1;
+	int MaxTileY = -1;
 
 	if (File.m_File)
 	{
 		while (File.ReadLine(Line))
 		{
 			++LineNumber;
-			if (Line[0] == '#')
+			if (Line.empty() || Line[0] == '#')
 			{
 				continue;
 			}
@@ -279,13 +278,11 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 			}
 			else if (Type == "SIZE")
 			{
-				int SizeX, SizeY;
-				KeyStream >> SizeX >> SizeY;
-				if (SizeX != CurrentLayer->m_MapWidth || SizeY != CurrentLayer->m_MapHeight)
-				{
-					std::cerr << "ERROR! Map size not consistent wit TileSet properties, Line: " << LineNumber << std::endl;
-					continue;
-				}
+				KeyStream >> m_MapWidth >> m_MapHeight;
+				CurrentLayer->m_MapWidth = m_MapWidth;
+				CurrentLayer->m_MapHeight = m_MapHeight;
+				MaxTileX = m_MapWidth - 1;
+				MaxTileY = m_MapHeight - 1;
 			}
 			else if (Type == "GRAVITY")
 			{
@@ -293,7 +290,10 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 			}
 			else if (Type == "DEFAULT_FRICTION")
 			{
-				KeyStream >> CurrentLayer->m_DefaultTile->m_Friction.x >> CurrentLayer->m_DefaultTile->m_Friction.y;
+				if (CurrentLayer->m_DefaultTile)
+				{
+					KeyStream >> CurrentLayer->m_DefaultTile->m_Friction.x >> CurrentLayer->m_DefaultTile->m_Friction.y;
+				}
 			}
 			else if (Type == "NEXTMAP")
 			{

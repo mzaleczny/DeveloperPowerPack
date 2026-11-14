@@ -73,6 +73,8 @@ Tilc::TGame::TGame(EGameType GameType)
 
 Tilc::TGame::~TGame()
 {
+	m_Context.m_StateManager.RemoveAllImmediately();
+
 	if (SDL_WasInit(SDL_INIT_AUDIO))
 	{
 		for (const auto& track : m_Context.m_Tracks | std::views::values)
@@ -105,6 +107,12 @@ Tilc::TGame::~TGame()
         delete m_Context.m_Cursor;
         m_Context.m_Cursor = nullptr;
     }
+
+	if (m_Context.m_Theme)
+	{
+		delete m_Context.m_Theme;
+		m_Context.m_Theme = nullptr;
+	}
 
     if (Loc)
 	{
@@ -166,8 +174,6 @@ Tilc::TGame::~TGame()
 		delete m_Context.m_World3D;
 		m_Context.m_World3D = nullptr;
 	}
-	// Before we destroy window we must call OnDestroy of all states in m_StateManager and free their memory
-	m_Context.m_StateManager.RemoveAllImmediately();
 	// Now we are ready to delete window
 	for (size_t i = m_AllSystemWindows.size() - 1; i > 0; --i)
 	{
@@ -177,6 +183,12 @@ Tilc::TGame::~TGame()
 		}
 	}
 	m_AllSystemWindows.clear();
+
+	if (m_Context.m_MixMixer)
+	{
+		MIX_DestroyMixer(m_Context.m_MixMixer);
+		m_Context.m_MixMixer = nullptr;
+	}
 }
 
 void Tilc::TGame::LoadFontsFromConfig(Tilc::TExtString FontResource)

@@ -44,7 +44,7 @@ namespace Tilc::Game2D
 		void MoveLinkedLayers(TMapLayer* Layer);
 		void LoadFromStringSimplified(TTileSet& TileSet, const char* Data, int DefaultTileIndex, const char StartChar = '0');
 		void LoadFromFileSimplified(TTileSet& TileSet, const char* FileName, int DefaultTileIndex);
-		void Render(SDL_Surface* Destination);
+		void Render(SDL_Renderer* Renderer);
 		// TransparentColor in tilesheet bitmap
 		void SetColorKey(int R, int G, int B);
 		// RGB members that defines transparent color in bitmap, if they are set to -1, then transparent color is not applied
@@ -69,8 +69,8 @@ namespace Tilc::Game2D
 		TTileMap m_TileMap;
 
 		// Default tile
-		TTileInfo* m_DefaultTile;
-		SDL_Surface* m_Tiles = nullptr;
+		TTileInfo* m_DefaultTile{};
+		SDL_Texture* m_Tiles{};
 
 	private:
 		int m_WindowWidth;
