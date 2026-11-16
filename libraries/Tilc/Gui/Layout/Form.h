@@ -952,14 +952,14 @@ namespace Tilc {
                     bool HasCategories = it != FormPackage->EditedItem.Relationships.end();
 
                     constexpr int const ColumnsCount = 4;
-                    size_t CategoriesCount = JsonRoot->getAsObject("root")->getAsArray("items")->size();
-                    size_t CategoriesPerColumn = CategoriesCount / ColumnsCount + 1;
+                    size_t RelatedCount = JsonRoot->getAsObject("root")->getAsArray("items")->size();
+                    size_t RelatedPerColumn = RelatedCount / ColumnsCount + 1;
                     int Column = 0;
-                    for (size_t i = 0; i < CategoriesCount; ++i)
+                    for (size_t i = 0; i < RelatedCount; ++i)
                     {
                         Position.x = padding + Column * (200.0f + 50.0f);
                         Position.y = padding + 30.0f;
-                        for (size_t j = 0; j < CategoriesPerColumn && i < CategoriesCount; ++j, ++i)
+                        for (size_t j = 0; j < RelatedPerColumn && i < RelatedCount; ++j, ++i)
                         {
                             Tilc::TStdObjectProperty* ItemObject = (*JsonRoot->getAsObject("root")->getAsArray("items"))[i];
                             Tilc::TStdObject* o = ItemObject->oValue;
@@ -996,6 +996,10 @@ namespace Tilc {
                         ++Column;
                     }
                     delete JsonRoot;
+                    if (RelatedCount == 0)
+                    {
+                        y = padding + 30.0f;
+                    }
                 }
 
                 y += 10.0f;
