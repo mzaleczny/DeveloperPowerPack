@@ -99,7 +99,7 @@ namespace Tilc
             // nowo wklejonego tekstu. Jeśli nie było zaznaczenia, to tekst wstawiony jest w miejscu
             // w którym znajduje się karetka. Po wklejeniu karetka ustawiana jest na końcu wstawionego
             // tekstu.
-            void InsertText(Tilc::TExtString s, bool redraw = true);
+            virtual void InsertText(Tilc::TExtString s, bool redraw = true);
             // zaznacza całą zawartość pola tekstowego.
             void SelectAll(bool redraw = true);
             // Ustawia zaznaczenie na podstawie podanych parametrów: jego początku (start) i długości
