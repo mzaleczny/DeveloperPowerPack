@@ -348,6 +348,7 @@ std::ostream& Tilc::Data::TDataProcessor::DeleteItems(std::ostream& os, Tilc::Da
     Tilc::TStdObject* JsonInput = Parser.parse(JsonCommand);
     if (JsonInput)
     {
+        Tilc::TStringVector IdsVector;
         Tilc::TExtString Ids;
         Tilc::TExtString CommandAction = JsonInput->getAsObject("root")->getAsString("Action");
         if (CommandAction == "Delete")
@@ -355,24 +356,61 @@ std::ostream& Tilc::Data::TDataProcessor::DeleteItems(std::ostream& os, Tilc::Da
             Tilc::TPropertiesVector* IdsVec = JsonInput->getAsObject("root")->getAsArray("Ids");
             for (size_t i = 0; i < IdsVec->size(); ++i)
             {
+                if (!Ids.empty())
+                {
+                    Ids += ",";
+                }
                 if ((*IdsVec)[i]->type == Tilc::PROPERTY_VALUE_INT)
                 {
-                    if (i > 0)
-                    {
-                        Ids += ",";
-                    }
                     Ids += std::to_string((*IdsVec)[i]->iValue);
+                    IdsVector.push_back(std::to_string((*IdsVec)[i]->iValue));
                 }
                 else if ((*IdsVec)[i]->type == Tilc::PROPERTY_VALUE)
                 {
                     Ids += (*IdsVec)[i]->value;
+                    IdsVector.push_back((*IdsVec)[i]->value);
                 }
             }
             if (Ids.length() > 0)
             {
                 Tilc::TExtString SqlStr{Sql};
                 SqlStr.StrReplace("%s", Ids);
-                DB.ExecQuery(SqlStr.c_str());
+                DB.ExecQuery("START TRANSACTION", {}, {});
+                try
+                {
+                    DB.ExecQuery(SqlStr.c_str());
+
+                    // Teraz usuwamy wpisy z tabel relacji
+                    // Ale najpierw musimy pobrać nazwę tabeli, żeby móc dostać się do tych relacji
+                    Tilc::TExtString SqlString{Sql}, TableName;
+                    size_t StartPos = std::strlen("DELETE FROM ");
+                    size_t EndPos = SqlString.find(" ", StartPos);
+                    TableName = SqlString.substr(StartPos, EndPos - StartPos);
+                    for (auto Rel : Tilc::Data::TDataProcessor::m_Relationships[std::string(TableName)])
+                    {
+                        DB.ExecQuery(
+                            std::format("DELETE FROM {} WHERE {} IN ({})",
+                                    (Rel.RelationshipTableName).c_str(), (Rel.ThisSingle + "_id").c_str(), Ids.c_str()
+                                ).c_str(), {}, {});
+                    }
+
+                    Tilc::TExtString DbFname = Tilc::TExtString("./db/") + TableName + "_pictures";
+                    for (auto CurId : IdsVector)
+                    {
+                        Tilc::TExtString fn{DbFname + "_" + CurId + ".db"};
+                        if (Tilc::FileExists(fn))
+                        {
+                            auto err = std::error_code{};
+                            std::filesystem::remove(fn.c_str(), err);
+                        }
+                    }
+                    DB.ExecQuery("COMMIT", {}, {});
+                }
+                catch (const std::exception& e)
+                {
+                    os << "Exception: " << e.what() << "\n";
+                    DB.ExecQuery("ROLLBACK", {}, {});
+                }
             }
         }
         delete JsonInput;
