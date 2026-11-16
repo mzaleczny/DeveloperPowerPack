@@ -21,6 +21,7 @@ mysql_num_fields_fn tilc_mysql_num_fields{};
 mysql_stmt_field_count_fn tilc_mysql_stmt_field_count{};
 mysql_stmt_result_metadata_fn tilc_mysql_stmt_result_metadata{};
 mysql_fetch_fields_fn tilc_mysql_fetch_fields{};
+mysql_free_result_fn tilc_mysql_free_result{};
 mysql_stmt_bind_result_fn tilc_mysql_stmt_bind_result{};
 mysql_stmt_bind_param_fn tilc_mysql_stmt_bind_param{};
 mysql_insert_id_fn tilc_mysql_insert_id{};
@@ -56,6 +57,7 @@ void* TilcLoadMariaDb(const char* path)
     tilc_mysql_stmt_field_count = (unsigned int (*)(MYSQL_STMT*))dlsym(handle, "mysql_stmt_field_count");
     tilc_mysql_stmt_result_metadata = (MYSQL_RES* (*)(MYSQL_STMT*))dlsym(handle, "mysql_stmt_result_metadata");
     tilc_mysql_fetch_fields = (MYSQL_FIELD* (*)(MYSQL_RES*))dlsym(handle, "mysql_fetch_fields");
+    tilc_mysql_free_result = (void (*)(MYSQL_RES*))dlsym(handle, "mysql_free_result");
     tilc_mysql_stmt_bind_result = (void (*)(MYSQL_STMT*, MYSQL_BIND*))dlsym(handle, "mysql_stmt_bind_result");
     tilc_mysql_stmt_bind_param = (int (*)(MYSQL_STMT*, MYSQL_BIND*))dlsym(handle, "mysql_stmt_bind_param");
     tilc_mysql_insert_id = (unsigned long long (*)(MYSQL*))dlsym(handle, "mysql_insert_id");
@@ -87,7 +89,7 @@ void* TilcLoadMariaDb(const char* path)
         !tilc_mysql_stmt_prepare || !tilc_mysql_stmt_execute || !tilc_mysql_stmt_store_result || !tilc_mysql_stmt_fetch ||
         !tilc_mysql_stmt_close || !tilc_mysql_stmt_error || !tilc_mysql_num_fields ||
         !tilc_mysql_stmt_field_count || !tilc_mysql_stmt_result_metadata ||
-        !tilc_mysql_fetch_fields || !tilc_mysql_stmt_bind_result ||
+        !tilc_mysql_fetch_fields || !tilc_mysql_free_result || !tilc_mysql_stmt_bind_result ||
         !tilc_mysql_stmt_bind_param ||
         !tilc_mysql_insert_id || !tilc_mysql_close || !tilc_mysql_error)
     {

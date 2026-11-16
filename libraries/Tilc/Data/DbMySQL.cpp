@@ -88,25 +88,43 @@ int Tilc::Data::TDBMySQL::Select(MYSQL_STMT* stmt, TDBDataRows& DataRows)
     unsigned int field_count = tilc_mysql_stmt_field_count(stmt);
     LastError = tilc_mysql_stmt_error(stmt);
     if (field_count < 1) return 0;
-    std::vector<MYSQL_BIND> OutputBind(field_count);
-    memset(&OutputBind[0], 0, sizeof(MYSQL_BIND) * OutputBind.size());
 
+    // Pobieramy metadane raz dla prepared statement
     MYSQL_RES* meta = tilc_mysql_stmt_result_metadata(stmt);
-    field_count = tilc_mysql_num_fields(meta);
+    if (!meta) return 0;
+
+    unsigned int meta_field_count = tilc_mysql_num_fields(meta);
     MYSQL_FIELD* fields = tilc_mysql_fetch_fields(meta);
+
+    std::vector<MYSQL_BIND> OutputBind(field_count);
+    memset(OutputBind.data(), 0, sizeof(MYSQL_BIND) * field_count);
+
     std::vector<unsigned long> lengths(field_count);
     std::vector<my_bool> is_null(field_count);
     std::vector<my_bool> error(field_count);
+    std::vector<std::vector<char>> buffers(field_count);
 
     for (unsigned int i = 0; i < field_count; i++)
     {
         OutputBind[i].buffer_type = fields[i].type;
-        OutputBind[i].buffer = malloc(256);          // domyslny bufor
-        OutputBind[i].buffer_length = 256;           // 256
+
+        // Rozmiar bufora na podstawie metadacnych kolumny
+        unsigned long buf_size = fields[i].length;
+        if (buf_size < 256) buf_size = 256;
+        if (buf_size > 65535) buf_size = 65535; // Zabezpieczenie przed ogromnymi polami TEXT/LONGBLOB
+
+        buffers[i].resize(buf_size + 1);
+
+        OutputBind[i].buffer = buffers[i].data();
+        OutputBind[i].buffer_length = buffers[i].size();
         OutputBind[i].length = &lengths[i];
         OutputBind[i].is_null = &is_null[i];
         OutputBind[i].error = &error[i];
     }
+
+    // Bardzo ważne: zwolnij strukturę metadanych od razu po pobraniu informacji!
+    tilc_mysql_free_result(meta);
+
     tilc_mysql_stmt_execute(stmt);
     tilc_mysql_stmt_store_result(stmt);
     tilc_mysql_stmt_bind_result(stmt, OutputBind.data());
@@ -118,22 +136,6 @@ int Tilc::Data::TDBMySQL::Select(MYSQL_STMT* stmt, TDBDataRows& DataRows)
         {
             Tilc::Data::TDBDataRow Row;
 
-            if (status == MYSQL_DATA_TRUNCATED)
-            {
-                // przynajmniej jedno pole jest za duże
-                for (unsigned int i = 0; i < field_count; ++i)
-                {
-                    if (error[i])
-                    {
-                        // pole zostało obcięte -> zwolnij i zaalokuj wiekszy bufor
-                        free(OutputBind[i].buffer);
-                        OutputBind[i].buffer = malloc(lengths[i] + 1);
-                        OutputBind[i].buffer_length = lengths[i] + 1;
-                    }
-                }
-                status = tilc_mysql_stmt_fetch(stmt);
-            }
-
             for (unsigned int i = 0; i < field_count; ++i)
             {
                 if (is_null[i])
@@ -142,7 +144,6 @@ int Tilc::Data::TDBMySQL::Select(MYSQL_STMT* stmt, TDBDataRows& DataRows)
                 }
                 else
                 {
-                    // UWAGA: używaj lengths[i], a nie gołego buffer!
                     std::string val((char*)OutputBind[i].buffer, lengths[i]);
                     switch (OutputBind[i].buffer_type)
                     {
@@ -190,6 +191,7 @@ int Tilc::Data::TDBMySQL::Select(MYSQL_STMT* stmt, TDBDataRows& DataRows)
                         Row.push_back(std::to_string(*(double*)val.data()));
                         break;
                     default:
+                        Row.push_back(val);
                         break;
                     }
                 }
@@ -199,18 +201,12 @@ int Tilc::Data::TDBMySQL::Select(MYSQL_STMT* stmt, TDBDataRows& DataRows)
         }
         else if (status == MYSQL_NO_DATA)
         {
-            break; // koniec wyników
+            break;
         }
         else
         {
-            // błąd
             break;
         }
-    }
-
-    for (unsigned int i = 0; i < field_count; ++i)
-    {
-        free(OutputBind[i].buffer);
     }
 
     return static_cast<int>(DataRows.size());
