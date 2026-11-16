@@ -108,6 +108,8 @@ namespace Tilc
             virtual void SetText(const Tilc::TExtString& Text) override;
             virtual Tilc::TExtString GetText() override;
 
+            virtual void InsertText(Tilc::TExtString s, bool redraw) override;
+
         protected:
             SDL_Texture* m_TextTexture{};
             Tilc::Gui::Helpers::THbTextLayoutCache* m_HbTextLayoutCache;

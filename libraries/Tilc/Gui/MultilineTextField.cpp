@@ -1727,6 +1727,17 @@ Tilc::TExtString Tilc::Gui::TMultilineTextField::GetText()
     return Content;
 }
 
+void Tilc::Gui::TMultilineTextField::InsertText(Tilc::TExtString s, bool redraw)
+{
+    std::cout << m_HbTextLayoutCache->GetLinesCount() << std::endl;
+    if (m_HbTextLayoutCache->GetLinesCount() == 0 || (m_HbTextLayoutCache->GetLinesCount() == 1 && m_HbTextLayoutCache->GetLineText(0).empty()))
+    {
+        std::cout << s << std::endl;
+        SetText(s);
+        return;
+    }
+}
+
 void Tilc::Gui::TMultilineTextField::AttachRenderedSegmentsToCache()
 {
     while (!Tilc::Gui::Helpers::ReadyQueue.Empty())
