@@ -120,6 +120,36 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
         }
     }
 
+    // Teraz wstawiamy relacje
+    for (auto Rel : Tilc::Data::TDataProcessor::m_Relationships[std::string(TableName)])
+    {
+        Tilc::Data::TDBDataRows RelData;
+        DB.Select(std::format("SELECT {} FROM {} WHERE {}={}",
+                (Rel.OtherSingle + "_id").c_str(),
+                (Rel.RelationshipTableName).c_str(),
+                    (Rel.ThisSingle + "_id").c_str(),
+                    std::string(ItemId).c_str()
+                ).c_str(), RelData);
+        Tilc::TExtString Error = DB.GetErrorMessage();
+        if (!Error.empty())
+        {
+            os << Error << ": " << SqlStr << "\n";
+            return os;
+        }
+
+        Tilc::TExtString OtherIds;
+        for (size_t i = 0; i < RelData.size(); ++i)
+        {
+            if (!OtherIds.empty())
+            {
+                OtherIds += ",";
+            }
+            OtherIds += RelData[i][0];
+        }
+        AllFields.push_back(Rel.OtherPlural.c_str());
+        Data[0].push_back(OtherIds);
+    }
+
     os << "{\"items\":";
     Tilc::PrintVectorAsJsonArray(os, AllFields, Data);
     os << ",\"items_count\":\"" << Data.size() << "\"";
