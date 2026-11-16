@@ -3,6 +3,7 @@
 #include "Tilc/Data/DataDbResources.h"
 #include "Tilc/Net/Http.h"
 #include "Tilc/Utils/Base64.h"
+#include "Tilc/Utils/Time.h"
 
 DECLSPEC void Tilc::Apps::Www::Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh, const std::string_view Body404)
 {
@@ -25,7 +26,6 @@ DECLSPEC void Tilc::Apps::Www::Return_404_NotFound(Tilc::Apps::Www::TRequestHand
 DECLSPEC void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url)
 {
     Tilc::TExtString GoogleAuthToken = rh.PostVars["token"];
-
     /*
     rh << "<ol>\n";
     char** env = rh.GetRequest()->envp;
@@ -46,8 +46,10 @@ DECLSPEC void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh,
 
 
     // Weryfikacja tokenu
+    //rh.Log(GetCurrentDateTime(), "    Call VerifyGoogleToken for " + GoogleAuthToken + " :: " + Tilc::GoogleClientId + "\n");
     Tilc::TUser User = Tilc::Google::VerifyGoogleToken(GoogleAuthToken, Tilc::GoogleClientId);
     Tilc::TExtString DbFname = rh.ApplicationRootDir + "/db/sessions.db";
+    //rh.Log(GetCurrentDateTime(), "Error: " + User.error + "\n");
     //rh << "Error: " << User.error << "\n";
     //rh << GoogleAuthToken << "\n";
     //rh << GoogleClientId << "\n";
@@ -69,29 +71,40 @@ DECLSPEC void Tilc::Apps::Www::GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh,
         JsonUser.StrReplace("[PICTURE]", User.picture);
         JsonUser.StrReplace("[TOKEN]", GoogleAuthToken);
 
+        //rh.Log(GetCurrentDateTime(), "CreateSimpleDataDb: " + DbFname + "\n");
         Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFname.c_str(), "picture_blobs");
+        //rh.Log(GetCurrentDateTime(), "AFTER CreateSimpleDataDb: " + DbFname + "\n");
         auto [id, data, modified] = Tilc::Data::TDataDBResources::GetSimpleData(DbFname.c_str(), "picture_blobs", User.email.c_str());
+        //rh.Log(GetCurrentDateTime(), "GetSimpleData: " + std::to_string(id) + ", " + data + "\n");
         if (id < 1 || data.length() < 1)
         {
             Tilc::Net::THttp Http;
             Tilc::TExtString ResultCode, DataBase64;
+            //rh.Log(GetCurrentDateTime(), "Http.DoGet(User.picture: " + User.picture + "\n");
             data = Http.DoGet(User.picture, "", {}, ResultCode);
             if (!data.empty())
             {
                 Tilc::TBase64::Encode(reinterpret_cast<const unsigned char*>(data.c_str()), static_cast<long>(data.length()), DataBase64);
+                //rh.Log(GetCurrentDateTime(), "AFTER Tilc::TBase64::Encode - SetSimpleData: " + DbFname + "\n");
                 Tilc::Data::TDataDBResources::SetSimpleData(DbFname.c_str(), "picture_blobs", User.email.c_str(),
                     DataBase64.c_str(), DataBase64.length());
+                //rh.Log(GetCurrentDateTime(), "AFTER\n");
                 data = std::move(DataBase64);
+                //rh.Log(GetCurrentDateTime(), "AFTER std::move\n");
             }
         }
         JsonUser.StrReplace("[PICTURE_BLOB]", data);
 
+        //rh.Log(GetCurrentDateTime(), "CreateSimpleDataDb logins\n");
         Tilc::Data::TDataDBResources::CreateSimpleDataDb(DbFname.c_str(), "logins");
+        //rh.Log(GetCurrentDateTime(), "SetSimpleData logins\n");
         Tilc::Data::TDataDBResources::SetSimpleData(DbFname.c_str(), "logins", User.email.c_str(),
             JsonUser.c_str(), JsonUser.length());
+        //rh.Log(GetCurrentDateTime(), "AFTER SetSimpleData logins\n");
 
         Tilc::TExtString Result = R"({"status": "ok", "message": "Zalogowano pomyślnie", "user": [USER]})";
         Result.StrReplace("[USER]", JsonUser);
+        //rh.Log(GetCurrentDateTime(), "Result: " + Result + "\n");
         rh << Result;
     }
     else
