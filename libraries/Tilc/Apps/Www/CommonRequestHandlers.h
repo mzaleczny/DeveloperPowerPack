@@ -17,7 +17,11 @@ namespace Tilc
     {
         namespace Www
         {
+            extern Tilc::Data::TDBMySQL* DB;
+
             DECLSPEC void Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh, const std::string_view Body404 = "");
+            DECLSPEC Tilc::Data::TDBMySQL* InitMySQLDB(const char* DBHost, const char* DBName, const char* DBUser, const char* DBPasswd, const char* DBSocket);
+            DECLSPEC void CloseMySQLDB();
 
             template <typename T>
             void PrintItemsList(Tilc::Apps::Www::TRequestHandler& rh, Tilc::Data::TDBMySQL& DB, T& Item, const Tilc::TExtString& SelectSQL)
@@ -36,9 +40,8 @@ namespace Tilc
                 {
                     Tilc::TExtString id = rh.Body.substr(0, 12);
 
-                    Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
                     T Item;
-                    Tilc::Data::TDataProcessor::PrintItemWithPictures(rh.os, DB, (Tilc::TExtString("SELECT %s FROM ") + Item.TableName + " WHERE id=" + id).c_str(),
+                    Tilc::Data::TDataProcessor::PrintItemWithPictures(rh.os, *DB, (Tilc::TExtString("SELECT %s FROM ") + Item.TableName + " WHERE id=" + id).c_str(),
                         Item.GetAllFieldsNamesList(), Item.TableName, id);
                 }
             }
@@ -49,9 +52,8 @@ namespace Tilc
                 rh.ContentType = "application/json";
                 rh.OutputHeaders();
 
-                Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
                 T Item;
-                PrintItemsList(rh, DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
+                PrintItemsList(rh, *DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
             }
 
             template <typename T>
@@ -149,15 +151,14 @@ namespace Tilc
             {
                 rh.ContentType = "application/json";
                 rh.OutputHeaders();
-                Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
                 T Item;
 
                 if (rh.Body.length() > 0)
                 {
-                    Tilc::Data::TDataProcessor::SaveItems(rh.os, DB, Item.TableName.c_str(), rh.Body);
+                    Tilc::Data::TDataProcessor::SaveItems(rh.os, *DB, Item.TableName.c_str(), rh.Body);
                 }
 
-                PrintItemsList(rh, DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
+                PrintItemsList(rh, *DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
             }
 
             template <typename T>
@@ -166,18 +167,17 @@ namespace Tilc
                 rh.ContentType = "application/json";
                 rh.OutputHeaders();
 
-                Tilc::Data::TDBMySQL DB(Tilc::DbConnectionParams.DBHost, Tilc::DbConnectionParams.DBName, Tilc::DbConnectionParams.DBUser, Tilc::DbConnectionParams.DBPasswd, Tilc::DbConnectionParams.DBSocket);
                 T Item;
 
                 if (rh.Body.length() > 0)
                 {
-                    Tilc::Data::TDataProcessor::DeleteItems(rh.os, DB,
+                    Tilc::Data::TDataProcessor::DeleteItems(rh.os, *DB,
                         ("DELETE FROM " + Item.TableName + " WHERE id IN (%s)").c_str(),
                         rh.Body
                     );
                 }
 
-                PrintItemsList(rh, DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
+                PrintItemsList(rh, *DB, Item, Tilc::TExtString("SELECT %s FROM ") + Item.TableName);
             }
 
             template <typename T>

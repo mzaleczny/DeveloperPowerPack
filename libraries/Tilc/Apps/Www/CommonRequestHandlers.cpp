@@ -5,6 +5,8 @@
 #include "Tilc/Utils/Base64.h"
 #include "Tilc/Utils/Time.h"
 
+DECLSPEC Tilc::Data::TDBMySQL* Tilc::Apps::Www::DB{nullptr};
+
 DECLSPEC void Tilc::Apps::Www::Return_404_NotFound(Tilc::Apps::Www::TRequestHandler& rh, const std::string_view Body404)
 {
     rh.Headers.push_back("Status: 404 Not Found");
@@ -20,6 +22,21 @@ DECLSPEC void Tilc::Apps::Www::Return_404_NotFound(Tilc::Apps::Www::TRequestHand
     else
     {
         rh << Body404.data();
+    }
+}
+
+DECLSPEC Tilc::Data::TDBMySQL* Tilc::Apps::Www::InitMySQLDB(const char* DBHost, const char* DBName, const char* DBUser, const char* DBPasswd, const char* DBSocket)
+{
+    Tilc::Apps::Www::DB = new Tilc::Data::TDBMySQL(DBHost, DBName, DBUser, DBPasswd, DBSocket);
+    return DB;
+}
+
+DECLSPEC void Tilc::Apps::Www::CloseMySQLDB()
+{
+    if (Tilc::Apps::Www::DB)
+    {
+        delete Tilc::Apps::Www::DB;
+        Tilc::Apps::Www::DB = nullptr;
     }
 }
 
