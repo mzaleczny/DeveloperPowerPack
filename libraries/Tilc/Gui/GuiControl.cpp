@@ -531,6 +531,7 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonUp(const SDL_Event& event)
             ++m_ClicksCount;
             if (OnClick)
             {
+                //std::cout << "OnClick: m_ClicksCount " << m_ClicksCount << std::endl;
                 OnClick(event.button.x, event.button.y, event.button.button, this);
             }
         }
@@ -540,6 +541,7 @@ bool Tilc::Gui::TGuiControl::OnMouseButtonUp(const SDL_Event& event)
             m_ClicksCount = 0;
             if (OnDblClick)
             {
+                //std::cout << "OnDblClick: m_ClicksCount " << m_ClicksCount << std::endl;
                 OnDblClick(event.button.x, event.button.y, event.button.button, this);
             }
         }
