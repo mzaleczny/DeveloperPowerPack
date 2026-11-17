@@ -6,6 +6,32 @@
 
 std::vector<Tilc::Commerce::TProduct*> Tilc::Commerce::TObserver::products;
 
+void Tilc::Commerce::TDataObject::ReadRelationshipsFromJsonObject(Tilc::TStdObject* JsonObject)
+{
+    if (!JsonObject) return;
+    for (auto& rel : Relationships)
+    {
+        rel.entities.clear();
+        Tilc::TExtString PairsString = JsonObject->getAsString(rel.OtherPlural);
+        if (!PairsString.empty())
+        {
+            TStringVector RelPairs;
+            PairsString.Explode('|', RelPairs);
+            for (const auto& Pair : RelPairs)
+            {
+                TStringVector PairValues;
+                size_t Pos = Pair.find('=');
+                if (Pos != std::string::npos)
+                {
+                    Tilc::TExtString OtherId = Pair.substr(0, Pos);
+                    Tilc::TExtString OtherName = Pair.substr(Pos + 1);
+                    rel.entities.push_back({static_cast<uint64_t>(std::stoll(OtherId)), OtherName});
+                }
+            }
+        }
+    }
+}
+
 Tilc::TStdObject* Tilc::Commerce::TDataObject::GetDataObject(const Tilc::TExtString& JsonContent)
 {
     Tilc::TJsonParser JsonParser;
@@ -165,6 +191,7 @@ void Tilc::Commerce::TCategory::FromJsonObject(Tilc::TStdObject* JsonObject)
         Tilc::TExtString Pictures = JsonObject->getAsString("pictures");
         Pictures.Explode(',', pictures);
         new_pictures.clear();
+        ReadRelationshipsFromJsonObject(JsonObject);
     }
 }
 
@@ -250,6 +277,7 @@ void Tilc::Commerce::TProduct::FromJsonObject(Tilc::TStdObject* JsonObject)
         Tilc::TExtString Pictures = JsonObject->getAsString("pictures");
         Pictures.Explode(',', pictures);
         new_pictures.clear();
+        ReadRelationshipsFromJsonObject(JsonObject);
     }
 }
 

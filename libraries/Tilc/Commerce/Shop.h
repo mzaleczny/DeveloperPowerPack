@@ -80,6 +80,7 @@ namespace Tilc
             virtual Tilc::TExtString ToJson() = 0;
             virtual void FromJson(const Tilc::TExtString& JsonContent) = 0;
             virtual void FromJsonObject(Tilc::TStdObject* JsonObject) = 0;
+            virtual void ReadRelationshipsFromJsonObject(Tilc::TStdObject* JsonObject);
             // Returned pointer **MUST** be deleted: delete obj;
             Tilc::TStdObject* GetDataObject(const Tilc::TExtString& JsonContent);
             virtual bool IsEmpty() const = 0;
