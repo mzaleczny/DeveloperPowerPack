@@ -273,6 +273,10 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             }
             Position.x = lbl->m_Position.x;
             Position.y += Position.h + 15.0f;
+
+            lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lblRelationship") + Name, Position, "", true);
+            Position.y += Position.h + 15.0f;
+
             continue;
         }
     }
