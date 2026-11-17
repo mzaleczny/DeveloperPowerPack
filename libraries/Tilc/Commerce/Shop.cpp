@@ -25,6 +25,7 @@ void Tilc::Commerce::TDataObject::ReadRelationshipsFromJsonObject(Tilc::TStdObje
                 {
                     Tilc::TExtString OtherId = Pair.substr(0, Pos);
                     Tilc::TExtString OtherName = Pair.substr(Pos + 1);
+                    OtherName.StrReplace("{{[[&quot;]]}}", "\"");
                     rel.entities.push_back({static_cast<uint64_t>(std::stoll(OtherId)), OtherName});
                 }
             }
