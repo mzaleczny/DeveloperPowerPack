@@ -324,6 +324,9 @@ namespace Tilc {
                         });
                         FormPackage->m_CachedOriginalPictures.clear();
                     }
+
+                    // Ładujemy etykiety listujące zawartości relacji
+                    SetRelationshipLabels(EditWindow, Item);
                 }
             }
 
@@ -393,66 +396,63 @@ namespace Tilc {
 
             static int OnListEditClick(float x, float y, Uint8 MouseButton, Tilc::Gui::TGuiControl* Control)
             {
-                if (auto* Button = dynamic_cast<Tilc::Gui::TButton*>(Control); Button)
+                auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
+                auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
+                auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
+                if (EditWindow)
                 {
-                    auto* ListWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "ListWindow"));
-                    auto* EditWindow = reinterpret_cast<Tilc::Gui::TStyledWindow*>(GetPointer(Control, "EditWindow"));
-                    auto* FormPackage = reinterpret_cast<Tilc::Gui::TFormPackage<TItemType>*>(GetPointer(Control, "FormPackage"));
-                    if (EditWindow)
+                    if (auto* btnSave = EditWindow->GetChild("SaveButton"); btnSave)
                     {
-                        if (auto* btnSave = EditWindow->GetChild("SaveButton"); btnSave)
+                        if (FormPackage->lbList)
                         {
-                            if (FormPackage->lbList)
+                            Tilc::Gui::TGuiControlItem* SelectedItem = FormPackage->lbList->GetSelectedItem();
+                            if (SelectedItem)
                             {
-                                Tilc::Gui::TGuiControlItem* SelectedItem = FormPackage->lbList->GetSelectedItem();
-                                if (SelectedItem)
+                                TItemType Item;
+                                Tilc::TExtString Id = SelectedItem->m_Props["id"];
+                                Tilc::TExtString IndexInChangedList = SelectedItem->m_Props["IndexInChangedList"];
+
+                                btnSave->SetText("Zapisz");
+                                if (FormPackage->HideAllWindowsFromParent)
                                 {
-                                    TItemType Item;
-                                    Tilc::TExtString Id = SelectedItem->m_Props["id"];
-                                    Tilc::TExtString IndexInChangedList = SelectedItem->m_Props["IndexInChangedList"];
+                                    FormPackage->HideAllWindowsFromParent();
+                                }
+                                FormPackage->lblTitle->SetText(Item.EditLabel);
 
-                                    btnSave->SetText("Zapisz");
-                                    if (FormPackage->HideAllWindowsFromParent)
+                                int Index = -1;
+                                if (IndexInChangedList != "-1")
+                                {
+                                    Index = std::stoi(IndexInChangedList);
+                                    Item = FormPackage->m_ChangedItems[Index];
+                                    TFormPackage::ShowEditWindow(FormPackage, Item, Index);
+                                }
+                                else
+                                {
+                                    // find the category in m_ChangedCategories vector
+                                    auto it = std::ranges::find_if(FormPackage->m_ChangedItems, [Id](const TItemType& c)
                                     {
-                                        FormPackage->HideAllWindowsFromParent();
-                                    }
-                                    FormPackage->lblTitle->SetText(Item.EditLabel);
-
-                                    int Index = -1;
-                                    if (IndexInChangedList != "-1")
+                                        return c.id == Id;
+                                    });
+                                    // Get Index of found element or -1 when not found in changed vector
+                                    if (it != FormPackage->m_ChangedItems.end())
                                     {
-                                        Index = std::stoi(IndexInChangedList);
+                                        Index = static_cast<int>(std::ranges::distance(FormPackage->m_ChangedItems.begin(), it));
                                         Item = FormPackage->m_ChangedItems[Index];
                                         TFormPackage::ShowEditWindow(FormPackage, Item, Index);
                                     }
                                     else
                                     {
-                                        // find the category in m_ChangedCategories vector
-                                        auto it = std::ranges::find_if(FormPackage->m_ChangedItems, [Id](const TItemType& c)
-                                        {
-                                            return c.id == Id;
-                                        });
-                                        // Get Index of found element or -1 when not found in changed vector
-                                        if (it != FormPackage->m_ChangedItems.end())
-                                        {
-                                            Index = static_cast<int>(std::ranges::distance(FormPackage->m_ChangedItems.begin(), it));
-                                            Item = FormPackage->m_ChangedItems[Index];
-                                            TFormPackage::ShowEditWindow(FormPackage, Item, Index);
-                                        }
-                                        else
-                                        {
-                                            // Tutaj pobieramy dane encji z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
+                                        // Tutaj pobieramy dane encji z serwera i dodajemy do listy zmienionych, które będą czekać w kolejce na synchronizację
 #ifdef __EMSCRIPTEN__
-                                            Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [FormPackage](Tilc::TExtString ItemJson) {
-                                                InitializeItemFromJson(FormPackage, ItemJson);
-                                            });
+                                        Tilc::Apps::Www::DoPostAsync(FormPackage->Url_GetItem, Id, [FormPackage](Tilc::TExtString ItemJson) {
+                                            InitializeItemFromJson(FormPackage, ItemJson);
+                                        });
 #else
-                                            Item = Tilc::Apps::Www::Fetch<TItemType>(FormPackage->Url_GetItem, Id);
-                                            FormPackage->m_ChangedItems.push_back(Item);
-                                            Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
-                                            TFormPackage::ShowEditWindow(FormPackage, Item, Index);
+                                        Item = Tilc::Apps::Www::Fetch<TItemType>(FormPackage->Url_GetItem, Id);
+                                        FormPackage->m_ChangedItems.push_back(Item);
+                                        Index = static_cast<int>(FormPackage->m_ChangedItems.size() - 1);
+                                        TFormPackage::ShowEditWindow(FormPackage, Item, Index);
 #endif
-                                        }
                                     }
                                 }
                             }
@@ -689,6 +689,7 @@ namespace Tilc {
                     }
                     ParentWindow->Destroy();
                     FormPackage->WndAssignCategoriesForm = nullptr;
+                    SetRelationshipLabels(FormPackage->WndEditForm, FormPackage->EditedItem);
                 }
                 return 0;
             }
@@ -708,6 +709,30 @@ namespace Tilc {
             // *******************************************************************************************************************
 
         protected:
+            static void SetRelationshipLabels(Tilc::Gui::TStyledWindow* Window, TItemType& Item)
+            {
+                // Ładujemy obiekty w relacjach
+                Tilc::TExtString RelNamesString;
+                for (auto& rel : Item.Relationships)
+                {
+                    RelNamesString = "";
+                    for (const auto& ent : rel.entities)
+                    {
+                        if (!RelNamesString.empty())
+                        {
+                            RelNamesString += ",  ";
+                        }
+                        RelNamesString += ent.name;
+                    }
+                    //std::cout << EditWindow->GetName() << ": lblRelationship_" << rel.RelationshipTableName
+                    //        << ",  RelNamesString: [" << RelNamesString << "]" << std::endl;
+                    auto lblCategories = dynamic_cast<Tilc::Gui::TLabel*>(Window->GetChild("lblRelationship_" + rel.RelationshipTableName));
+                    if (lblCategories)
+                    {
+                        lblCategories->SetText(RelNamesString);
+                    }
+                }
+            }
             void SetPropsLinkingToStyledWindows()
             {
                 if (WndListForm && WndEditForm)
@@ -833,6 +858,7 @@ namespace Tilc {
                     {
                         lbList->SetColumnWidths(lbListColumnsWidths);
                         lbList->SetHeaderCaptions(lbListColumnsCaptions);
+                        lbList->OnDblClick = &TFormPackage::OnListEditClick;
                     }
                 }
             }
@@ -840,8 +866,9 @@ namespace Tilc {
 
             void InitEditWindow(Tilc::Gui::TStyledWindow* ParentWindow, std::initializer_list<std::initializer_list<const char*>> FormFields)
             {
+                Tilc::TExtString Name = m_Name + "_Edit";
                 SDL_FRect Position = WndListForm->m_Position;
-                WndEditForm = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, "WndProductEdit", Position);
+                WndEditForm = new Tilc::Gui::TStyledWindow(Tilc::GameObject->m_Window, ParentWindow, Name, Position);
                 if (WndEditForm)
                 {
                     WndEditForm->SetHasBackground(true);

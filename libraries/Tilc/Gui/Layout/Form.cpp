@@ -274,7 +274,12 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
             Position.x = lbl->m_Position.x;
             Position.y += Position.h + 15.0f;
 
-            lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lblRelationship") + Name, Position, "", true);
+            //std::cout << Window->GetName() << ": lblRelationship_" << Name << std::endl;
+            lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lblRelationship_") + Name, Position, "", true);
+            if (lbl)
+            {
+                lbl->SetFontToUse("Default");
+            }
             Position.y += Position.h + 15.0f;
 
             continue;
