@@ -124,7 +124,7 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
     for (auto Rel : Tilc::Data::TDataProcessor::m_Relationships[std::string(TableName)])
     {
         Tilc::Data::TDBDataRows RelData;
-        DB.Select(std::format("SELECT {}, jt.name FROM {} LEFT JOIN {} jt ON (jt.id={}) WHERE {}={}",
+        DB.Select(std::format("SELECT t.{}, jt.name FROM {} t LEFT JOIN {} jt ON (jt.id=t.{}) WHERE t.{}={}",
                 (Rel.OtherSingle + "_id").c_str(),
                 (Rel.RelationshipTableName).c_str(),
                 (Rel.OtherPlural).c_str(),
@@ -144,9 +144,9 @@ std::ostream& Tilc::Data::TDataProcessor::PrintItemWithPictures(std::ostream& os
         {
             if (!OtherIds.empty())
             {
-                OtherIds += "=" + RelData[i][1] + "|";
+                OtherIds += "|";
             }
-            OtherIds += RelData[i][0];
+            OtherIds += RelData[i][0] + "=" + RelData[i][1];
         }
         AllFields.push_back(Rel.OtherPlural.c_str());
         Data[0].push_back(OtherIds);
