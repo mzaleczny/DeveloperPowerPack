@@ -15,29 +15,36 @@ extern "C" {
     EM_JS(void, InitAppHandlers, (), {
         // 1. Blokujemy domyślne przewijanie strony dla klawiszy End, Home, PageUp, PageDown, Spacja
         window.addEventListener('keydown', async (e) => {
-            const navigationKeys = ['End', 'Home', 'PageUp', 'PageDown', ' '];
-            if (navigationKeys.includes(e.key)) {
-                // Sprawdzamy czy użytkownik nie pisze w jakimś natywnym inputcie HTML (jeśli taki masz)
-                if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                    e.preventDefault(); // Zapobiega przewijaniu strony przez przeglądarkę
-                }
-            }
-
-            // 2. Obsługa wklejania (Ctrl+V / Cmd+V)
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-                try {
-                    const text = await navigator.clipboard.readText();
-                    if (text) {
-                        const length = lengthBytesUTF8(text) + 1;
-                        const ptr = _malloc(length);
-                        stringToUTF8(text, ptr, length);
-
-                        _HandlePasteEvent(ptr);
-
-                        _free(ptr);
+            // funkcja getDeepActiveElement() zdefiniowana jest w pliku app.js, który inkluduję w pliku html aplikacji
+            const activeElement = getDeepActiveElement();
+            // zdarzenie przechwytujemy tylko wtedy, gdy aktywnym elementem jest canvas, żeby nie blokować zdarzeń keypress np. CTRL+V na polach
+            // tekstowych
+            if (activeElement?.tagName == "CANVAS")
+            {
+                const navigationKeys = ['End', 'Home', 'PageUp', 'PageDown', ' '];
+                if (navigationKeys.includes(e.key)) {
+                    // Sprawdzamy czy użytkownik nie pisze w jakimś natywnym inputcie HTML (jeśli taki masz)
+                    if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                        e.preventDefault(); // Zapobiega przewijaniu strony przez przeglądarkę
                     }
-                } catch (err) {
-                    console.error('Błąd odczytu schowka:', err);
+                }
+
+                // 2. Obsługa wklejania (Ctrl+V / Cmd+V)
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        if (text) {
+                            const length = lengthBytesUTF8(text) + 1;
+                            const ptr = _malloc(length);
+                            stringToUTF8(text, ptr, length);
+
+                            _HandlePasteEvent(ptr);
+
+                            _free(ptr);
+                        }
+                    } catch (err) {
+                        console.error('Błąd odczytu schowka:', err);
+                    }
                 }
             }
         });
