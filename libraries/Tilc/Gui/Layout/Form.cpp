@@ -67,18 +67,40 @@ void Tilc::Gui::TForm::CreateForm(TStyledWindow* Window, std::initializer_list<s
         }
         else if (std::strncmp(Type, "multiline-textfield", 19) == 0)
         {
+            bool WithEditor = false;
+            if (Item.size() >= 4)
+            {
+                const char* WithEditorFlag = *(Item.begin()+3);
+                if (strncmp(WithEditorFlag, "with-html-editor", 16) == 0)
+                {
+                    WithEditor = true;
+                }
+            }
             Position.w = AvailableWidth;
             Position.h = 25.0f;
-            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, false);
+            Tilc::Gui::TButton* btnEditHtmlText {};
+            Tilc::Gui::TLabel* lbl = new Tilc::Gui::TLabel(Window, Tilc::TExtString("lbl") + Name, Position, Label, true);
             if (lbl)
             {
                 lbl->SetFontToUse("DefaultBold");
+                if (WithEditor)
+                {
+                    SDL_FRect ButtonPosition = Position;
+                    ButtonPosition.x = lbl->m_Position.x + lbl->m_Position.w + 15.0f;
+                    ButtonPosition.y -= 5.0f;
+                    ButtonPosition.w = 125.0f;
+                    btnEditHtmlText = new Tilc::Gui::TButton(Window, Tilc::TExtString("btnShowHtmlEditor_") + Name, ButtonPosition, "Edytor HTML");
+                }
             }
             gc = lbl;
             Position.y += Position.h;
             Position.x = PaddingLeft;
             Position.h = 5*25.0f;
             gc = new Tilc::Gui::TMultilineTextField(Window, Name, Position);
+            if (btnEditHtmlText && gc)
+            {
+                btnEditHtmlText->m_Props["TextControl"] = std::format("0x{:X}", reinterpret_cast<uintptr_t>(gc));
+            }
             Position.y += Position.h + SpacerH;
             continue;
         }
