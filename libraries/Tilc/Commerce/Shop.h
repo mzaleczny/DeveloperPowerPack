@@ -110,7 +110,7 @@ namespace Tilc
                 Relationships.push_back({"products_categories",
                     "category", "categories",
                     "product", "products"});
-            }
+           }
 
             std::vector<const char*> GetAllFieldsNamesList() override
             {
