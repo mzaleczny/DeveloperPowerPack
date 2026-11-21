@@ -178,7 +178,7 @@ void Tilc::Game2D::TMapLayer::Render(SDL_Renderer* Renderer)
 		TTileID Tile = MapY * m_MapWidth + MapX;
 		if (Tile >= m_TileMap.size()) break;
 		DestRect.y = static_cast<float>(y);
-		for (x = -FineX; x < WindowWidth && Tile < m_MapWidth; x += m_TileWidth, ++Tile)
+		for (x = -FineX; x < WindowWidth; x += m_TileWidth, ++Tile)
 		{
 			DestRect.x = static_cast<float>(x);
 			if (m_TileMap[Tile])
