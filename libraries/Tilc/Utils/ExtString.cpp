@@ -457,8 +457,8 @@ void Tilc::TExtString::RTrim(char ch)
 	size_t len = this->length();
 	if (len > 0)
 	{
-		int i = static_cast<int>(len - 1);
-		while (i >= 0 && (*this)[i] == ch)
+		size_t i = len;
+		while (i > 0 && (*this)[i-1] == ch)
 		{
 			--i;
 		}
@@ -468,16 +468,18 @@ void Tilc::TExtString::RTrim(char ch)
 
 void Tilc::TExtString::RTrimAllChars(const char* StringOfChars)
 {
-	size_t len = this->length();
-	if (len > 0)
+	if (!StringOfChars || empty())
 	{
-		int i = static_cast<int>(len - 1);
-		while (i >= 0 && strchr(StringOfChars, (*this)[i]) != nullptr)
-		{
-			--i;
-		}
-		erase(i);
+		return;
 	}
+
+	size_t i = size();
+	while (i > 0 && std::strchr(StringOfChars, (*this)[i - 1]) != nullptr)
+	{
+		--i;
+	}
+
+	erase(i);
 }
 
 void Tilc::TExtString::LTrim(char ch)
