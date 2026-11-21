@@ -460,9 +460,9 @@ void Tilc::TExtString::RTrim(char ch)
 		int i = static_cast<int>(len - 1);
 		while (i >= 0 && (*this)[i] == ch)
 		{
-			(*this)[i] = '\0';
 			--i;
 		}
+		erase(i);
 	}
 }
 
@@ -474,9 +474,9 @@ void Tilc::TExtString::RTrimAllChars(const char* StringOfChars)
 		int i = static_cast<int>(len - 1);
 		while (i >= 0 && strchr(StringOfChars, (*this)[i]) != nullptr)
 		{
-			(*this)[i] = '\0';
 			--i;
 		}
+		erase(i);
 	}
 }
 
