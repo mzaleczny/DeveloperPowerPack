@@ -7,10 +7,11 @@
 Tilc::Game2D::TTileInfo::TTileInfo(TTileID TileId, int TileSheetWidth, int TileSheetHeight, int TileWidth, int TileHeight)
 	: m_Id(0), m_Deadly(false)
 {
+	int TilesPerRow = TileSheetWidth / TileWidth;
 	m_Id = TileId;
 	m_TileBoundariesInsideTileSheet = {
-		static_cast<float>(m_Id % (TileSheetWidth / TileWidth) * TileWidth),
-		static_cast<float>(m_Id * (TileSheetWidth / TileWidth) * TileHeight),
+		static_cast<float>(m_Id % TilesPerRow * TileWidth),
+		static_cast<float>(m_Id / TilesPerRow * TileHeight),
 		static_cast<float>(TileWidth),
 		static_cast<float>(TileHeight)
 	};
