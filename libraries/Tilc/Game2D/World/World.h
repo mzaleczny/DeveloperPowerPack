@@ -73,5 +73,7 @@ namespace Tilc::Game2D
 		bool m_LoadNextMap;
 		std::string m_BackgroundTexture;
 		Tilc::TBaseState* m_CurrentState;
+	private:
+		TTile* CreateAndAddTile(Tilc::Game2D::TMapLayer* CurrentLayer, int TileSetIndex, int TileId);
 	};
 }

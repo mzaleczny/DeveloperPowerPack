@@ -190,6 +190,29 @@ void Tilc::Game2D::TWorld2D::SetPropertiesOfAllLayers(int TileSetIndex, int Colo
 	}
 }
 
+Tilc::Game2D::TTile* Tilc::Game2D::TWorld2D::CreateAndAddTile(Tilc::Game2D::TMapLayer* CurrentLayer, int TileSetIndex, int TileId)
+{
+	int FoundTile = -1;
+	for (auto itr = m_TileSets[TileSetIndex].m_TileSet.begin(); itr != m_TileSets[TileSetIndex].m_TileSet.end(); ++itr)
+	{
+		++FoundTile;
+		if ((*itr)->m_Id == TileId)
+		{
+			break;
+		}
+	}
+	if (FoundTile < 0 || FoundTile == m_TileSets[TileSetIndex].m_TileSet.size())
+	{
+		std::cerr << "ERROR! Tile id(" << TileId << ") was not found in tileset." << std::endl;
+		return nullptr;
+	}
+	auto* Tile = new TTile();
+	// Bind properties of a tile from a set.
+	Tile->m_Properties = m_TileSets[TileSetIndex].m_TileSet[FoundTile];
+	CurrentLayer->m_TileMap.push_back(Tile);
+	return Tile;
+}
+
 void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& FileName)
 {
 	Tilc::TCFile File(FileName.c_str());
@@ -205,6 +228,8 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 
 	int MaxTileX = -1;
 	int MaxTileY = -1;
+	int MapSimplifiedBegan {-1};
+	int MapSimplifiedEnded {-1};
 
 	if (File.m_File)
 	{
@@ -216,8 +241,10 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 				continue;
 			}
 			std::stringstream KeyStream(Line);
-			std::string Type;
+			Tilc::TExtString Type;
 			KeyStream >> Type;
+			Type.RTrim();
+			std::cout << "KeyStream: " << Type << "=" << Type.length() << std::endl;
 			if (Type == "TILE")
 			{
 				int TileId = 0;
@@ -227,38 +254,25 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 					std::cerr << "ERROR! Bad tile id: " << TileId << " at line " << LineNumber << std::endl;
 					continue;
 				}
-				int FoundTile = -1;
-				for (auto itr = m_TileSets[TileSetIndex].m_TileSet.begin(); itr != m_TileSets[TileSetIndex].m_TileSet.end(); ++itr)
+				TTile* Tile = CreateAndAddTile(CurrentLayer, TileSetIndex, TileId);
+				if (Tile)
 				{
-					++FoundTile;
-					if ((*itr)->m_Id == TileId)
+					int x, y;
+					KeyStream >> x >> y;
+					if (x > MaxTileX || y > MaxTileY)
 					{
-						break;
+						delete Tile;
+						Tile = nullptr;
+						std::cerr << "ERROR! Tile is out of range: " << x << " " << y << " at line " << LineNumber << std::endl;
+						continue;
 					}
-				}
-				if (FoundTile < 0 || FoundTile == m_TileSets[TileSetIndex].m_TileSet.size())
-				{
-					std::cerr << "ERROR! Tile id(" << TileId << ") was not found in tileset." << std::endl;
-					continue;
-				}
-				int x, y;
-				KeyStream >> x >> y;
-				if (x > MaxTileX || y > MaxTileY)
-				{
-					std::cerr << "ERROR! Tile is out of range: " << x << " " << y << " at line " << LineNumber << std::endl;
-					continue;
-				}
-				TTile* Tile = new TTile();
-				// Bind properties of a tile from a set.
-				Tile->m_Properties = m_TileSets[TileSetIndex].m_TileSet[FoundTile];
-				CurrentLayer->m_TileMap.push_back(Tile);
-
-				std::string Warp;
-				KeyStream >> Warp;
-				Tile->m_Warp = false;
-				if (Warp == "WARP")
-				{
-					Tile->m_Warp = true;
+					std::string Warp;
+					KeyStream >> Warp;
+					Tile->m_Warp = false;
+					if (Warp == "WARP")
+					{
+						Tile->m_Warp = true;
+					}
 				}
 			}
 			else if (Type == "BACKGROUND")
@@ -330,6 +344,28 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 				float EnemyY = 0;
 				KeyStream >> EnemyX >> EnemyY;
 				EntityManager->Find(EnemyId)->SetPosition(EnemyX, EnemyY);
+			}
+			else if (Type == "SIMPLE_MAP_BEGIN")
+			{
+				while (File.ReadLine(Line))
+				{
+					if (Line == "SIMPLE_MAP_END")
+					{
+						break;
+					}
+					std::stringstream KeyStream(Line);
+					while (!KeyStream.eof() && KeyStream.good())
+					{
+						int TileId;
+						KeyStream >> TileId;
+						if (TileId < 0)
+						{
+							std::cerr << "ERROR! Bad tile id: " << TileId << " at line " << LineNumber << std::endl;
+							continue;
+						}
+						TTile* Tile = CreateAndAddTile(CurrentLayer, TileSetIndex, TileId);
+					}
+				}
 			}
 		}
 	}
