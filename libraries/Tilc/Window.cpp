@@ -217,7 +217,11 @@ SDL_AppResult Tilc::TWindow::Create(int Flags, bool WithGLContext, bool IsPopup,
 
 	if (!IsPopup)
 	{
-		//SDL_Log("Create Standard Window with Renderer");
+#ifdef __EMSCRIPTEN__
+		SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+		//SDL_Log("SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT: #canvas");
+#endif
+		//SDL_Log("Create Standard Window with Renderer: %s, %d, %d, %llu", m_WindowTitle.c_str(), m_WindowWidth, m_WindowHeight, WindowFlags);
 		if (!SDL_CreateWindowAndRenderer(m_WindowTitle.c_str(), m_WindowWidth, m_WindowHeight, WindowFlags, &m_Window, &m_Renderer))
 		{
 			SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
