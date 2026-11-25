@@ -335,6 +335,15 @@ namespace Tilc
 	DECLSPEC TExtString StrReplace(Tilc::TExtString& What, Tilc::TExtString& ReplaceWith, Tilc::TExtString Where);
 	DECLSPEC TExtString EscapeString(Tilc::TExtString Content);
 
+
+	inline Tilc::TExtString Unescape(const Tilc::TExtString& name)
+	{
+		Tilc::TExtString Result = name;
+		Result.StrReplace("{{[[NL]]}}", "\n");
+		Result.StrReplace("{{[[&quot;]]}}", "\"");
+		return Result;
+	}
+
 	template <typename CharT>
 	using tstring = std::basic_string<CharT, std::char_traits<CharT>, std::allocator<CharT>>;
 
