@@ -1,7 +1,12 @@
 #include <cstring>
 #include <cstdio>
 #include "Tilc/Apps/Www/WwwApp.h"
+#include "Tilc/Commerce/Shop.h"
+
+#include "CommonRequestHandlers.h"
 #include "Tilc/Apps/Www/RequestHandler.h"
+#include "Tilc/Utils/FileUtils.h"
+#include "Tilc/Utils/Time.h"
 
 std::string Tilc::Apps::Www::DbHost{"localhost"};
 std::string Tilc::Apps::Www::DbName{"teacher"};
@@ -129,6 +134,7 @@ std::string Tilc::Apps::Www::urldecode(const std::string& Input)
 Tilc::Apps::Www::TWwwApp::TWwwApp(const Tilc::TExtString& AllowedRootDir, const Tilc::TExtString& AppName, const Tilc::TExtString& AppSlug, const Tilc::TExtString& AllowOrigin)
     : m_AllowedRootDir(AllowedRootDir), m_AppName(AppName), m_AppSlug(AppSlug), m_AllowOrigin(AllowOrigin)
 {
+	m_TemplateDir = m_AllowedRootDir + "/public_html/templates/" + m_TemplateName;
 }
 
 Tilc::Apps::Www::TWwwApp::~TWwwApp()
@@ -140,4 +146,66 @@ void Tilc::Apps::Www::TWwwApp::AddAvailableLanguages(const std::initializer_list
 	std::for_each(Languages.begin(), Languages.end(), [this](Tilc::TExtString lang) {
 		m_Languages.push_back(lang);
 	});
+}
+
+void Tilc::Apps::Www::TWwwApp::Index(TRequestHandler* rh)
+{
+	Tilc::TExtString Content, CategoriesBox, Product;
+
+	{
+		Tilc::TFile FileIndex((m_TemplateDir + "/index.html").c_str());
+		if (FileIndex.m_File)
+		{
+			FileIndex.ReadContent(Content);
+		}
+	}
+
+	{
+		Tilc::TFile FileCategoriesBox((m_TemplateDir + "/category-box.html").c_str());
+		if (FileCategoriesBox.m_File)
+		{
+			FileCategoriesBox.ReadContent(CategoriesBox);
+		}
+	}
+
+	{
+		Tilc::TFile FileCategoriesBoxProduct((m_TemplateDir + "/category-box-product.html").c_str());
+		if (FileCategoriesBoxProduct.m_File)
+		{
+			FileCategoriesBoxProduct.ReadContent(Product);
+		}
+	}
+
+	Tilc::Commerce::TCategory c;
+
+	Tilc::Data::TDBDataRows DataCategories;
+	Tilc::Apps::Www::DB->Select("SELECT id, name, slug FROM categories ORDER BY id ASC", DataCategories);
+
+	Tilc::Data::TDBDataRows DataProducts;
+	Tilc::Apps::Www::DB->Select("SELECT p.id, pc.category_id cid, p.name, p.slug, p.short_description FROM products p LEFT JOIN products_categories pc ON (pc.product_id=p.id) ORDER BY category_id ASC, name ASC;", DataProducts);
+
+	size_t Pos = Content.find("{content}");
+	(*rh) << Content.substr(0, Pos);
+	size_t ProdIndex = 0;
+	for (size_t i = 0; i < DataCategories.size(); ++i)
+	{
+		Tilc::TExtString CatBox = CategoriesBox;
+		Tilc::TExtString ProductsList;
+		CatBox.StrReplace("{category_name}", Tilc::Unescape(DataCategories[i][1]));
+		for (size_t j = ProdIndex; j < DataProducts.size(); ++j)
+		{
+			if (DataProducts[j][1] != DataCategories[i][0]) break;
+			Tilc::TExtString Prod = Product;
+			Prod.StrReplace("{product_name}", Tilc::Unescape(DataProducts[j][2]));
+			Prod.StrReplace("{product_slug}", DataProducts[j][3]);
+			Prod.StrReplace("{product_short_description}", Tilc::Unescape(DataProducts[j][4]));
+
+			ProductsList += Prod;
+
+			++ProdIndex;
+		}
+		CatBox.StrReplace("{products_in_category}", ProductsList);
+		(*rh) << CatBox;
+	}
+	(*rh) << Content.substr(Pos+9);
 }

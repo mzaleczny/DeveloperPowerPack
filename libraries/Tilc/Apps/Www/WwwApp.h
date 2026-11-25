@@ -53,12 +53,21 @@ namespace Tilc
                 const Tilc::TExtString& GetAllowOrigin() const { return m_AllowOrigin; }
 
                 void AddAvailableLanguages(const std::initializer_list<const char*>& Languages);
+                inline void SetTemplateName(const std::string_view TemplateName)
+                {
+                    m_TemplateName = TemplateName.data();
+                    m_TemplateDir = m_AllowedRootDir + "/public_html/templates/" + m_TemplateName;
+                };
+
+                virtual void Index(TRequestHandler* rh);
 
             protected:
                 Tilc::TExtString m_AllowedRootDir;
                 Tilc::TExtString m_AllowOrigin;
                 Tilc::TExtString m_AppName;
                 Tilc::TExtString m_AppSlug;
+                Tilc::TExtString m_TemplateDir;
+                Tilc::TExtString m_TemplateName;
                 std::vector<Tilc::TExtString> m_Languages;
             };
         }
