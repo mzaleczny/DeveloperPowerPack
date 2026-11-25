@@ -154,10 +154,7 @@ Tilc::TExtString Tilc::TStdObjectProperty::getAsString()
 
 Tilc::TExtString Tilc::TStdObjectProperty::getAsStringUnescaped()
 {
-    Tilc::TExtString Result = getAsString();
-    Result.StrReplace("{{[[NL]]}}", "\n");
-    Result.StrReplace("{{[[&quot;]]}}", "\"");
-    return Result;
+    return Tilc::Unescape(getAsString());
 }
 
 bool Tilc::TStdObjectProperty::hasOnlyScalars()
@@ -385,10 +382,7 @@ Tilc::TExtString Tilc::TStdObject::getAsString(const Tilc::TExtString& name)
 
 Tilc::TExtString Tilc::TStdObject::getAsStringUnescaped(const Tilc::TExtString& name)
 {
-    Tilc::TExtString Result = getAsString(name);
-    Result.StrReplace("{{[[NL]]}}", "\n");
-    Result.StrReplace("{{[[&quot;]]}}", "\"");
-    return Result;
+    return Tilc::Unescape(getAsString(name));
 }
 
 int64_t Tilc::TStdObject::getAsInt(const Tilc::TExtString& name)
