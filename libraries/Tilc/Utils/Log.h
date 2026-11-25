@@ -16,7 +16,8 @@ namespace Tilc
 		{
 			m_FileName = FileName;
 		}
-		void operator()(Tilc::TExtString Data, const Tilc::TExtString& AppendStr = "\n");
+		void operator()(Tilc::TExtString DateTime, const Tilc::TExtString& AppendStr);
+		void operator()(const Tilc::TExtString& AppendStr);
 
 	private:
 		TExtString m_FileName;
