@@ -4,6 +4,7 @@
 #include "Tilc/Net/Http.h"
 #include "Tilc/Utils/Base64.h"
 #include "Tilc/Utils/Time.h"
+#include <format>
 
 DECLSPEC Tilc::Data::TDBMySQL* Tilc::Apps::Www::DB{nullptr};
 
@@ -153,4 +154,10 @@ DECLSPEC void Tilc::Apps::Www::CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler
         Result = R"({"status": "Not Logged In"})";
     }
     rh << Result;
+}
+
+
+void Tilc::Apps::Www::Index(Tilc::Apps::Www::TRequestHandler& rh, const Tilc::TExtString Url)
+{
+    Tilc::Apps::Www::Application->Index(&rh);
 }

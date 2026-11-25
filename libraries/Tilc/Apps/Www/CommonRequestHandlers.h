@@ -2,6 +2,7 @@
 
 #include "Tilc/Tilc.h"
 #include "Tilc/Apps/Www/RequestHandler.h"
+#include "Tilc/Apps/Www/WwwApp.h"
 #include "Tilc/Data/DbMySQL.h"
 #include "Tilc/Data/DbSQLite.h"
 #include "Tilc/Data/DataProcessor.h"
@@ -10,6 +11,8 @@
 #include "Tilc/Utils/Base64.h"
 #include <chrono>
 #include <cctype>
+
+#include "Tilc/Utils/Time.h"
 
 namespace Tilc
 {
@@ -246,7 +249,7 @@ namespace Tilc
 
             DECLSPEC void GoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
             DECLSPEC void CheckGoogleLogin(Tilc::Apps::Www::TRequestHandler& rh, Tilc::TExtString Url);
-
+            DECLSPEC void Index(Tilc::Apps::Www::TRequestHandler& rh, const Tilc::TExtString Url);
         }
     }
 }
