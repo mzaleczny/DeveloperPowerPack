@@ -26,6 +26,10 @@ namespace Tilc::Game2D::Sprite
 		{
 			m_SpriteSheet.Draw(Destination);
 		}
+		virtual void Render(SDL_Renderer* Renderer)
+		{
+			m_SpriteSheet.Render(Renderer);
+		}
 		SDL_FRect& GetAttackBoundingBox() { return m_AttackBoundingBox; }
 
 	protected:

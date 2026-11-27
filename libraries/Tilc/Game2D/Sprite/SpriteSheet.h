@@ -27,7 +27,7 @@ namespace Tilc::Game2D::Sprite
 		{
 			ReleaseSheet();
 		}
-		bool LoadSheet(const std::string& FileName);
+		bool LoadSheet(const std::string& FileName, bool UseTexture = true);
 		void ReleaseSheet();
 		const SDL_Rect& GetSpriteSrcRect() const
 		{
@@ -59,15 +59,21 @@ namespace Tilc::Game2D::Sprite
 		inline void Draw(SDL_Surface* Destination)
 		{
 			SDL_BlitSurface(SpriteSheetSurface, &m_SpriteSrcRect, Destination, &m_SpriteDestRect);
-			//SDL_RenderTexture(Destination, SpriteSheetSurface, &m_SpriteSrcRect, &m_SpriteDestRect);
+		}
+		inline void Render(SDL_Renderer* Renderer)
+		{
+			SDL_RenderTexture(Renderer, SpriteSheetTexture, &m_SpriteSrcFRect, &m_SpriteDestFRect);
 		}
 	private:
 		std::string m_TextureId;
 		SDL_Rect m_SpriteSrcRect;
+		SDL_FRect m_SpriteSrcFRect;
 		SDL_Rect m_SpriteDestRect;
+		SDL_FRect m_SpriteDestFRect;
 		SDL_FPoint m_SpriteScale;
 		// Texture below is handled by resource manager so it is not deleted in this class
-		SDL_Surface* SpriteSheetSurface;
+		SDL_Surface* SpriteSheetSurface{};
+		SDL_Texture* SpriteSheetTexture{};
 		EDirection m_Direction;
 		std::string m_AnimType;
 		TAnimations m_Animations;

@@ -15,7 +15,7 @@ Tilc::Game2D::Sprite::TSpriteSheet::TSpriteSheet()
 	}
 }
 
-bool Tilc::Game2D::Sprite::TSpriteSheet::LoadSheet(const std::string& FileName)
+bool Tilc::Game2D::Sprite::TSpriteSheet::LoadSheet(const std::string& FileName, bool UseTexture)
 {
 	Tilc::TFile File((Tilc::WorkingDirectory + "/data/" + FileName).c_str());
 	if (File.m_File.is_open())
@@ -53,12 +53,21 @@ bool Tilc::Game2D::Sprite::TSpriteSheet::LoadSheet(const std::string& FileName)
 					continue;
 				}
 				m_TextureId = TextureId;
-				SpriteSheetSurface = (SDL_Surface*)m_TextureManager->GetResource(m_TextureId)->m_Resource;
+				if (UseTexture)
+				{
+					SpriteSheetTexture = m_TextureManager->GetResource(m_TextureId)->AsSDLTexture();
+				}
+				else
+				{
+					SpriteSheetSurface = m_TextureManager->GetResource(m_TextureId)->AsSDLSurface();
+				}
 			}
 
 			else if (Type == "Size")
 			{
 				KeyStream >> m_SpriteDestRect.w >> m_SpriteDestRect.h;
+				m_SpriteDestFRect.w = static_cast<float>(m_SpriteDestRect.w);
+				m_SpriteDestFRect.h = static_cast<float>(m_SpriteDestRect.h);
 			}
 			else if (Type == "Scale")
 			{
