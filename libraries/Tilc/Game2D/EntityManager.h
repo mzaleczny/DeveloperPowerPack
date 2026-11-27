@@ -30,6 +30,7 @@ namespace Tilc::Game2D
         void Remove(unsigned int Id);
         void Update(float DeltaTime);
         void Draw(SDL_Surface* Destination);
+        void Render(SDL_Renderer* Renderer);
         void Purge();
         unsigned int GetMaxEntities() const { return m_MaxEntities; }
         unsigned int AreEnemiesLoaded() const { return m_EnemiesLoaded; }

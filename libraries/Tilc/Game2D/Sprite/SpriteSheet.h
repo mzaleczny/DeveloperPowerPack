@@ -76,9 +76,9 @@ namespace Tilc::Game2D::Sprite
 		{
 			SDL_BlitSurface(SpriteSheetSurface, &m_SpriteSrcRect, Destination, &m_SpriteDestRect);
 		}
-		inline void Render(SDL_Renderer* Renderer)
+		inline void Render(SDL_Renderer* Renderer, SDL_FRect* DestRect)
 		{
-			SDL_RenderTexture(Renderer, SpriteSheetTexture, &m_SpriteSrcFRect, &m_SpriteDestFRect);
+			SDL_RenderTexture(Renderer, SpriteSheetTexture, &m_SpriteSrcFRect, DestRect);
 		}
 	private:
 		std::string m_TextureId;

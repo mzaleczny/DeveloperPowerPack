@@ -82,6 +82,7 @@ namespace Tilc::Game2D
         void ApplyFriction(float fx, float fy);
         virtual void Update(float DeltaTime);
         virtual void Draw(SDL_Surface* Destination) = 0;
+        virtual void Render(SDL_Renderer* Renderer) = 0;
         inline EEntityType GetType() const
         {
             return m_Type;
