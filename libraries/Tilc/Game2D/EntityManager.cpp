@@ -20,10 +20,6 @@ Tilc::Game2D::TEntityManager::TEntityManager(unsigned int MaxEntities)
 		RegisterEntity<Tilc::Game2D::Sprite::TPlayer>(EEntityType::Player);
 		RegisterEntity<Tilc::Game2D::Sprite::TEnemy>(EEntityType::Enemy);
 	}
-	if (Tilc::GameObject)
-	{
-		m_Context = Tilc::GameObject->GetContext();
-	}
 }
 
 Tilc::Game2D::TEntityManager::~TEntityManager()
@@ -88,6 +84,10 @@ void Tilc::Game2D::TEntityManager::Remove(unsigned int Id)
 
 void Tilc::Game2D::TEntityManager::Update(float DeltaTime)
 {
+	if (!m_Context)
+	{
+		m_Context = Tilc::GameObject->GetContext();
+	}
 	for (auto& Iter : m_Entities)
 	{
 		Iter.second->Update(DeltaTime);
@@ -108,6 +108,25 @@ void Tilc::Game2D::TEntityManager::Draw(SDL_Surface* Destination)
 			)
 		{
 			Iter.second->Draw(Destination);
+		}
+	}
+}
+
+void Tilc::Game2D::TEntityManager::Render(SDL_Renderer* Renderer)
+{
+	for (auto& Iter : m_Entities)
+	{
+		if (Iter.second->ReferenceLayer)
+		{
+			// Draw Entity if it is inside view space
+			if (Iter.second->m_Position.x >= Iter.second->ReferenceLayer->m_PosX &&
+				Iter.second->m_Position.x < Iter.second->ReferenceLayer->m_PosX + m_Context->m_Window->GetWindowWidth() &&
+				Iter.second->m_Position.y >= Iter.second->ReferenceLayer->m_PosY &&
+				Iter.second->m_Position.y < Iter.second->ReferenceLayer->m_PosY + m_Context->m_Window->GetWindowHeight()
+				)
+			{
+				Iter.second->Render(Renderer);
+			}
 		}
 	}
 }
