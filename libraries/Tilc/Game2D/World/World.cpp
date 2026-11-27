@@ -266,7 +266,7 @@ void Tilc::Game2D::TWorld2D::LoadLevel(int TileSetIndex, const std::string& File
 			Tilc::TExtString Type;
 			KeyStream >> Type;
 			Type.RTrim();
-			std::cout << "KeyStream: " << Type << "=" << Type.length() << std::endl;
+			//std::cout << "KeyStream: " << Type << "=" << Type.length() << std::endl;
 			if (Type == "TILE")
 			{
 				int TileId = 0;
