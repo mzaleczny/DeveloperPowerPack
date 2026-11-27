@@ -4,13 +4,16 @@
 
 void Tilc::Game2D::Sprite::TDirectionalAnimation::FrameStep()
 {
-	if (m_FrameStart < m_FrameEnd)
+	if (m_FrameStart != m_FrameEnd)
 	{
-		++m_FrameCurrent;
-	}
-	else
-	{
-		--m_FrameCurrent;
+		if (m_FrameStart < m_FrameEnd)
+		{
+			++m_FrameCurrent;
+		}
+		else
+		{
+			--m_FrameCurrent;
+		}
 	}
 	if ((m_FrameStart < m_FrameEnd && m_FrameCurrent > m_FrameEnd) || (m_FrameStart > m_FrameEnd && m_FrameCurrent < m_FrameEnd))
 	{
@@ -30,20 +33,38 @@ void Tilc::Game2D::Sprite::TDirectionalAnimation::CropSprite()
 	switch (m_SpriteSheet->GetDirection())
 	{
 	case EDirection::Left:
-		FrameStep = -1;
+		if (m_MoveLeftRightShared)
+		{
+			FrameStep = -1;
+		}
+		else
+		{
+			FrameStep = 1;
+		}
 	case EDirection::Right:
+		FrameStep = 1;
+	case EDirection::Top:
+		if (m_MoveTopBottomShared)
+		{
+			FrameStep = -1;
+		}
+		else
+		{
+			FrameStep = 1;
+		}
+	case EDirection::Bottom:
 		FrameStep = 1;
     default:
         FrameStep = 0;
     }
-	SDL_Rect SpriteRect = m_SpriteSheet->GetSpriteDestRect();
-	SDL_Rect Rect = {
+	SDL_FRect SpriteRect = m_SpriteSheet->GetSpriteDestFRect();
+	SDL_FRect Rect = {
 		SpriteRect.w * m_FrameCurrent,
 		SpriteRect.h * (m_FrameRow + FrameStep),
 		SpriteRect.w,
 		SpriteRect.h
 	};
-	m_SpriteSheet->SetSpriteSrcRect(Rect);
+	m_SpriteSheet->SetSpriteSrcFRect(Rect);
 }
 
 void Tilc::Game2D::Sprite::TDirectionalAnimation::ReadIn(std::stringstream& Stream)
