@@ -35,7 +35,7 @@ void Tilc::Game2D::TEntityBase::Move(float dx, float dy)
 {
 	m_PositionOld = m_Position;
 	m_Position.x += dx;
-	m_Position.x += dy;
+	m_Position.y += dy;
 	
 	Tilc::TVector2D<int> MapSize{ ReferenceLayer->m_MapWidth, ReferenceLayer->m_MapHeight };
 	if (m_Position.x < 0)
