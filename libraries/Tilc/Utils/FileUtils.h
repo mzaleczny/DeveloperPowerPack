@@ -43,7 +43,7 @@ namespace Tilc
         void ReadContent(Tilc::TExtString& Content);
         void WriteContent(const Tilc::TExtString& Content);
 
-        FILE* m_File;
+        FILE* m_File{};
 
     private:
         std::mutex m_MU;

@@ -127,7 +127,10 @@ Tilc::TCFile::TCFile(const char* FileName, const char* OpenMode)
 Tilc::TCFile::~TCFile()
 {
     std::lock_guard<std::mutex> lock(TCFile::m_MU);
-    fclose(m_File);
+    if (m_File)
+    {
+        fclose(m_File);
+    }
 }
 
 char* Tilc::TCFile::ReadLine(Tilc::TExtString& Line)
