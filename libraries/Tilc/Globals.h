@@ -142,6 +142,22 @@ namespace Tilc
         return v;
     }
 
+    template <typename T,
+          typename D = std::conditional_t<
+                          std::is_arithmetic_v<T>,
+                          std::uniform_int_distribution<T>,
+                          std::uniform_real_distribution<T>>,
+          typename = typename std::enable_if_t<std::is_arithmetic_v<T>>>
+    T GenerateRandom(T const min, T const max)
+    {
+        std::random_device rd{};
+        std::mt19937 mt{ rd() };
+
+        D dist{ min, max };
+
+        return dist(mt);
+    }
+
     namespace CompUnits
     {
         constexpr size_t operator""_KB(unsigned long long const size)
