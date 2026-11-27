@@ -5,6 +5,7 @@
 #include "SDL3/SDL.h"
 #include "Tilc/DllGlobals.h"
 #include "Tilc/Game.h"
+#include "Tilc/Globals.h"
 #include "Tilc/Game2D/World/MapLayer.h"
 #include "Tilc/Utils/Vector.h"
 
@@ -34,12 +35,33 @@ namespace Tilc::Game2D
 		~TWorld2D();
 		TMapLayer* AddLayer(int TileSetIndex);
 		TMapLayer* AddLayerFromStringSimplified(int TileSetIndex, const char* Data, int DefaultTileIndex);
+
 		void Render(SDL_Renderer* Renderer);
 		inline void RenderTile(SDL_Renderer* Renderer, float x, float y, int TileSetIndex, TTileID Tile)
 		{
 			SDL_FRect DestRect = { x, y, static_cast<float>(m_TileSets[TileSetIndex].m_TileWidth), static_cast<float>(m_TileSets[TileSetIndex].m_TileHeight) };
 			SDL_RenderTexture(Renderer, m_TileSets[TileSetIndex].m_TileSetTexture, &m_TileSets[TileSetIndex].m_TileSet[Tile]->m_TileBoundariesInsideTileSheet, &DestRect);
 		}
+
+		inline TTileID GetTileId(int x, int y, int LayerIndex = 0) const
+		{
+			if (x < 0 || x >= m_MapWidth || y < 0 || y >= m_MapHeight || LayerIndex < 0 || LayerIndex >= m_Layers.size()) return -1;
+			return m_Layers[LayerIndex]->m_TileMap[y * m_MapHeight + x]->m_Properties->m_Id;
+		}
+		inline TTile* GetTile(int x, int y, int LayerIndex = 0) const
+		{
+			if (x < 0 || x >= m_MapWidth || y < 0 || y >= m_MapHeight || LayerIndex < 0 || LayerIndex >= m_Layers.size()) return nullptr;
+			return m_Layers[LayerIndex]->m_TileMap[y * m_MapHeight + x];
+		}
+		int FindTileIndex(int TileSetIndex, TTileID TileId);
+		void SetTile(int x, int y, TTileID TileId, int TileSetIndex = 0, int LayerIndex = 0);
+		// Losuje jednego z tili id znajdujących się w liście TileIdList
+		inline void SetRandomTile(int x, int y, std::initializer_list<TTileID> TileIdList, int TileSetIndex = 0, int LayerIndex = 0)
+		{
+			TTileID TileId = GenerateRandom(0UL, TileIdList.size() - 1);
+			SetTile(x, y, TileId, TileSetIndex, LayerIndex);
+		}
+
 		void Update(float DeltaTime);
 		void MoveLayers(float DeltaTime);
 		void Purge();
@@ -74,6 +96,6 @@ namespace Tilc::Game2D
 		std::string m_BackgroundTexture;
 		Tilc::TBaseState* m_CurrentState;
 	private:
-		TTile* CreateAndAddTile(Tilc::Game2D::TMapLayer* CurrentLayer, int TileSetIndex, int TileId);
+		TTile* CreateAndAddTile(Tilc::Game2D::TMapLayer* CurrentLayer, int TileSetIndex, TTileID TileId);
 	};
 }

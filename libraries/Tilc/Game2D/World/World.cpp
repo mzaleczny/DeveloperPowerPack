@@ -65,6 +65,36 @@ void Tilc::Game2D::TWorld2D::Render(SDL_Renderer* Renderer)
 	}
 }
 
+int Tilc::Game2D::TWorld2D::FindTileIndex(int TileSetIndex, TTileID TileId)
+{
+	int FoundTile = -1;
+	for (auto itr = m_TileSets[TileSetIndex].m_TileSet.begin(); itr != m_TileSets[TileSetIndex].m_TileSet.end(); ++itr)
+	{
+		++FoundTile;
+		if ((*itr)->m_Id == TileId)
+		{
+			break;
+		}
+	}
+	if (FoundTile < 0 || FoundTile == m_TileSets[TileSetIndex].m_TileSet.size())
+	{
+		std::cerr << "ERROR! Tile id(" << TileId << ") was not found in tileset." << std::endl;
+		return -1;
+	}
+	return FoundTile;
+}
+
+void Tilc::Game2D::TWorld2D::SetTile(int x, int y, TTileID TileId, int TileSetIndex, int LayerIndex)
+{
+	int FoundTile = FindTileIndex(TileSetIndex, TileId);
+	TTile* Tile = m_Layers[LayerIndex]->m_TileMap[y * m_MapHeight + x];
+	if (Tile && FoundTile >= 0)
+	{
+		// Bind properties of a tile from a set.
+		Tile->m_Properties = m_TileSets[TileSetIndex].m_TileSet[FoundTile];
+	}
+}
+
 void Tilc::Game2D::TWorld2D::Update(float DeltaTime)
 {
 	if (m_LoadNextMap)
@@ -190,17 +220,9 @@ void Tilc::Game2D::TWorld2D::SetPropertiesOfAllLayers(int TileSetIndex, int Colo
 	}
 }
 
-Tilc::Game2D::TTile* Tilc::Game2D::TWorld2D::CreateAndAddTile(Tilc::Game2D::TMapLayer* CurrentLayer, int TileSetIndex, int TileId)
+Tilc::Game2D::TTile* Tilc::Game2D::TWorld2D::CreateAndAddTile(Tilc::Game2D::TMapLayer* CurrentLayer, int TileSetIndex, TTileID TileId)
 {
-	int FoundTile = -1;
-	for (auto itr = m_TileSets[TileSetIndex].m_TileSet.begin(); itr != m_TileSets[TileSetIndex].m_TileSet.end(); ++itr)
-	{
-		++FoundTile;
-		if ((*itr)->m_Id == TileId)
-		{
-			break;
-		}
-	}
+	int FoundTile = FindTileIndex(TileSetIndex, TileId);
 	if (FoundTile < 0 || FoundTile == m_TileSets[TileSetIndex].m_TileSet.size())
 	{
 		std::cerr << "ERROR! Tile id(" << TileId << ") was not found in tileset." << std::endl;
