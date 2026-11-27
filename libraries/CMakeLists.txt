@@ -1,15 +1,5 @@
 cmake_minimum_required(VERSION 3.28.0)
 
-# set the project name and version
-project(Tilc VERSION 1.0)
-
-
-################################################
-# Include configuration settings
-################################################
-include(TilcConfigure.cmake)
-################################################
-
 ################################################
 ## Prefer Clang if present
 ################################################
@@ -24,6 +14,16 @@ else()
     message(STATUS "Clang not found, using default compiler")
 endif()
 ################################################
+################################################
+
+# set the project name and version
+project(Tilc VERSION 1.0)
+
+
+################################################
+# Include configuration settings
+################################################
+include(TilcConfigure.cmake)
 ################################################
 
 set(CMAKE_CXX_STANDARD 23)
