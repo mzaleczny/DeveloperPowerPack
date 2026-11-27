@@ -45,6 +45,22 @@ namespace Tilc::Game2D::Sprite
 		{
 			m_SpriteDestRect = Rect;
 		}
+		const SDL_FRect& GetSpriteSrcFRect() const
+		{
+			return m_SpriteSrcFRect;
+		}
+		void SetSpriteSrcFRect(const SDL_FRect& Rect)
+		{
+			m_SpriteSrcFRect = Rect;
+		}
+		const SDL_FRect& GetSpriteDestFRect() const
+		{
+			return m_SpriteDestFRect;
+		}
+		void SetSpriteDestFRect(const SDL_FRect& Rect)
+		{
+			m_SpriteDestFRect = Rect;
+		}
 		void SetDirection(EDirection Direction);
 		EDirection GetDirection() const
 		{
