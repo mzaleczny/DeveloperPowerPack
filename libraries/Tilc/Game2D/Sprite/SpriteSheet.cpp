@@ -17,7 +17,7 @@ Tilc::Game2D::Sprite::TSpriteSheet::TSpriteSheet()
 
 bool Tilc::Game2D::Sprite::TSpriteSheet::LoadSheet(const std::string& FileName)
 {
-	Tilc::TFile File((std::filesystem::current_path().string() + "/" + FileName).c_str());
+	Tilc::TFile File((Tilc::WorkingDirectory + "/data/" + FileName).c_str());
 	if (File.m_File.is_open())
 	{
 		ReleaseSheet(); // Release current sheet resources.
