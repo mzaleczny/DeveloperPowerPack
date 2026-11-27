@@ -9,11 +9,13 @@ Tilc::Game2D::Sprite::TPlayer::TPlayer()
 {
 	Load(Tilc::WorkingDirectory + "/data/Player.char");
 	m_Type = EEntityType::Player;
-	TEventManager* EventManager = GameObject->GetContext()->m_EventManager;
+	TEventManager* EventManager = Tilc::GameObject->GetContext()->m_EventManager;
 	if (EventManager)
 	{
 		EventManager->AddCallback<TPlayer>(EStateType::Game, "Player_MoveLeft", &TPlayer::InputHandler, this);
 		EventManager->AddCallback<TPlayer>(EStateType::Game, "Player_MoveRight", &TPlayer::InputHandler, this);
+		EventManager->AddCallback<TPlayer>(EStateType::Game, "Player_MoveUp", &TPlayer::InputHandler, this);
+		EventManager->AddCallback<TPlayer>(EStateType::Game, "Player_MoveDown", &TPlayer::InputHandler, this);
 		EventManager->AddCallback<TPlayer>(EStateType::Game, "Player_Jump", &TPlayer::InputHandler, this);
 		EventManager->AddCallback<TPlayer>(EStateType::Game, "Player_Attack", &TPlayer::InputHandler, this);
 	}
@@ -21,13 +23,15 @@ Tilc::Game2D::Sprite::TPlayer::TPlayer()
 
 Tilc::Game2D::Sprite::TPlayer::~TPlayer()
 {
-	TEventManager* EventManager = GameObject->GetContext()->m_EventManager;
+	TEventManager* EventManager = Tilc::GameObject->GetContext()->m_EventManager;
 	if (EventManager)
 	{
-		EventManager->RemoveCallback(EStateType::Game, "Player_MoveLeft");
-		EventManager->RemoveCallback(EStateType::Game, "Player_MoveRight");
-		EventManager->RemoveCallback(EStateType::Game, "Player_Jump");
 		EventManager->RemoveCallback(EStateType::Game, "Player_Attack");
+		EventManager->RemoveCallback(EStateType::Game, "Player_Jump");
+		EventManager->RemoveCallback(EStateType::Game, "Player_MoveDown");
+		EventManager->RemoveCallback(EStateType::Game, "Player_MoveUp");
+		EventManager->RemoveCallback(EStateType::Game, "Player_MoveRight");
+		EventManager->RemoveCallback(EStateType::Game, "Player_MoveLeft");
 	}
 }
 
